@@ -32,7 +32,7 @@ Commands
 
 Ingest data and write out HFiles, suitable for bulk loading into a cluster. Writing to offline HFiles instead
 of directly to a running cluster can reduce the load on your cluster, and avoid costly data compactions.
-See `Bulk Loading <http://hbase.apache.org/book.html#arch.bulk.load>`_ in the HBase documentation for more details
+See `Bulk Loading <https://hbase.apache.org/book.html#arch.bulk.load>`_ in the HBase documentation for more details
 on the general concept.
 
 A bulk ingest must be run as a map/reduce job. As such, ensure that your input files are staged in HDFS. Currently

@@ -3,7 +3,7 @@ Installing GeoMesa Kafka
 
 .. note::
 
-    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
+    GeoMesa currently supports Kafka |kafka_supported_versions|.
 
 .. note::
 
@@ -97,14 +97,14 @@ As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 to use GeoMesa Kafka as a data store in `GeoServer`_.
 GeoServer's web site includes `installation instructions for GeoServer`_.
 
-.. _installation instructions for GeoServer: http://docs.geoserver.org/stable/en/user/installation/index.html
+.. _installation instructions for GeoServer: https://docs.geoserver.org/stable/en/user/installation/index.html
 
 After GeoServer is running, you will also need to install the WPS plugin to
 your GeoServer instance. The GeoServer WPS Plugin must match the version of
 GeoServer instance. The GeoServer website includes instructions for downloading
 and installing `the WPS plugin`_.
 
-.. _the WPS plugin: http://docs.geoserver.org/stable/en/user/services/wps/install.html
+.. _the WPS plugin: https://docs.geoserver.org/stable/en/user/services/wps/install.html
 
 .. note::
 

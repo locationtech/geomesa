@@ -44,7 +44,7 @@ with GeoServer. To deploy them in GeoServer requires:
 The GeoMesa datastore plugin is available in the binary distribution in the gs-plugins directory.
 
 Documentation about the GeoServer WPS Extension (including download
-instructions) is available `here <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`__.
+instructions) is available `here <https://docs.geoserver.org/stable/en/user/services/wps/install.html>`__.
 
 To verify the install, start GeoServer, and you should see a line like
 ``INFO [geoserver.wps] - Found 15 bindable processes in GeoMesa Process Factory``.
@@ -445,7 +445,7 @@ TrackLabel example (XML)
 TubeSelectProcess
 ^^^^^^^^^^^^^^^^^
 
-The ``TubeSelectProcess`` performs a tube select on a Geomesa feature collection based on another feature collection. To get more informations on ``TubeSelectProcess`` and how to use it, you can read `this tutorial <http://www.geomesa.org/documentation/tutorials/geomesa-tubeselect.html>`__. 
+The ``TubeSelectProcess`` performs a tube select on a Geomesa feature collection based on another feature collection. To get more informations on ``TubeSelectProcess`` and how to use it, you can read `this tutorial <https://www.geomesa.org/documentation/tutorials/geomesa-tubeselect.html>`__. 
 
 =================   ===========
 Parameters          Description
@@ -522,7 +522,7 @@ Query example (XML)
 """""""""""""""""""
 
 :download:`QueryProcess_wps.xml </user/_static/process/QueryProcess_wps.xml>` is a geoserver WPS call to the GeoMesa QueryProcess that performs the same query shown
-in the `Accumulo-quickstart <http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html>`_. It can be run with the following curl call:
+in the `Accumulo-quickstart <https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html>`_. It can be run with the following curl call:
 
 .. code-block:: bash
 

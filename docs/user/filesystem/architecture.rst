@@ -34,7 +34,7 @@ cost efficient storage solution. Compared to HDFS, their price per GB of storage
 higher. They also have the ability to persist data after you turn off all your compute nodes.
 
 Any of the filesystems mentioned about are good choices for the FSDS. If you have more questions about making a choice
-contact the `GeoMesa team <http://www.geomesa.org/community/>`__
+contact the `GeoMesa team <https://www.geomesa.org/community/>`__
 
 Partition Schemes
 -----------------

@@ -25,7 +25,7 @@ to the classpath. See the
 for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
 the configuration file.
 
-More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
 
 .. _accumulo_parameters:
 

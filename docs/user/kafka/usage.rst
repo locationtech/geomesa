@@ -44,11 +44,11 @@ Parameter                            Type    Description
 ``kafka.catalog.topic``              String  The Kafka topic used to store schema metadata (when not using Zookeeper)
 ``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to namespace feature types (when using Zookeeper)
 ``kafka.producer.config``            String  Configuration options for kafka producer, in Java properties
-                                             format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
+                                             format. See `Producer Configs <https://kafka.apache.org/documentation.html#producerconfigs>`_
 ``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
                                              topic prior to startup
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
-                                             format. See `Consumer Configs <http://kafka.apache.org/documentation.html#consumerconfigs>`_
+                                             format. See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
                                              '1 hour'. Use 'Inf' to read all messages. If enabled, features will not be available for query until
                                              all existing messages are processed. However, feature listeners will still be invoked as normal.
@@ -86,4 +86,4 @@ Parameter                            Type    Description
 ==================================== ======= ====================================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide
-<http://docs.geotools.org/stable/userguide/>`__.
+<https://docs.geotools.org/stable/userguide/>`__.

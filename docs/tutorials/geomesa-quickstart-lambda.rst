@@ -21,7 +21,7 @@ does a few small things:
 Background
 ----------
 
-`Apache Kafka <http://kafka.apache.org/>`__ is "publish-subscribe
+`Apache Kafka <https://kafka.apache.org/>`__ is "publish-subscribe
 messaging rethought as a distributed commit log."
 
 In the context of GeoMesa, Kafka is a useful tool for working with
@@ -35,16 +35,16 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  a Kafka instance version |kafka_version|
+-  a Kafka |kafka_required_version| cluster
 -  an Accumulo |accumulo_required_version| instance
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa distributed runtime installed for your instance (see below)
 
 Ensure your Kafka and Zookeeper instances are running. You can use
-Kafka's `quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
+Kafka's `quickstart <https://kafka.apache.org/documentation.html#quickstart>`__
 to get Kafka/Zookeeper instances up and running quickly.
 
 Installing the GeoMesa Distributed Runtime

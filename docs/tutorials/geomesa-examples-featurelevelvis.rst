@@ -21,18 +21,15 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  an Accumulo |accumulo_required_version| instance
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa distributed runtime installed for your instance
 
 If you are not familiar with Accumulo authorizations, you should review
-the relevant Accumulo
-`documentation <http://accumulo.apache.org/1.7/accumulo_user_manual.html#_security>`__,
-with more examples
-`here <http://accumulo.apache.org/1.7/examples/visibility.html>`__.
+the relevant Accumulo `documentation <https://accumulo.apache.org/docs/2.x/security/overview>`__.
 
 About this Tutorial
 -------------------

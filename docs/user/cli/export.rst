@@ -101,7 +101,7 @@ a delimiter::
 
     --attribute id --attribute name --attribute "name_transform=strConcat(name, 'foo')"
 
-For a full list of transforms, see the GeoTools `documentation <http://docs.geotools.org/latest/userguide/library/main/function_list.html>`_.
+For a full list of transforms, see the GeoTools `documentation <https://docs.geotools.org/latest/userguide/library/main/function_list.html>`_.
 Note that not all functions work in transforms, however.
 
 The ``--output-format`` argument defines the encoding used for export. Currently, it can be one of:
@@ -111,7 +111,7 @@ The ``--output-format`` argument defines the encoding used for export. Currently
 * ``bin`` Custom minimal binary encoding
 * ``csv`` or ``tsv``
 * ``json``
-* ``gml`` or ``gml2`` `Geography Markup Language <http://www.opengeospatial.org/standards/gml>`_
+* ``gml`` or ``gml2`` `Geography Markup Language <https://www.opengeospatial.org/standards/gml>`_
 * ``html`` Export data to a Leaflet map and open in the default browser, if possible
 * ``orc`` Apache Orc files
 * ``parquet`` Apache Parquet files

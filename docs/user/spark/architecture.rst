@@ -36,4 +36,4 @@ See :doc:`/tutorials/spark` for a tutorial on analyzing data with GeoMesa Spark.
 
 .. _Apache Spark: https://spark.apache.org/
 
-.. _Jupyter: http://jupyter.org/
+.. _Jupyter: https://jupyter.org/

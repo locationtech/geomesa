@@ -1,7 +1,7 @@
 GeoNames
 ========
 
-This directory provides `GeoNames <http://www.geonames.org/>`__ GeoMesa
+This directory provides `GeoNames <https://www.geonames.org/>`__ GeoMesa
 ingest commands and converter configuration files.
 
 GeoNames is a geographical database containing over 10 million
@@ -23,7 +23,7 @@ The GeoNames data set can be downloaded using the provided
 providing a desired country code when prompted.
 
 Alternatively, GeoNames data can be downloaded from `GeoNames's
-Server <http://download.geonames.org/export/dump/>`__. Files are
+Server <https://download.geonames.org/export/dump/>`__. Files are
 downloaded in .zip format and need to be unzipped to a text document
 before being ready for use. The entire database can be ingested using
 ``allCountries.txt`` or a subset (such as ``cities15000.txt``) can be

@@ -23,7 +23,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
-| 4.0.0 and later   | 2.22.0            |
+| 4.0.0 and later   | 2.22.1            |
 +-------------------+-------------------+
 | 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
@@ -116,7 +116,7 @@ show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query data. You can
 find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <https://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 .. note::
 
@@ -126,12 +126,12 @@ tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.ht
    That tells GeoServer to display the records for the entire month of January 2014. GeoServer will add an implicit
    time filter if you do not specify one, which may cause unexpected results. This TIME parameter is distinct from the
    CQL_FILTER parameter and specifying a CQL time filter without the TIME parameter may create an empty intersection
-   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
+   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <https://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Analysis with WPS
 -----------------
 
-As described by the Open Geospatial Consortium's `Web Map Service <http://www.opengeospatial.org/standards/wms>`_ page,
+As described by the Open Geospatial Consortium's `Web Map Service <https://www.opengeospatial.org/standards/wms>`_ page,
 
     The OpenGIS® Web Map Service Interface Standard (WMS) provides a simple HTTP
     interface for requesting geo-registered map images from one or more
@@ -197,7 +197,7 @@ is printed out when you start GeoServer::
 It may also be helpful to refer to GeoServer's `Advanced log configuration`__ documentation for the
 specifics of how and where to manage the GeoServer logs.
 
-__ http://docs.geoserver.org/stable/en/user/configuration/logging.html
+__ https://docs.geoserver.org/stable/en/user/configuration/logging.html
 
 Auditing GeoMesa DataStores
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

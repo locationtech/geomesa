@@ -13,7 +13,7 @@ the GeoMesa code is on the classpath:
     parameters.put("fs.path", "hdfs://localhost:9000/fs-root/");
     org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
 
-More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
 
 .. _fsds_parameters:
 

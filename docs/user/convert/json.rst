@@ -15,11 +15,11 @@ For large documents, this may take considerable time and memory. Thus, it is usu
 smaller JSON documents per file, when possible.
 
 Since a single JSON document may contain multiple features, the JSON parser supports a
-`JSONPath <http://goessner.net/articles/JsonPath/>`__ expression pointing to each feature element. This can
+`JSONPath <https://goessner.net/articles/JsonPath/>`__ expression pointing to each feature element. This can
 be specified using the ``feature-path`` element.
 
 The ``fields`` element in a JSON converter supports two additional attributes, ``path`` and ``json-type``.
-``path`` should be a `JSONPath <http://goessner.net/articles/JsonPath/>`__ expression, which is relative to the
+``path`` should be a `JSONPath <https://goessner.net/articles/JsonPath/>`__ expression, which is relative to the
 ``feature-path``, if defined (above). For absolute paths, ``root-path`` may be used instead of ``path``.
 ``json-type`` should specify the type of JSON field being read. Valid values are: **string**, **float**, **double**,
 **integer**, **long**, **boolean**, **geometry**, **array** and **object**. The value will be appropriately typed,
@@ -95,7 +95,7 @@ See below for an example.
 jsonPath
 ~~~~~~~~
 
-This function will evaluate a `JSONPath <http://goessner.net/articles/JsonPath/>`__ expression against a
+This function will evaluate a `JSONPath <https://goessner.net/articles/JsonPath/>`__ expression against a
 given JSON element. Generally, it is better to use the ``path`` element of the ``fields`` element, but
 this method can be useful for composite predicates (see above). The first argument is the path to evaluate,
 and the second argument is the element to operate on.
