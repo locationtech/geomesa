@@ -46,7 +46,7 @@ First, set the version to use:
 Obtain GDELT data
 -----------------
 
-The `GDELT Event database <http://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
+The `GDELT Event database <https://www.gdeltproject.org>`__ provides a comprehensive time- and location-indexed
 archive of events reported in broadcast, print, and web news media worldwide from 1979 to today. GeoMesa ships
 with the ability to parse GDELT data, so it's a good data format for this tutorial. For more details,
 see :ref:`gdelt_converter`.

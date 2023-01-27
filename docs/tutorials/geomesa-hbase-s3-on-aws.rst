@@ -36,7 +36,7 @@ Creating an EMR Cluster (AWS CLI)
 This section is meant for advanced users. If you have bootstrapped a cluster via the Web Console you can skip this
 section and continue on to Installing GeoMesa. The instructions below were executed on an AWS EC2 machine running Amazon
 Linux. To set up the AWS command line tools, follow the instructions found in the AWS
-`online documentation <http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
+`online documentation <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html>`_.
 
 First, you will need to configure an S3 bucket for use by HBase. Make sure to replace ``<bucket-name>`` with your bucket
 name. You can also use a different root directory for HBase if you desire. If you're using the AWS CLI you can create a
@@ -168,7 +168,7 @@ Ingest Public GDELT data
 ------------------------
 
 GeoMesa ships with predefined data models for many open spatio-temporal data sets such as GDELT.  To ingest the most recent 7 days of `GDELT
-<http://www.gdeltproject.org>`_ from Amazon's public S3 bucket, one can copy the files locally to the cluster or use a distributed ingest:
+<https://www.gdeltproject.org>`_ from Amazon's public S3 bucket, one can copy the files locally to the cluster or use a distributed ingest:
 
 Local ingest:
 

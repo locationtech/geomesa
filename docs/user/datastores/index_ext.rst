@@ -2,10 +2,10 @@ Additional Index Implementations
 ================================
 
 GeoMesa supports additional index formats at runtime, using
-`Java service providers <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__. To add a new
+`Java service providers <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__. To add a new
 index, implement ``org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory`` and register your class under
 ``META-INF/services``, as described in the
-`Java documentation <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
+`Java documentation <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
 
 Once an index is registered, it can be enabled through the ``SimpleFeatureType`` user data, as described in
 :ref:`customizing_index_creation`.

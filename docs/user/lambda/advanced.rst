@@ -28,7 +28,7 @@ Typical streaming analytics will run in many concurrent threads, for example usi
 store achieves parallelism based on the ``lambda.kafka.partitions`` parameter. Generally you should start with this
 set to the number of writer threads being used, and adjust up or down as needed.
 
-.. _Apache Storm: http://storm.apache.org/
+.. _Apache Storm: https://storm.apache.org/
 
 
 Any data store instances used only for reads (e.g. GeoServer) should generally disable writing by setting the

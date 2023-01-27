@@ -31,7 +31,7 @@ Converting the pre-2015 Data
 ----------------------------
 
 GeoMesa does not currently support ESRI File Geodatabases (FileGDB), so an external tool is required to convert the data
-into a suitable format. ``ogr2ogr`` from `GDAL <http://www.gdal.org/>`__ can convert from FileGDB into Comma Separated
+into a suitable format. ``ogr2ogr`` from `GDAL <https://www.gdal.org/>`__ can convert from FileGDB into Comma Separated
 Value (CSV) format e.g.
 
 ::

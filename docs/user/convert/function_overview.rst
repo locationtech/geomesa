@@ -216,7 +216,7 @@ point into a polygon:
 
 For more information on the various CQL functions, see the GeoServer
 `filter function
-reference <http://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference>`__.
+reference <https://docs.geoserver.org/stable/en/user/filter/function_reference.html#filter-function-reference>`__.
 
 JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -112,7 +112,7 @@ Running Jupyter
 For public notebooks, you should `configure Jupyter`_ to use a password and bind to a public IP address (by default,
 Jupyter will only accept connections from ``localhost``). To run Jupyter with the GeoMesa Spark kernel:
 
-.. _configure Jupyter: http://jupyter-notebook.readthedocs.io/en/latest/public_server.html#running-a-notebook-server
+.. _configure Jupyter: https://docs.jupyter.org/en/latest/running.html
 
 .. code-block:: bash
 
@@ -282,9 +282,9 @@ Then use the ``withDataFrame`` method to plot data in a ``DataFrame``:
 .. _Apache Toree: https://toree.apache.org/
 .. _Docker: https://www.docker.com/
 .. _JupyterLab: https://jupyterlab.readthedocs.io/
-.. _Jupyter Notebook: http://jupyter.org/
-.. _Leaflet: http://leafletjs.com/
+.. _Jupyter Notebook: https://jupyter.org/
+.. _Leaflet: https://leafletjs.com/
 .. _Python: https://www.python.org/
-.. _SBT: http://www.scala-sbt.org/
-.. _Spark: http://spark.apache.org/
+.. _SBT: https://www.scala-sbt.org/
+.. _Spark: https://spark.apache.org/
 .. _Vegas: https://github.com/vegas-viz/Vegas

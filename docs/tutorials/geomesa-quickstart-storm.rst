@@ -19,7 +19,7 @@ You will need access to:
 
 -  an instance of Accumulo |accumulo_required_version|,
 -  an Accumulo user with create-table and write permissions,
--  an installation of Kafka |kafka_version|,
+-  a Kafka |kafka_required_version| cluster,
 -  an installation of Storm 0.9+, and
 -  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin.
    installed
@@ -28,11 +28,10 @@ In order to install the GeoMesa Accumulo GeoServer plugin, see :ref:`install_acc
 
 You will also need:
 
--  The `xz <http://tukaani.org/xz/>`__ data compression tool,
--  `Java JDK
-   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org>`__ |maven_version|, and
--  a `git <http://git-scm.com/>`__ client.
+-  The `xz <https://tukaani.org/xz/>`__ data compression tool,
+-  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Apache Maven <https://maven.apache.org>`__ |maven_version|, and
+-  a `git <https://git-scm.com/>`__ client.
 
 Download and Build the Tutorial
 -------------------------------
@@ -71,8 +70,8 @@ Obtaining OSM Data
 
 In this demonstration, we will use the ``simple-gps-points`` OSM data
 that contains only the location of an observation. Download the
-`OSM <http://planet.openstreetmap.org/>`__ data
-`here <http://planet.openstreetmap.org/gps/simple-gps-points-120312.txt.xz>`__.
+`OSM <https://planet.openstreetmap.org/>`__ data
+`here <https://planet.openstreetmap.org/gps/simple-gps-points-120312.txt.xz>`__.
 
 .. note::
 

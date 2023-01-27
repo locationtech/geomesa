@@ -10,15 +10,15 @@ polygon.
 Indexing Geo-Time Data
 ~~~~~~~~~~~~~~~~~~~~~~
 
-`Accumulo <http://accumulo.apache.org>`__ -- GeoMesa's primary backing
+`Accumulo <https://accumulo.apache.org>`__ -- GeoMesa's primary backing
 data store -- is a distributed, sorted key-value store in which the only
 system-level index is the lexicographical ordering of the keys.  
 Indexing geo-time data is a matter of finding a sensible way to flatten
 three dimensions of data -- longitude, latitude, and time -- into a
 single dimension: the list of Accumulo keys. The specific flattening
 is described by an index-schema format, a customizable `space-filling
-curve <http://en.wikipedia.org/wiki/Space-filling_curve>`__ that
-interleaves portions of the location's `Geohash <http://geohash.org>`__
+curve <https://en.wikipedia.org/wiki/Space-filling_curve>`__ that
+interleaves portions of the location's `Geohash <https://en.wikipedia.org/wiki/Geohash>`__
 with portions of the date-time string.  
 
 The following animation depicts a simple space-filling curve in which
@@ -143,7 +143,7 @@ If you remain interested, you might make a good contributor to GeoMesa.
 Please do! In the interim, here are some topics that provide additional
 background:
 
--  `Z-order curves <http://en.wikipedia.org/wiki/Z-order_curve>`__
--  `Hilbert curves <http://en.wikipedia.org/wiki/Hilbert_curve>`__
+-  `Z-order curves <https://en.wikipedia.org/wiki/Z-order_curve>`__
+-  `Hilbert curves <https://en.wikipedia.org/wiki/Hilbert_curve>`__
 -  The `SFCurve <https://github.com/locationtech/sfcurve>`__ project
 

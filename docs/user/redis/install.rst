@@ -3,7 +3,7 @@ Installing GeoMesa Redis
 
 .. note::
 
-    GeoMesa currently supports Redis version |redis_version|.
+    GeoMesa currently supports Redis |redis_supported_versions|.
 
 .. note::
 
@@ -81,7 +81,7 @@ If the classpath needs to be modified, ``geomesa-redis`` will pull additional en
 ``GEOMESA_EXTRA_CLASSPATHS`` environment variable, if it is defined.
 
 Note that the ``GEOMESA_EXTRA_CLASSPATHS`` variable follows standard
-`Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions, which
+`Java Classpath <https://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions, which
 generally means that entries must be directories, JAR, or zip files. Individual XML files will be ignored. For example,
 to add a ``core-site.xml`` file to the classpath you must either include a directory on the
 classpath or add the file to a zip or JAR archive to be included on the classpath.
