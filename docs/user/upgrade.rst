@@ -46,7 +46,7 @@ API Compatibility
 ^^^^^^^^^^^^^^^^^
 
 The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the GeoTools
-`DataStore <http://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
+`DataStore <https://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
 GeoMesa will clearly indicate which classes and methods are part of the public API. Non-public classes may change
 without warning between minor versions.
 
@@ -674,7 +674,7 @@ at parsing XML than the default Java implementation. Previously, Saxon was avail
 Kafka Data Store
 ----------------
 
-The Kafka Data Store has been rewritten into a single implementation for Kafka |kafka_version|. Support for
+The Kafka Data Store has been rewritten into a single implementation for all supported Kafka versions. Support for
 Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
 
 Accumulo Standardization

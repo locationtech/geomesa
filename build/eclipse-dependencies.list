@@ -242,7 +242,7 @@ org.ejml:ejml-ddense:0.41
 org.ejml:ejml-fsparse:0.41
 org.ejml:ejml-simple:0.41
 org.hdrhistogram:HdrHistogram:2.1.12
-org.hsqldb:hsqldb:2.4.1
+org.hsqldb:hsqldb:jdk8:2.7.1
 org.huldra.math:bigint:0.7.1
 org.jamon:jamon-runtime:2.4.1
 org.jetbrains:annotations:17.0.0
@@ -254,7 +254,6 @@ org.json4s:json4s-ast_2.12:3.6.12
 org.json4s:json4s-core_2.12:3.6.12
 org.json4s:json4s-native_2.12:3.6.12
 org.json4s:json4s-scalap_2.12:3.6.12
-org.json:json:20220320
 org.locationtech.jts.io:jts-io-common:1.19.0
 org.locationtech.jts:jts-core:1.19.0
 org.locationtech.spatial4j:spatial4j:0.8

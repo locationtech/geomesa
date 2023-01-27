@@ -46,4 +46,4 @@ Parameter                              Type    Description
 ====================================== ======= ====================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide
-<http://docs.geotools.org/stable/userguide/>`__.
+<https://docs.geotools.org/stable/userguide/>`__.

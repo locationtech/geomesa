@@ -1,7 +1,7 @@
 OpenStreetMap Data
 ==================
 
-`OpenStreetMap <http://wiki.openstreetmap.org/wiki/Main_Page>`__ is a free, editable map of the whole world that is
+`OpenStreetMap <https://wiki.openstreetmap.org/wiki/Main_Page>`__ is a free, editable map of the whole world that is
 being built by volunteers largely from scratch and released with an open-content license.
 
 Getting OSM data

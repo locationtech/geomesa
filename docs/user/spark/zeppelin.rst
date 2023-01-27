@@ -61,7 +61,7 @@ Zeppelin, the following implicit ``displayer`` method should be used:
 .. |zeppelin_version| replace:: 0.7.0
 
 .. _configuring the Zeppelin Spark interpreter: https://zeppelin.apache.org/docs/0.7.0/interpreter/spark.html
-.. _Spark: http://spark.apache.org/
+.. _Spark: https://spark.apache.org/
 .. _Vegas: https://github.com/vegas-viz/Vegas/
 .. _Zeppelin: https://zeppelin.apache.org/
 .. _Zeppelin installation instructions: https://zeppelin.apache.org/docs/0.7.0/install/install.html

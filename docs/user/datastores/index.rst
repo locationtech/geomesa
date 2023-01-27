@@ -45,4 +45,4 @@ Specific back-end implementations are described in the following chapters:
  * :doc:`/user/lambda/index`
 
 Additional information on using GeoTools can be found in the
-`GeoTools user guide <http://docs.geotools.org/stable/userguide/>`__.
+`GeoTools user guide <https://docs.geotools.org/stable/userguide/>`__.

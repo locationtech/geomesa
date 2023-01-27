@@ -45,16 +45,16 @@ uses. After completing the deployment tutorial, you should have:
 Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
--  a `git <http://git-scm.com/>`__ client.
+-  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
+-  a `git <https://git-scm.com/>`__ client.
 
 Using the GeoServer Plugin
 --------------------------
 
 Once everything is installed you should see "geomesa:TubeSelect" appear
 in the `WPS Request
-Builder <http://docs.geoserver.org/stable/en/user/services/wps/requestbuilder.html>`__,
+Builder <https://docs.geoserver.org/stable/en/user/services/wps/requestbuilder.html>`__,
 which is found under the *Demos* link in the menu bar on the left side
 of the GeoServer web administration interface.
 
@@ -79,7 +79,7 @@ repository. For more information see the `GeoMesa Accumulo Quick
 Start </geomesa-quickstart/>`__ tutorial. We'll be using Twitter data
 from the public Twitter API for this tutorial and ingesting it using a
 single node ingester that uses a
-`GeoTools <http://www.geotools.org/>`__-based ``FeatureSource`` to
+`GeoTools <https://www.geotools.org/>`__-based ``FeatureSource`` to
 ingest into GeoMesa. First, check out the code and take a look at it:
 
 .. code-block:: bash
@@ -101,7 +101,7 @@ Collecting Twitter Data
     It will take several hours to collect a large enough set of Twitter data for the analysis below.
 
 The **twitter-collect** module collects
-`Twitter <http://twitter.com/>`__ data in JSON format and writes it a
+`Twitter <https://twitter.com/>`__ data in JSON format and writes it a
 local file. To run the code, you will need a Twitter account, as well as
 access tokens. Go to the Twitter development app management console at
 https://apps.twitter.com/ and create a new application, then go to the
@@ -171,7 +171,7 @@ The JSON object returned from the tweets stream is documented on the
 site <https://dev.twitter.com/docs/platform-objects/tweets>`__. For this
 tutorial we'll be interested in the following fields:
 
--  ``coordinates``: a `geoJSON <http://geojson.org/>`__ object with
+-  ``coordinates``: a `geoJSON <https://geojson.org/>`__ object with
    lat/lon (do not use the deprecated ``geo`` field)
 -  ``user``: the user object
 -  ``id``: the user id
@@ -223,11 +223,11 @@ The Twitter JSON looks something like this:
         "friends_count" : 5,
         "follow_request_sent" : null,
         "profile_sidebar_fill_color" : "ffffff",
-        "profile_image_url" : "http://a1.twimg.com/profile_images/1540298033/phatkicks_normal.jpg",
+        "profile_image_url" : "https://a1.twimg.com/profile_images/1540298033/phatkicks_normal.jpg",
         "profile_background_image_url_https" : "https://si0.twimg.com/profile_background_images/365782739/doof.jpg",
         "profile_background_color" : "C0DEED",
         "notifications" : null,
-        "url" : "http://blog.roomanna.com",
+        "url" : "https://blog.roomanna.com",
         "id" : 370773112,
         "is_translator" : false,
         "following" : null,
@@ -249,7 +249,7 @@ The Twitter JSON looks something like this:
         "utc_offset" : -28800,
         "verified" : false,
         "show_all_inline_media" : false,
-        "profile_background_image_url" : "http://a3.twimg.com/profile_background_images/365782739/doof.jpg",
+        "profile_background_image_url" : "https://a3.twimg.com/profile_background_images/365782739/doof.jpg",
         "default_profile" : false,
         "protected" : false,
         "id_str" : "370773112",
@@ -293,7 +293,7 @@ Chaining Processes
 WPS supports chaining other WPS processes. This is useful when selecting
 data from an existing layer or storing data back into GeoServer to
 create a new layer. The GeoServer User Guide has a section on `Process
-Chaining <http://docs.geoserver.org/stable/en/user/services/wps/processes/chaining.html>`__.
+Chaining <https://docs.geoserver.org/stable/en/user/services/wps/processes/chaining.html>`__.
 
 Tube Selections
 ---------------
@@ -320,7 +320,7 @@ Using JSON as Input
 
 Instead of using a layer as input, you can manually define an input
 ``FeatureCollection`` track with JSON using
-`GeoJSON <http://geojson.org/>`__. The features need a unique **id**,
+`GeoJSON <https://geojson.org/>`__. The features need a unique **id**,
 a **geometry** object, and a property named **dtg** representing the
 observation time of the feature. A sample of two of our input track
 points is shown below:
@@ -371,7 +371,7 @@ After creating our tube query XML we can post it to GeoServer with
 
 .. code-block:: bash
 
-    $ curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'/tmp/query.xml' http://localhost:8081/geoserver/wps | json_pp
+    $ curl -u admin:geoserver -H 'Content-type: xml' -XPOST -d@'/tmp/query.xml' http://localhost:8080/geoserver/wps | json_pp
 
 In this request, the MIME type of the result variable is set to ``json``
 in our file ``query.xml``:
@@ -385,7 +385,7 @@ in our file ``query.xml``:
     </wps:ResponseForm>
 
 We piped the output into
-`json\_pp <http://search.cpan.org/~makamaka/JSON-PP-2.27103/bin/json_pp>`__,
+`json\_pp <https://search.cpan.org/~makamaka/JSON-PP-2.27103/bin/json_pp>`__,
 which will pretty print the output (native packages are available for
 most Linux distributions).
 
@@ -401,7 +401,7 @@ layers are **mapproxy:globe.osm.toner**, **accumulo:njtrack**, and
 
 .. code-block:: bash
 
-    http://localhost:8081/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=mapproxy:globe.osm.toner,accumulo:njtrack,accumulo:nj120&styles=&bbox=-75.62390877,39.65103897,-74.81563784,40.04023423&width=1440&height=960&srs=EPSG:4326&format=application/openlayers
+    http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=mapproxy:globe.osm.toner,accumulo:njtrack,accumulo:nj120&styles=&bbox=-75.62390877,39.65103897,-74.81563784,40.04023423&width=1440&height=960&srs=EPSG:4326&format=application/openlayers
 
 .. figure:: _static/img/tutorials/2014-05-16-geomesa-tubeselect/tube-25-120.png
    :alt: "Tube Result at 25m/s 120s"
@@ -425,7 +425,7 @@ like to account for that possibility. Once again, a chained
 
 .. code-block:: bash
 
-    http://localhost:8081/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=mapproxy:globe.osm.toner,accumulo:njtrack,accumulo:nj240&styles=&bbox=-75.62390877,39.65103897,-74.81563784,40.04023423&width=1440&height=960&srs=EPSG:4326&format=application/openlayers
+    http://localhost:8080/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=mapproxy:globe.osm.toner,accumulo:njtrack,accumulo:nj240&styles=&bbox=-75.62390877,39.65103897,-74.81563784,40.04023423&width=1440&height=960&srs=EPSG:4326&format=application/openlayers
 
 .. figure:: _static/img/tutorials/2014-05-16-geomesa-tubeselect/tube-25-240.png
    :alt: "Tube Result at 25m/s 240s"
@@ -448,7 +448,7 @@ Beyond Curl
 -----------
 
 WPS services can also be accessed by a variety of clients including
-`OpenLayers <http://openlayers.org/>`__, which has implemented a
+`OpenLayers <https://openlayers.org/>`__, which has implemented a
 `JavaScript WPS
-Builder <http://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/wps.html>`__
+Builder <https://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/wps.html>`__
 tutorial similar to the one built into GeoServer.

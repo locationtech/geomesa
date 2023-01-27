@@ -20,7 +20,7 @@ that the GeoMesa code is on the classpath:
     parameters.put("lambda.expiry", "10 minutes");
     org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
 
-More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
 
 .. _lambda_parameters:
 
@@ -44,9 +44,9 @@ Parameter                              Type    Description
                                                writer instances you plan to run
 ``lambda.kafka.consumers``             Integer Number of consumers used to load data into the in-memory cache
 ``lambda.kafka.producer.options``      String  Java-properties-formatted string that is passed directly to the Kafka producer.
-                                               See `Producer Configs <http://kafka.apache.org/090/documentation.html#producerconfigs>`_
+                                               See `Producer Configs <https://kafka.apache.org/documentation.html#producerconfigs>`_
 ``lambda.kafka.consumer.options``      String  Java-properties-formatted string that is passed directly to the Kafka consumer.
-                                               See `New Consumer Configs <http://kafka.apache.org/090/documentation.html#newconsumerconfigs>`_
+                                               See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``lambda.expiry *``                    String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
                                                Using ``Inf`` will cause the data store to not participate in persisting expired entries
 ``lambda.persist``                     Boolean Whether expired features should be persisted to Accumulo or just discarded

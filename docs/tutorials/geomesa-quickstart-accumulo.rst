@@ -24,8 +24,8 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  an Accumulo |accumulo_required_version| instance
 -  an Accumulo user that has both create-table and write permissions
@@ -319,7 +319,7 @@ Here are just a few simple ways you can play with the visualization:
    your filter criterion. This is a CQL filter, which can be constructed
    in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
-   tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
+   tutorial <https://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 Generating Heatmaps
 ~~~~~~~~~~~~~~~~~~~

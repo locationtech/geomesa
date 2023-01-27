@@ -67,4 +67,4 @@ Parameter                                    Type    Description
 Note: the ``hbase.coprocessor.*.enable`` parameters will be superseded by ``hbase.remote.filtering=false``.
 
 More information on using GeoTools can be found in the `GeoTools user guide
-<http://docs.geotools.org/stable/userguide/>`__.
+<https://docs.geotools.org/stable/userguide/>`__.

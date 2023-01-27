@@ -195,11 +195,11 @@ uses two UDFs--``st_contains`` and ``st_makeBBOX``--to find the rows in the ``ch
 
 A complete list of the implemented UDFs is given in the next section (:doc:`./sparksql_functions`).
 
-.. _classes representing geometry objects: http://docs.geotools.org/stable/userguide/library/jts/geometry.html
+.. _classes representing geometry objects: https://docs.geotools.org/stable/userguide/library/jts/geometry.html
 
-.. _OpenGIS Simple feature access common architecture: http://www.opengeospatial.org/standards/sfa
+.. _OpenGIS Simple feature access common architecture: https://www.opengeospatial.org/standards/sfa
 
-.. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
+.. _OpenGIS Simple feature access SQL option: https://www.opengeospatial.org/standards/sfs
 
 In-memory Indexing
 ^^^^^^^^^^^^^^^^^^
@@ -216,7 +216,7 @@ This can be done with the ``query`` option. For example, ``option("query", "dtg 
 GeoJSON Output
 ^^^^^^^^^^^^^^
 
-The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__
+The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <https://geojson.org/>`__
 string. This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON
 input such as Leaflet or Open Layers.
 
@@ -245,7 +245,7 @@ write to a distributed file system like HDFS.
 Using GeoMesa SparkSQL with Apache Sedona
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa SparkSQL can work seamlessly with `Apache Sedona <http://sedona.apache.org/>`_. You can enable this feature by adding
+GeoMesa SparkSQL can work seamlessly with `Apache Sedona <https://sedona.apache.org/>`_. You can enable this feature by adding
 Apache Sedona JAR to your classpath. For example, you can submit your Spark job with
 ``sedona-python-adapter-${spark-version}_${scala-version}-${sedona-version}.jar`` added to ``--jars`` option:
 
@@ -359,7 +359,7 @@ Here is an example start-up code for using Apache Sedona integration feature in 
    geomesa_pyspark.init_sql(spark)
    SedonaRegistrator.registerAll(spark)
 
-.. _ST_PointFromText:  http://sedona.apache.org/api/sql/Constructor/#st_pointfromtext
+.. _ST_PointFromText: https://sedona.apache.org/latest-snapshot/api/sql/Constructor/#st_pointfromtext
 
 
 .. _spatial_partitioning_and_faster_joins:
@@ -367,7 +367,7 @@ Here is an example start-up code for using Apache Sedona integration feature in 
 Spatial Partitioning and Faster Joins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. info::
+.. note::
 
    Apache Sedona is the recommended way to speed up joins. See :ref:`spark_sedona_integration` for details.
 

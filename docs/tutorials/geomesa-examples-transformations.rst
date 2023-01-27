@@ -19,7 +19,7 @@ Background
 ----------
 
 GeoMesa allows users to perform `relational
-projections <http://en.wikipedia.org/wiki/Projection_%28relational_algebra%29>`__
+projections <https://en.wikipedia.org/wiki/Projection_%28relational_algebra%29>`__
 on query results. Projection is an overloaded term; when we use it here,
 we refer to the relational sense. Although projections can also modify
 an attribute's value, in this tutorial we will refer to such modifications as
@@ -36,7 +36,7 @@ When possible, projections and transformations are applied in parallel across th
 thus making them very fast. They are analogous to the map tasks in a
 map-reduce job. Transformations are also extensible; developers can
 implement new functions and plug them into the system using standard
-mechanisms from `Geotools <http://www.geotools.org/>`__.
+mechanisms from `Geotools <https://www.geotools.org/>`__.
 
 Choice of Backing Storage
 -------------------------
@@ -50,8 +50,8 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  Completion of the GeoMesa quick start for your choice of back end
 
@@ -138,7 +138,7 @@ which is datastore agnostic. Some relevant methods:
    buffering it.
 
 Additional transformation functions are listed
-`here <http://docs.geotools.org/latest/userguide/library/main/filter.html>`__.
+`here <https://docs.geotools.org/latest/userguide/library/main/filter.html>`__.
 
 *Please note that currently not all functions are supported by GeoMesa.*
 

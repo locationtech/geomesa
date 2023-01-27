@@ -3,7 +3,7 @@
 Avro Converter
 ==============
 
-The Avro converter handles data written by `Apache Avro <http://avro.apache.org/>`__. To use the Avro converter,
+The Avro converter handles data written by `Apache Avro <https://avro.apache.org/>`__. To use the Avro converter,
 specify ``type = "avro"`` in your converter definition.
 
 Configuration
