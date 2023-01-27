@@ -24,5 +24,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: ./build/mvn clean install -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: License check
         run: mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash -Ddash.fail=true -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
