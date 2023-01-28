@@ -48,4 +48,5 @@ jobs:
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Remove GeoMesa artifacts
+        if: success() || failure()
         run: rm -rf $HOME/.m2/repository/org/locationtech/geomesa
