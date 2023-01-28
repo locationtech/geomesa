@@ -26,9 +26,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build with Maven
-        run: mvn clean install -T4 -DskipTests -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+        run: mvn clean install -B -T4 -DskipTests -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: License check
-        run: mvn org.eclipse.dash:license-tool-plugin:license-check -Pdash -Ddash.fail=true -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+        run: mvn -B org.eclipse.dash:license-tool-plugin:license-check -Pdash -Ddash.fail=true -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Remove GeoMesa artifacts
         if: success() || failure()
         run: rm -rf $HOME/.m2/repository/org/locationtech/geomesa

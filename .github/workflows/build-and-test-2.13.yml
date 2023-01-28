@@ -28,25 +28,25 @@ jobs:
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
-        run: ./build/mvn clean install -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+        run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test
-        run: mvn -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn -B -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
-        run: mvn -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn -B -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: HBase 1.4 unit tests
         id: hbase-test
-        run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn -B -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
         continue-on-error: true
       - name: HBase 1.4 unit tests (retry)
         id: hbase-test-retry
         if: steps.hbase-test.outcome=='failure'
-        run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn -B -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Integration Tests
-        run: mvn failsafe:integration-test failsafe:verify -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+        run: mvn -B failsafe:integration-test failsafe:verify -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
       - name: Remove GeoMesa artifacts
         if: success() || failure()
         run: rm -rf $HOME/.m2/repository/org/locationtech/geomesa
