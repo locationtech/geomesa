@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="http://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
+  <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
 
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
@@ -11,7 +11,7 @@ Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spar
 geospatial analytics.
 
 <p align="center">
-  <img align="center" height="150px" src="http://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
+  <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
 </p>
 
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
@@ -24,16 +24,16 @@ geospatial analytics.
 
 ## Documentation
 
-* [Main documentation](http://www.geomesa.org/documentation/)
-* [Upgrade Guide](http://www.geomesa.org/documentation/user/upgrade.html)
+* [Main documentation](https://www.geomesa.org/documentation/)
+* [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
-  [HBase](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
-  [Accumulo](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
-  [Cassandra](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
-  [Kafka](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
-  [Redis](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
-  [FileSystem](http://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
-* [Tutorials](http://www.geomesa.org/tutorials/)
+  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
+  [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+  [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
+  [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
+  [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
+  [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
+* [Tutorials](https://www.geomesa.org/tutorials/)
 
 ## Downloads
 
@@ -165,13 +165,16 @@ libraryDependencies ++= Seq(
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
-  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.11.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.11.yml?query=branch%3Amain)
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml?query=branch%3Amain)
 
 Requirements:
 
-* [Git](http://git-scm.com/)
-* [Java JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* [Apache Maven](http://maven.apache.org/) 3.6.3 or later
+* [Git](https://git-scm.com/)
+* [Java JDK 8](https://adoptium.net/temurin/releases/)
+* [Apache Maven](https://maven.apache.org/) 3.6 or later
+* [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
 Use Git to download the source code. Navigate to the destination directory, then run:
 
@@ -180,9 +183,11 @@ Use Git to download the source code. Navigate to the destination directory, then
 
 The project is built using Maven. To build, run:
 
-    mvn clean install
+    mvn clean install -DskipTests
 
-The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
+The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
+
+To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
 
 ### Build with Bloop Compile Server
 
