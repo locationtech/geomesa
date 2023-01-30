@@ -6,19 +6,19 @@
   <p>
     &copy; Copyright {{copyright}} <a href="https://www.ccri.com/">Commonwealth Computer Research, Inc.</a>
     <br/>
-    Licensed under the <a href="http://www.opensource.org/licenses/apache2.0.php">Apache License, Version 2.0</a>
+    Licensed under the <a href="https://www.opensource.org/licenses/apache2.0.php">Apache License, Version 2.0</a>
   </p>
 </div>
 
 <div role="contentinfo">
   <p>
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a>
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
     using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a>
     provided by <a href="https://readthedocs.org">Read the Docs</a>
-    {% if has_source and sourcename %}
-    - view <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow">page source</a>
-    {% endif %}
+    - contribute to this page on
+    <a href="https://github.com/locationtech/geomesa/edit/main/docs/{{ pagename }}{{ page_source_suffix }}">GitHub <img src="{{ pathto('_static/launch.svg', 1) }}"/></a>
   </p>
+
 </div>
 
 {% endblock %}

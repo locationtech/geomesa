@@ -24,8 +24,8 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  a Cassandra |cassandra_version| instance, either standalone or cluster
 -  a Cassandra user that has both create-table and write permissions
@@ -91,10 +91,10 @@ where you provide the following arguments:
 - ``<host:port>`` the hostname and port your Cassandra instance is
   running on. For Cassandra standalone this will be ``localhost:9042``. More
   information on how to find your connection is available
-  `here <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
+  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
 - ``<keyspace>`` keyspace your table will be put into. If you followed the instructions above,
   this will be ``geomesa``. More information on how to setup keyspaces is available
-  `here <http://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
+  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
 - ``<table>`` the name of the destination table that will
   accept these test records. This table should either not exist or
   should be empty
@@ -318,4 +318,4 @@ Here are just a few simple ways you can play with the visualization:
    your filter criterion. This is a CQL filter, which can be constructed
    in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
-   tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
+   tutorial <https://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.

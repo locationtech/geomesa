@@ -46,7 +46,7 @@ API Compatibility
 ^^^^^^^^^^^^^^^^^
 
 The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the GeoTools
-`DataStore <http://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
+`DataStore <https://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
 GeoMesa will clearly indicate which classes and methods are part of the public API. Non-public classes may change
 without warning between minor versions.
 
@@ -122,13 +122,12 @@ arguments). Additionally, the various ``DataStore`` methods, such as ``DataStore
 Dependency Version Upgrades
 ---------------------------
 
-The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
-see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a642913d157aef881b/revisions?diff=split>`__.
+The following high-level dependencies have been upgraded:
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
 * Apache Accumulo ``2.0.0`` -> ``2.0.1``
-* Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.5.2``
+* Apache HBase ``1.4.12`` -> ``1.4.14``, ``2.2.3`` -> ``2.5.2``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 * Apache Avro ``1.8.2`` -> ``1.11.1``
@@ -140,6 +139,9 @@ see the following `gist <https://gist.github.com/elahrvivaz/2c66ffbc126408a64291
 * Typesafe Config ``1.3.3`` -> ``1.4.2``
 * EJML ``0.34`` -> ``0.41``
 * Saxon ``9.7.0-20`` -> ``11.4``
+
+For a full changelist of all dependencies, see the diff
+`here <https://gist.github.com/elahrvivaz/e3e07d3e0b120d595519bb599e982cf0/revisions?diff=split>`__.
 
 Removal of Deprecated Modules
 -----------------------------
@@ -672,7 +674,7 @@ at parsing XML than the default Java implementation. Previously, Saxon was avail
 Kafka Data Store
 ----------------
 
-The Kafka Data Store has been rewritten into a single implementation for Kafka |kafka_version|. Support for
+The Kafka Data Store has been rewritten into a single implementation for all supported Kafka versions. Support for
 Kafka 0.8 has been removed. See :ref:`kafka_index` for more information.
 
 Accumulo Standardization

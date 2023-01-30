@@ -81,7 +81,7 @@ be used to mark the method that does the deregistration:
         // other cleanup
     }
 
-.. _FeatureEvent: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.html
-.. _FeatureEvent.Type: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.Type.html
-.. _FeatureListener: http://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureListener.html
-.. _SimpleFeatureSource: http://docs.geotools.org/stable/javadocs/org/geotools/data/simple/SimpleFeatureSource.html
+.. _FeatureEvent: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.html
+.. _FeatureEvent.Type: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.Type.html
+.. _FeatureListener: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureListener.html
+.. _SimpleFeatureSource: https://docs.geotools.org/stable/javadocs/org/geotools/data/simple/SimpleFeatureSource.html

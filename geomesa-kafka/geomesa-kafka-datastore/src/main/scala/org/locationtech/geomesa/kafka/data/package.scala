@@ -9,25 +9,10 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.clients.producer.Producer
-
-import java.io.Closeable
+import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 
 package object data {
 
-  class LazyProducer(create: => Producer[Array[Byte], Array[Byte]]) extends Closeable {
-
-    @volatile
-    private var initialized = false
-
-    lazy val producer: Producer[Array[Byte], Array[Byte]] = {
-      initialized = true
-      create
-    }
-
-    override def close(): Unit = {
-      if (initialized) {
-        producer.close()
-      }
-    }
-  }
+  class LazyProducer(create: => Producer[Array[Byte], Array[Byte]])
+      extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
 }

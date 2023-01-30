@@ -90,7 +90,7 @@ data frame.
 .. code-block:: python
 
     params = {
-        "accumulo.instance.id": "myInstance",
+        "accumulo.instance.name": "myInstance",
         "accumulo.zookeepers": "zoo1,zoo2,zoo3",
         "accumulo.user": "user",
         "accumulo.password": "password",
@@ -221,5 +221,5 @@ the GeoMesa Accumulo client and server side versions match, as described in :doc
 
 .. _pip: https://packaging.python.org/tutorials/installing-packages/
 .. _Python: https://www.python.org/
-.. _Spark: http://spark.apache.org/
+.. _Spark: https://spark.apache.org/
 .. _conda-pack: https://conda.github.io/conda-pack/

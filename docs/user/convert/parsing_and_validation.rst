@@ -44,7 +44,7 @@ Custom Validators
 Custom validators may be loaded through Java SPI by by implementing
 ``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory``, shown below. Note that validators
 must be registered through a special
-`service descriptor file <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
+`service descriptor file <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
 
 .. code-block:: scala
 
@@ -106,7 +106,7 @@ See the GeoMesa
 for a sample implementation.
 
 For more details on implementing a service provider, see the
-`Oracle Javadoc <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
+`Oracle Javadoc <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
 
 Error Mode
 ~~~~~~~~~~

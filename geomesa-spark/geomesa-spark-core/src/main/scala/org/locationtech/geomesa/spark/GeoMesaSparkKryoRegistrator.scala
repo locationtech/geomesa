@@ -10,6 +10,7 @@ package org.locationtech.geomesa.spark
 
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.serializer.KryoRegistrator
 import org.geotools.data.DataStore
@@ -25,11 +26,19 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
+import scala.util.Try
 import scala.util.hashing.MurmurHash3
 
-class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
+class GeoMesaSparkKryoRegistrator extends KryoRegistrator with LazyLogging {
 
   override def registerClasses(kryo: Kryo): Unit = {
+    registerSimpleFeatureClasses(kryo)
+    if (isUsingSedona) {
+      registerSedonaClasses(kryo)
+    }
+  }
+
+  def registerSimpleFeatureClasses(kryo: Kryo): Unit = {
     val serializer = new com.esotericsoftware.kryo.Serializer[SimpleFeature]() {
       val cache = new ConcurrentHashMap[Int, SimpleFeatureSerializer]()
 
@@ -56,6 +65,14 @@ class GeoMesaSparkKryoRegistrator extends KryoRegistrator {
     }
     kryo.setReferences(false)
     GeoMesaSparkKryoRegistrator.SimpleFeatureImpls.foreach(kryo.register(_, serializer, kryo.getNextRegistrationId))
+  }
+
+  def registerSedonaClasses(kryo: Kryo): Unit = {
+    val registratorClass = Try(Class.forName("org.apache.sedona.viz.core.Serde.SedonaVizKryoRegistrator")).getOrElse(
+      Class.forName("org.apache.sedona.core.serde.SedonaKryoRegistrator"))
+    logger.debug(s"found sedona kryo registrator class ${registratorClass.getCanonicalName}")
+    val sedonaRegistrator = registratorClass.newInstance().asInstanceOf[KryoRegistrator]
+    sedonaRegistrator.registerClasses(kryo)
   }
 }
 

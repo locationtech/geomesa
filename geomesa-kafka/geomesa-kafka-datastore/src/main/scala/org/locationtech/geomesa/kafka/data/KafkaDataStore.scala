@@ -323,7 +323,7 @@ class KafkaDataStore(
     val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
 
     if (transaction == null || transaction == Transaction.AUTO_COMMIT) {
-      val producer = if (useDefaultPartitioning) { defaultProducer.producer } else { partitionedProducer.producer }
+      val producer = if (useDefaultPartitioning) { defaultProducer.instance } else { partitionedProducer.instance }
       return AutoCommitProducer(producer)
     }
 

@@ -19,7 +19,7 @@ import org.locationtech.jts.geom.Geometry
  * Catalyst AST expression used during rule rewriting to extract geometry literal values
  * from Catalyst memory and keep a copy in JVM heap space for subsequent use in rule evaluation.
  */
-case class GeometryLiteral(repr: InternalRow, geom: Geometry) extends LeafExpression  with CodegenFallback {
+case class GeometryLiteral(repr: Any, geom: Geometry) extends LeafExpression  with CodegenFallback {
 
   override def foldable: Boolean = true
 

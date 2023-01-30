@@ -152,11 +152,11 @@ Example usage is as follows:
 
 A complete list of the implemented UDFs is given in the next section (:doc:`./sparksql_functions`).
 
-.. _classes representing geometry objects: http://docs.geotools.org/stable/userguide/library/jts/geometry.html
+.. _classes representing geometry objects: https://docs.geotools.org/stable/userguide/library/jts/geometry.html
 
-.. _OpenGIS Simple feature access common architecture: http://www.opengeospatial.org/standards/sfa
+.. _OpenGIS Simple feature access common architecture: https://www.opengeospatial.org/standards/sfa
 
-.. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
+.. _OpenGIS Simple feature access SQL option: https://www.opengeospatial.org/standards/sfs
 
 .. code::
 

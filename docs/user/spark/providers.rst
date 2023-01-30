@@ -33,11 +33,11 @@ from the ``geomesa`` Accumulo table:
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(
-      "accumulo.instance.id" -> "mycloud",
-      "accumulo.user"        -> "user",
-      "accumulo.password"    -> "password",
-      "accumulo.zookeepers"  -> "zoo1,zoo2,zoo3",
-      "accumulo.catalog"     -> "geomesa")
+      "accumulo.instance.name" -> "mycloud",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "password",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.catalog"       -> "geomesa")
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
@@ -193,7 +193,7 @@ GeoMesa Spark, do the following:
     val query = new Query("locations")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
-.. _Postgis DataStore: http://docs.geotools.org/stable/userguide/library/jdbc/postgis.html
+.. _Postgis DataStore: https://docs.geotools.org/stable/userguide/library/jdbc/postgis.html
 
 The name of the feature type to access in the data store is passed as the type name of the
 query passed to the ``rdd()`` method. In the example above, this is "locations".

@@ -26,13 +26,13 @@ If an application already uses GeoServer, integration with GeoMesa is simply a m
 Integration with GeoMesa
 ------------------------
 
-GeoMesa implements `GeoTools <http://geotools.org/>`_ interfaces to provide programmatic access, and HTTP access to
+GeoMesa implements `GeoTools <https://geotools.org/>`_ interfaces to provide programmatic access, and HTTP access to
 the following Open Geospatial Consortium standards:
 
-* `Web Feature Service (WFS) <http://www.opengeospatial.org/standards/wfs>`_
-* `Web Mapping Service (WMS) <http://www.opengeospatial.org/standards/wms>`_
-* `Web Processing Service (WPS) <http://www.opengeospatial.org/standards/wps>`_
-* `Web Coverage Service (WCS) <http://www.opengeospatial.org/standards/wcs>`_
+* `Web Feature Service (WFS) <https://www.opengeospatial.org/standards/wfs>`_
+* `Web Mapping Service (WMS) <https://www.opengeospatial.org/standards/wms>`_
+* `Web Processing Service (WPS) <https://www.opengeospatial.org/standards/wps>`_
+* `Web Coverage Service (WCS) <https://www.opengeospatial.org/standards/wcs>`_
 
 Multiple frameworks may be used for streaming and batch ingestion of data. These include the GeoMesa command line tools, map-reduce jobs with Apache Hadoop, and real-time topologies running on Apache Storm. The following diagram shows one possible ingest architecture:
 

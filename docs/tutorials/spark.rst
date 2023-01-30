@@ -3,15 +3,15 @@ GeoMesa Spark: Basic Analysis
 
 This tutorial will show you how to:
 
-1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__.
+1. Use GeoMesa with `Apache Spark <https://spark.apache.org/>`__.
 2. Write custom Scala code for GeoMesa to generate histograms and
-   spatial densities of `GDELT <http://www.gdeltproject.org/>`__ event
+   spatial densities of `GDELT <https://www.gdeltproject.org/>`__ event
    data.
 
 Background
 ----------
 
-`Apache Spark <http://spark.apache.org>`__ is a "fast and general engine
+`Apache Spark <https://spark.apache.org>`__ is a "fast and general engine
 for large-scale data processing". Spark presents an abstraction called a
 Resilient Distributed Dataset (RDD) that facilitates expressing
 transformations, filters, and aggregations, and efficiently executes the
@@ -39,11 +39,11 @@ Prerequisites
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ |spark_required_version| distribution
+-  a `Spark <https://spark.apache.org/>`__ |spark_required_version| distribution
 -  an Accumulo user that has appropriate permissions to query your data
--  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and
--  a `git <http://git-scm.com/>`__ client
+-  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
+-  a `git <https://git-scm.com/>`__ client
 
 
 The tutorial example below presumes that Spark is installed and configured, and
@@ -60,13 +60,13 @@ Clone the geomesa-tutorials project, and go into the ``geomesa-examples-spark`` 
 
 .. note::
 
-    The code in this tutorial is written in `Scala <http://scala-lang.org/>`__.
+    The code in this tutorial is written in `Scala <https://scala-lang.org/>`__.
 
 Count Events by Day of Year
 ---------------------------
 
 You will need to have ingested some
-`GDELT <http://www.gdeltproject.org/>`__ data into Accumulo with GeoMesa, as described in :doc:`geomesa-examples-gdelt` or :ref:`gdelt_converter`.
+`GDELT <https://www.gdeltproject.org/>`__ data into Accumulo with GeoMesa, as described in :doc:`geomesa-examples-gdelt` or :ref:`gdelt_converter`.
 
 The ``com.example.geomesa.spark.CountByDay`` class in the ``src/main/scala`` directory
 is a self-contained example that may be submitted to Spark as an example of analysis.
@@ -208,7 +208,7 @@ Parallel Computation of Spatial Event Densities
 
 In the second demonstration, we compute densities of our feature by
 discretizing the spatial domain and counting occurrences of the feature
-in each grid cell. We use `GeoHashes <http://geohash.org>`__ as our
+in each grid cell. We use `GeoHashes <https://en.wikipedia.org/wiki/Geohash>`__ as our
 discretization of the world so that we can configure the resolution of
 our density by setting the number of bits in the GeoHash.
 

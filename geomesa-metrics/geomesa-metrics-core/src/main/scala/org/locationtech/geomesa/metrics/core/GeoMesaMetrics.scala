@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -47,14 +46,14 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
    * @param supplier metric supplier
    * @return
    */
-  def gauge(typeName: String, id: String, supplier: MetricSupplier[Gauge[_]]): Gauge[_] = {
+  def gauge(typeName: String, id: String, metric: => Gauge[_]): Gauge[_] = {
     val ident = this.id(typeName, id)
     // note: don't use MetricRegistry#gauge(String, MetricSupplier<Gauge>) to support older
     // metric jars that ship with hbase
     def getOrCreate(): Gauge[_] = {
       registry.getMetrics.get(ident) match {
         case g: Gauge[_] => g
-        case null => registry.register(ident, supplier.newMetric())
+        case null => registry.register(ident, metric)
         case m =>
           throw new IllegalArgumentException(s"${m.getClass.getSimpleName} already registered under the name '$ident'")
       }

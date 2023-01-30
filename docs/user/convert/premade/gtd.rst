@@ -1,7 +1,7 @@
 Global Terrorism Database (GTD)
 ===============================
 
-This directory provides `GTD <http://www.start.umd.edu/gtd/>`__ GeoMesa
+This directory provides `GTD <https://www.start.umd.edu/gtd/>`__ GeoMesa
 ingest commands, converter configuration files, and an R script to
 prepare data from the spreadsheet in which it is distributed.
 
@@ -11,7 +11,7 @@ distribution is dated June 26, 2015. GTD data is updated annually.
 Getting GTD data
 ----------------
 
-Download the GTD from (http://www.start.umd.edu) via the contact link.
+Download the GTD from (https://www.start.umd.edu) via the contact link.
 You must fill out a web form. Select the zip file with all data and
 documents. Then ``unzip`` this in a convenient directory. This will
 result in a number of Excel (.xlsx) spreadsheets and PDF documents.
