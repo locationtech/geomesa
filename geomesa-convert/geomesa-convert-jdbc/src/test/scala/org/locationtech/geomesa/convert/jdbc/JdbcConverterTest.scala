@@ -46,7 +46,8 @@ class JdbcConverterTest extends Specification with BeforeAfterAll with LazyLoggi
 
   override def beforeAll(): Unit = {
     val image = DockerImageName.parse("postgres").withTag(sys.props.getOrElse("postgres.docker.tag", "15.1"))
-    container = new PostgreSQLContainer(image) // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
+    container = new PostgreSQLContainer(image)
+    // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
     container.withDatabaseName("postgres")
     container.withUsername("postgres")
     container.start()
