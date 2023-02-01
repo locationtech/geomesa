@@ -549,7 +549,7 @@ object JdbcMetadata extends LazyLogging {
           statement.executeUpdate(s"alter table $TableName add column $TypeCol char(1)")
           statement.executeUpdate(s"alter table $TableName add column $TimeCol bigint")
           statement.executeUpdate(s"update $TableName set $TypeCol = 'a', $TimeCol = 0")
-          statement.executeUpdate(s"alter table $TableName alter column $TypeCol char(1) not null")
+          statement.executeUpdate(s"alter table $TableName alter column $TypeCol set not null")
         }
         def addSortAndBounds(): Unit = {
           statement.executeUpdate(s"alter table $TableName add column $SortCol varchar(256)")
