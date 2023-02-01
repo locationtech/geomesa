@@ -1,4 +1,5 @@
-FROM postgis/postgis:15-3.3
+ARG FROM_TAG=15-3.3
+FROM postgis/postgis:${FROM_TAG}
 
 # install pg_cron
 RUN echo | sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh && \
