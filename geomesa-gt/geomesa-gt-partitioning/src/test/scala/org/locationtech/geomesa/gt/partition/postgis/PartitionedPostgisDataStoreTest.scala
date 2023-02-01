@@ -33,7 +33,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
-class PartitionedPostgisDataStoreIT extends Specification with LazyLogging {
+class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -85,6 +85,7 @@ class PartitionedPostgisDataStoreIT extends Specification with LazyLogging {
     val image =
       new ImageFromDockerfile("testcontainers/postgis_cron", false)
           .withFileFromClasspath(".", "testcontainers")
+          .withBuildArg("FROM_TAG", sys.props.getOrElse("postgis.docker.tag", "15-3.3"))
     container = new GenericContainer(image)
     container.addEnv("POSTGRES_HOST_AUTH_METHOD", "trust")
     container.addExposedPort(5432)

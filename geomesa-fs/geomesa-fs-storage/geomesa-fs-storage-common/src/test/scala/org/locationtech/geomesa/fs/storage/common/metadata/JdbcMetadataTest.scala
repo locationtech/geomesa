@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common.metadata
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -19,15 +20,17 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.AllExpectations
+import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.utility.DockerImageName
 
-import java.io.{File, FileOutputStream}
+import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
 @RunWith(classOf[JUnitRunner])
-class JdbcMetadataTest extends Specification with AllExpectations {
-
-  sequential
+class JdbcMetadataTest extends Specification with LazyLogging with BeforeAfterAll {
 
   import scala.collection.JavaConverters._
 
@@ -45,8 +48,26 @@ class JdbcMetadataTest extends Specification with AllExpectations {
   val Seq(f2, f3) = Seq("file2", "file3").map(StorageFile(_, 1L))
   val Seq(f5, f6) = Seq("file5", "file6").map(StorageFile(_, 2L))
 
+  var container: PostgreSQLContainer[_] = _
+
   // noinspection LanguageFeature
   implicit def toBounds(env: Envelope): Option[PartitionBounds] = PartitionBounds(env)
+
+  override def beforeAll(): Unit = {
+    val image = DockerImageName.parse("postgres").withTag(sys.props.getOrElse("postgres.docker.tag", "15.1"))
+    container = new PostgreSQLContainer(image)
+    // if we don't set the default db/name to postgres, the startup check fails as it restarts 3 times instead of the expected 2
+    container.withDatabaseName("postgres")
+    container.withUsername("postgres")
+    container.start()
+    container.followOutput(new Slf4jLogConsumer(logger.underlying))
+  }
+
+  override def afterAll(): Unit = {
+    if (container != null) {
+      container.stop()
+    }
+  }
 
   "JdbcMetadata" should {
     "not load an non-existing table" in {
@@ -187,19 +208,21 @@ class JdbcMetadataTest extends Specification with AllExpectations {
       }
     }
     "read old tables" in {
-      WithClose(getClass.getClassLoader.getResourceAsStream("jdbc/metadata.h2")) { db =>
+      WithClose(getClass.getClassLoader.getResourceAsStream("jdbc/old_meta.sql")) { db =>
         db must not(beNull)
 
         withPath { context =>
-          // copy the db file (with the old table format) into our root
-          WithClose(new FileOutputStream(new File(context.root.toString, "metadata.mv.db")))(IOUtils.copy(db, _))
-          // write out a metadata file pointing to the db data file
           val config = getConfig(context.root)
-          MetadataJson.writeMetadata(context, NamedOptions(factory.name, config))
-          // update the root col in the metadata table to point to our current root
           WithClose(JdbcMetadataFactory.createDataSource(config)) { source =>
-            Seq("storage_meta", "storage_partitions", "storage_partition_files").foreach { table =>
-              WithClose(source.getConnection()) { connection =>
+            WithClose(source.getConnection()) { connection =>
+              WithClose(connection.createStatement()) { statement =>
+                // splitting on ; may not be universally safe, but works for our script
+                IOUtils.toString(db, StandardCharsets.UTF_8).split(";").foreach { sql =>
+                  statement.execute(s"$sql;")
+                }
+              }
+              // update the root col in the metadata table to point to our current root
+              Seq("storage_meta", "storage_partitions", "storage_partition_files").foreach { table =>
                 WithClose(connection.prepareStatement(s"update $table set root = ?")) { ps =>
                   ps.setString(1, context.root.toUri.toString)
                   ps.executeUpdate()
@@ -207,6 +230,9 @@ class JdbcMetadataTest extends Specification with AllExpectations {
               }
             }
           }
+
+          // create the metadata.json file pointing to the table
+          MetadataJson.writeMetadata(context, NamedOptions(factory.name, config))
 
           val loaded = factory.load(context)
           loaded must beSome
@@ -231,6 +257,18 @@ class JdbcMetadataTest extends Specification with AllExpectations {
     }
   }
 
-  def getConfig(root: Path): Map[String, String] =
-    Map(JdbcMetadata.Config.UrlKey -> s"jdbc:h2:split:${new File(root.toString).getAbsolutePath}/metadata;CASE_INSENSITIVE_IDENTIFIERS=true")
+  def getConfig(root: Path): Map[String, String] = {
+    // the tmp dir is all numbers - change it to chars to make a valid, unique db name for each test
+    val db = new String(root.getName.replace("geomesa", "").toCharArray.map(c => 'a' + c.toInt).map(_.toChar))
+    WithClose(container.createConnection("")) { connection =>
+      WithClose(connection.createStatement()) { statement =>
+        statement.execute(s"create database $db")
+      }
+    }
+    Map(
+      JdbcMetadata.Config.UrlKey      -> container.getJdbcUrl.replace(s"/${container.getDatabaseName}", s"/$db"),
+      JdbcMetadata.Config.UserKey     -> container.getUsername,
+      JdbcMetadata.Config.PasswordKey -> container.getPassword,
+    )
+  }
 }
