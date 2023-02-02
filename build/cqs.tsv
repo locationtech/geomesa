@@ -163,10 +163,10 @@ org.apache.accumulo:accumulo-core	2.0.1	compile
 org.apache.accumulo:accumulo-core	2.1.0	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.0	compile
-org.apache.arrow:arrow-format	10.0.1	compile
-org.apache.arrow:arrow-memory-core	10.0.1	compile
-org.apache.arrow:arrow-memory-netty	10.0.1	compile
-org.apache.arrow:arrow-vector	10.0.1	compile
+org.apache.arrow:arrow-format	11.0.0	compile
+org.apache.arrow:arrow-memory-core	11.0.0	compile
+org.apache.arrow:arrow-memory-netty	11.0.0	compile
+org.apache.arrow:arrow-vector	11.0.0	compile
 org.apache.avro:avro	1.11.1	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.22	compile
@@ -350,7 +350,7 @@ io.confluent:kafka-schema-registry	tests:6.2.7	test
 junit:junit	4.13.1	test
 org.apache.accumulo:accumulo-minicluster	2.0.1	test
 org.apache.accumulo:accumulo-test	2.0.1	test
-org.apache.arrow:arrow-vector	tests:10.0.1	test
+org.apache.arrow:arrow-vector	tests:11.0.0	test
 org.apache.cassandra:cassandra-all	3.11.14	test
 org.apache.cassandra:cassandra-thrift	3.11.14	test
 org.apache.curator:curator-test	4.3.0	test
