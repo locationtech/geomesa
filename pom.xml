@@ -72,7 +72,7 @@
         <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.3 -->
         <kryo.version>4.0.2</kryo.version>
-        <arrow.version>10.0.1</arrow.version>
+        <arrow.version>11.0.0</arrow.version>
         <netty.version>4.1.85.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
