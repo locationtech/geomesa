@@ -1,5 +1,8 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -7,6 +10,7 @@ sphinx-rtd-theme==1.1.1
 docutils<0.18
 jinja2==3.1.2
 sphinx-copybutton==0.5.1
+<<<<<<< HEAD
 =======
 Sphinx==1.8.2
 sphinx-tabs==1.1.10
@@ -221,3 +225,5 @@ sphinx_rtd_theme
 sphinxcontrib-spelling
 pybtex
 >>>>>>> e771dc363a (typo fixes)
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
