@@ -46,12 +46,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 8b171d1b80 (Update README.md)
 =======
@@ -63,6 +66,7 @@
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -110,6 +114,10 @@
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -132,8 +140,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -189,6 +200,7 @@
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -249,6 +261,8 @@
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <p align="center">
   <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
@@ -5219,15 +5233,21 @@ geospatial analytics.
 </p>
 =======
 # PROJ
+=======
+<p align="center">
+  <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
+</p>
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
-[![Travis Status](https://travis-ci.com/OSGeo/PROJ.svg?branch=master)](https://travis-ci.com/OSGeo/PROJ)
-[![AppVeyor Status](https://ci.appveyor.com/api/projects/status/github/OSGeo/PROJ?branch=master&svg=true)](https://ci.appveyor.com/project/OSGeo/PROJ?branch=master)
-[![Docker build Status](https://img.shields.io/docker/cloud/build/osgeo/proj)](https://hub.docker.com/r/osgeo/proj/builds)
-[![Coveralls Status](https://coveralls.io/repos/github/OSGeo/PROJ/badge.svg?branch=master)](https://coveralls.io/github/OSGeo/PROJ?branch=master)
-[![Gitter](https://badges.gitter.im/OSGeo/proj.4.svg)](https://gitter.im/OSGeo/proj.4)
-[![Mailing List](https://img.shields.io/badge/PROJ-mailing%20list-4eb899.svg)](http://lists.osgeo.org/mailman/listinfo/proj)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
+computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
+Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
+stream processing of spatio-temporal data by layering spatial semantics on top of Apache Kafka. Through GeoServer,
+GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial
+Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
+geospatial analytics.
 
+<<<<<<< HEAD
 <!-- [![Cirrus Status](https://img.shields.io/cirrus/github/OSGeo/PROJ)](https://cirrus-ci.com/github/OSGeo/PROJ/master) -->
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 
@@ -6842,42 +6862,57 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12
 =======
 
 <!-- [![Cirrus Status](https://img.shields.io/cirrus/github/OSGeo/PROJ)](https://cirrus-ci.com/github/OSGeo/PROJ/master) -->
+=======
+<p align="center">
+  <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
+</p>
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5884394.svg)](https://doi.org/10.5281/zenodo.5884394)
+#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
 
-PROJ is a generic coordinate transformation software, that transforms
-coordinates from one coordinate reference system (CRS) to another.
-This includes cartographic projections as well as geodetic transformations.
+## Join the Community
 
-For more information on the PROJ project please see the web page at:
+* <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
+* GeoMesa [Users](https://accounts.eclipse.org/mailing-list/geomesa-users) and [Dev](https://accounts.eclipse.org/mailing-list/geomesa-dev) mailing lists
+* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
 
-https://proj.org/
+## Documentation
 
-The PROJ mailing list can be found at:
+* [Main documentation](https://www.geomesa.org/documentation/)
+* [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
+* Quick Starts:
+  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
+  [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+  [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
+  [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
+  [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
+  [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
+* [Tutorials](https://www.geomesa.org/tutorials/)
 
-https://lists.osgeo.org/mailman/listinfo/proj/
+## Downloads
 
-See the NEWS file for changes between versions.
+**Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
-The following command line utilities are included in the PROJ package:
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-hbase_2.12-3.5.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-accumulo_2.12-3.5.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-cassandra_2.12-3.5.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-kafka_2.12-3.5.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-redis_2.12-3.5.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
 
-- `proj`: for cartographic projection of geodetic coordinates.
-- `cs2cs`: for transformation from one CRS to another CRS.
-- `geod`: for geodesic (great circle) computations.
-- `cct`: for generic Coordinate Conversions and Transformations.
-- `gie`: the Geospatial Integrity Investigation Environment.
-- `projinfo`: for geodetic object and coordinate operation queries.
-- `projsync`: for synchronizing PROJ datum and transformation support data.
+### Verifying Downloads
 
-> More information on the utilities can be found on the [PROJ website](https://proj.org/apps).
+Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files). To verify a download using gpg,
+import the appropriate key:
 
-## Installation
+```bash
+$ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+```
 
-Consult the [Installation](https://proj.org/install.html) page of the official
-documentation.
-For builds on the master branch, [install.rst](https://github.com/OSGeo/PROJ/blob/master/docs/source/install.rst)
-might be more up-to-date.
+Then verify the file:
 
+<<<<<<< HEAD
 ## Distribution files and format
 >>>>>>> e771dc363 (typo fixes)
 
@@ -6986,29 +7021,24 @@ be changed to a different directory. On Windows you have to define
 =======
 ## Distribution files and format
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+```bash
+$ gpg2 --verify geomesa-accumulo_2.12-3.5.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.0-bin.tar.gz
+```
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
-Sources are distributed in one or more files.  The principle elements
-of the system are stored in a compressed tar file named `proj-x.y.z.tar.gz` where
-"x" will indicate the major release number, "y" indicates the minor release
-number, and "z" indicates the patch number of the release.
+The keys currently used for signing are:
 
-In addition to the PROJ software package, distributions of datum
-conversion grid files and PROJ parameter files are also available.
-The grid package is distributed under the name `proj-data-x.y.zip`,
-where "x" is the major release version and "y" is the minor release
-version numbers. The resource packages can be downloaded from the
-[PROJ website](https://proj.org/download.html).
+| Key ID | Name |
+| ------ | ---- |
+| `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
+| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
 
-More info on the contents of the proj-data package can be
-found at the
-[PROJ-data GitHub repository](https://github.com/OSGeo/PROJ-data).
+## Maven Integration
 
-The resource file packages should be extracted to `PROJ_LIB`
-where PROJ will find them after installation. The default location of
-`PROJ_LIB` on UNIX-based systems is `/usr/local/share/proj` but it may
-be changed to a different directory. On Windows you have to define
-`PROJ_LIB` yourself.
+[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
 
+<<<<<<< HEAD
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 As an alternative to installing the data package on the local system,
 the resource files can be retrieved on-the-fly from the
@@ -42044,8 +42074,11 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48ae38528d (typo fixes)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -44330,11 +44363,15 @@ See [CITATION](CITATION)
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 
@@ -48822,13 +48859,170 @@ See [CITATION](CITATION)
 >>>>>>> 7cd7fec2ba (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
+```xml
+<dependency>
+  <groupId>org.locationtech.geomesa</groupId>
+  <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+  <version>3.5.0</version>
+</dependency>
+```
 
-## Citing PROJ in publications
+GeoMesa depends on several third-party libraries that are only available in separate repositories. To include
+GeoMesa in your project, add the following repositories to your pom:
 
+<<<<<<< HEAD
 See [CITATION](CITATION)
 >>>>>>> e771dc363 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
 >>>>>>> 48ae38528d (typo fixes)
+<<<<<<< HEAD
 >>>>>>> 391159bddb (typo fixes)
+=======
+=======
+=======
+=======
+=======
+```xml
+<repositories>
+  <!-- geotools -->
+  <repository>
+    <id>osgeo</id>
+    <url>https://repo.osgeo.org/repository/release</url>
+  </repository>
+  <!-- confluent -->
+  <repository>
+    <id>confluent</id>
+    <url>https://packages.confluent.io/maven/</url>
+  </repository>
+</repositories>
+```
+
+### Nightly Snapshots
+
+Snapshot versions are published nightly to the Eclipse repository:
+
+```xml
+<repository>
+  <id>geomesa-snapshots</id>
+  <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots</url>
+  <releases>
+    <enabled>false</enabled>
+  </releases>
+  <snapshots>
+    <enabled>true</enabled>
+  </snapshots>
+</repository>
+```
+
+### Spark Runtimes
+
+GeoMesa publishes `spark-runtime` JARs for integration with Spark environments like Databricks. These
+shaded JARs include all the required dependencies in a single artifact. When importing through Maven, all
+transitive dependencies can be excluded. There are Spark runtime JARs available for most of the different
+DataStore implementations:
+
+```xml
+<dependency>
+  <groupId>org.locationtech.geomesa</groupId>
+  <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+  <version>3.5.0</version>
+  <exclusions>
+    <exclusion>
+      <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
+      <groupId>*</groupId>
+      <artifactId>*</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+```
+
+These JARs are also included in the [Downloads](#downloads) bundles, above.
+
+## `sbt` Integration
+
+Similarly, integration with `sbt` is straightforward:
+
+```scala
+// Add necessary resolvers
+resolvers ++= Seq(
+  "osgeo" at "https://repo.osgeo.org/repository/release",
+  "confluent" at "https://packages.confluent.io/maven"
+)
+
+// Select desired modules
+libraryDependencies ++= Seq(
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.0"
+)
+```
+
+## Building from Source
+
+**Development version: 4.0.0-SNAPSHOT**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml?query=branch%3Amain)
+
+Requirements:
+
+* [Git](https://git-scm.com/)
+* [Java JDK 8](https://adoptium.net/temurin/releases/)
+* [Apache Maven](https://maven.apache.org/) 3.6 or later
+* [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
+
+Use Git to download the source code. Navigate to the destination directory, then run:
+
+    git clone git@github.com:locationtech/geomesa.git
+    cd geomesa
+
+The project is built using Maven. To build, run:
+
+    mvn clean install -DskipTests
+
+The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
+
+To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+
+### Build with Bloop Compile Server
+
+GeoMesa also provides experimental support for the [Bloop](https://scalacenter.github.io/bloop/) compile server,
+which provides fast incremental compilation. To export the GeoMesa build to Bloop, run:
+
+    ./build/bloop-export.sh
+
+For more information on using Bloop, refer to the
+[Bloop documentation](https://scalacenter.github.io/bloop/docs/build-tools/maven).
+
+### Build with Zinc Compile Server
+
+GeoMesa also provides experimental support for the [Zinc](https://github.com/typesafehub/zinc) compile server,
+which provides fast incremental compilation. However, please note that Zinc is no longer actively maintained.
+To use an existing Zinc server, run maven with `-Pzinc`. GeoMesa provides a helper script at `build/mvn`, which
+is a wrapper around Maven that downloads and runs Zinc automatically:
+
+    build/mvn clean install -T8 -DskipTests
+
+If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
+environment variable to point to the root of your JDK. Example from a Mac:
+
+    JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
+
+### Scala Cross Build
+
+To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 22b940c204 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
