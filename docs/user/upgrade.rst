@@ -587,12 +587,15 @@ see TODO commit hash link on github
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -621,6 +624,7 @@ see TODO commit hash link on github
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -629,6 +633,8 @@ see TODO commit hash link on github
 =======
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.1``
