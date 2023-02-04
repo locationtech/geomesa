@@ -27658,10 +27658,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -27672,6 +27675,7 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -27690,6 +27694,8 @@
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <arrow.version>11.0.0</arrow.version>
 =======
         <arrow.version>10.0.1</arrow.version>
@@ -27713,17 +27719,24 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
@@ -27732,6 +27745,8 @@
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <arrow.version>11.0.0</arrow.version>
 =======
         <arrow.version>10.0.1</arrow.version>
@@ -27742,12 +27757,17 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -27757,6 +27777,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -27771,6 +27794,7 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -27794,6 +27818,8 @@
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <netty.version>4.1.85.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
@@ -28396,6 +28422,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -28404,6 +28431,10 @@
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
 >>>>>>> e289c9ae736 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
@@ -28427,6 +28458,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ed8699346b6 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 =======
@@ -28439,6 +28471,8 @@
 =======
 >>>>>>> 6c8aa65d06c (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
+>>>>>>> 1d7e4f9d071 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 931ffee4bdd (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -28446,11 +28480,16 @@
 =======
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28463,6 +28502,10 @@
 >>>>>>> cd346e96e66 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> f9f2c1298b6 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 1d7e4f9d071 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -28498,8 +28541,11 @@
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 931ffee4bdd (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+=======
+>>>>>>> 1d7e4f9d071 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -28553,7 +28599,12 @@
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+<<<<<<< HEAD
 >>>>>>> 6c8aa65d06c (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 1d7e4f9d071 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
@@ -51812,10 +51863,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -51824,6 +51879,8 @@
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -51846,6 +51903,7 @@
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
                 <scope>test</scope>
@@ -51905,6 +51963,8 @@
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -51921,6 +51981,8 @@
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -51929,6 +51991,8 @@
                 <version>${testcontainers.version}</version>
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -52145,6 +52209,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -52153,6 +52218,10 @@
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
 <<<<<<< HEAD
@@ -52168,12 +52237,17 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
@@ -52183,6 +52257,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -52208,6 +52285,7 @@
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -52243,6 +52321,8 @@
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>
