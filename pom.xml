@@ -1046,10 +1046,14 @@
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.3 -->
         <kryo.version>4.0.2</kryo.version>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <arrow.version>11.0.0</arrow.version>
 =======
         <arrow.version>10.0.1</arrow.version>
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+        <arrow.version>11.0.0</arrow.version>
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <netty.version>4.1.85.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
@@ -1227,9 +1231,17 @@
 >>>>>>> d2042eea397 (GEOMESA-3071 Move all converter state into evaluation context)
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
+<<<<<<< HEAD
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.confluent.docker.tag>7.6.0</test.confluent.docker.tag> <!-- confluent 7.6.x corresponds to kafka 3.6.x -->
+=======
+        <test.postgis.docker.tag>15-3.3</test.postgis.docker.tag>
+<<<<<<< HEAD
+        <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
+>>>>>>> e289c9ae736 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
@@ -4832,6 +4844,7 @@
                 <groupId>org.testcontainers</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${testcontainers.version}</version>
+<<<<<<< HEAD
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -4840,6 +4853,8 @@
                 <version>${testcontainers.version}</version>
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -5051,8 +5066,11 @@
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+<<<<<<< HEAD
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>

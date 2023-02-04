@@ -298,6 +298,7 @@ see TODO commit hash link on github
 * Apache HBase ``1.4.12`` -> ``1.4.14``, ``2.2.3`` -> ``2.5.2``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``11.0.0``
+<<<<<<< HEAD
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.2``
@@ -305,6 +306,8 @@ see TODO commit hash link on github
 * Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.4.4``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.1``

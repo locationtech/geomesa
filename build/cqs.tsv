@@ -320,11 +320,19 @@ org.apache.arrow:arrow-memory-netty	11.0.0	compile
 org.apache.arrow:arrow-vector	11.0.0	compile
 =======
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
+<<<<<<< HEAD
 org.apache.arrow:arrow-format	10.0.1	compile
 org.apache.arrow:arrow-memory-core	10.0.1	compile
 org.apache.arrow:arrow-memory-netty	10.0.1	compile
 org.apache.arrow:arrow-vector	10.0.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.0	compile
+org.apache.arrow:arrow-format	11.0.0	compile
+org.apache.arrow:arrow-memory-core	11.0.0	compile
+org.apache.arrow:arrow-memory-netty	11.0.0	compile
+org.apache.arrow:arrow-vector	11.0.0	compile
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 org.apache.avro:avro	1.11.1	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.22	compile
@@ -755,6 +763,9 @@ junit:junit	4.13.1	test
 org.apache.accumulo:accumulo-minicluster	2.0.1	test
 org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 org.apache.arrow:arrow-vector	tests:11.0.0	test
 >>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 2e299e67fda (GEOMESA-3198 Kafka streams integration (#2854))
@@ -856,11 +867,29 @@ org.mockito:mockito-all	1.8.5	test
 >>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
 org.mortbay.jetty:jetty	6.1.26	test
 org.slf4j:jul-to-slf4j	1.7.36	test
+<<<<<<< HEAD
 org.specs2:specs2-core_2.12	4.20.5	test
 org.specs2:specs2-junit_2.12	4.20.5	test
 org.specs2:specs2-mock_2.12	4.20.5	test
 org.testcontainers:kafka	1.19.7	test
 org.testcontainers:postgresql	1.19.7	test
 org.testcontainers:testcontainers	1.19.7	test
+=======
+org.specs2:specs2-core_2.12	4.9.2	test
+org.specs2:specs2-junit_2.12	4.9.2	test
+org.specs2:specs2-mock_2.12	4.9.2	test
+<<<<<<< HEAD
+org.testcontainers:kafka	1.19.3	test
+org.testcontainers:postgresql	1.19.3	test
+org.testcontainers:testcontainers	1.19.3	test
+=======
+<<<<<<< HEAD
+org.testcontainers:kafka	1.17.6	test
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+org.testcontainers:postgresql	1.17.6	test
+org.testcontainers:testcontainers	1.17.6	test
+>>>>>>> 2af509b068 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> e289c9ae736 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 org.wololo:jts2geojson	0.16.1	test
 org.xerial.snappy:snappy-java	1.1.10.5	test
