@@ -9,10 +9,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74dba80547 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -25,6 +28,7 @@
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 2341036672 (Fix docutils version for Sphinx docs build)
 =======
@@ -39,6 +43,8 @@
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -71,6 +77,9 @@ sphinx-copybutton==0.5.1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 21cbd8ebbf (Fix docutils version for Sphinx docs build)
 =======
@@ -418,6 +427,8 @@ pybtex
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+=======
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 <<<<<<< HEAD
 =======
@@ -1106,6 +1117,7 @@ sphinx_rtd_theme
 sphinxcontrib-spelling
 pybtex
 >>>>>>> e771dc363 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> e4a6fd6d75 (typo fixes)
 <<<<<<< HEAD
@@ -2052,6 +2064,18 @@ sphinx_rtd_theme
 sphinxcontrib-spelling
 pybtex
 >>>>>>> e771dc363 (typo fixes)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> 74eac2217b (typo fixes)
+=======
+=======
+=======
+=======
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
