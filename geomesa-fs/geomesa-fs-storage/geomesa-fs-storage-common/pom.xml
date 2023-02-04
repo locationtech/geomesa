@@ -12319,6 +12319,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -12348,6 +12349,10 @@
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
@@ -12366,6 +12371,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -12376,6 +12382,8 @@
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -12383,6 +12391,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -12426,6 +12435,10 @@
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
             <scope>test</scope>
         </dependency>
     </dependencies>
