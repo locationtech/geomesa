@@ -72,7 +72,7 @@
         <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.3 -->
         <kryo.version>4.0.2</kryo.version>
-        <arrow.version>10.0.1</arrow.version>
+        <arrow.version>11.0.0</arrow.version>
         <netty.version>4.1.85.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
@@ -99,6 +99,7 @@
 
         <specs2.version>4.9.2</specs2.version>
         <junit.version>4.13.1</junit.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
@@ -145,6 +146,9 @@
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
         <test.enable.assertions>false</test.enable.assertions>
+        <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
+        <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
+        <test.postgis.docker.tag>15-3.3</test.postgis.docker.tag>
 
         <!-- *** documentation *** -->
 
@@ -2772,7 +2776,13 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers</artifactId>
-                <version>1.17.6</version>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -2984,6 +2994,9 @@
                             <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
+                            <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
+                            <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
+                            <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>

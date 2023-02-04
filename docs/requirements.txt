@@ -1,6 +1,7 @@
-sphinx==4.5.0
-breathe
-sphinxcontrib-bibtex
-sphinx_rtd_theme
-sphinxcontrib-spelling
-pybtex
+Sphinx==4.5.0
+sphinx-tabs==3.3.1
+recommonmark==0.7.1
+sphinx-rtd-theme==1.1.1
+docutils<0.18
+jinja2==3.1.2
+sphinx-copybutton==0.5.1

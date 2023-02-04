@@ -77,7 +77,7 @@ rst_epilog = """
 
 .. _GeoServer: https://geoserver.org/
 
-.. |maven_version| replace:: 3.5 or later
+.. |maven_version| replace:: 3.6 or later
 
 .. |geoserver_version| replace:: %(geoserver_version)s
 
