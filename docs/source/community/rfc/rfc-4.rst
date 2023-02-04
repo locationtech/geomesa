@@ -610,7 +610,11 @@ Weak points:
   metadata <http://cfconventions.org/>`_
   but there is nothing really handy in them for simple georeferencing with
   the coordinate of the upper-left pixel and the resolution. The practice is
+<<<<<<< HEAD
   to write explicit long and lat variables with all values taken by the grid.
+=======
+  to write explicit lon and lat variables with all values taken by the grid.
+>>>>>>> locationtech-main
   GDAL has for many years supported a simpler syntax, using a GeoTransform
   attribute.
 

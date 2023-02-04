@@ -14,7 +14,10 @@ source:
   git_rev: ${GITHUB_SHA}
   url:
   sha256:
+<<<<<<< HEAD
   patches:
+=======
+>>>>>>> locationtech-main
 
 build:
   number: 2112

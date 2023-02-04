@@ -32,7 +32,11 @@ Named specializations
 ################################################################################
 
 The Equal Area Cylindrical projection is sometimes known under other names when
+<<<<<<< HEAD
 it is instantiated with particular values of the ``lat_ts`` parameter:
+=======
+it is instanciated with particular values of the ``lat_ts`` parameter:
+>>>>>>> locationtech-main
 
 +----------------------------------+------------+
 | **Name**                         | **lat_ts** |

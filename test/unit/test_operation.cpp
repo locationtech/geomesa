@@ -1455,7 +1455,11 @@ TEST(operation, tped_export) {
 // ---------------------------------------------------------------------------
 
 TEST(operation, tmg_export) {
+<<<<<<< HEAD
     auto conv = Conversion::createTunisiaMiningGrid(
+=======
+    auto conv = Conversion::createTunisiaMappingGrid(
+>>>>>>> locationtech-main
         PropertyMap(), Angle(1), Angle(2), Length(3), Length(4));
     EXPECT_TRUE(conv->validateParameters().empty());
 
@@ -1463,8 +1467,13 @@ TEST(operation, tmg_export) {
                  FormattingException);
 
     EXPECT_EQ(conv->exportToWKT(WKTFormatter::create().get()),
+<<<<<<< HEAD
               "CONVERSION[\"Tunisia Mining Grid\",\n"
               "    METHOD[\"Tunisia Mining Grid\",\n"
+=======
+              "CONVERSION[\"Tunisia Mapping Grid\",\n"
+              "    METHOD[\"Tunisia Mapping Grid\",\n"
+>>>>>>> locationtech-main
               "        ID[\"EPSG\",9816]],\n"
               "    PARAMETER[\"Latitude of false origin\",1,\n"
               "        ANGLEUNIT[\"degree\",0.0174532925199433],\n"
@@ -1482,7 +1491,11 @@ TEST(operation, tmg_export) {
     EXPECT_EQ(
         conv->exportToWKT(
             WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get()),
+<<<<<<< HEAD
         "PROJECTION[\"Tunisia_Mining_Grid\"],\n"
+=======
+        "PROJECTION[\"Tunisia_Mapping_Grid\"],\n"
+>>>>>>> locationtech-main
         "PARAMETER[\"latitude_of_origin\",1],\n"
         "PARAMETER[\"central_meridian\",2],\n"
         "PARAMETER[\"false_easting\",3],\n"

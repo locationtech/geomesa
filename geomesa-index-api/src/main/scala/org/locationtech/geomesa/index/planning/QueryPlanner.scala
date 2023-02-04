@@ -151,6 +151,19 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
           val qs = strategy.getQueryStrategy(hints, output)
           // query guard hook
           interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+          if (qs.values.isEmpty && qs.ranges.nonEmpty) {
+            qs.filter.secondary.foreach { f =>
+              logger.warn(
+                s"Running full table scan on ${qs.index.name} index for schema " +
+                  s"'${sft.getTypeName}' with filter: ${filterToString(f)}")
+            }
+          }
+>>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
           ds.adapter.createQueryPlan(qs)
         }
       }

@@ -69,7 +69,10 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
     //! @endcond
 
     PROJ_DLL const util::optional<std::string> &anchorDefinition() const;
+<<<<<<< HEAD
     PROJ_DLL const util::optional<common::Measure> &anchorEpoch() const;
+=======
+>>>>>>> locationtech-main
     PROJ_DLL const util::optional<common::DateTime> &publicationDate() const;
     PROJ_DLL const common::IdentifiedObjectPtr &conventionalRS() const;
 
@@ -92,8 +95,11 @@ class PROJ_GCC_DLL Datum : public common::ObjectUsage,
 
   protected:
     PROJ_INTERNAL void setAnchor(const util::optional<std::string> &anchor);
+<<<<<<< HEAD
     PROJ_INTERNAL void
     setAnchorEpoch(const util::optional<common::Measure> &anchorEpoch);
+=======
+>>>>>>> locationtech-main
 
     PROJ_INTERNAL void
     setProperties(const util::PropertyMap
@@ -417,12 +423,15 @@ class PROJ_GCC_DLL GeodeticReferenceFrame : public Datum {
            const util::optional<std::string> &anchor,
            const PrimeMeridianNNPtr &primeMeridian);
 
+<<<<<<< HEAD
     PROJ_DLL static GeodeticReferenceFrameNNPtr
     create(const util::PropertyMap &properties, const EllipsoidNNPtr &ellipsoid,
            const util::optional<std::string> &anchor,
            const util::optional<common::Measure> &anchorEpoch,
            const PrimeMeridianNNPtr &primeMeridian);
 
+=======
+>>>>>>> locationtech-main
     PROJ_DLL static const GeodeticReferenceFrameNNPtr
         EPSG_6267; // North American Datum 1927
     PROJ_DLL static const GeodeticReferenceFrameNNPtr
@@ -593,6 +602,7 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
            const util::optional<RealizationMethod> &realizationMethodIn =
                util::optional<RealizationMethod>());
 
+<<<<<<< HEAD
     PROJ_DLL static VerticalReferenceFrameNNPtr
     create(const util::PropertyMap &properties,
            const util::optional<std::string> &anchor,
@@ -600,6 +610,8 @@ class PROJ_GCC_DLL VerticalReferenceFrame : public Datum {
            const util::optional<RealizationMethod> &realizationMethodIn =
                util::optional<RealizationMethod>());
 
+=======
+>>>>>>> locationtech-main
     //! @cond Doxygen_Suppress
     PROJ_INTERNAL bool _isEquivalentTo(
         const util::IComparable *other,

@@ -33,7 +33,11 @@
 #error Must have C++11 or newer.
 #endif
 
+<<<<<<< HEAD
 // windows.h can conflict with Criterion::STRICT
+=======
+// windows.h can confict with Criterion::STRICT
+>>>>>>> locationtech-main
 #ifdef STRICT
 #undef STRICT
 #endif

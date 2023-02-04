@@ -7173,6 +7173,7 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
     EXPECT_FALSE(crs1->isEquivalentTo(crsDifferent.get(),
                                       IComparable::Criterion::EQUIVALENT));
 }
+<<<<<<< HEAD
 
 // ---------------------------------------------------------------------------
 
@@ -7218,3 +7219,5 @@ TEST(crs, is_dynamic) {
 
     EXPECT_FALSE(createCompoundCRS()->isDynamic());
 }
+=======
+>>>>>>> locationtech-main

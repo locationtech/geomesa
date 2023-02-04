@@ -129,7 +129,10 @@ add_executable(proj_test_cpp_api
   main.cpp
   test_util.cpp
   test_common.cpp
+<<<<<<< HEAD
   test_coordinates.cpp
+=======
+>>>>>>> locationtech-main
   test_crs.cpp
   test_metadata.cpp
   test_io.cpp
