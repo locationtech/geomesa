@@ -172,9 +172,12 @@ libraryDependencies ++= Seq(
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml?query=branch%3Amain)
+<<<<<<< HEAD
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 Requirements:
 
@@ -193,12 +196,18 @@ The project is built using Maven. To build, run:
     mvn clean install -DskipTests
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
 =======
 The full build takes quite a while. To speed it up, you may skip tests and use multiple threads.
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
+
+To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 ### Build with Bloop Compile Server
 
