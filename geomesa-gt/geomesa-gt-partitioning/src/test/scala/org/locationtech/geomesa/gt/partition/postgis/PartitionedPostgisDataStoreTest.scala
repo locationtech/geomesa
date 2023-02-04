@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -22,6 +23,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.geotools.data._
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -302,6 +305,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -399,6 +403,8 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.geotools.feature.simple.SimpleFeatureBuilder
 =======
 import org.geotools.data.postgis.PostGISPSDialect
@@ -480,14 +486,24 @@ import org.geotools.data.{DataStoreFinder, DefaultTransaction, Query, Transactio
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+import org.geotools.feature.simple.SimpleFeatureBuilder
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeInfo}
+<<<<<<< HEAD
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -498,8 +514,13 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -558,6 +579,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -575,11 +597,18 @@ import org.specs2.specification.BeforeAfterAll
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -613,6 +642,8 @@ import org.testcontainers.utility.DockerImageName
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -630,6 +661,7 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -662,6 +694,8 @@ import org.testcontainers.utility.DockerImageName
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -686,10 +720,13 @@ import java.sql.Connection
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 >>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import java.util.Collections
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -781,7 +818,14 @@ import scala.annotation.tailrec
 import scala.annotation.tailrec
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 >>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+import java.util.Collections
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -795,6 +839,7 @@ import scala.util.control.NonFatal
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -807,6 +852,10 @@ import scala.util.control.NonFatal
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
 =======
 class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
@@ -815,6 +864,9 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
@@ -826,6 +878,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -844,11 +897,16 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
   import scala.collection.JavaConverters._
 
   val hours = 1
   val spec =
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1016,6 +1074,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -1052,6 +1111,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> bc7d32cd32 (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 =======
     "name:List[String],age:Int,dtg:Date,*geom:Point:srid=4326;" +
@@ -1438,11 +1501,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
     "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -1675,6 +1742,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -1698,12 +1768,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -1715,6 +1788,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -1735,6 +1809,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
   val schema = "public"
 =======
   val methods =
@@ -1836,6 +1912,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
@@ -1848,6 +1927,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -1886,6 +1966,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> ec585da266 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
   lazy val sft = SimpleFeatureTypes.createType(s"test", spec)
 
@@ -1912,10 +1996,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
@@ -1930,6 +2018,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "host" -> host,
     "port" -> port,
 =======
@@ -1940,9 +2030,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -1957,6 +2050,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -1980,12 +2074,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "schema" -> schema,
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "database" -> "postgres",
     "user" -> "postgres",
     "passwd" -> "postgres",
     "Batch insert size" -> "10",
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2003,6 +2103,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> b47b4583aa (GEOMESA-3263 Docs for NiFi schema initialization)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
     "Commit size" -> "20",
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -2023,11 +2125,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
     "Commit size" -> "20",
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 843af3b23e (GEOMESA-3263 Docs for NiFi schema initialization)
 =======
@@ -2041,6 +2147,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> b47b4583aa (GEOMESA-3263 Docs for NiFi schema initialization)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "preparedStatements" -> "true"
   )
 
@@ -2055,14 +2163,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2081,12 +2193,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
 
   lazy val fif = CommonFactoryFinder.getFilterFactory
 
   override def beforeAll(): Unit = {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2103,6 +2220,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
   step {
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -2123,11 +2242,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 =======
   step {
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
@@ -2141,6 +2264,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     val image =
       DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
           .withTag(sys.props.getOrElse("postgis.docker.tag", "15-3.4"))
@@ -2160,14 +2285,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2186,6 +2315,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
   override def afterAll(): Unit = {
     if (container != null) {
       container.stop()
@@ -2355,6 +2488,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
@@ -2368,6 +2504,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> a9343b6734 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -2408,12 +2545,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> ec30c2a23d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2476,6 +2618,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 46cde254c1e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> e4140348078 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d7c9dd7a62a (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -2488,6 +2632,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
@@ -2516,10 +2662,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 03bab7b5955 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
 >>>>>>> e4140348078 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d7c9dd7a62a (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -2585,7 +2734,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e4140348078 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> d7c9dd7a62a (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         foreach(Seq("test", "test-dash")) { name =>
 >>>>>>> 7844c8d8dfd (GEOMESA-3254 Add Bloop build support)
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
@@ -4840,6 +4996,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         // verify that statements will timeout and return an error
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beTrue
@@ -4876,6 +5035,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
         def compWithFid(sf: SimpleFeature): Seq[Any] = Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -5070,6 +5230,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
         def compWithFid(sf: SimpleFeature): Seq[Any] = Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
           result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid))
@@ -5104,16 +5266,23 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             writer.remove()
           }
         }
+<<<<<<< HEAD
 >>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beFalse
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5133,6 +5302,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         ds.removeSchema(sft.getTypeName)
 =======
         if (methods.query) {
@@ -5228,6 +5399,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
         ds.removeSchema(sft.getTypeName)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -5339,6 +5511,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 75e1524a30 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
       } catch {
         case NonFatal(e) => logger.error("", e); ko
       } finally {
@@ -5351,6 +5525,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5634,6 +5811,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
   }
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
@@ -6339,6 +6517,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+
+  step {
+    if (container != null) {
+      container.stop()
+    }
+  }
+
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>
       WithClose(statement.executeQuery()) { rs =>
@@ -6346,6 +6535,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         rs.getInt(1)
       }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6393,12 +6583,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
 =======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 =======
 >>>>>>> 7542dc78d8 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+  }
+<<<<<<< HEAD
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
   case class Methods(
       create: Boolean,
@@ -6903,8 +7099,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -7178,5 +7377,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 }
