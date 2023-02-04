@@ -229,12 +229,15 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
@@ -243,6 +246,7 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
@@ -263,9 +267,15 @@ libraryDependencies ++= Seq(
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
+=======
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 Requirements:
 
@@ -294,12 +304,16 @@ The project is built using Maven. To build, run:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -319,6 +333,8 @@ The project is built using Maven. To build, run:
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
 To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
@@ -383,8 +399,19 @@ To run unit tests, omit the `-DskipTests` (note: requires `docker` to be availab
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
+
+To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 ### Build with Bloop Compile Server
 
