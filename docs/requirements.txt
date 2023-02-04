@@ -12,6 +12,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74dba80547 (Fix docutils version for Sphinx docs build)
 =======
@@ -51,6 +52,10 @@
 >>>>>>> 63479b7056 (Fix docutils version for Sphinx docs build)
 =======
 >>>>>>> bf1dfe8af6 (typo fixes)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -162,6 +167,7 @@ sphinx-copybutton==0.5.1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # pin some older versions that are compatible with sphinx 4.5
 sphinxcontrib-applehelp==1.0.3
 sphinxcontrib.devhelp==1.0.2
@@ -185,6 +191,10 @@ sphinxcontrib-qthelp==1.0.3
 =======
 =======
 >>>>>>> e7b04fcbd4d (Fix docutils version for Sphinx docs build)
+=======
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 9b73e1e63e2 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 <<<<<<< HEAD
 >>>>>>> 54786b31b9 (Fix docutils version for Sphinx docs build)
@@ -757,6 +767,7 @@ pybtex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 994ac8a4990 (typo fixes)
 =======
 =======
@@ -765,6 +776,8 @@ pybtex
 >>>>>>> 7b8d069a25d (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> d3f3c5f3b48 (typo fixes)
+=======
+>>>>>>> 9b73e1e63e2 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -3543,4 +3556,11 @@ sphinx-copybutton==0.5.0
 =======
 =======
 >>>>>>> bf1dfe8af6 (typo fixes)
+<<<<<<< HEAD
 >>>>>>> d3f3c5f3b48 (typo fixes)
+=======
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 9b73e1e63e2 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
