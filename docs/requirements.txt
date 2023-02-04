@@ -1,5 +1,8 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 Sphinx==4.5.0
 sphinx-tabs==3.3.1
 recommonmark==0.7.1
@@ -11,7 +14,11 @@ sphinx-copybutton==0.5.2
 =======
 sphinx-copybutton==0.5.1
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0e77024476c (Fix docutils version for Sphinx docs build)
+=======
+<<<<<<< HEAD
+>>>>>>> d64ecfbfb86 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 # pin some older versions that are compatible with sphinx 4.5
 sphinxcontrib-applehelp==1.0.3
 sphinxcontrib.devhelp==1.0.2
@@ -19,6 +26,8 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-serializinghtml==1.1.5
 sphinxcontrib-qthelp==1.0.3
 =======
+=======
+>>>>>>> 3bd45e95a3c (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 Sphinx==1.8.2
 sphinx-tabs==1.1.10
@@ -296,4 +305,9 @@ sphinx_rtd_theme
 sphinxcontrib-spelling
 pybtex
 >>>>>>> e771dc363a (typo fixes)
+<<<<<<< HEAD
 >>>>>>> 994ac8a4990 (typo fixes)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 3bd45e95a3c (GEOMESA-3246 Upgrade Arrow to 11.0.0)
