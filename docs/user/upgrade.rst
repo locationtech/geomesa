@@ -337,6 +337,7 @@ see TODO commit hash link on github
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 * Apache Avro ``1.8.2`` -> ``1.11.1``
@@ -344,6 +345,10 @@ see TODO commit hash link on github
 * Apache Orc ``1.5.4`` -> ``1.8.1``
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+=======
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.1``
