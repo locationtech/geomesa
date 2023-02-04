@@ -17,6 +17,7 @@ package org.locationtech.geomesa.redis.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -46,6 +47,10 @@ package org.locationtech.geomesa.redis.data
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -58,6 +63,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -65,10 +71,13 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
 import org.geotools.data.{DataStoreFinder, Query}
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -106,6 +115,8 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.data.{DataStoreFinder, Query}
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.utils.ExplainString
@@ -123,6 +134,7 @@ import org.testcontainers.utility.DockerImageName
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
@@ -151,12 +163,16 @@ import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
 import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 
-import java.nio.charset.StandardCharsets
-import java.util.Collections
+import java.util.{Collections, Date}
+import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreTest extends Specification with LazyLogging {
