@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
@@ -24,8 +23,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
-import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
+import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
@@ -41,7 +40,6 @@ import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
@@ -50,24 +48,14 @@ import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, Syn
 import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
-class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
+class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
-  sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
-
-  var kafka: EmbeddedKafka = _
-
-  step {
-    logger.info("Starting embedded kafka/zk")
-    kafka = new EmbeddedKafka()
-    logger.info("Started embedded kafka/zk")
-  }
-
   lazy val baseParams = Map(
 //    "kafka.serialization.type" -> "avro",
-    "kafka.brokers"            -> kafka.brokers,
+    "kafka.brokers"            -> brokers,
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
     "kafka.consumer.read-back" -> "Inf"
@@ -159,7 +147,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       foreach(Seq(true, false)) { zk =>
         TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
         val (producer, consumer, _) = try {
-          createStorePair(if (zk) { Map("kafka.zookeepers" -> kafka.zookeepers) } else { Map.empty[String, String] })
+          createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
         } finally {
           TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
@@ -179,7 +167,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
             schema.getUserData.get(KafkaDataStore.TopicKey) mustEqual topic
           }
 
-          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
+          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
           WithClose(AdminClient.create(props)) { admin =>
             admin.listTopics().names().get.asScala must contain(topic)
           }
@@ -201,7 +189,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     "write/update/read/delete features" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val params = if (cqEngine) {
-          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
         } else {
           Map.empty[String, String]
         }
@@ -270,7 +258,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           override def configure(params: java.util.Map[String, _]): Unit = {}
         }
         val params = if (cqEngine) {
-          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
         } else {
           Map.empty[String, String]
         }
@@ -415,7 +403,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           Map("kafka.cache.expiry" -> "100ms",
             "kafka.cache.executor" -> (executor, ticker),
             "kafka.index.cqengine" -> "geom:default,name:unique",
-            "kafka.zookeepers" -> kafka.zookeepers)
+            "kafka.zookeepers" -> zookeepers)
         } else {
           Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
         }
@@ -479,7 +467,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
             "kafka.cache.executor"       -> (executor, ticker)
           )
           if (cqEngine) {
-            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
+            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
           } else {
             base
           }
@@ -979,7 +967,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       val path = s"geomesa/migrate/test/${paths.getAndIncrement()}"
       val client = CuratorFrameworkFactory.builder()
           .namespace(path)
-          .connectString(kafka.zookeepers)
+          .connectString(zookeepers)
           .retryPolicy(new ExponentialBackoffRetry(1000, 3))
           .build()
       client.start()
@@ -988,7 +976,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         client.create.forPath("/test", s"$spec;geomesa.index.dtg=dtg".getBytes(StandardCharsets.UTF_8))
         client.create.forPath("/test/Topic", "test-topic".getBytes(StandardCharsets.UTF_8))
 
-        val ds = getStore(path, 0, Map("kafka.zookeepers" -> kafka.zookeepers))
+        val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
         try {
           ds.getTypeNames.toSeq mustEqual Seq("test")
           val sft = ds.getSchema("test")
@@ -1012,7 +1000,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         sft.getUserData.put("kafka.topic.config", "cleanup.policy=compact\nretention.ms=86400000")
         ds.createSchema(sft)
         val topic = KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
-        WithClose(KafkaZkClient(kafka.zookeepers, isSecure = false, 30000, 30000, Int.MaxValue, Time.SYSTEM)) { zkClient =>
+        WithClose(KafkaZkClient(zookeepers, isSecure = false, 30000, 30000, Int.MaxValue, Time.SYSTEM)) { zkClient =>
           val admin = new AdminZkClient(zkClient)
           val entity = ConfigEntity(Entity("topics", Some(topic)), None)
           val configs = entity.getAllEntities(zkClient).flatMap { e =>
@@ -1062,11 +1050,5 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         consumer.dispose()
       }
     }
-  }
-
-  step {
-    logger.info("Stopping embedded kafka/zk")
-    kafka.close()
-    logger.info("Stopped embedded kafka/zk")
   }
 }
