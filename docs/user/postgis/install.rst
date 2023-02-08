@@ -15,6 +15,7 @@ used. See `pg_cron <https://github.com/citusdata/pg_cron>`__ for details on inst
 Installing Partitioned PostGIS in GeoServer
 -------------------------------------------
 
+<<<<<<< HEAD
 .. warning::
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
@@ -27,6 +28,9 @@ Restart GeoServer after the JARs are installed.
 
 Note that the regular PostGIS data store can also be used instead, but some queries may be slower due to lack of
 optimization.
+=======
+The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 
 Upgrading Existing Schemas
 --------------------------
