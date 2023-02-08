@@ -8,10 +8,15 @@ Commands
 --------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. _postgis_partition_upgrade:
 
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+.. _postgis_partition_upgrade:
+
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 
