@@ -14,13 +14,14 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeInfo}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
@@ -69,8 +70,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   lazy val params = Map(
     "dbtype" -> PartitionedPostgisDataStoreParams.DbType.sample,
-    "host" -> container.getHost,
-    "port" -> container.getFirstMappedPort.toString,
+    "host" -> host,
+    "port" -> port,
     "schema" -> schema,
     "database" -> "postgres",
     "user" -> "postgres",
@@ -81,6 +82,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   )
 
   var container: GenericContainer[_] = _
+
+  lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
+  lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
 
   override def beforeAll(): Unit = {
     val image =
@@ -128,7 +132,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
-          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid))
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
         }
 
         // verify data is being partitioned as expected
@@ -150,7 +154,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         // ensure we still get same results after running partitioning
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
-          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid))
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
         }
 
         features.foreach { feature =>
@@ -220,6 +224,100 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.dispose()
       }
     }
+
+    "re-create functions" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "recreate")
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify data comes back
+        WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+          val result = SelfClosingIterator(reader).toList
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+        }
+
+        val typeInfo = TypeInfo(this.schema, sft)
+
+        // replace the age-off function so that we can verify it gets updated later
+        val oldAgeOff = DropAgedOffPartitions.name(typeInfo)
+        val body =
+          s"""    BEGIN
+             |      SELECT value::int FROM ${typeInfo.schema.quoted}.${UserDataTable.Name.quoted};
+             |    END;""".stripMargin
+        val sql =
+          s"""CREATE OR REPLACE PROCEDURE ${oldAgeOff.quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+             |  $$BODY$$
+             |$body
+             |  $$BODY$$;
+             |""".stripMargin
+
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.prepareStatement(sql))(_.executeUpdate())
+          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              rs.getString(1).trim mustEqual body.trim
+            }
+          }
+          // now drop the main view
+          WithClose(cx.prepareStatement(s"DROP VIEW ${sft.getTypeName}"))(_.executeUpdate())
+        }
+
+        // verify the feature type no longer returns
+        ds.getTypeNames
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        // re-create the schema, adding some extra user data
+        sft.getUserData.put("pg.partitions.max", "2")
+        // we have to get a new data store so that it doesn't use the cached entry...
+        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          ds.createSchema(sft)
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+
+          // verify data still comes back
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+          }
+        }
+
+        // verify that the age-off function was re-created
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              println(rs.getString(1))
+              rs.getString(1).trim must not(beEqualTo(body.trim))
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
   }
 
   def compFromDb(sf: SimpleFeature): Seq[Any] = {
@@ -231,8 +329,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
-  def compWithFid(sf: SimpleFeature): Seq[Any] =
-    Seq(s"${sf.getFeatureType.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
+  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType): Seq[Any] =
+    Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>
