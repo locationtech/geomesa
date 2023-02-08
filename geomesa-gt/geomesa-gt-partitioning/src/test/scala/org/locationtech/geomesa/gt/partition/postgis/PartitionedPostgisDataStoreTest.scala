@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.images.builder.ImageFromDockerfile
@@ -33,7 +34,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
-class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
+class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -81,7 +82,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 
   var container: GenericContainer[_] = _
 
-  step {
+  override def beforeAll(): Unit = {
     val image =
       new ImageFromDockerfile("testcontainers/postgis_cron", false)
           .withFileFromClasspath(".", "testcontainers")
@@ -93,6 +94,12 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
     container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
 
+  override def afterAll(): Unit = {
+    if (container != null) {
+      container.stop()
+    }
+  }
+
   "PartitionedPostgisDataStore" should {
     "work" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
@@ -101,7 +108,7 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        ds.getTypeNames must beEmpty
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
         ds.createSchema(sft)
 
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
@@ -118,14 +125,6 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
           }
           tx.commit()
         }
-
-        def compFromDb(sf: SimpleFeature): Seq[Any] = Seq(sf.getID) ++ sf.getAttributes.asScala.map {
-          // even though Timestamp extends Date, equals comparison doesn't work between the 2
-          case t: java.sql.Timestamp => new java.util.Date(t.getTime)
-          case a => a
-        }
-        // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
-        def compWithFid(sf: SimpleFeature): Seq[Any] = Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
@@ -174,13 +173,66 @@ class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
       }
       ok
     }
-  }
 
-  step {
-    if (container != null) {
-      container.stop()
+    "age-off" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "ageoff")
+        sft.getUserData.put("pg.partitions.max", "2")
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify data is being partitioned as expected
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val typeInfo = TypeInfo(this.schema, sft)
+          // initially everything is in the write ahead log
+          foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+          foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions)) { table =>
+            count(cx, table) mustEqual 0
+          }
+          // manually invoke the scheduled crons so we don't have to wait
+          WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+          // verify that data was aged off appropriately
+          count(cx, typeInfo.tables.view) mustEqual 7
+        }
+      } finally {
+        ds.dispose()
+      }
     }
   }
+
+  def compFromDb(sf: SimpleFeature): Seq[Any] = {
+    Seq(sf.getID) ++ sf.getAttributes.asScala.map {
+      // even though Timestamp extends Date, equals comparison doesn't work between the 2
+        case t: java.sql.Timestamp => new java.util.Date(t.getTime)
+        case a => a
+      }
+  }
+
+  // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
+  def compWithFid(sf: SimpleFeature): Seq[Any] =
+    Seq(s"${sf.getFeatureType.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>
