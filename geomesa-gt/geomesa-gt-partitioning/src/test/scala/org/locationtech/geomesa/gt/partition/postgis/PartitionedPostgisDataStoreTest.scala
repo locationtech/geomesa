@@ -213,8 +213,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // manually invoke the scheduled crons so we don't have to wait
           WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
           WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
-          // verify that data was aged off appropriately
-          count(cx, typeInfo.tables.view) mustEqual 7
+          // verify that data was aged off appropriately - exact age-off depends on time test was run
+          count(cx, typeInfo.tables.view) must beOneOf(6, 7)
         }
       } finally {
         ds.dispose()
