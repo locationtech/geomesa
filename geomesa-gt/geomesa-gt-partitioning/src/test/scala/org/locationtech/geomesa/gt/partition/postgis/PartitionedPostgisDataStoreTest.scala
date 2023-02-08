@@ -347,7 +347,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeInfo}
 <<<<<<< HEAD
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -360,6 +361,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -398,6 +400,8 @@ import org.specs2.runner.JUnitRunner
 =======
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -418,7 +422,16 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
@@ -570,6 +583,7 @@ import scala.util.control.NonFatal
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -578,10 +592,13 @@ import scala.util.control.NonFatal
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
 =======
 class PartitionedPostgisDataStoreTest extends Specification with LazyLogging {
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -606,6 +623,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 
   import scala.collection.JavaConverters._
 
@@ -1330,6 +1352,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -1342,6 +1365,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
     "host" -> host,
     "port" -> port,
 =======
@@ -1353,11 +1378,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
     "host" -> host,
     "port" -> port,
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -1377,6 +1406,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
     "schema" -> schema,
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
     "database" -> "postgres",
@@ -1435,6 +1466,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -1452,6 +1484,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
 
@@ -1464,15 +1500,19 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
   step {
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1497,6 +1537,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   step {
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
     val image =
       DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
           .withTag(sys.props.getOrElse("postgis.docker.tag", "15-3.4"))
@@ -1507,6 +1549,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1531,6 +1574,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
   override def afterAll(): Unit = {
     if (container != null) {
       container.stop()
@@ -1707,6 +1754,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
@@ -1740,6 +1788,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 427980bdc78 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5d5e9077ef0 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 65da3020383 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -1805,7 +1855,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 5d5e9077ef0 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> 65da3020383 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
         foreach(Seq("test", "test-dash")) { name =>
 >>>>>>> 7844c8d8dfd (GEOMESA-3254 Add Bloop build support)
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
@@ -1857,7 +1912,14 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
         }
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4563,6 +4625,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         // verify that statements will timeout and return an error
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beTrue
@@ -4622,9 +4685,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
         def compWithFid(sf: SimpleFeature): Seq[Any] = Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
 
+=======
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
-          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid))
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
         }
 
         // verify data is being partitioned as expected
@@ -4646,7 +4711,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         // ensure we still get same results after running partitioning
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           val result = SelfClosingIterator(reader).toList
-          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid))
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
         }
 
         features.foreach { feature =>
@@ -4700,19 +4765,170 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
       ok
     }
-  }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 <<<<<<< HEAD
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
   step {
     if (container != null) {
       container.stop()
+=======
+    "age-off" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "ageoff")
+        sft.getUserData.put("pg.partitions.max", "2")
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify data is being partitioned as expected
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val typeInfo = TypeInfo(this.schema, sft)
+          // initially everything is in the write ahead log
+          foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+          foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions)) { table =>
+            count(cx, table) mustEqual 0
+          }
+          // manually invoke the scheduled crons so we don't have to wait
+          WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+          // verify that data was aged off appropriately - exact age-off depends on time test was run
+          count(cx, typeInfo.tables.view) must beOneOf(6, 7)
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "re-create functions" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "recreate")
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify data comes back
+        WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+          val result = SelfClosingIterator(reader).toList
+          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+        }
+
+        val typeInfo = TypeInfo(this.schema, sft)
+
+        // replace the age-off function so that we can verify it gets updated later
+        val oldAgeOff = DropAgedOffPartitions.name(typeInfo)
+        val body =
+          s"""    BEGIN
+             |      SELECT value::int FROM ${typeInfo.schema.quoted}.${UserDataTable.Name.quoted};
+             |    END;""".stripMargin
+        val sql =
+          s"""CREATE OR REPLACE PROCEDURE ${oldAgeOff.quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+             |  $$BODY$$
+             |$body
+             |  $$BODY$$;
+             |""".stripMargin
+
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.prepareStatement(sql))(_.executeUpdate())
+          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              rs.getString(1).trim mustEqual body.trim
+            }
+          }
+          // now drop the main view
+          WithClose(cx.prepareStatement(s"DROP VIEW ${sft.getTypeName}"))(_.executeUpdate())
+        }
+
+        // verify the feature type no longer returns
+        ds.getTypeNames
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        // re-create the schema, adding some extra user data
+        sft.getUserData.put("pg.partitions.max", "2")
+        // we have to get a new data store so that it doesn't use the cached entry...
+        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          ds.createSchema(sft)
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+
+          // verify data still comes back
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+          }
+        }
+
+        // verify that the age-off function was re-created
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+            WithClose(st.executeQuery()) { rs =>
+              rs.next() must beTrue
+              println(rs.getString(1))
+              rs.getString(1).trim must not(beEqualTo(body.trim))
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+>>>>>>> 61951ec00 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -4720,6 +4936,23 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+  def compFromDb(sf: SimpleFeature): Seq[Any] = {
+    Seq(sf.getID) ++ sf.getAttributes.asScala.map {
+      // even though Timestamp extends Date, equals comparison doesn't work between the 2
+        case t: java.sql.Timestamp => new java.util.Date(t.getTime)
+        case a => a
+      }
+  }
+
+  // note: jdbc data store adds the type name into the fid, so we add it here for the comparison
+  def compWithFid(sf: SimpleFeature, sft: SimpleFeatureType): Seq[Any] =
+    Seq(s"${sft.getTypeName}.${sf.getID}") ++ sf.getAttributes.asScala
+
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
   def count(cx: Connection, table: TableConfig): Int = {
     WithClose(cx.prepareStatement(s"select count(*) from ${table.name.qualified};")) { statement =>
       WithClose(statement.executeQuery()) { rs =>
