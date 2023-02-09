@@ -8,6 +8,8 @@ additional details.
 Commands
 --------
 
+.. _postgis_partition_upgrade:
+
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 

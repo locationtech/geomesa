@@ -34,6 +34,7 @@ object DropAgedOffPartitions extends SqlProcedure {
        |    BEGIN
        |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |        WHERE key = ${literal(PartitionedPostgisDialect.Config.MaxPartitions)}
+       |          AND type_name = ${literal(info.typeName)}
        |        INTO num_partitions;
        |      IF FOUND THEN
        |        main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
