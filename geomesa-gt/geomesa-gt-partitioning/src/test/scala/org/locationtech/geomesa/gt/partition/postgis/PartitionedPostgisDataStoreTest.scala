@@ -168,14 +168,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beFalse
         }
-
-        ds.removeSchema(sft.getTypeName)
       } catch {
         case NonFatal(e) => logger.error("", e); ko
       } finally {
         ds.dispose()
       }
-      ok
     }
 
     "age-off" in {
@@ -309,7 +306,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
             WithClose(st.executeQuery()) { rs =>
               rs.next() must beTrue
-              println(rs.getString(1))
               rs.getString(1).trim must not(beEqualTo(body.trim))
             }
           }
