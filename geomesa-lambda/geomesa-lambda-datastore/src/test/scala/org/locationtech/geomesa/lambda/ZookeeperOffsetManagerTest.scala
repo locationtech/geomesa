@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.lambda
 
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
@@ -20,12 +21,22 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+=======
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager
+import org.specs2.runner.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
+class ZookeeperOffsetManagerTest extends LambdaContainerTest {
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with LazyLogging {
 
   private var container: GenericContainer[_] = _
 
+<<<<<<< HEAD
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(2181).toString
   lazy val zookeepers = s"$host:$port"
@@ -46,6 +57,8 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
     }
   }
 
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
   "ZookeeperOffsetManager" should {
     "store and retrieve offsets" in {
       val manager = new ZookeeperOffsetManager(zookeepers, "ZookeeperOffsetManagerTest")
