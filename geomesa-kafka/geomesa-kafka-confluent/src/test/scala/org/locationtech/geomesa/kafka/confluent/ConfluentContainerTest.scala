@@ -10,18 +10,26 @@ package org.locationtech.geomesa.kafka.confluent
 
 import io.confluent.kafka.schemaregistry.RestApp
 import org.apache.curator.test.InstanceSpec
-import org.locationtech.geomesa.kafka.EmbeddedKafka
+import org.locationtech.geomesa.kafka.KafkaContainerTest
 
-class EmbeddedConfluent extends EmbeddedKafka {
+class ConfluentContainerTest extends KafkaContainerTest {
 
-  private val schemaRegistryApp =
-    new RestApp(InstanceSpec.getRandomPort, zookeepers, brokers, "_schemas", "NONE", true, null)
-  schemaRegistryApp.start()
+  private var schemaRegistryApp: RestApp = _
 
-  val schemaRegistryUrl: String = schemaRegistryApp.restConnect
+  lazy val schemaRegistryUrl: String = schemaRegistryApp.restConnect
 
-  override def close(): Unit = {
-    try { schemaRegistryApp.stop() } catch { case _: Throwable => }
-    super.close()
+  override def beforeAll(): Unit = { super.beforeAll()
+    schemaRegistryApp = new RestApp(InstanceSpec.getRandomPort, zookeepers, brokers, "_schemas", "NONE", true, null)
+    schemaRegistryApp.start()
+  }
+
+  override def afterAll(): Unit = {
+    try {
+      if (schemaRegistryApp != null) {
+        schemaRegistryApp.stop()
+      }
+    } finally {
+      super.afterAll()
+    }
   }
 }

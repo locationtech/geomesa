@@ -8,24 +8,23 @@
 
 package org.locationtech.geomesa.kafka.streams
 
-import com.typesafe.scalalogging.StrictLogging
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{ByteArrayDeserializer, LongDeserializer, StringDeserializer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, LongDeserializer, StringDeserializer}
 import org.apache.kafka.streams
 import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
 import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
+import org.apache.kafka.streams.test.TestRecord
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.kafka.EmbeddedKafka
+import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
@@ -36,11 +35,11 @@ import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
+class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 
   import org.apache.kafka.streams.scala.ImplicitConversions._
-  import org.apache.kafka.streams.scala.Serdes._
   import org.apache.kafka.streams.scala.kstream._
+  import org.apache.kafka.streams.scala.serialization.Serdes._
 
   import scala.collection.JavaConverters._
 
@@ -51,21 +50,13 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
     ScalaSimpleFeature.create(sft, s"id$i", s"name$i", i % 2, s"2022-04-27T00:00:0$i.00Z", s"POINT(1 $i)")
   }
 
-  var kafka: EmbeddedKafka = _
-
-  step {
-    logger.info("Starting embedded kafka/zk")
-    kafka = new EmbeddedKafka()
-    logger.info("Started embedded kafka/zk")
-  }
-
   private val zkPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
   def getParams(zkPath: String): Map[String, String] = {
     require(zkPaths.add(zkPath), s"zk path '$zkPath' is reused between tests, may cause conflicts")
     Map(
-      "kafka.brokers"            -> kafka.brokers,
-      "kafka.zookeepers"         -> kafka.zookeepers,
+      "kafka.brokers"            -> brokers,
+      "kafka.zookeepers"         -> zookeepers,
       "kafka.topic.partitions"   -> "1",
       "kafka.topic.replication"  -> "1",
       "kafka.consumer.read-back" -> "Inf",
@@ -88,7 +79,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       // read off the features from kafka
       val messages: Seq[ConsumerRecord[Array[Byte], Array[Byte]]] = {
         val props = new Properties()
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
@@ -142,11 +133,12 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
 
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
       WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
-        messages.foreach(testDriver.pipeInput)
-        var out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
-        while (out != null) {
-          output += out.key() -> out.value()
-          out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
+        val inputTopic = testDriver.createInputTopic(kryoTopic, new ByteArraySerializer(), new ByteArraySerializer())
+        messages.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
+        val outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer())
+        while (!outputTopic.isEmpty) {
+          val rec = outputTopic.readRecord
+          output += rec.key() -> rec.value()
         }
       }
 
@@ -198,11 +190,12 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
 
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
       WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
-        testInput.foreach(testDriver.pipeInput)
-        var out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
-        while (out != null) {
-          kryoMessages += out
-          out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
+        val inputTopic = testDriver.createInputTopic("input-topic", new ByteArraySerializer(), new ByteArraySerializer())
+        testInput.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
+        val outputTopic = testDriver.createOutputTopic(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
+        while (!outputTopic.isEmpty) {
+          val rec = outputTopic.readRecord
+          kryoMessages += new ProducerRecord(kryoTopic, 0, rec.timestamp, rec.getKey, rec.getValue, rec.getHeaders)
         }
       }
 
@@ -219,12 +212,6 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
         }
       }
     }
-  }
-
-  step {
-    logger.info("Stopping embedded kafka/zk")
-    kafka.close()
-    logger.info("Stopped embedded kafka/zk")
   }
 
   class TimestampExtractingTransformer

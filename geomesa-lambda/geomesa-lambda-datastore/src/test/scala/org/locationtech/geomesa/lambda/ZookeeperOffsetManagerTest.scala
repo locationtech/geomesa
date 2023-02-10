@@ -8,20 +8,17 @@
 
 package org.locationtech.geomesa.lambda
 
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager
+import org.specs2.runner.JUnitRunner
 
-class ZookeeperOffsetManagerTest extends LambdaTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class ZookeeperOffsetManagerTest extends LambdaContainerTest {
 
   import scala.concurrent.duration._
 
   sequential
-
-  step {
-    logger.info("ZookeeperOffsetManagerTest starting")
-  }
 
   "ZookeeperOffsetManager" should {
     "store and retrieve offsets" in {
@@ -46,9 +43,5 @@ class ZookeeperOffsetManagerTest extends LambdaTest with LazyLogging {
       manager.setOffset("bar", 2, 1)
       eventually(40, 100.millis)(triggers.toMap must beEqualTo(Map(0 -> 2, 1 -> 0, 2 -> 1)))
     }
-  }
-
-  step {
-    logger.info("ZookeeperOffsetManagerTest complete")
   }
 }
