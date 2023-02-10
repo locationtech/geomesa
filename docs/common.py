@@ -66,10 +66,13 @@ project = 'GeoMesa'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9fd12482c7 (Fix copyright year in documentation)
 copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
 author = ''
 =======
@@ -90,12 +93,15 @@ from target.versions import release,version,release_version,scala_binary_version
 copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
 author = ''
 >>>>>>> 5fad1ab3ed (Fix copyright year in documentation)
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 9fd12482c7 (Fix copyright year in documentation)
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
