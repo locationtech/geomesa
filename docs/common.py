@@ -72,12 +72,16 @@ project = 'GeoMesa'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 6e7516e2b8 (Fix copyright year in documentation)
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 9fd12482c7 (Fix copyright year in documentation)
@@ -95,6 +99,10 @@ project = 'GeoMesa'
 >>>>>>> 27afb28ab6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 9fd12482c7 (Fix copyright year in documentation)
+>>>>>>> 6e7516e2b8 (Fix copyright year in documentation)
 copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
 author = ''
 =======
@@ -129,12 +137,16 @@ author = ''
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6e7516e2b8 (Fix copyright year in documentation)
 =======
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 9fd12482c7 (Fix copyright year in documentation)
@@ -155,6 +167,10 @@ author = ''
 >>>>>>> 27afb28ab6 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> ac217b392d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 9fd12482c7 (Fix copyright year in documentation)
+>>>>>>> 6e7516e2b8 (Fix copyright year in documentation)
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
