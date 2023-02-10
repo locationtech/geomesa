@@ -63,6 +63,7 @@ master_doc = 'index'
 project = 'GeoMesa'
 # note: shown in our custom footer
 <<<<<<< HEAD
+<<<<<<< HEAD
 copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
 author = ''
 =======
@@ -77,6 +78,10 @@ author = u''
 # by Maven. Do not hardcode current GeoMesa version numbers here!
 from target.versions import release,version,release_version,scala_binary_version
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
+author = ''
+>>>>>>> 5fad1ab3ed (Fix copyright year in documentation)
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
