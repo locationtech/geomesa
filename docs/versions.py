@@ -8,6 +8,8 @@ release = '${geomesa.release.version}'
 release_version = '${geomesa.release.version}'
 scala_binary_version = '${scala.binary.version}'
 
+copyright_year = '${copyright.year}'
+
 gt_version= '${gt.version}'
 geoserver_version= '${geoserver.version}'
 hbase_version_full = '${hbase.version}'
