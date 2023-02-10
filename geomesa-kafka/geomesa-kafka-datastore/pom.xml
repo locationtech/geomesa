@@ -1551,6 +1551,9 @@
             <artifactId>curator-test</artifactId>
         </dependency>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
@@ -1559,8 +1562,11 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
         </dependency>
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
     </dependencies>
 
     <build>
