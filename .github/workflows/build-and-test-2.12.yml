@@ -18,16 +18,43 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+=======
+<<<<<<< HEAD
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
+=======
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+>>>>>>> 7dc7bc5633c (Update github actions to latest versions)
         with:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
       - name: Build with Maven
+<<<<<<< HEAD
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
+=======
+        run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - name: Build with Maven
+        run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - name: Unit tests
+        id: test
+        run: mvn surefire:test -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+>>>>>>> ce7c87cd883 (Update github actions to latest versions)
+>>>>>>> 7dc7bc5633c (Update github actions to latest versions)
         continue-on-error: true
         run: |
           set -o pipefail
@@ -35,6 +62,7 @@ jobs:
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
+<<<<<<< HEAD
         continue-on-error: true
         run: |
           set -o pipefail
@@ -47,6 +75,37 @@ jobs:
           set -o pipefail
           RESUME_FROM="$(grep --text 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
+=======
+<<<<<<< HEAD
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+=======
+<<<<<<< HEAD
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
+      - name: HBase 1.4 unit tests
+        id: hbase-test
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+=======
+        run: mvn surefire:test -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: HBase 1.4 unit tests
+        id: hbase-test
+        run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+        continue-on-error: true
+      - name: HBase 1.4 unit tests (retry)
+        id: hbase-test-retry
+        if: steps.hbase-test.outcome=='failure'
+<<<<<<< HEAD
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+=======
+        run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+>>>>>>> ce7c87cd883 (Update github actions to latest versions)
+      - name: Integration Tests
+        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+>>>>>>> 7dc7bc5633c (Update github actions to latest versions)
       - name: Remove geomesa artifacts
+<<<<<<< HEAD
         if: success() || failure()
+=======
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
