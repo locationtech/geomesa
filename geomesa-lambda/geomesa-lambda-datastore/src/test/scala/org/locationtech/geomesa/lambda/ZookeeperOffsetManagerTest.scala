@@ -14,6 +14,7 @@ package org.locationtech.geomesa.lambda
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
@@ -22,6 +23,10 @@ package org.locationtech.geomesa.lambda
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
@@ -39,10 +44,13 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
+=======
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 =======
 import com.typesafe.scalalogging.LazyLogging
@@ -68,6 +76,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -124,6 +133,19 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
+=======
+=======
+=======
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
+import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager
+import org.specs2.runner.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
+class ZookeeperOffsetManagerTest extends LambdaContainerTest {
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with LazyLogging {
@@ -136,6 +158,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 =======
 
+<<<<<<< HEAD
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(2181).toString
   lazy val zookeepers = s"$host:$port"
@@ -158,6 +181,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(2181).toString
@@ -229,8 +253,11 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
+<<<<<<< HEAD
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
+=======
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
   "ZookeeperOffsetManager" should {
     "store and retrieve offsets" in {
