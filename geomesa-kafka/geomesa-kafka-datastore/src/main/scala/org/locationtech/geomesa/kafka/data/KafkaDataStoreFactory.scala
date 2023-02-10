@@ -92,8 +92,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private val LayerViewReader = ConfigReader.fromCursor(readLayerViewConfig)
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
-  val DefaultCatalog: String = "geomesa-catalog"
-  val DefaultZkPath: String = "geomesa/ds/kafka"
+  val DefaultCatalog: String = org.locationtech.geomesa.kafka.data.DefaultCatalog
+  val DefaultZkPath: String = org.locationtech.geomesa.kafka.data.DefaultZkPath
 
   override val DisplayName = "Kafka (GeoMesa)"
   override val Description = "Apache Kafka\u2122 distributed log"

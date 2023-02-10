@@ -13,6 +13,9 @@ import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 
 package object data {
 
+  val DefaultCatalog: String = "geomesa-catalog"
+  val DefaultZkPath: String = "geomesa/ds/kafka"
+
   class LazyProducer(create: => Producer[Array[Byte], Array[Byte]])
       extends LazyCloseable[Producer[Array[Byte], Array[Byte]]](create)
 }

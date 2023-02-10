@@ -8,31 +8,30 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.data.{DataUtilities, Query, Transaction}
 import org.geotools.util.factory.Hints
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.lambda.InMemoryOffsetManager
-import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.{LambdaTest, TestClock}
+import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
+import org.locationtech.geomesa.lambda.{InMemoryOffsetManager, LambdaContainerTest}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
+import org.specs2.runner.JUnitRunner
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Properties}
 
-class KafkaStoreTest extends LambdaTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class KafkaStoreTest extends LambdaContainerTest {
 
   import scala.concurrent.duration._
 
   sequential
-
-  skipAllUnless(SystemProperty("geomesa.lambda.kafka.test").option.exists(_.toBoolean))
 
   lazy val config = Map("bootstrap.servers" -> brokers)
 
@@ -48,10 +47,6 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
       admin.createTopics(Collections.singletonList(new NewTopic(topic, 2, 1.toShort))).all().get
     }
     logger.trace(s"created topic $topic")
-  }
-
-  step {
-    logger.info("KafkaStoreTest starting")
   }
 
   // TODO tests fail intermittently - seems to be due to consumers hanging on retrieving messages?
@@ -256,9 +251,5 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
         ds.dispose()
       }
     }
-  }
-
-  step {
-    logger.info("KafkaStoreTest complete")
   }
 }

@@ -62,7 +62,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.catalog.topic",
       "Topic used for cataloging feature types, if not using Zookeeper",
-      default = KafkaDataStoreFactory.DefaultCatalog,
+      default = DefaultCatalog,
       supportsNiFiExpressions = true
     )
 
@@ -70,7 +70,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[String](
       "kafka.zk.path",
       "Zookeeper discoverable path (namespace), if using Zookeeper",
-      default = KafkaDataStoreFactory.DefaultZkPath,
+      default = DefaultZkPath,
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )
