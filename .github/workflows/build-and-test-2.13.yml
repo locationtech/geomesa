@@ -50,6 +50,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
 =======
@@ -62,12 +63,19 @@ jobs:
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> 8873778c15c (Update github actions to latest versions)
 =======
+=======
+>>>>>>> 636de6de947 (Update github actions to latest versions)
 <<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+<<<<<<< HEAD
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
+=======
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
+>>>>>>> 636de6de947 (Update github actions to latest versions)
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
 =======
@@ -77,11 +85,14 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 7dc7bc5633c (Update github actions to latest versions)
 =======
 =======
 >>>>>>> 8873778c15c (Update github actions to latest versions)
 =======
+=======
+>>>>>>> 636de6de947 (Update github actions to latest versions)
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
@@ -101,7 +112,12 @@ jobs:
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+<<<<<<< HEAD
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
+=======
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
+>>>>>>> 636de6de947 (Update github actions to latest versions)
         with:
           distribution: 'temurin'
           java-version: '11'
@@ -110,10 +126,13 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> da5f8fa1a3 (Fix duplicate CI build)
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
@@ -126,6 +145,7 @@ jobs:
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -207,8 +227,27 @@ jobs:
 =======
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 >>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 >>>>>>> 08f955ca838 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+=======
+=======
+      - name: Build with Maven
+        run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - name: Set Scala version
+        run: ./build/change-scala-version.sh 2.13
+      - name: Build with Maven
+        run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - name: Unit tests
+        id: test
+        run: mvn surefire:test -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+>>>>>>> 318648dd37 (Update github actions to latest versions)
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
+>>>>>>> 636de6de947 (Update github actions to latest versions)
         continue-on-error: true
         run: |
           set -o pipefail
@@ -216,6 +255,7 @@ jobs:
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -245,6 +285,8 @@ jobs:
 >>>>>>> 5949549abf8 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> 08f955ca838 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 636de6de947 (Update github actions to latest versions)
 <<<<<<< HEAD
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 =======
@@ -261,6 +303,8 @@ jobs:
 =======
 =======
 >>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
 <<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
@@ -271,7 +315,12 @@ jobs:
 =======
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 >>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
         id: hbase-test
@@ -282,6 +331,7 @@ jobs:
         id: hbase-test
         run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -309,10 +359,13 @@ jobs:
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
         continue-on-error: true
       - name: HBase 1.4 unit tests (retry)
         id: hbase-test-retry
         if: steps.hbase-test.outcome=='failure'
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -325,15 +378,21 @@ jobs:
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 =======
         run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ce7c87cd883 (Update github actions to latest versions)
 =======
 <<<<<<< HEAD
 >>>>>>> 579f9595dac (Update github actions to latest versions)
+=======
+<<<<<<< HEAD
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 7dc7bc5633c (Update github actions to latest versions)
@@ -368,10 +427,18 @@ jobs:
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
+<<<<<<< HEAD
         if: success() || failure()
+<<<<<<< HEAD
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> 2219fefbbf (Update github actions to latest versions)
+>>>>>>> 318648dd37 (Update github actions to latest versions)
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
