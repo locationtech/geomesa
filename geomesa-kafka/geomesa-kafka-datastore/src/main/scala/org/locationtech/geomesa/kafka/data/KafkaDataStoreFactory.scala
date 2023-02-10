@@ -294,6 +294,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 =======
   private val LayerViewClassTag = ClassTag[LayerViewConfig](classOf[LayerViewConfig])
 
+<<<<<<< HEAD
   val DefaultCatalog: String = "geomesa-catalog"
 <<<<<<< HEAD
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -309,8 +310,18 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 >>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 3010fc384e (GEOMESA-3100 Kafka layer views (#2784))
   val DefaultZkPath: String = "geomesa/ds/kafka"
+<<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 >>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+=======
+  val DefaultCatalog: String = org.locationtech.geomesa.kafka.data.DefaultCatalog
+  val DefaultZkPath: String = org.locationtech.geomesa.kafka.data.DefaultZkPath
+>>>>>>> d40f742b4 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 
   override val DisplayName = "Kafka (GeoMesa)"
   override val Description = "Apache Kafka\u2122 distributed log"
