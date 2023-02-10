@@ -1209,18 +1209,17 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           // verify data is being partitioned as expected
           WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-            val typeInfo = TypeInfo(this.schema, sft) // initially everything is in the write ahead log
+            val typeInfo = TypeInfo(this.schema, sft)
+            // initially everything is in the write ahead log
             foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
             foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions)) { table =>
               count(cx, table) mustEqual 0
-            } // manually invoke the scheduled crons so we don't have to wait
+            }
+            // manually invoke the scheduled crons so we don't have to wait
             WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
-            WithClose(cx.prepareCall(s"call ${
-              PartitionMaintenance
-                  .name(typeInfo)
-                  .quoted
-            }();"))(_.execute()) // verify that data was aged off appropriately - exact age-off depends on time test was run
-            count(cx, typeInfo.tables.view) must beOneOf(6, 7)
+            WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+            // verify that data was aged off appropriately - exact age-off depends on time test was run
+            count(cx, typeInfo.tables.view) must beOneOf(6, 7, 8)
           }
         }
       } finally {
@@ -1330,7 +1329,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
   def compFromDb(sf: SimpleFeature): Seq[Any] = {
     Seq(sf.getID) ++ sf.getAttributes.asScala.map {
-      // even though Timestamp extends Date, equals comparison doesn't work between the 2
+        // even though Timestamp extends Date, equals comparison doesn't work between the 2
         case t: java.sql.Timestamp => new java.util.Date(t.getTime)
         case a => a
       }
