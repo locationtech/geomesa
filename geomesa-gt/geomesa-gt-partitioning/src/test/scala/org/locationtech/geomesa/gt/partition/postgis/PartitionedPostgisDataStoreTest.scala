@@ -2682,6 +2682,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
@@ -2729,6 +2730,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d7c9dd7a62a (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 9f52dfa25d5 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 0418eeecff9 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -2745,6 +2748,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
@@ -2789,17 +2794,25 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 026082e8c97 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 =======
 >>>>>>> 9f52dfa25d5 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 =======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 0418eeecff9 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+=======
+=======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 >>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44792cd3f18 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
+=======
+>>>>>>> 0418eeecff9 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -2860,7 +2873,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+<<<<<<< HEAD
 >>>>>>> 9f52dfa25d5 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 0418eeecff9 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
         foreach(Seq("test", "test-dash")) { name =>
 >>>>>>> 7844c8d8dfd (GEOMESA-3254 Add Bloop build support)
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
@@ -2875,14 +2893,18 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
@@ -2901,6 +2923,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 =======
+=======
+>>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
         logger.info(s"Existing type names: ${ds.getTypeNames.mkString(", ")}")
 
         if (methods.create) {
@@ -3246,6 +3272,22 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
+=======
+>>>>>>> ce17eba7ba (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> afb207dc68 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> b8e1d54867 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> 1913bc4c2c (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> 2912d58b06 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -3260,6 +3302,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -3348,6 +3391,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 6768ebe0c2 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
@@ -5239,6 +5286,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a6add7b0b1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -5269,19 +5317,67 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6494375eef (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+=======
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+>>>>>>> c3367776f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 
-        // write some data
-        WithClose(new DefaultTransaction()) { tx =>
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            features.foreach { feature =>
-              FeatureUtils.write(writer, feature, useProvidedFid = true)
+          // write some data
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach { feature =>
+                FeatureUtils.write(writer, feature, useProvidedFid = true)
+              }
+            }
+            tx.commit()
+          }
+
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+          }
+
+          // verify data is being partitioned as expected
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val typeInfo = TypeInfo(this.schema, sft)
+            // initially everything is in the write ahead log
+            foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+            foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions))(table => count(cx, table) mustEqual 0)
+            // manually invoke the scheduled crons so we don't have to wait
+            WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+            WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+            // verify that data was sorted into the appropriate tables based on dtg
+            count(cx, typeInfo.tables.view) mustEqual 10
+            count(cx, typeInfo.tables.writeAhead) mustEqual 0
+            count(cx, typeInfo.tables.writeAheadPartitions) must beGreaterThan(0)
+            count(cx, typeInfo.tables.mainPartitions) must beGreaterThan(0)
+          }
+
+          // ensure we still get same results after running partitioning
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+          }
+
+          features.foreach { feature =>
+            WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter(s"IN('${feature.getID}')"), Transaction.AUTO_COMMIT)) { writer =>
+              writer.hasNext must beTrue
+              writer.next()
+              writer.remove()
             }
           }
-          tx.commit()
-        }
 
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         // verify that statements will timeout and return an error
@@ -5358,8 +5454,13 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             writer.hasNext must beTrue
             writer.next()
             writer.remove()
+=======
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            reader.hasNext must beFalse
+>>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
           }
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 7c0158dc6e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
@@ -5370,7 +5471,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 =======
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beFalse
@@ -5438,10 +5544,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> 34836e5f4e (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+>>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 >>>>>>> locationtech-main
 =======
@@ -5450,6 +5561,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
 =======
@@ -5508,6 +5622,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 >>>>>>> cad359442f (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
+<<<<<<< HEAD
 =======
 >>>>>>> 794a6f66c3 (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
 =======
@@ -5620,6 +5735,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 =======
 >>>>>>> 4b7c48b509 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 34836e5f4e (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> 14bf84cf0a (GEOMESA-3261 Postgis - Fix age-off for non-alpha feature type names)
       } catch {
         case NonFatal(e) => logger.error("", e); ko
       } finally {
@@ -6654,40 +6771,43 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "ageoff")
-        sft.getUserData.put("pg.partitions.max", "2")
+        foreach(Seq("age-off", "ageoff")) { name =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, name)
+          sft.getUserData.put("pg.partitions.max", "2")
 
-        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
-        ds.createSchema(sft)
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+          ds.createSchema(sft)
 
-        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
-        schema must not(beNull)
-        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
-        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
-        // write some data
-        WithClose(new DefaultTransaction()) { tx =>
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            features.foreach { feature =>
-              FeatureUtils.write(writer, feature, useProvidedFid = true)
+          // write some data
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach { feature =>
+                FeatureUtils.write(writer, feature, useProvidedFid = true)
+              }
             }
+            tx.commit()
           }
-          tx.commit()
-        }
 
-        // verify data is being partitioned as expected
-        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-          val typeInfo = TypeInfo(this.schema, sft)
-          // initially everything is in the write ahead log
-          foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
-          foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions)) { table =>
-            count(cx, table) mustEqual 0
+          // verify data is being partitioned as expected
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val typeInfo = TypeInfo(this.schema, sft) // initially everything is in the write ahead log
+            foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+            foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions)) { table =>
+              count(cx, table) mustEqual 0
+            } // manually invoke the scheduled crons so we don't have to wait
+            WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+            WithClose(cx.prepareCall(s"call ${
+              PartitionMaintenance
+                  .name(typeInfo)
+                  .quoted
+            }();"))(_.execute()) // verify that data was aged off appropriately - exact age-off depends on time test was run
+            count(cx, typeInfo.tables.view) must beOneOf(6, 7)
           }
-          // manually invoke the scheduled crons so we don't have to wait
-          WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
-          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
-          // verify that data was aged off appropriately - exact age-off depends on time test was run
-          count(cx, typeInfo.tables.view) must beOneOf(6, 7)
         }
       } finally {
         ds.dispose()
@@ -6701,85 +6821,86 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "recreate")
+        foreach(Seq("re-create", "recreate")) { name =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, name)
 
-        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
-        ds.createSchema(sft)
-
-        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
-        schema must not(beNull)
-        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
-        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
-
-        // write some data
-        WithClose(new DefaultTransaction()) { tx =>
-          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
-            features.foreach { feature =>
-              FeatureUtils.write(writer, feature, useProvidedFid = true)
-            }
-          }
-          tx.commit()
-        }
-
-        // verify data comes back
-        WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
-          val result = SelfClosingIterator(reader).toList
-          result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
-        }
-
-        val typeInfo = TypeInfo(this.schema, sft)
-
-        // replace the age-off function so that we can verify it gets updated later
-        val oldAgeOff = DropAgedOffPartitions.name(typeInfo)
-        val body =
-          s"""    BEGIN
-             |      SELECT value::int FROM ${typeInfo.schema.quoted}.${UserDataTable.Name.quoted};
-             |    END;""".stripMargin
-        val sql =
-          s"""CREATE OR REPLACE PROCEDURE ${oldAgeOff.quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
-             |  $$BODY$$
-             |$body
-             |  $$BODY$$;
-             |""".stripMargin
-
-        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-          WithClose(cx.prepareStatement(sql))(_.executeUpdate())
-          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
-            WithClose(st.executeQuery()) { rs =>
-              rs.next() must beTrue
-              rs.getString(1).trim mustEqual body.trim
-            }
-          }
-          // now drop the main view
-          WithClose(cx.prepareStatement(s"DROP VIEW ${sft.getTypeName}"))(_.executeUpdate())
-        }
-
-        // verify the feature type no longer returns
-        ds.getTypeNames
-        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
-        // re-create the schema, adding some extra user data
-        sft.getUserData.put("pg.partitions.max", "2")
-        // we have to get a new data store so that it doesn't use the cached entry...
-        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
+
           val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
           schema must not(beNull)
           schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
-          // verify data still comes back
+          // write some data
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach { feature =>
+                FeatureUtils.write(writer, feature, useProvidedFid = true)
+              }
+            }
+            tx.commit()
+          }
+
+          // verify data comes back
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
             val result = SelfClosingIterator(reader).toList
             result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
-        }
 
-        // verify that the age-off function was re-created
-        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-          WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
-            WithClose(st.executeQuery()) { rs =>
-              rs.next() must beTrue
-              println(rs.getString(1))
-              rs.getString(1).trim must not(beEqualTo(body.trim))
+          val typeInfo = TypeInfo(this.schema, sft)
+
+          // replace the age-off function so that we can verify it gets updated later
+          val oldAgeOff = DropAgedOffPartitions.name(typeInfo)
+          val body =
+            s"""    BEGIN
+               |      SELECT value::int FROM ${typeInfo.schema.quoted}.${UserDataTable.Name.quoted};
+               |    END;""".stripMargin
+          val sql =
+            s"""CREATE OR REPLACE PROCEDURE ${oldAgeOff.quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+               |  $$BODY$$
+               |$body
+               |  $$BODY$$;
+               |""".stripMargin
+
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.prepareStatement(sql))(_.executeUpdate())
+            WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+              WithClose(st.executeQuery()) { rs =>
+                rs.next() must beTrue
+                rs.getString(1).trim mustEqual body.trim
+              }
+            }
+            // now drop the main view
+            WithClose(cx.prepareStatement(s"""DROP VIEW "${sft.getTypeName}""""))(_.executeUpdate())
+          }
+
+          // verify the feature type no longer returns
+          ds.getTypeNames
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+          // re-create the schema, adding some extra user data
+          sft.getUserData.put("pg.partitions.max", "2")
+          // we have to get a new data store so that it doesn't use the cached entry...
+          WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+            ds.createSchema(sft)
+            val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+            schema must not(beNull)
+            schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+
+            // verify data still comes back
+            WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+              val result = SelfClosingIterator(reader).toList
+              result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+            }
+          }
+
+          // verify that the age-off function was re-created
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.prepareStatement(s"SELECT prosrc FROM pg_proc WHERE proname = ${oldAgeOff.asLiteral};")) { st =>
+              WithClose(st.executeQuery()) { rs =>
+                rs.next() must beTrue
+                rs.getString(1).trim must not(beEqualTo(body.trim))
+              }
             }
           }
         }
