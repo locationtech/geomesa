@@ -20,6 +20,15 @@ import shlex
 import sphinx_rtd_theme
 from recommonmark.parser import CommonMarkParser
 
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# Warning: current version numbers are handled in versions.py, which is preprocessed
+# by Maven. Do not hardcode current GeoMesa version numbers here!
+from target.versions import release,version
+import target
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -51,19 +60,10 @@ source_parsers = {
 master_doc = 'index'
 
 # General information about the project.
-project = u'GeoMesa'
+project = 'GeoMesa'
 # note: shown in our custom footer
-copyright = u'2013-2021'
-author = u''
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# Warning: current version numbers are handled in versions.py, which is preprocessed
-# by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version
-import target
+copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
+author = ''
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
