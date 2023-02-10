@@ -908,14 +908,20 @@ org.specs2:specs2-core_2.12	4.9.2	test
 org.specs2:specs2-junit_2.12	4.9.2	test
 org.specs2:specs2-mock_2.12	4.9.2	test
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.testcontainers:kafka	1.19.3	test
 org.testcontainers:postgresql	1.19.3	test
 org.testcontainers:testcontainers	1.19.3	test
 =======
+=======
+>>>>>>> 815942227d (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 <<<<<<< HEAD
 org.testcontainers:kafka	1.17.6	test
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+org.testcontainers:kafka	1.17.6	test
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 org.testcontainers:postgresql	1.17.6	test
 org.testcontainers:testcontainers	1.17.6	test
 >>>>>>> 2af509b068 (GEOMESA-3246 Upgrade Arrow to 11.0.0)

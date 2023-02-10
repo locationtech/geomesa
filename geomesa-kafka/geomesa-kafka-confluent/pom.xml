@@ -1522,6 +1522,9 @@
         </dependency>
         <dependency>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
@@ -1530,8 +1533,11 @@
             <artifactId>kafka</artifactId>
         </dependency>
         <dependency>
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
