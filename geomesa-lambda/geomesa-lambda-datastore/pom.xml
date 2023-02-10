@@ -1558,6 +1558,9 @@
             <artifactId>curator-test</artifactId>
         </dependency>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
@@ -1572,6 +1575,7 @@
             <artifactId>kafka</artifactId>
         </dependency>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <dependency>
             <groupId>org.geomesa.testcontainers</groupId>
             <artifactId>testcontainers-accumulo</artifactId>
@@ -1580,6 +1584,12 @@
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> f2f6929ab64 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
     </dependencies>
 
 </project>
