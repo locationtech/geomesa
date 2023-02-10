@@ -11,6 +11,8 @@ scala_binary_version = '${scala.binary.version}'
 
 copyright_year = '${copyright.year}'
 
+copyright_year = '${copyright.year}'
+
 gt_version= '${gt.version}'
 geoserver_version= '${geoserver.version}'
 hbase_version_full = '${hbase.version}'
