@@ -13,6 +13,7 @@
 package org.locationtech.geomesa.kafka.streams
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, LongDeserializer, StringDeserializer}
@@ -22,31 +23,44 @@ import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampE
 import org.apache.kafka.streams.test.TestRecord
 =======
 import com.typesafe.scalalogging.StrictLogging
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.{ByteArrayDeserializer, LongDeserializer, StringDeserializer}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer, LongDeserializer, StringDeserializer}
 import org.apache.kafka.streams
 import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
 import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+import org.apache.kafka.streams.test.TestRecord
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 =======
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+import org.locationtech.geomesa.kafka.KafkaContainerTest
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.specs2.mutable.Specification
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
@@ -58,6 +72,7 @@ import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 <<<<<<< HEAD
+<<<<<<< HEAD
 class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
 
   import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -65,11 +80,17 @@ class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
   import org.apache.kafka.streams.scala.serialization.Serdes._
 =======
 class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
+=======
+class GeoMesaStreamsBuilderTest extends KafkaContainerTest {
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 
   import org.apache.kafka.streams.scala.ImplicitConversions._
-  import org.apache.kafka.streams.scala.Serdes._
   import org.apache.kafka.streams.scala.kstream._
+<<<<<<< HEAD
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+  import org.apache.kafka.streams.scala.serialization.Serdes._
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 
   import scala.collection.JavaConverters._
 
@@ -81,6 +102,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   var kafka: EmbeddedKafka = _
 
@@ -91,11 +113,14 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
   }
 
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
   private val zkPaths = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
 
   def getParams(zkPath: String): Map[String, String] = {
     require(zkPaths.add(zkPath), s"zk path '$zkPath' is reused between tests, may cause conflicts")
     Map(
+<<<<<<< HEAD
 <<<<<<< HEAD
       "kafka.brokers"            -> brokers,
       "kafka.zookeepers"         -> zookeepers,
@@ -103,6 +128,10 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       "kafka.brokers"            -> kafka.brokers,
       "kafka.zookeepers"         -> kafka.zookeepers,
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+      "kafka.brokers"            -> brokers,
+      "kafka.zookeepers"         -> zookeepers,
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
       "kafka.topic.partitions"   -> "1",
       "kafka.topic.replication"  -> "1",
       "kafka.consumer.read-back" -> "Inf",
@@ -126,10 +155,14 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       val messages: Seq[ConsumerRecord[Array[Byte], Array[Byte]]] = {
         val props = new Properties()
 <<<<<<< HEAD
+<<<<<<< HEAD
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
 =======
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
@@ -216,12 +249,16 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       val output = scala.collection.mutable.Map.empty[String, java.lang.Long]
       WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         val inputTopic = testDriver.createInputTopic(kryoTopic, new ByteArraySerializer(), new ByteArraySerializer())
         messages.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
         val outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer())
         while (!outputTopic.isEmpty) {
           val rec = outputTopic.readRecord
           output += rec.key() -> rec.value()
+<<<<<<< HEAD
 =======
         messages.foreach(testDriver.pipeInput)
         var out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
@@ -229,6 +266,8 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
           output += out.key() -> out.value()
           out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer())
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         }
       }
 
@@ -297,12 +336,16 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
       val kryoMessages = ArrayBuffer.empty[ProducerRecord[Array[Byte], Array[Byte]]]
       WithClose(new TopologyTestDriver(builder.build(), props)) { testDriver =>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         val inputTopic = testDriver.createInputTopic("input-topic", new ByteArraySerializer(), new ByteArraySerializer())
         testInput.foreach(m => inputTopic.pipeInput(new TestRecord[Array[Byte],Array[Byte]](m)))
         val outputTopic = testDriver.createOutputTopic(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
         while (!outputTopic.isEmpty) {
           val rec = outputTopic.readRecord
           kryoMessages += new ProducerRecord(kryoTopic, 0, rec.timestamp, rec.getKey, rec.getValue, rec.getHeaders)
+<<<<<<< HEAD
 =======
         testInput.foreach(testDriver.pipeInput)
         var out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
@@ -310,6 +353,8 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
           kryoMessages += out
           out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer())
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
         }
       }
 
@@ -329,6 +374,7 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   step {
     logger.info("Stopping embedded kafka/zk")
@@ -337,6 +383,8 @@ class GeoMesaStreamsBuilderTest extends Specification with StrictLogging {
   }
 
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
   class TimestampExtractingTransformer
       extends Transformer[String, GeoMesaMessage, org.apache.kafka.streams.KeyValue[String, GeoMesaMessage]]() {
 
