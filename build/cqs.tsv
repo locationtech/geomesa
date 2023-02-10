@@ -3277,6 +3277,7 @@ org.specs2:specs2-mock_2.12	4.9.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.testcontainers:kafka	1.19.3	test
 org.testcontainers:postgresql	1.19.3	test
 org.testcontainers:testcontainers	1.19.3	test
@@ -3302,6 +3303,8 @@ org.testcontainers:testcontainers	1.19.3	test
 >>>>>>> ef928cef43 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 76643d526b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b5c8544051 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 <<<<<<< HEAD
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -3322,7 +3325,14 @@ org.testcontainers:testcontainers	1.19.3	test
 =======
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 76643d526b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+=======
+>>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> b5c8544051 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 org.testcontainers:kafka	1.17.6	test
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -3333,10 +3343,13 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 org.testcontainers:kafka	1.17.6	test
 =======
@@ -3353,6 +3366,7 @@ org.testcontainers:kafka	1.17.6	test
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
@@ -3368,6 +3382,10 @@ org.testcontainers:kafka	1.17.6	test
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+>>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 org.testcontainers:postgresql	1.17.6	test
 org.testcontainers:testcontainers	1.17.6	test
 >>>>>>> 2af509b068 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
