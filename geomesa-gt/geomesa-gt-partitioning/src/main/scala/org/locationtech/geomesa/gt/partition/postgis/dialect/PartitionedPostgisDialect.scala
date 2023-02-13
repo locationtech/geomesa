@@ -14,7 +14,7 @@ import org.geotools.geometry.jts._
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
@@ -171,8 +171,10 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     super.postDropTable(schemaName, SimpleFeatureTypes.renameSft(sft, info.tables.writeAhead.name.raw), cx)
   }
 
-  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
-    super.splitFilter(LiteralFunctionVisitor(filter), schema)
+  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] = {
+    import PartitionedPostgisDialect.Config.ConfigConversions
+    super.splitFilter(SplitFilterVisitor(filter, schema.isFilterWholeWorld), schema)
+  }
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -331,6 +333,7 @@ object PartitionedPostgisDialect {
     val WriteAheadPartitionsTableSpace = "pg.partitions.tablespace.wa-partitions"
     val MainTableSpace                 = "pg.partitions.tablespace.main"
     val CronMinute                     = "pg.partitions.cron.minute"
+    val FilterWholeWorld               = "pg.partitions.filter.world"
 
     implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
       def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)
@@ -340,6 +343,7 @@ object PartitionedPostgisDialect {
       def getMainTableSpace: Option[String] = Option(sft.getUserData.get(MainTableSpace).asInstanceOf[String])
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
+      def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
     }
   }
 }
