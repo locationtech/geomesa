@@ -58,6 +58,7 @@ class UserDataTable extends Sql {
     insert(Config.WriteAheadPartitionsTableSpace, info.tables.writeAheadPartitions.tablespace.map(_.raw))
     insert(Config.MainTableSpace, info.tables.mainPartitions.tablespace.map(_.raw))
     insert(Config.CronMinute, info.partitions.cronMinute.map(Integer.toString))
+    insert(Config.FilterWholeWorld, info.userData.get(Config.FilterWholeWorld))
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {

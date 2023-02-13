@@ -97,8 +97,8 @@ Version 4.0.0 Upgrade Guide
 Version Compatibility
 ---------------------
 
-GeoMesa 4.0.0 is focused on upgrading dependency versions and removing deprecated features, and does not contain
-any new functionality. To make upgrading easier, version 4.0.x is generally compatible with version 3.5.x across
+GeoMesa 4.0.0 is focused on upgrading dependency versions and removing deprecated features, and only contains
+a few new features. To make upgrading easier, version 4.0.x is generally compatible with version 3.5.x across
 different environments. This means that it is possible to upgrade in parts; i.e. upgrade GeoServer to 4.0.0
 but keep NiFi at 3.5.0. Please note that previously deprecated functionality (see below) may no longer work once
 any part of the environment is upgraded to 4.0.0.
@@ -191,6 +191,12 @@ Scan Range Changes
 GeoMesa will now generate a more accurate number of ranges based on ``geomesa.scan.ranges.target``. Users
 who have configured this property should verify their setting is still appropriate, especially if set to a
 large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the old behavior if needed.
+
+Partitioned PostGIS Query Changes
+---------------------------------
+
+GeoMesa will now ignore queries that encompass the entire world in the partitioned PostGIS data store. For more
+information, refer to :ref:`postgis_filter_world`.
 
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++

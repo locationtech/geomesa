@@ -68,6 +68,24 @@ Age-off is configured with the key ``pg.partitions.max``.
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.max", "14");
 
+.. _postgis_filter_world:
+
+Configuring Filter Optimizations
+--------------------------------
+
+By default, GeoMesa will ignore filters that contain the entire world, i.e. they encompass all of ``[-180, 180]``
+longitude and ``[-90 90]`` latitude. This may speed up such queries, but it may also produce incorrect results if
+there are geometries outside the world bounds, or if the data is not stored in ``EPSG:4326``/``WGS84``.
+
+This behavior can be configured through the key ``pg.partitions.filter.world``. The default value is ``false``,
+which will ignore whole world filters.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+     // enable filtering on "whole world" queries
+    sft.getUserData().put("pg.partitions.filter.world", "true");
+
 Configuring Tablespaces
 -----------------------
 

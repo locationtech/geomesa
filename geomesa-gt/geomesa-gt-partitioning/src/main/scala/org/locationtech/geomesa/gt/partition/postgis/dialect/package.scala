@@ -150,15 +150,26 @@ package object dialect {
    * @param tables table names
    * @param cols columns
    * @param partitions partition config
+   * @param userData feature type user data
    */
-  case class TypeInfo(schema: SchemaName, typeName: String, tables: Tables, cols: Columns, partitions: PartitionInfo)
+  case class TypeInfo(
+      schema: SchemaName,
+      typeName: String,
+      tables: Tables,
+      cols: Columns,
+      partitions: PartitionInfo,
+      userData: Map[String, String] = Map.empty)
 
   object TypeInfo {
+
+    import scala.collection.JavaConverters._
+
     def apply(schema: String, sft: SimpleFeatureType): TypeInfo = {
       val tables = Tables(sft, schema)
       val columns = Columns(sft)
       val partitions = PartitionInfo(sft)
-      TypeInfo(SchemaName(schema), sft.getTypeName, tables, columns, partitions)
+      val userData = sft.getUserData.asScala.map { case (k, v) => String.valueOf(k) -> String.valueOf(v) }
+      TypeInfo(SchemaName(schema), sft.getTypeName, tables, columns, partitions, userData.toMap)
     }
   }
 

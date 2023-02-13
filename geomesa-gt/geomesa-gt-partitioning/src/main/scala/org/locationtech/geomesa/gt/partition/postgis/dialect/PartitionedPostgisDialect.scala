@@ -15,9 +15,13 @@ import org.geotools.jdbc.JDBCDataStore
 <<<<<<< HEAD
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
+<<<<<<< HEAD
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
+>>>>>>> 1be2e3ecb (GEOMESA-3262 Postgis - add config to skip whole world filters)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
@@ -181,12 +185,19 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     super.postDropTable(schemaName, SimpleFeatureTypes.renameSft(sft, info.tables.writeAhead.name.raw), cx)
   }
 
+<<<<<<< HEAD
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] = {
+    import PartitionedPostgisDialect.Config.ConfigConversions
+    super.splitFilter(SplitFilterVisitor(filter, schema.isFilterWholeWorld), schema)
+  }
+>>>>>>> 1be2e3ecb (GEOMESA-3262 Postgis - add config to skip whole world filters)
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -370,6 +381,7 @@ object PartitionedPostgisDialect {
     val WriteAheadPartitionsTableSpace = "pg.partitions.tablespace.wa-partitions"
     val MainTableSpace                 = "pg.partitions.tablespace.main"
     val CronMinute                     = "pg.partitions.cron.minute"
+    val FilterWholeWorld               = "pg.partitions.filter.world"
 
     implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
       def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)
@@ -379,6 +391,7 @@ object PartitionedPostgisDialect {
       def getMainTableSpace: Option[String] = Option(sft.getUserData.get(MainTableSpace).asInstanceOf[String])
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
+      def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
     }
   }
 }

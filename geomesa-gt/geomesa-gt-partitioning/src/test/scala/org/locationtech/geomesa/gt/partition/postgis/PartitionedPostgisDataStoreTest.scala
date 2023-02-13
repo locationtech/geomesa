@@ -26,15 +26,18 @@ import org.geotools.filter.identity.FeatureIdImpl
 >>>>>>> locationtech-main
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
+import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
@@ -43,7 +46,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.images.builder.ImageFromDockerfile
 
 import java.sql.Connection
-import java.util.Collections
+import java.util.{Collections, Locale}
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.logging.{Handler, Level, LogRecord}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -433,6 +438,86 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.dispose()
       }
 >>>>>>> 61951ec00 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+    }
+
+    "remove whole-world filters" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val wholeWorldFilters = {
+          import FilterHelper.ff
+          import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+          // note: can't use ECQL.toFilter as it tries to load jai and dies
+          val geom = ff.property("geom")
+          val bbox = ff.bbox(geom, -180, -90, 180, 90, CRS.toSRS(CRS_EPSG_4326))
+          val intersects =
+            ff.intersects(geom, ff.literal(WKTUtils.read("POLYGON((-190 -100, 190 -100, 190 100, -190 100, -190 -100))")))
+          Seq(bbox, intersects)
+        }
+
+        foreach(Seq(true, false)) { ignoreFilters =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, s"ignore_$ignoreFilters")
+          sft.getUserData.put(PartitionedPostgisDialect.Config.FilterWholeWorld, s"$ignoreFilters")
+
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+          ds.createSchema(sft)
+
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+          // write some data
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach { feature =>
+                FeatureUtils.write(writer, feature, useProvidedFid = true)
+              }
+            }
+            tx.commit()
+          }
+
+          foreach(wholeWorldFilters) { filter =>
+            val Array(left, right) = ds.asInstanceOf[JDBCDataStore].getSQLDialect.splitFilter(filter, schema)
+            if (ignoreFilters) {
+              left mustEqual Filter.INCLUDE
+            } else {
+              left mustEqual filter
+            }
+            right mustEqual Filter.INCLUDE
+
+            // track the messages logged by the JDBC store to verify the filter being run
+            val messages = new CopyOnWriteArrayList[(String, String)]()
+            val threadId = Thread.currentThread().getId
+            val handler = new Handler() {
+              override def publish(record: LogRecord): Unit =
+                if (record.getThreadID == threadId) { messages.add((record.getSourceMethodName, record.getMessage)) }
+              override def flush(): Unit = {}
+              override def close(): Unit = {}
+            }
+            val logger = ds.asInstanceOf[JDBCDataStore].getLogger
+            logger.setLevel(Level.FINE)
+            logger.addHandler(handler)
+            WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+              val result = SelfClosingIterator(reader).toList
+              result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+            }
+
+            val selects = messages.asScala.collect { case ("selectSQLPS", v) => v }
+            selects must haveLength(1)
+            if (ignoreFilters) {
+              selects.head.toLowerCase(Locale.US) must not(contain("where"))
+            } else {
+              selects.head.toLowerCase(Locale.US) must contain("where")
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
     }
   }
 
