@@ -567,12 +567,17 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+>>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Partitioned PostGIS Query Changes
 ---------------------------------
 
@@ -582,10 +587,14 @@ information, refer to :ref:`postgis_filter_world`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -594,6 +603,8 @@ information, refer to :ref:`postgis_filter_world`.
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
