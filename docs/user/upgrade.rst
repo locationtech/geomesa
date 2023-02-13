@@ -1207,12 +1207,15 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
@@ -1226,6 +1229,7 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1240,6 +1244,8 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Partitioned PostGIS Query Changes
 ---------------------------------
 
@@ -1255,6 +1261,7 @@ information, refer to :ref:`postgis_filter_world`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
@@ -1266,9 +1273,14 @@ information, refer to :ref:`postgis_filter_world`.
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+>>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1277,6 +1289,8 @@ information, refer to :ref:`postgis_filter_world`.
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -1290,6 +1304,7 @@ information, refer to :ref:`postgis_filter_world`.
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
@@ -1305,6 +1320,10 @@ information, refer to :ref:`postgis_filter_world`.
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+>>>>>>> c0571b43e1 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
