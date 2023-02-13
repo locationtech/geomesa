@@ -332,9 +332,12 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 >>>>>>> da609e20da (GEOMESA-3215 Postgis - support List-type attributes)
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
+import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeInfo}
 <<<<<<< HEAD
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -342,7 +345,13 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeI
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+>>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -413,6 +422,7 @@ import org.specs2.runner.JUnitRunner
 =======
 =======
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
@@ -490,14 +500,18 @@ import java.sql.Connection
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 75d5a347f8 (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 import java.util.Collections
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 import java.util.{Collections, Locale}
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -558,6 +572,9 @@ import scala.annotation.tailrec
 import java.util.Collections
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+>>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -4190,12 +4207,15 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       } finally {
         ds.dispose()
       }
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
   step {
     if (container != null) {
       container.stop()
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> b5c0452b13 (GEOMESA-3262 Postgis - add config to skip whole world filters)
     }
   }
 
