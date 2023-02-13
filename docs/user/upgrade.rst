@@ -395,14 +395,20 @@ who have configured this property should verify their setting is still appropria
 large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the old behavior if needed.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Partitioned PostGIS Query Changes
 ---------------------------------
 
 GeoMesa will now ignore queries that encompass the entire world in the partitioned PostGIS data store. For more
 information, refer to :ref:`postgis_filter_world`.
 
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
