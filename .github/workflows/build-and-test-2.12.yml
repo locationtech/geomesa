@@ -130,6 +130,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
@@ -138,6 +139,8 @@ jobs:
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
+=======
+>>>>>>> 6febd86aec (Fix duplicate CI build)
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
@@ -153,6 +156,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 354f512a3f (Fix duplicate CI build)
 =======
@@ -163,6 +167,10 @@ jobs:
 >>>>>>> da5f8fa1a3 (Fix duplicate CI build)
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 354f512a3f (Fix duplicate CI build)
+>>>>>>> 6febd86aec (Fix duplicate CI build)
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test
