@@ -36,6 +36,7 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
 <<<<<<< HEAD
+<<<<<<< HEAD
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
@@ -48,6 +49,8 @@ jobs:
 =======
         run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Build with Maven
+=======
+>>>>>>> 354f512a3f (Fix duplicate CI build)
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test

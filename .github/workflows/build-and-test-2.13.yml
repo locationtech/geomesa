@@ -35,6 +35,7 @@ jobs:
           java-version: '11'
           cache: 'maven'
 <<<<<<< HEAD
+<<<<<<< HEAD
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
@@ -50,6 +51,8 @@ jobs:
 =======
       - name: Build with Maven
         run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+=======
+>>>>>>> 354f512a3f (Fix duplicate CI build)
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
