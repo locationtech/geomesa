@@ -73,8 +73,11 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
+=======
+>>>>>>> da5f8fa1a3 (Fix duplicate CI build)
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
@@ -88,10 +91,15 @@ jobs:
         run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Build with Maven
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 354f512a3f (Fix duplicate CI build)
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 354f512a3f (Fix duplicate CI build)
+>>>>>>> da5f8fa1a3 (Fix duplicate CI build)
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test
