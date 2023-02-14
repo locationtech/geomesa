@@ -197,10 +197,14 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> da5f8fa1a3 (Fix duplicate CI build)
+<<<<<<< HEAD
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 =======
@@ -213,6 +217,8 @@ jobs:
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
@@ -230,17 +236,24 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
 =======
 >>>>>>> 354f512a3f (Fix duplicate CI build)
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
 =======
 =======
 >>>>>>> 354f512a3f (Fix duplicate CI build)
 >>>>>>> da5f8fa1a3 (Fix duplicate CI build)
+<<<<<<< HEAD
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 =======
@@ -249,6 +262,8 @@ jobs:
 >>>>>>> 6febd86aec (Fix duplicate CI build)
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test
