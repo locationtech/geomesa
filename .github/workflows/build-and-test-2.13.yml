@@ -17,8 +17,6 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
           cache: 'maven'
-      - name: Build with Maven
-        run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven

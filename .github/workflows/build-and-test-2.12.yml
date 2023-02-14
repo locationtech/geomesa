@@ -18,8 +18,6 @@ jobs:
           java-version: '8'
           cache: 'maven'
       - name: Build with Maven
-        run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
-      - name: Build with Maven
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Unit tests
         id: test
