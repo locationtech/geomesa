@@ -346,10 +346,14 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> da5f8fa1a3 (Fix duplicate CI build)
+<<<<<<< HEAD
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 =======
@@ -358,6 +362,8 @@ jobs:
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh 2.13
       - name: Build with Maven
@@ -434,6 +440,7 @@ jobs:
 =======
       - name: Build with Maven
         run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 354f512a3f (Fix duplicate CI build)
@@ -516,6 +523,10 @@ jobs:
 =======
 =======
 =======
+=======
+=======
+>>>>>>> 354f512a3f (Fix duplicate CI build)
+>>>>>>> b974491523 (Fix duplicate CI build)
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
