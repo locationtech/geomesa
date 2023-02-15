@@ -251,9 +251,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "passwd" -> "postgres",
     "Batch insert size" -> "10",
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     "Commit size" -> "20",
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e53d56fe7c (GEOMESA-3263 Docs for NiFi schema initialization)
     "preparedStatements" -> "true"
   )
 
