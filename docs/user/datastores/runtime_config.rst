@@ -117,7 +117,7 @@ By default, GeoMesa will estimate the size of a result set using statistics. Thi
 rough estimate very quickly. Some applications rely on knowing the exact size of a result set up
 front, so estimates will cause problems. To force GeoMesa to calculate the exact size of a result
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
-by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
+by using the query hint ``org.locationtech.geomesa.index.conf.QueryHints.EXACT_COUNT``.
 
 geomesa.exact.count.max.features
 ++++++++++++++++++++++++++++++++
@@ -204,7 +204,7 @@ geomesa.query.cost.type
 This property controls how GeoMesa performs query planning. By default, GeoMesa uses heuristics to determine the
 best index for a given query. Alternatively, this property may be set to ``stats`` to use cached data statistics
 and cost-based query planning. This may also be overridden on a per-query basis using the query hint
-``org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY``
+``org.locationtech.geomesa.index.conf.QueryHints.COST_EVALUATION_KEY``
 set to either ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Stats``
 or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``. See :ref:`query_planning`
 for more details on query planning strategies.

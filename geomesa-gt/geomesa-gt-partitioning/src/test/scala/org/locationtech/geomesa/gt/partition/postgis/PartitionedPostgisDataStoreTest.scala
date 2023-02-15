@@ -82,7 +82,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "user" -> "postgres",
     "passwd" -> "postgres",
     "Batch insert size" -> "10",
-    "Commit size" -> "20",
     "preparedStatements" -> "true"
   )
 
