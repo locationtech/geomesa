@@ -47,9 +47,13 @@ geospatial analytics.
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
 <<<<<<< HEAD
+<<<<<<< HEAD
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-gt_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz)
+>>>>>>> 2a1bb259d8 (Add OpenSSF badge to README (#2965))
 
 ### Verifying Downloads
 
@@ -178,6 +182,9 @@ libraryDependencies ++= Seq(
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
 
 Requirements:
 
