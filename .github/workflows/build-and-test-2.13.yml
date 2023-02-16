@@ -7,10 +7,13 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+<<<<<<< HEAD
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
+=======
+>>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
 jobs:
   build-scala:
     runs-on: ubuntu-latest
@@ -19,9 +22,12 @@ jobs:
 
     steps:
 <<<<<<< HEAD
+<<<<<<< HEAD
       - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
       - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
 =======
+=======
+>>>>>>> ff29f098393 (Pin github actions to specific hash and make them read-only)
 <<<<<<< HEAD
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
@@ -29,7 +35,14 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> 7dc7bc5633c (Update github actions to latest versions)
+=======
+=======
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
+>>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
+>>>>>>> ff29f098393 (Pin github actions to specific hash and make them read-only)
         with:
           distribution: 'temurin'
           java-version: '11'
