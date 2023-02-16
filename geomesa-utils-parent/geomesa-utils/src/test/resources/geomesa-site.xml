@@ -12,12 +12,10 @@
 
 <configuration>
 
-  <!--
   <property>
-    <name>geomesa.query.timeout</name>
-    <value>2 minutes</value>
+    <name>geomesa.stats.compact.interval</name>
+    <value>1 hour</value>
     <final>false</final>
   </property>
-  -->
 
 </configuration>
