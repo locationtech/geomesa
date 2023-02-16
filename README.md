@@ -45,7 +45,7 @@ geospatial analytics.
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-cassandra_2.12-3.5.0-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-kafka_2.12-3.5.0-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-redis_2.12-3.5.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz)
 
 ### Verifying Downloads
 
