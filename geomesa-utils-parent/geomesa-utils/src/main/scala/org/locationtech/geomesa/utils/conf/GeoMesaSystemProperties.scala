@@ -99,8 +99,13 @@ object GeoMesaSystemProperties extends LazyLogging {
       Option(threadLocalValue.get).orElse(sys.props.get(property).filterNot(_.isEmpty))
   }
 
-  // For dynamic properties that are not in geomesa-site.xml.template, this is intended
-  // to be a System.getProperty drop-in replacement that ensures the config is always loaded.
+  /**
+   * For dynamic properties that are not in geomesa-site.xml, this is intended
+   * to be a System.getProperty drop-in replacement that ensures the config is always loaded
+   *
+   * @param prop prop name
+   * @return
+   */
   def getProperty(prop: String): String = SystemProperty(prop).get
 }
 

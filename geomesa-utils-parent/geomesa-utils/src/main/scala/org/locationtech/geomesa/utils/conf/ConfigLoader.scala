@@ -19,13 +19,9 @@ object ConfigLoader extends LazyLogging {
 
   val GEOMESA_CONFIG_FILE_PROP = "geomesa.config.file"
   val GEOMESA_CONFIG_FILE_NAME = "geomesa-site.xml"
-  private val EmbeddedConfigFile = "org/locationtech/geomesa/geomesa-site.xml.template"
 
-  lazy val Config: Map[String, (String, Boolean)] = {
-    val file = Option(System.getProperty(GEOMESA_CONFIG_FILE_PROP)).getOrElse(GEOMESA_CONFIG_FILE_NAME)
-    // load defaults first then overwrite with user values (if any)
-    loadConfig(EmbeddedConfigFile) ++ loadConfig(file)
-  }
+  lazy val Config: Map[String, (String, Boolean)] =
+    loadConfig(sys.props.getOrElse(GEOMESA_CONFIG_FILE_PROP, GEOMESA_CONFIG_FILE_NAME))
 
   def loadConfig(path: String): Map[String, (String, Boolean)] = {
     val input = getClass.getClassLoader.getResourceAsStream(path)

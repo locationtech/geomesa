@@ -10,8 +10,8 @@ the file ``geomesa-site.xml`` from the classpath (if available), and use any pro
 Ensure the file is available at the root level of the classpath. In the GeoMesa command-line tools,
 place it in the ``conf`` folder. For GeoServer, place it under ``geoserver/WEB-INF/classes``.
 
-Each tools distribution contains a template file with the default settings at
-``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read;
+Each tools distribution contains a template file at ``conf/geomesa-site.xml.template`` that can be used
+as a starting point. Do not modify this file directly as it is never read;
 instead copy the desired configurations into ``geomesa-site.xml``.
 
 By default, system properties set through command line parameters will take precedence over the
