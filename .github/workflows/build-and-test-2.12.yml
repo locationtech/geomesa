@@ -13,6 +13,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 =======
@@ -21,6 +22,10 @@ permissions:  # added using https://github.com/step-security/secure-repo
 >>>>>>> 6bd72b0c69 (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
@@ -31,6 +36,9 @@ env:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
 =======
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
@@ -39,6 +47,7 @@ env:
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+<<<<<<< HEAD
 =======
 =======
 env:
@@ -57,6 +66,8 @@ env:
 
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
 jobs:
   build-scala:
     runs-on: ubuntu-latest
@@ -64,6 +75,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
 
     steps:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -91,12 +103,20 @@ jobs:
 >>>>>>> 77fca555674 (Update github actions to latest versions)
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
+=======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
 =======
+=======
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 <<<<<<< HEAD
@@ -111,13 +131,19 @@ jobs:
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> 77fca555674 (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
 =======
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -136,6 +162,8 @@ jobs:
 =======
 >>>>>>> 77fca555674 (Update github actions to latest versions)
 =======
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
+=======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
 =======
@@ -143,9 +171,14 @@ jobs:
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
 =======
+=======
+>>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+=======
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
 >>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -161,12 +194,19 @@ jobs:
 =======
 >>>>>>> 77fca555674 (Update github actions to latest versions)
 =======
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
+=======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db0ba5df73f (Pin github actions to specific hash and make them read-only)
 =======
+=======
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 <<<<<<< HEAD
@@ -181,7 +221,12 @@ jobs:
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> 77fca555674 (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> dcc3dc3dbeb (Pin github actions to specific hash and make them read-only)
         with:
           distribution: 'temurin'
           java-version: '11'
