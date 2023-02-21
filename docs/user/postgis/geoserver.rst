@@ -11,7 +11,7 @@ From the main GeoServer page, create a new store by either clicking
 interface by clicking "Data > Stores" in the left-hand menu and then
 clicking "Add new Store".
 
-On the "Add Store" page, select "PostGIS", and fill out the
+On the "Add Store" page, select "PostGIS (partitioned)", and fill out the
 parameters. The parameters are described in :ref:`pg_partition_parameters`.
 
 Click "Save", and GeoServer will search PostGIS for any feature types.
