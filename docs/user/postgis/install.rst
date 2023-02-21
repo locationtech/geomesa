@@ -15,7 +15,18 @@ used. See `pg_cron <https://github.com/citusdata/pg_cron>`__ for details on inst
 Installing Partitioned PostGIS in GeoServer
 -------------------------------------------
 
-The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
+.. warning::
+
+    See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
+
+The partitioned PostGIS GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
+``$GEOMESA_GT_HOME/dist/gs-plugins/geomesa-gt-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
+``WEB-INF/lib`` directory.
+
+Restart GeoServer after the JARs are installed.
+
+Note that the regular PostGIS data store can also be used instead, but some queries may be slower due to lack of
+optimization.
 
 Upgrading Existing Schemas
 --------------------------
