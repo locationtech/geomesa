@@ -29,8 +29,8 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 
 Download and Build the Tutorial
@@ -171,6 +171,8 @@ contained in ``org.geomesa.example.data.GDELTData``:
 -  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
 -  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
 
+.. _fsds_quickstart_visualize:
+
 Visualize Data (optional)
 -------------------------
 
@@ -283,4 +285,4 @@ Here are just a few simple ways you can play with the visualization:
    your filter criterion. This is a CQL filter, which can be constructed
    in various ways to query your data. You can find more information
    about CQL from `GeoServer's CQL
-   tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
+   tutorial <https://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.

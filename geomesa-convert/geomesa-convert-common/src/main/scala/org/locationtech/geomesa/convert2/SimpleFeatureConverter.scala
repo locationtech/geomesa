@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,17 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.io.{Closeable, InputStream}
-
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
-import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.{Closeable, InputStream}
 
 /**
  * Converts input streams into simple features. SimpleFeatureConverters should be thread-safe. However,
@@ -63,9 +62,7 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
    * @param failure counter for tracking failed conversions
    * @return
    */
-  def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
-    // TODO remove default impl in next major release
-    new DelegatingEvaluationContext(createEvaluationContext(globalParams))(success, failure)
+  def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext
 
   /**
    * Java API for `createEvaluationContext`

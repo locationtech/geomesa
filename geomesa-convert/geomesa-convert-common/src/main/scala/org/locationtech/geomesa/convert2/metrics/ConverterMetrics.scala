@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2.metrics
 
-import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
@@ -47,7 +46,7 @@ class ConverterMetrics(
     * @return
     */
   def gauge[T](id: String): SimpleGauge[T] =
-    super.gauge(typeName, id, ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
+    super.gauge(typeName, id, new SimpleGauge()).asInstanceOf[SimpleGauge[T]]
 
   /**
     * Creates a prefixed histogram
@@ -94,10 +93,6 @@ class ConverterMetrics(
 object ConverterMetrics {
 
   val MetricsPrefix: SystemProperty = SystemProperty("geomesa.convert.validators.prefix")
-
-  private val GaugeSupplier = new MetricSupplier[Gauge[_]] {
-    override def newMetric(): Gauge[_] = new SimpleGauge()
-  }
 
   /**
     * Creates an empty registry with no namespace or reporters

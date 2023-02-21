@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.fixedwidth
-
-import java.io.InputStream
 
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -18,6 +16,8 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.InputStream
 
 class FixedWidthConverter(sft: SimpleFeatureType,
                           config: BasicConfig,
@@ -58,14 +58,8 @@ object FixedWidthConverter {
       extends FixedWidthField {
 
     private val endIdx: Int = start + width
-    private val mutableArray = Array.ofDim[AnyRef](1)
 
     override val fieldArg: Option[Array[AnyRef] => AnyRef] = Some(values)
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      mutableArray(0) = args(0).asInstanceOf[String].substring(start, endIdx)
-      super.eval(mutableArray.asInstanceOf[Array[Any]])
-    }
 
     private def values(args: Array[AnyRef]): AnyRef = args(0).asInstanceOf[String].substring(start, endIdx)
   }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -30,11 +30,7 @@ trait PartitionScheme {
    *
    * @return
    */
-  def pattern: String = {
-    // default impl to prevent API breakage in partition scheme impls
-    // TODO remove default impl in next major release
-    toString
-  }
+  def pattern: String
 
   /**
     * Return the partition in which a SimpleFeature should be stored
@@ -70,11 +66,7 @@ trait PartitionScheme {
    * @param filter filter
    * @return list of intersecting filters
    */
-  def getIntersectingPartitions(filter: Filter): Option[Seq[String]] = {
-    // default impl to prevent API breakage in partition scheme impls
-    // TODO remove default impl in next major release
-    throw new NotImplementedError()
-  }
+  def getIntersectingPartitions(filter: Filter): Option[Seq[String]]
 
   /**
    * Get a filter that will cover a partitions, i.e. the filter will return all features
@@ -83,11 +75,7 @@ trait PartitionScheme {
    * @param partition partition to cover
    * @return filter
    */
-  def getCoveringFilter(partition: String): Filter = {
-    // default impl to prevent API breakage in partition scheme impls
-    // TODO remove default impl in next major release
-    throw new NotImplementedError()
-  }
+  def getCoveringFilter(partition: String): Filter
 }
 
 object PartitionScheme {

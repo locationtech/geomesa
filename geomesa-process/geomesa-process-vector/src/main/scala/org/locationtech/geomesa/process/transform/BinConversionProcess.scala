@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.process.transform
-
-import java.util.Locale
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util.Locale
 
 @DescribeProcess(
   title = "Binary Conversion",
@@ -97,7 +97,7 @@ class BinConversionProcess extends GeoMesaProcess with LazyLogging {
 class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     extends GeoMesaProcessVisitor with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   // for collecting results manually
   private val manualResults = scala.collection.mutable.Queue.empty[Array[Byte]]
@@ -108,7 +108,7 @@ class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
     override def hasNext: Boolean = manualResults.nonEmpty
   }
 
-  override def getResult: BinResult = BinResult(result)
+  override def getResult: BinResult = BinResult(result.asJava)
 
   // manually called for non-accumulo feature collections
   override def visit(feature: Feature): Unit =

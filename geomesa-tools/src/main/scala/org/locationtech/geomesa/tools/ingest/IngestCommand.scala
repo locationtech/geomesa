@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.ingest
-
-import java.io.{File, FileWriter, InputStream, PrintWriter}
-import java.nio.charset.StandardCharsets
-import java.util.{Collections, Locale}
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
@@ -41,6 +37,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{File, FileWriter, InputStream, PrintWriter}
+import java.nio.charset.StandardCharsets
+import java.util.{Collections, Locale}
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}
@@ -61,7 +60,7 @@ trait IngestCommand[DS <: DataStore]
     }
 
     val inputs: Inputs = {
-      val files = Inputs(params.files.asScala)
+      val files = Inputs(params.files.asScala.toSeq)
       if (params.srcList) { files.asSourceList } else { files }
     }
 
@@ -166,7 +165,7 @@ trait IngestCommand[DS <: DataStore]
     mode match {
       case RunModes.Local =>
         Command.user.info("Running ingestion in local mode")
-        new LocalConverterIngest(ds, sft, converter, inputs, params.threads)
+        new LocalConverterIngest(ds, connection.asJava, sft, converter, inputs, params.threads)
 
       case RunModes.Distributed =>
         Command.user.info(s"Running ingestion in distributed ${if (params.combineInputs) "combine " else "" }mode")

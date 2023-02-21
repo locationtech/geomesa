@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -27,10 +27,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
+
+  import scala.collection.JavaConverters._
 
   // note: using `Seq.foreach; ok` instead of `foreach(Seq)` shaves several seconds off the time to run this test
 
@@ -92,13 +92,13 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
   }
 
   def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): Unit = {
-    val query = new Query(sftName, ECQL.toFilter(filter), transforms)
+    val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
     if (features.length != results.length) {
       ds.getQueryPlan(query, explainer = new ExplainPrintln)
     }
-    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index.z3.legacy
 
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV2.Z3IndexKeySpaceV2
@@ -31,7 +31,7 @@ class Z3IndexV2 protected (ds: GeoMesaDataStore[_],
 
   override val serializedWithId: Boolean = true
 
-  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV2(sft, ZShardStrategy(sft), geom, dtg)
+  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV2(sft, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object Z3IndexV2 {

@@ -571,7 +571,7 @@ st_asGeoJSON
 
 Returns ``Geometry`` *geom* in `GeoJSON`_ representation.
 
-.. _GeoJSON: http://geojson.org/
+.. _GeoJSON: https://geojson.org/
 
 .. _st_asLatLonText:
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.tools.data
 import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.tools.data.AddAttributeIndexCommand.AddAttributeIndexParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob
-import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob.AttributeIndexArgs
+import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob
+import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob.AttributeIndexArgs
 import org.locationtech.geomesa.tools.{Command, RequiredAttributesParam, RequiredTypeNameParam}
 
 class AddAttributeIndexCommand extends AccumuloDataStoreCommand {

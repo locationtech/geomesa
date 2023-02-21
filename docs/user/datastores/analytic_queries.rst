@@ -4,7 +4,7 @@ Analytic Querying
 =================
 
 GeoMesa provides advanced query capabilities through GeoTools query hints. You can use these hints to control
-various aspects of query processing, or to trigger distributed analytic processing. See :ref:`query_hints`
+various aspects of query processing or to trigger distributed analytic processing. See :ref:`query_hints`
 for details on setting query hints.
 
 Feature Sampling
@@ -187,11 +187,11 @@ Z3 frequency               Z3Frequency         ``Z3Frequency("geom","dtg",<time 
 histogram                  Histogram           ``Histogram("foo",<bins>,<min>,<max>)``
 Z3 histogram               Z3Histogram         ``Z3Histogram("geom","dtg",<time period>,<bins>)``
 descriptive statistics     DescriptiveStats    ``DescriptiveStats("foo","bar")``
-multiple stats             SeqStat             ``Count(),MinMax("foo")``
+multiple stats             SeqStat             ``Count();MinMax("foo")``
 grouped stats              GroupBy             ``GroupBy("foo",MinMax("bar"))``
 ========================== =================== =======================================================
 
-As seen in the table above, multiple stats can be calculated at once through comma delimiting. In addition,
+As seen in the table above, multiple stats can be calculated at once through semi-colon delimiting. In addition,
 stats can be calculated on grouped values by using ``GroupBy`` on a nested stat expression.
 
 The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
@@ -267,6 +267,8 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_FORMAT_VERSION     | String (optional)  | formatVersion                      |
 +-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_PROCESS_DELTAS     | Boolean (optional) | processDeltas                      |
++-------------------------------------+--------------------+------------------------------------+
 
 Explanation of Hints
 ++++++++++++++++++++
@@ -316,6 +318,13 @@ ARROW_FORMAT_VERSION
 
 This hint controls the IPC format version for Arrow binary encoding. It should be a valid Arrow format version,
 i.e. ``0.16`` or ``0.10``. The Arrow IPC format changed slightly starting with version ``0.15``.
+
+ARROW_PROCESS_DELTAS
+^^^^^^^^^^^^^^^^^^^^
+
+This is an advanced hint, which can be used to disable normal processing on Arrow queries. When set to false,
+data will be returned in a custom binary format, and needs to be processed before it can be read by standard
+Arrow libraries. When returned un-processed, data can begin streaming back to the client immediately.
 
 Example Query
 +++++++++++++

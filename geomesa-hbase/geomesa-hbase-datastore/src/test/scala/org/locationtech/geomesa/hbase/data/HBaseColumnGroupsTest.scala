@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
@@ -39,6 +36,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class HBaseColumnGroupsTest extends Specification with LazyLogging  {
@@ -158,7 +158,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       filtersA.foreach { case (filter, expected) =>
         (transformsA ++ transformsAB).foreach { transform =>
           foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.LOOSE_BBOX, false)
             foreach(ds.getQueryPlan(query).flatMap(_.scans.flatMap(_.scans))) { scan =>
               scan.getFamilies.map(Bytes.toString) mustEqual Array("A")
@@ -168,7 +168,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         }
         (transformsB ++ transformsDefault).foreach { transform =>
           foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.LOOSE_BBOX, false)
             foreach(ds.getQueryPlan(query).flatMap(_.scans.flatMap(_.scans))) { scan =>
               scan.getFamilies mustEqual Array(ColumnGroups.Default)
@@ -183,7 +183,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       filtersB.foreach { case (filter, expected) =>
         (transformsB ++ transformsAB).foreach { transform =>
           foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.LOOSE_BBOX, false)
             foreach(ds.getQueryPlan(query).flatMap(_.scans.flatMap(_.scans))) { scan =>
               scan.getFamilies.map(Bytes.toString) mustEqual Array("B")
@@ -193,7 +193,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         }
         (transformsA ++ transformsDefault).foreach { transform =>
           foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.LOOSE_BBOX, false)
             foreach(ds.getQueryPlan(query).flatMap(_.scans.flatMap(_.scans))) { scan =>
               scan.getFamilies mustEqual Array(ColumnGroups.Default)
@@ -208,7 +208,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       filtersDefault.foreach { case (filter, expected) =>
         (transformsA ++ transformsB ++ transformsAB ++ transformsDefault).foreach { transform =>
           foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
-            val query = new Query(sft.getTypeName, filter, transform)
+            val query = new Query(sft.getTypeName, filter, transform: _*)
             query.getHints.put(QueryHints.LOOSE_BBOX, false)
             foreach(ds.getQueryPlan(query).flatMap(_.scans.flatMap(_.scans))) { scan =>
               scan.getFamilies mustEqual Array(ColumnGroups.Default)
@@ -231,7 +231,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
 
       // TODO GEOMESA-2816 column groups and coprocessors do not work together with remote filtering disabled
       foreach(Seq(ds, dsSemiLocal/*, dsFullLocal*/)) { ds =>
-        val query = new Query(sft.getTypeName, filter, Array("track", "dtg", "geom"))
+        val query = new Query(sft.getTypeName, filter, "track", "dtg", "geom")
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "track")
@@ -257,7 +257,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
               case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
               case a => a
             }
-            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
+            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
           }.toList
           results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
         }

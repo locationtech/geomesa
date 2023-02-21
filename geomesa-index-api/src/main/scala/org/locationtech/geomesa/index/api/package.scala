@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index
 
-import java.nio.charset.StandardCharsets
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{andOption, filterToString}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
@@ -17,6 +15,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.filter.Filter
 
+import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 package object api {
@@ -258,14 +257,6 @@ package object api {
     override lazy val toString: String =
       s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +
           s"[${secondary.map(filterToString).getOrElse("None")}]($costMultiplier)"
-
-    @deprecated("replaced with costMultiplier")
-    lazy val cost: Long = (costMultiplier * 100).toLong
-
-    // note: keeping this around seems to prevent calling the regular case class copy method :(
-    @deprecated("replaced with case class standard copy")
-    def copy(secondary: Option[Filter]): FilterStrategy =
-      FilterStrategy(index, primary, secondary, temporal, costMultiplier)
   }
 
   object FilterStrategy {
@@ -301,25 +292,28 @@ package object api {
   object ByteRange {
 
     import ByteArrays.ByteOrdering
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
     val UnboundedLowerRange: Array[Byte] = Array.empty
     val UnboundedUpperRange: Array[Byte] = Array.fill(3)(ByteArrays.MaxByte)
 
     def min(ranges: Seq[ByteRange]): Array[Byte] = {
-      ranges.collect {
-        case BoundedByteRange(lo, _) => lo
-        case SingleRowByteRange(row) => row
-        case r => throw new IllegalArgumentException(s"Unexpected range type $r")
-      }.minOption.getOrElse(UnboundedLowerRange)
+      if (ranges.isEmpty) { UnboundedLowerRange } else {
+        ranges.collect {
+          case BoundedByteRange(lo, _) => lo
+          case SingleRowByteRange(row) => row
+          case r => throw new IllegalArgumentException(s"Unexpected range type $r")
+        }.min
+      }
     }
 
     def max(ranges: Seq[ByteRange]): Array[Byte] = {
-      ranges.collect {
-        case BoundedByteRange(_, hi) => hi
-        case SingleRowByteRange(row) => row
-        case r => throw new IllegalArgumentException(s"Unexpected range type $r")
-      }.maxOption.getOrElse(UnboundedUpperRange)
+      if (ranges.isEmpty) { UnboundedUpperRange } else {
+        ranges.collect {
+          case BoundedByteRange(_, hi) => hi
+          case SingleRowByteRange(row) => row
+          case r => throw new IllegalArgumentException(s"Unexpected range type $r")
+        }.max
+      }
     }
   }
 

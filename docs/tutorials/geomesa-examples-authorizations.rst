@@ -56,17 +56,15 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  an Accumulo |accumulo_required_version| instance
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa distributed runtime installed for your instance
 
 If you are not familiar with Accumulo authorizations, you should review
-the relevant Accumulo
-`documentation <http://accumulo.apache.org/1.7/accumulo_user_manual.html#_security>`__,
-with more examples `here <http://accumulo.apache.org/1.7/examples/visibility.html>`__.
+the relevant Accumulo `documentation <https://accumulo.apache.org/docs/2.x/security/overview>`__.
 
 About this Tutorial
 -------------------
@@ -83,13 +81,11 @@ can be set through user data in a simple feature:
 
 .. code-block:: java
 
-    import org.locationtech.geomesa.security.SecurityUtils;
-    ...
-    SimpleFeature sf = ...
+    SimpleFeature sf = ...;
     // set user data directly
     sf.getUserData().put(SecurityUtils.FEATURE_VISIBILITY, "user&admin");
     // alternatively, use static utility methods
-    SecurityUtils.setFeatureVisibilities(sf, "user", "admin");
+    org.locationtech.geomesa.security.SecurityUtils.setFeatureVisibilities(sf, "user", "admin");
 
 For more information on feature-level visibilities, see :doc:`./geomesa-examples-featurelevelvis`.
 
@@ -180,15 +176,11 @@ You can see the visibilities that are currently enabled for your user through th
 
     $ accumulo shell -u <username> -p <password>
 
-    Shell - Apache Accumulo Interactive Shell
-    - 
-    - version: 1.8.1
-    - instance name: xxxxx
-    - instance id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    - 
-    - type 'help' for a list of available commands
-    - 
-    myuser@mycloud> getauths
+Once in the shell:
+
+.. code-block:: bash
+
+    > getauths
     user,admin
 
 If your user does not already have authorizations, you can add them
@@ -196,10 +188,10 @@ through the Accumulo shell with the ``addauths`` command:
 
 .. code-block:: bash
 
-    myuser@mycloud> getauths
+    > getauths
     user
-    myuser@mycloud> addauths -s admin -u myuser
-    myuser@mycloud> getauths
+    > addauths -s admin -u myuser
+    > getauths
     user,admin
 
 .. note::
@@ -212,7 +204,7 @@ square brackets when you scan the index tables through the Accumulo shell:
 
 .. code-block:: bash
 
-    myuser@mycloud> scan -t mytable_id
+    > scan -t mytable_id
     \x0100700230-fdfe-422e-b4d1-8072db6f3dda SFT: [user]    \x02\x00\x00\x01b00700230...
 
 Download and Build the Tutorial
@@ -249,7 +241,7 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-authorizations/target/geomesa-tutorials-accumulo-authorizations-${geomesa.version}.jar \
         org.geomesa.example.accumulo.auths.AuthorizationsTutorial \
-        --accumulo.instance.id <instance>                         \
+        --accumulo.instance.name <instance>                       \
         --accumulo.zookeepers <zookeepers>                        \
         --accumulo.user <user>                                    \
         --accumulo.password <password>                            \
@@ -391,7 +383,7 @@ Run GeoServer in Tomcat
 GeoServer ships by default with an embedded Jetty servlet. In order to
 use PKI login, we need to install it in Tomcat instead.
 
-1. Download and install `Tomcat 7 <http://tomcat.apache.org/download-70.cgi>`__.
+1. Download and install `Tomcat 9 <https://tomcat.apache.org/download-90.cgi>`__.
 2. Create an environment variable pointing to your tomcat installation
    (you may want to add this to your bash init scripts):
 
@@ -464,7 +456,7 @@ Configure GeoServer for PKI Login
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow the instructions in the GeoServer
-`documentation <http://docs.geoserver.org/latest/en/user/security/tutorials/cert/index.html>`__
+`documentation <https://docs.geoserver.org/latest/en/user/security/tutorials/cert/index.html>`__
 in order to enable PKI login to GeoServer.
 
 In the step where you add the 'cert' filter to the 'Filter Chains', also
@@ -495,7 +487,7 @@ Install an LDAP Server for Storing Authorizations
     can skip this step.
 
 1. Download and install
-   `ApacheDS <http://directory.apache.org/apacheds/>`__
+   `ApacheDS <https://directory.apache.org/apacheds/>`__
 2. Either run as a service, or run through the start scripts:
 
 .. code-block:: bash
@@ -518,9 +510,9 @@ user:
 In order to do that, we will use Apache Directory Studio.
 
 1. Download and run `Apache Directory
-   Studio <http://directory.apache.org/studio/>`__.
+   Studio <https://directory.apache.org/studio/>`__.
 2. Connect to the your LDAP instance (ApacheDS), using the instructions
-   `here <http://directory.apache.org/apacheds/basic-ug/1.4.2-changing-admin-password.html>`__
+   `here <https://directory.apache.org/apacheds/basic-ug/1.4.2-changing-admin-password.html>`__
    (note: you do not need to change the password unless you want to).
 3. Create a partition for our data:
 

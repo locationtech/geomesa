@@ -305,17 +305,18 @@ GeoMesa allows configuration of the number of shards (or splits) into which the 
 divided. This parameter may be changed individually for each ``SimpleFeatureType``. If nothing is specified,
 GeoMesa will default to 4 shards. The number of shards must be between 1 and 127.
 
-Shards allow us to pre-split tables, which provides some initial parallelism for reads and writes. As more data is
+Shards allow for tables to be pre-split, which provides some initial parallelism for reads and writes. As more data is
 written, tables will generally split based on size, thus obviating the need for explicit shards. For small data sets,
 shards are more important as the tables might never split due to size. Setting the number of shards too high can
 reduce performance, as it requires more calculations to be performed per query.
 
 The number of shards is set when calling ``createSchema``. It may be specified through the simple feature type
-user data using the key ``geomesa.z.splits``. See :ref:`set_sft_options` for details on setting user data.
+user data using the keys ``geomesa.z2.splits`` or ``geomesa.z3.splits`` for two and three dimensional indices
+respectively. See :ref:`set_sft_options` for details on setting user data.
 
 .. code-block:: java
 
-    sft.getUserData().put("geomesa.z.splits", "4");
+    sft.getUserData().put("geomesa.z3.splits", "4");
 
 .. _customizing_z_index:
 

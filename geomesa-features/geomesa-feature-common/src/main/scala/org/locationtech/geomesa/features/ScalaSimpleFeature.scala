@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features
 
-import java.util
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.locationtech.geomesa.features.AbstractSimpleFeature.{AbstractImmutableSimpleFeature, AbstractMutableSimpleFeature}
 import org.locationtech.geomesa.utils.collection.WordBitSet
 import org.locationtech.geomesa.utils.io.Sizable
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.util
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Simple feature implementation optimized to instantiate from serialization
@@ -61,8 +61,6 @@ class ScalaSimpleFeature private (sft: SimpleFeatureType, values: Array[AnyRef])
 
 object ScalaSimpleFeature {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
   import scala.collection.JavaConverters._
 
   /**
@@ -102,8 +100,10 @@ object ScalaSimpleFeature {
   def retype(sft: SimpleFeatureType, in: SimpleFeature): SimpleFeature = {
     if (sft == in.getFeatureType) { in } else {
       val out = new ScalaSimpleFeature(sft, in.getID)
-      sft.getAttributeDescriptors.asScala.foreachIndex { case (d, i) =>
+      var i = 0
+      sft.getAttributeDescriptors.asScala.foreach { d =>
         out.setAttribute(i, in.getAttribute(d.getLocalName))
+        i += 1
       }
       out.getUserData.putAll(in.getUserData)
       out

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, TimeUnit}
-
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorage.Encoding
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, TimeUnit}
 
 class ConverterMetadata(
     context: FileSystemContext,
@@ -63,9 +63,6 @@ class ConverterMetadata(
 
   override def setPartitions(partitions: Seq[PartitionMetadata]): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
 
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")

@@ -3,9 +3,16 @@ Installing GeoMesa Kafka
 
 .. note::
 
-    GeoMesa currently supports Kafka version |kafka_version|, and has been tested up to |kafka_tested_version|.
-    However, not all features are supported for versions prior to 1.0. The runtime classpath requires Kafka
-    version 2+, but should be compatible with brokers back to Kafka 0.10.
+    GeoMesa currently supports Kafka |kafka_supported_versions|.
+
+.. note::
+
+    The examples below expect a version to be set in the environment:
+
+    .. parsed-literal::
+
+        $ export TAG="|release_version|"
+        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -15,35 +22,26 @@ The easiest way to get started is to download the most recent binary version fro
 
 __ https://github.com/locationtech/geomesa/releases
 
-.. note::
-
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
-
-Extract it somewhere convenient:
+Download and extract it somewhere convenient:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
-    $ tar xzvf geomesa-kafka_${VERSION}-bin.tar.gz
+    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
     $ cd geomesa-kafka_${VERSION}
-    $ ls
-    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
 
 .. _kafka_install_source:
 
 Building from Source
 --------------------
 
-GeoMesa Kafka may also be built from source. For more information refer to :ref:`building_from_source`
-in the developer manual, or to the ``README.md`` file in the the source distribution.
+GeoMesa Kafka may also be built from source. For more information, refer to the instructions on
+`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa distribution.
 
 If you have built from source, the Kafka distribution is created in the
 ``target`` directory of the ``geomesa-kafka/geomesa-kafka-dist`` module.
-
-More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 
 .. _setting_up_kafka_commandline:
 
@@ -72,9 +70,12 @@ Do this with the following command:
 
 Test the command that invokes the GeoMesa Tools:
 
-.. code::
+.. code-block:: bash
 
     $ geomesa-kafka
+
+The output should look like this::
+
     Usage: geomesa-kafka [command] [command options]
       Commands:
         ...
@@ -96,14 +97,14 @@ As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 to use GeoMesa Kafka as a data store in `GeoServer`_.
 GeoServer's web site includes `installation instructions for GeoServer`_.
 
-.. _installation instructions for GeoServer: http://docs.geoserver.org/stable/en/user/installation/index.html
+.. _installation instructions for GeoServer: https://docs.geoserver.org/stable/en/user/installation/index.html
 
 After GeoServer is running, you will also need to install the WPS plugin to
 your GeoServer instance. The GeoServer WPS Plugin must match the version of
 GeoServer instance. The GeoServer website includes instructions for downloading
 and installing `the WPS plugin`_.
 
-.. _the WPS plugin: http://docs.geoserver.org/stable/en/user/services/wps/install.html
+.. _the WPS plugin: https://docs.geoserver.org/stable/en/user/services/wps/install.html
 
 .. note::
 
@@ -120,7 +121,7 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/geoserver/``
+``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -131,8 +132,8 @@ distribution into your GeoServer's ``lib`` directory:
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
-override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
-you can download the JARs manually via http://search.maven.org/.
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
+you can download the JARs manually.
 
 Edit the file ``geomesa-kafka_${VERSION}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
 to match the target environment, and then run the script:
@@ -143,37 +144,6 @@ to match the target environment, and then run the script:
 
 .. warning::
 
-    Ensure that the Scala version (either ``_2.11`` or ``_2.12``) of both GeoMesa and Kafka match to avoid
-    compatibility issues.
-
-The specific JARs needed for some common configurations are listed below:
-
-.. tabs::
-
-    .. tab:: Kafka 2.0.0
-
-        * kafka-clients-2.0.0.jar
-        * kafka_2.11-2.0.0.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 1.0.1
-
-        * kafka-clients-1.0.1.jar
-        * kafka_2.11-1.0.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
-        * jopt-simple-5.0.4.jar
-
-    .. tab:: Kafka 0.10
-
-        * kafka-clients-0.10.2.1.jar
-        * kafka_2.11-0.10.2.1.jar
-        * zkclient-0.10.jar
-        * zookeeper-3.4.10.jar
-        * metrics-core-2.2.0.jar
+    Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
 
 Restart GeoServer after the JARs are installed.

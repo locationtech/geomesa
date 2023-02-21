@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import java.util.Collections
-
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.orc.TestObserverFactory.TestObserver
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.tools.export
-
-import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.geotools.data.{FeatureEvent, FeatureListener, Query}
@@ -26,6 +24,7 @@ import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
 
 class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistributedCommand {
@@ -43,7 +42,7 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
       writeEmptyFiles: Boolean): Option[Long] = {
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
-      throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
+      throw new ParameterException(s"Type ${params.featureName} does not exist in ${ds.config.catalog}")
     }
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.nio.charset.StandardCharsets
-import java.util.Date
-
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
@@ -39,6 +35,10 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.charset.StandardCharsets
+import java.util.Date
+
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatureType {
 
@@ -54,7 +54,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       s"2018-01-01T0$i:00:01.000Z", s"POINT (45.$i 55)")
   }
 
-  val transformCache = Caffeine.newBuilder().build(
+  val transformCache: LoadingCache[Array[String], (SimpleFeatureType, Seq[Transform])] = Caffeine.newBuilder().build(
     new CacheLoader[Array[String], (SimpleFeatureType, Seq[Transform])]() {
       override def load(transform: Array[String]): (SimpleFeatureType, Seq[Transform]) = {
         val definitions = Transforms.apply(sft, transform)
@@ -143,13 +143,13 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
     "use minimal column groups required by the filter and transform, group a" in {
       filtersA.foreach { case (filter, expected) =>
         (transformsA ++ transformsAB).foreach { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+          val query = new Query(sft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
           foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("x"))
           query.toList mustEqual expected.toFeatures(transform)
         }
         (transformsB ++ transformsDefault).foreach { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+          val query = new Query(sft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
           foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.copyBytes()) must beSome(ColumnGroups.Default))
           query.toList mustEqual expected.toFeatures(transform)
@@ -160,13 +160,13 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
     "use minimal column groups required by the filter and transform, group b" in {
       filtersB.foreach { case (filter, expected) =>
         (transformsB ++ transformsAB).foreach { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+          val query = new Query(sft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
           foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.toString) must beSome("y"))
           query.toList mustEqual expected.toFeatures(transform)
         }
         (transformsA ++ transformsDefault).foreach { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+          val query = new Query(sft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
           foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.copyBytes()) must beSome(ColumnGroups.Default))
           query.toList mustEqual expected.toFeatures(transform)
@@ -177,7 +177,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
     "use minimal column groups required by the filter and transform, default group" in {
       filtersDefault.foreach { case (filter, expected) =>
         (transformsA ++ transformsB ++ transformsAB ++ transformsDefault).foreach { transform =>
-          val query = new Query(sft.getTypeName, filter, transform)
+          val query = new Query(sft.getTypeName, filter, transform: _*)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
           foreach(ds.getQueryPlan(query))(_.columnFamily.map(_.copyBytes()) must beSome(ColumnGroups.Default))
           query.toList mustEqual expected.toFeatures(transform)
@@ -198,11 +198,11 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       new Query(sft.getTypeName, filter).toList mustEqual expected.toFeatures(null)
 
       // name and geom transform, should be a regular index non-join query and use smallest col group
-      foreach(ds.getQueryPlan(new Query(sft.getTypeName, filter, Array("name", "geom")))) { plan =>
+      foreach(ds.getQueryPlan(new Query(sft.getTypeName, filter, "name", "geom"))) { plan =>
         plan.columnFamily.map(_.toString) must beSome("y")
         plan must beAnInstanceOf[BatchScanPlan]
       }
-      new Query(sft.getTypeName, filter, Array("name", "geom")).toList mustEqual
+      new Query(sft.getTypeName, filter, "name", "geom").toList mustEqual
           expected.toFeatures(Array("name", "geom"))
     }
     "work with join indices with secondary predicates" in {
@@ -212,7 +212,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       val transforms = Seq(null: Array[String], Array("name", "geom"), Array("name", "height", "geom"))
 
       transforms.foreach { transform =>
-        val query = new Query(sft.getTypeName, filter, transform)
+        val query = new Query(sft.getTypeName, filter, transform: _*)
         foreach(ds.getQueryPlan(query)) { plan =>
           plan.columnFamily.map(_.copyBytes()) must beSome(ColumnGroups.Default)
           plan must beAnInstanceOf[JoinPlan]
@@ -227,7 +227,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       val expected = 5 to 6
 
       val transforms = Array("name", "age", "geom")
-      val query = new Query(sft.getTypeName, filter, transforms)
+      val query = new Query(sft.getTypeName, filter, transforms: _*)
 
       // should join against record table using col family b
       foreach(ds.getQueryPlan(query)) { plan =>
@@ -241,7 +241,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       val filter = ECQL.toFilter("dtg DURING 2018-01-01T00:00:00.000Z/2018-01-01T08:30:00.000Z " +
           "and bbox(geom,45.4,54.9,45.8,55.1)")
 
-      val query = new Query(sft.getTypeName, filter, Array("track", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, filter, "track", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "track")
@@ -260,7 +260,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
             case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
             case a => a
           }
-          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
+          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
         }.toList
         results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
       }

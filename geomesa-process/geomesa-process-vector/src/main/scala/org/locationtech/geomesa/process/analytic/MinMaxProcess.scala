@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.process.analytic.MinMaxProcess.MinMaxVisitor
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.Stat
@@ -101,6 +101,6 @@ object MinMaxProcess {
 
   private def createResult(stat: String): FeatureResult = {
     val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "", Array(stat, GeometryUtils.zeroPoint))
-    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, Array[SimpleFeature](sf)))
+    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, sf))
   }
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,14 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.time.{Instant, ZoneOffset}
-import java.util.{Locale, List => jList}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
+import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -32,13 +31,16 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.io.IOException
+import java.time.{Instant, ZoneOffset}
+import java.util.{Locale, List => jList}
 import scala.util.control.NonFatal
 
 /**
   * Abstract base class for data store implementations using metadata to track schemas
   */
 abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStore
-    with HasGeoMesaMetadata[String] with DistributedLocking with LazyLogging {
+    with HasGeoMesaMetadata[String] with HasGeoMesaFeatureReader with DistributedLocking with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -240,6 +242,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         throw new IllegalArgumentException(s"Schema '$typeName' does not exist")
       }
 
+      GeoMesaSchemaValidator.validate(schema)
+
       validateSchemaUpdate(previousSft, schema)
 
       val sft = SimpleFeatureTypes.mutable(schema)
@@ -300,6 +304,21 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
 
   /**
+   * @see org.geotools.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
+   * @param query query to execute
+   * @param transaction transaction to use (currently ignored)
+   * @return feature reader
+   */
+  override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
+    require(query.getTypeName != null, "Type name is required in the query")
+    val sft = getSchema(query.getTypeName)
+    if (sft == null) {
+      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
+    }
+    getFeatureReader(sft, transaction, query).reader()
+  }
+
+  /**
     * Create a general purpose writer that is capable of updates and deletes.
     * Does <b>not</b> allow inserts. Will return all existing features.
     *
@@ -308,7 +327,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * @param transaction transaction (currently ignored)
     * @return feature writer
     */
-  override def getFeatureWriter(typeName: String, transaction: Transaction): SimpleFeatureWriter =
+  override def getFeatureWriter(typeName: String, transaction: Transaction): FlushableFeatureWriter =
     getFeatureWriter(typeName, Filter.INCLUDE, transaction)
 
   /**
@@ -322,7 +341,13 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * @param transaction transaction (currently ignored)
     * @return feature writer
     */
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): SimpleFeatureWriter
+  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): FlushableFeatureWriter = {
+    val sft = getSchema(typeName)
+    if (sft == null) {
+      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    }
+    getFeatureWriter(sft, transaction, Option(filter))
+  }
 
   /**
     * Creates a feature writer only for writing - does not allow updates or deletes.
@@ -332,7 +357,27 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * @param transaction transaction (currently ignored)
     * @return feature writer
     */
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): SimpleFeatureWriter
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FlushableFeatureWriter = {
+    val sft = getSchema(typeName)
+    if (sft == null) {
+      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    }
+    getFeatureWriter(sft, transaction, None)
+  }
+
+  /**
+   * Internal method to get a feature writer without reloading the simple feature type. We don't expose this
+   * widely as we want to ensure that the sft has been loaded from our catalog
+   *
+   * @param sft simple feature type
+   * @param transaction transaction
+   * @param filter if defined, will do an updating write, otherwise will do an appending write
+   * @return
+   */
+  private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter
 
   /**
     * @see org.geotools.data.DataAccess#getInfo()
@@ -441,6 +486,8 @@ object MetadataBackedDataStore {
       IndexS3Interval,
       IndexXzPrecision,
       IndexZShards,
+      IndexZ2Shards,
+      IndexZ3Shards,
       IndexIdShards,
       IndexAttributeShards
     )

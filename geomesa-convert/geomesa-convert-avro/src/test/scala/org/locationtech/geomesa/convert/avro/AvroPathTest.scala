@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,8 +12,6 @@ import org.apache.avro.generic._
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AvroPathTest extends Specification with AvroUtils {
@@ -50,8 +48,8 @@ class AvroPathTest extends Specification with AvroUtils {
       val result = avroPath.eval(gr1).asInstanceOf[Option[AnyRef]]
       result must beSome(beAnInstanceOf[java.util.List[AnyRef]])
       val arr = result.get.asInstanceOf[java.util.List[AnyRef]]
-      arr.length mustEqual 5
-      arr.head must beAnInstanceOf[GenericRecord]
+      arr.size mustEqual 5
+      arr.get(0) must beAnInstanceOf[GenericRecord]
     }
 
     "filter arrays of records by a field predicate" in {

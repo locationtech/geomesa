@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -53,10 +53,10 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     }
 
     val inputs = params.files.asScala
-    val format = IngestCommand.getDataFormat(params, inputs)
+    val format = IngestCommand.getDataFormat(params, inputs.toSeq)
 
     // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs, format, None).get.flatMap { case (sft, config) =>
+    IngestCommand.getSftAndConverter(params, inputs.toSeq, format, None).get.flatMap { case (sft: SimpleFeatureType, config: com.typesafe.config.Config) =>
       val files = if (inputs.isEmpty) { StdInHandle.available().iterator } else {
         inputs.iterator.flatMap(PathUtils.interpretPath)
       }
@@ -64,8 +64,8 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
         val ec = converter.createEvaluationContext()
         val query = ExportCommand.createQuery(sft, params)
         val exporter = Option(params.chunkSize) match {
-          case None    => new Exporter(ExportOptions(params), query.getHints, Map.empty)
-          case Some(c) => new ChunkedExporter(ExportOptions(params), query.getHints, Map.empty, c)
+          case None    => new Exporter(ExportOptions(params), query.getHints)
+          case Some(c) => new ChunkedExporter(ExportOptions(params), query.getHints, c)
         }
         try {
           val count = WithClose(ConvertCommand.convertFeatures(files, converter, ec, query)) { iter =>

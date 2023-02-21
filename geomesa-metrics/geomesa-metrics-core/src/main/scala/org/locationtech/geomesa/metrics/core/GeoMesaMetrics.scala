@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.io.Closeable
-
-import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+
+import java.io.Closeable
 
 /**
   * Provides namespaced access to reporting metrics
@@ -47,8 +46,22 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
    * @param supplier metric supplier
    * @return
    */
-  def gauge(typeName: String, id: String, supplier: MetricSupplier[Gauge[_]]): Gauge[_] =
-    registry.gauge(this.id(typeName, id), supplier)
+  def gauge(typeName: String, id: String, metric: => Gauge[_]): Gauge[_] = {
+    val ident = this.id(typeName, id)
+    // note: don't use MetricRegistry#gauge(String, MetricSupplier<Gauge>) to support older
+    // metric jars that ship with hbase
+    def getOrCreate(): Gauge[_] = {
+      registry.getMetrics.get(ident) match {
+        case g: Gauge[_] => g
+        case null => registry.register(ident, metric)
+        case m =>
+          throw new IllegalArgumentException(s"${m.getClass.getSimpleName} already registered under the name '$ident'")
+      }
+    }
+
+    // re-try once to avoid concurrency issues with checking then adding a metric (which should be rare)
+    try { getOrCreate() } catch { case _: IllegalArgumentException => getOrCreate() }
+  }
 
   /**
    * Creates a prefixed histogram

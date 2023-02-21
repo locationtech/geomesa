@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
-
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -24,6 +21,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
@@ -166,6 +165,21 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
         // verify that the second feature didn't trigger an expiration, as it was ignored due to event time
         there were two(ex).schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.anyLong(), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+      }
+    }
+
+    "expire by event time with ordering (no mocking)" in {
+      val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = true)
+      val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
+
+      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+        val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")
+        cache.put(sf1)
+        cache.query("1") must beSome(sf1.asInstanceOf[SimpleFeature])
+        cache.query(ECQL.toFilter("bbox(geom,-79.0,34.0,-77.0,36.0)")).toSeq mustEqual Seq(sf1)
+
+        eventually(cache.query("1") must beNone)
+        cache.query(ECQL.toFilter("bbox(geom,-79.0,34.0,-77.0,36.0)")).toSeq must beEmpty
       }
     }
 

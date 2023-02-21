@@ -15,10 +15,8 @@ The OSM-GPX data set can be downloaded using the provided
 
     $ ./download-data.sh osm-gpx
 
-Alternatively, download OSM\_GPX data `here <http://planet.openstreetmap.org/gps/>`__. It is formatted in the
-GPX 1.0 format, which is an XML format described by this `XSD <http://www.topografix.com/GPX/1/0/gpx.xsd>`__.
-Regional extracts of the dataset can be found
-`here <http://zverik.osm.rambler.ru/gps/files/extracts/index.html>`__.
+Alternatively, download OSM\_GPX data `here <https://planet.openstreetmap.org/gps/>`__. It is formatted in the
+GPX 1.0 format, which is an XML format described by this `XSD <https://www.topografix.com/GPX/1/0/gpx.xsd>`__.
 
 Extracting the Data
 -------------------

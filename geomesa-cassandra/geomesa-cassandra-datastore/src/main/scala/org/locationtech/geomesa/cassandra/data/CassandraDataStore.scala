@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2017-2021 IBM
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2017-2023 IBM
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -45,10 +46,8 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[CassandraQueryPlan]]
 
   override def delete(): Unit = {
-    val tables = getTypeNames.flatMap(getAllIndexTableNames)
-    (tables.distinct :+ config.catalog).par.foreach { table =>
-      session.execute(s"drop table $table")
-    }
+    val tables = getTypeNames.flatMap(getAllIndexTableNames).distinct :+ config.catalog
+    tables.toList.map(t => CachedThreadPool.submit(() => session.execute(s"drop table $t"))).foreach(_.get)
   }
 
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {

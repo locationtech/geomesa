@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,20 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.io.ByteArrayInputStream
-
+import org.apache.arrow.vector.{IntVector, VarCharVector}
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.LineString
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.ByteArrayInputStream
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -110,6 +111,49 @@ class DeltaWriterTest extends Specification {
 
         WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toVector mustEqual features)
       }
+    }
+    "return unprocessed delta values" >> {
+      val dictionaries = Seq("name", "age")
+      val encoding = SimpleFeatureEncoding.min(includeFids = true)
+      val sort = Some(("dtg", false))
+      val result = ArrayBuffer.empty[Array[Byte]]
+
+      WithClose(new DeltaWriter(sft, dictionaries, encoding, ipcOpts, sort, 10)) { writer =>
+        result.append(writer.encode(features.drop(0).toArray, 3))
+        result.append(writer.encode(features.drop(3).toArray, 5))
+        result.append(writer.encode(features.drop(8).toArray, 2))
+      }
+      WithClose(new DeltaWriter(sft, dictionaries, encoding, ipcOpts, sort, 10)) { writer =>
+        result.append(writer.encode(features.drop(15).toArray, 5))
+        result.append(writer.encode(features.drop(10).toArray, 5))
+      }
+
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted = false, 5, process = false, result.iterator)) { iter =>
+        iter.foldLeft(Array.empty[Byte])(_ ++ _)
+      }
+
+      val header = bytes.slice(4, ByteArrays.readInt(bytes) + 4)
+
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(header))) { reader =>
+        reader.dictionaries must haveSize(2)
+        reader.dictionaries.get("name") must beSome
+        reader.dictionaries("name").length mustEqual 0
+        reader.dictionaries("name").id mustEqual 0L
+        WithClose(reader.dictionaries("name").toDictionary(encoding))(_.getVector must beAnInstanceOf[VarCharVector])
+        reader.dictionaries.get("age") must beSome
+        reader.dictionaries("age").length mustEqual 0
+        reader.dictionaries("age").id mustEqual 1L
+        WithClose(reader.dictionaries("age").toDictionary(encoding))(_.getVector must beAnInstanceOf[IntVector])
+
+        WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toVector must beEmpty)
+      }
+
+      var i = header.length + 4
+      result.foreach { buf =>
+        bytes.slice(i, i + buf.length) mustEqual buf
+        i += buf.length
+      }
+      i mustEqual bytes.length
     }
     "dynamically encode list-type dictionary values with sorting" >> {
       val dictionaries = Seq("names")

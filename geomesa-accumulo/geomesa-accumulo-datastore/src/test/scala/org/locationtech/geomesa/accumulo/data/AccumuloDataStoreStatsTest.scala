@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
-
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
@@ -34,8 +31,13 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.util.Date
+
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -377,9 +379,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       }
 
       "not calculate stats when collection is disabled" >> {
-        import scala.collection.JavaConversions._
         val params = dsParams ++ Map(AccumuloDataStoreParams.GenerateStatsParam.key -> false)
-        val dsNoStats =  DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+        val dsNoStats =  DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
         val fs = dsNoStats.getFeatureSource(sftName)
 

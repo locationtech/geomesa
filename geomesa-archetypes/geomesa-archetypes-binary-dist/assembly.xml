@@ -20,16 +20,6 @@
       </excludes>
     </dependencySet>
     <dependencySet>
-      <outputDirectory>dist/gs-plugins</outputDirectory>
-      <directoryMode>0755</directoryMode>
-      <fileMode>0644</fileMode>
-      <useProjectArtifact>false</useProjectArtifact>
-      <useTransitiveDependencies>false</useTransitiveDependencies>
-      <includes>
-        <include>org.locationtech.geomesa:geomesa-process-wps*</include>
-      </includes>
-    </dependencySet>
-    <dependencySet>
       <outputDirectory>dist/spark</outputDirectory>
       <directoryMode>0755</directoryMode>
       <fileMode>0644</fileMode>
@@ -175,7 +165,7 @@
     </file>
     <!-- geomesa-site.xml.template -->
     <file>
-      <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
+      <source>../../geomesa-utils-parent/geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
       <destName>geomesa-site.xml.template</destName>
       <outputDirectory>conf</outputDirectory>
     </file>

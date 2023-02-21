@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,16 +8,11 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.Date
-import java.util.zip.Deflater
-
 import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
-import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExportStream
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -25,6 +20,11 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.Date
+import java.util.zip.Deflater
 
 @RunWith(classOf[JUnitRunner])
 class FeatureExporterTest extends Specification {

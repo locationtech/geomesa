@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,7 +19,7 @@ import org.specs2.runner.JUnitRunner
 class ShardStrategyTest extends Specification {
   "ShardStrategy" should {
     "handle negative hash values" in {
-      val sft = SimpleFeatureTypes.createType("hash", "geom:Point,dtg:Date;geomesa.z.splits=60")
+      val sft = SimpleFeatureTypes.createType("hash", "geom:Point,dtg:Date;geomesa.z3.splits=60")
       val wrapper = WritableFeature.wrapper(sft, new ColumnGroups)
       val sf = ScalaSimpleFeature.create(sft, "1371494157#3638946185",
         "POINT (88.3176015 22.5988557)", "2019-12-23T01:00:00.000Z")

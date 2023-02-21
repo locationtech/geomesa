@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.index.api
 
-import java.io.{Closeable, Flushable}
-import java.util.UUID
-
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.conf.ColumnGroups
@@ -18,6 +15,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.{Closeable, Flushable}
+import java.util.UUID
 import scala.util.control.NonFatal
 
 /**

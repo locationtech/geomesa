@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -42,6 +42,13 @@ class MiscFunctionFactoryTest extends Specification {
       }
       "return the default if the first argument is null" >> {
         MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
+      }
+      "return the first non-null argument" >> {
+        MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
+        MiscFunctionFactory.withDefault(Array(null, "b", "c", "d")) mustEqual "b"
+        MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
+        MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
+        MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
       }
     }
 

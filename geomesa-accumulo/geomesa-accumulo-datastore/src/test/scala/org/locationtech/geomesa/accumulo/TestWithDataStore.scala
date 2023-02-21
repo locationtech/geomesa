@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -31,11 +31,11 @@ trait TestWithDataStore extends Specification {
 
   // note the table needs to be different to prevent tests from conflicting with each other
   lazy val dsParams: Map[String, String] = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
-    AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
-    AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
-    AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
-    AccumuloDataStoreParams.CatalogParam.key    -> catalog
+    AccumuloDataStoreParams.InstanceNameParam.key -> MiniCluster.cluster.getInstanceName,
+    AccumuloDataStoreParams.ZookeepersParam.key   -> MiniCluster.cluster.getZooKeepers,
+    AccumuloDataStoreParams.UserParam.key         -> MiniCluster.Users.root.name,
+    AccumuloDataStoreParams.PasswordParam.key     -> MiniCluster.Users.root.password,
+    AccumuloDataStoreParams.CatalogParam.key      -> catalog
   )
 
   lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]

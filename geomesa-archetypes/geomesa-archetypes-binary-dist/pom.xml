@@ -5,7 +5,7 @@
     <parent>
         <artifactId>geomesa-archetypes_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-archetypes-binary-dist_2.12</artifactId>
@@ -13,18 +13,11 @@
     <packaging>pom</packaging>
 
     <dependencies>
-
         <!-- common models jar-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
             <classifier>data</classifier>
-        </dependency>
-
-        <!-- geomesa process jar -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- additional deps to manage in for deploying to lib dir-->
@@ -55,13 +48,13 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>compile</scope>
+            <artifactId>slf4j-reload4j</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <scope>compile</scope>
+            <groupId>ch.qos.reload4j</groupId>
+            <artifactId>reload4j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- manage these out from the lib dir -->

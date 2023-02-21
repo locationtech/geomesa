@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,14 +17,14 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.io.PathUtils
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with CassandraDataStoreCommand {
 
   override val params = new CassandraIngestParams
 
   override def execute(): Unit = {
-    if (params.files.exists(PathUtils.isRemote)) {
+    if (params.files.asScala.exists(PathUtils.isRemote _)) {
       throw new ParameterException("The Cassandra ingest tool does not support distributed ingest.")
     }
     super.execute()

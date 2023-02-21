@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.apache.spark.geomesa
-
-import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rpc.{RpcCallContext, RpcEndpoint, RpcEnv, RpcTimeout}
@@ -18,6 +16,7 @@ import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.Serializable
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 

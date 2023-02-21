@@ -18,7 +18,7 @@
 # export GEOMESA_ACCUMULO_CLASSPATH=
 
 # Accumulo home directory
-# export ACCUMULO_HOME="{ACCUMULO_HOME:-/path/to/accumulo}"
+# export ACCUMULO_HOME="${ACCUMULO_HOME:-/path/to/accumulo}"
 
 # Accumulo lib directory, default to $ACCUMULO_HOME/lib
 export ACCUMULO_LIB="${ACCUMULO_LIB:-$ACCUMULO_HOME/lib}"

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
-
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.filter.text.ecql.ECQL
@@ -23,6 +21,8 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 @RunWith(classOf[JUnitRunner])
 class KafkaFeatureCacheTest extends Specification with Mockito {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3.legacy
 
 import org.locationtech.geomesa.curve.{LegacyZ3SFC, Z3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.LegacyTableNaming
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV4.Z3IndexKeySpaceV4
@@ -34,7 +34,7 @@ class Z3IndexV4 protected (ds: GeoMesaDataStore[_],
     this(ds, sft, 4, geom, dtg, mode)
 
   override val keySpace: Z3IndexKeySpace =
-    new Z3IndexKeySpaceV4(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom, dtg)
+    new Z3IndexKeySpaceV4(sft, sft.getTableSharingBytes, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object Z3IndexV4 {

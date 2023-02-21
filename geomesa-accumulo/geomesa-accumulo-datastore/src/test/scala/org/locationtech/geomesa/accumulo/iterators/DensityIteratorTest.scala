@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 
 package org.locationtech.geomesa.accumulo.iterators
-
-import java.util.{Date, Properties}
 
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -28,6 +26,7 @@ import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.{Date, Properties}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])

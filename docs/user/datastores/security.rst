@@ -102,13 +102,13 @@ Providers must implement the following interface:
          *
          * @param params parameters
          */
-        void configure(Map<String, ? extends Serializable> params);
+        void configure(Map<String, ?> params);
     }
 
 When a GeoMesa data store is instantiated, it will scan for available service providers
 via Java SPI. Third-party implementations can be enabled by placing them on the classpath
 and including a special service descriptor file. See the
-`Oracle Javadoc <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__
+`Oracle Javadoc <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__
 for details on implementing a service provider.
 
 The GeoMesa data store will call ``configure()`` on the ``AuthorizationsProvider``

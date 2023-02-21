@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.File
-import java.net.URL
-
 import org.geotools.data.Transaction
 import org.geotools.data.shapefile.files.ShpFiles
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
@@ -18,6 +15,9 @@ import org.geotools.util.URLs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.io.File
+import java.net.URL
 
 class ShapefileExporter(file: File) extends FeatureExporter {
 

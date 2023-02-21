@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,10 +15,10 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class LiveAccumuloDataStoreTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -37,7 +37,7 @@ class LiveAccumuloDataStoreTest extends Specification {
 
       skipped("Meant for integration testing")
 
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
       val query = new Query(sftName, CQL.toFilter("INCLUDE"))
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,27 +8,25 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
-import java.io._
-import java.nio.charset.StandardCharsets.UTF_8
-import java.text.SimpleDateFormat
-import java.util.UUID
-
-import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.apache.avro.io.DecoderFactory
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
-import org.junit.Assert
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.FeatureSpecificReader
+import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, SimpleFeatureDatumReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io._
+import java.nio.charset.StandardCharsets.UTF_8
+import java.text.SimpleDateFormat
+import java.util.UUID
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.io.Codec.UTF8
 import scala.io.Source
 import scala.util.Random
@@ -57,13 +55,10 @@ class Version1BackwardsCompatTest extends Specification {
     f
   }
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): Seq[SimpleFeature] =
-    readAvroWithFsr(f, oldType, oldType)
-
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType, newType: SimpleFeatureType) = {
+  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): Seq[SimpleFeature] = {
     val fis = new FileInputStream(f)
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-    val fsr = FeatureSpecificReader(oldType, newType)
+    val fsr = SimpleFeatureDatumReader(AvroSerialization(oldType, Set.empty).schema, oldType)
 
     val sfList = new ListBuffer[SimpleFeature]()
     do {
@@ -87,32 +82,16 @@ class Version1BackwardsCompatTest extends Specification {
     val r = new Random()
     r.setSeed(0)
 
-    var lst = new mutable.MutableList[String]
+    val lst = ArrayBuffer.empty[String]
     for (i <- 0 until size) {
       lst += randomString(i, 8, r)
     }
 
     val sf = new Version1ASF(new FeatureIdImpl(id), sft)
-    for (i <- 0 until lst.size) {
+    for (i <- lst.indices) {
       sf.setAttribute(i, lst(i))
     }
     sf
-  }
-
-  def getSubsetData = {
-    val numFields = 60
-    val numRecords = 10
-    val geoSchema = (0 until numFields).map { i => f"f$i%d:String" }.mkString(",")
-
-    val sfSeq = for (i <- (0 until numRecords).toList) yield createStringFeatures(geoSchema, numFields,i.toString)
-
-    sfSeq.foreach { sf => sf must beAnInstanceOf[Version1ASF] }
-    val oldType = sfSeq(0).getType
-    val f = writeAvroFile(sfSeq)
-    val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val subsetList = readAvroWithFsr(f, oldType, subsetType)
-
-    subsetList
   }
 
   def buildStringSchema(numFields: Int) = (0 until numFields).map { i => f"f$i%d:String" }.mkString(",")
@@ -130,7 +109,7 @@ class Version1BackwardsCompatTest extends Specification {
   }
 
   def readPipeFile(f: File, sft: SimpleFeatureType) =
-    Source.fromFile(f)(UTF8).getLines.map { line => DataUtilities.createFeature(sft, line) }.toList
+    Source.fromFile(f)(UTF8).getLines.map { line => ScalaSimpleFeature.copy(DataUtilities.createFeature(sft, line)) }.toList
 
   def createComplicatedFeatures(numFeatures : Int): Seq[Version1ASF] = {
     val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date,f7:Point:srid=4326,f8:Polygon:srid=4326"
@@ -156,39 +135,11 @@ class Version1BackwardsCompatTest extends Specification {
   }
 
   "FeatureSpecificReader" should {
-    "do subset data" in {
-      val subset = getSubsetData
-      subset.size mustEqual 10
-
-      subset.foreach { sf =>
-        // parsed as the new AvroSimpleFeature
-        sf must beAnInstanceOf[ScalaSimpleFeature]
-
-        sf.getAttributeCount mustEqual 5
-        sf.getAttributes.size mustEqual 5
-
-        import scala.collection.JavaConversions._
-        sf.getAttributes.foreach { a =>
-          a must not beNull
-        }
-
-        sf.getAttribute("f0") mustEqual "0"*8
-        sf.getAttribute("f1") mustEqual "1"*8
-        sf.getAttribute("f3") mustEqual "3"*8
-        sf.getAttribute("f30") mustEqual "30"*8
-        sf.getAttribute("f59") mustEqual "59"*8
-      }
-      success
-    }
-
-    "ensure a member in subset is null" in {
-      getSubsetData(0).getAttribute("f20") must beNull
-    }
 
     "handle geotypes" in {
       val orig = createTypeWithGeo
       val f = writeAvroFile(List(orig))
-      val fsrList = readAvroWithFsr(f, orig.getType, orig.getType)
+      val fsrList = readAvroWithFsr(f, orig.getType)
 
       fsrList.size mustEqual 1
       fsrList(0).getAttributeCount mustEqual 3
@@ -211,8 +162,7 @@ class Version1BackwardsCompatTest extends Specification {
       val avroFile = writeAvroFile(sfList)
       val pipeFile = writePipeFile(sfList)
 
-      val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-      val fsrList = readAvroWithFsr(avroFile, oldType, subsetType)
+      val fsrList = readAvroWithFsr(avroFile, oldType)
       val pipeList = readPipeFile(pipeFile, oldType)
 
       sfList.size mustEqual pipeList.size
@@ -227,15 +177,11 @@ class Version1BackwardsCompatTest extends Specification {
         f1.getID mustEqual f3.getID
 
         f1.getAttributeCount mustEqual numFields
-        f2.getAttributeCount mustEqual 5  //subset
+        f2.getAttributeCount mustEqual numFields
         f3.getAttributeCount mustEqual numFields
 
-        List("f0","f1", "f3", "f30", "f59").foreach { s =>
-          f1.getAttribute(s) mustEqual f2.getAttribute(s)
-          f2.getAttribute(s) mustEqual f3.getAttribute(s)
-        }
-
-        f1 mustNotEqual f2
+        f2 mustEqual ScalaSimpleFeature.copy(f1) // copy to get equality method
+        f3 mustEqual ScalaSimpleFeature.copy(f1)
       }
       success
     }
@@ -248,9 +194,8 @@ class Version1BackwardsCompatTest extends Specification {
       val avroFile = writeAvroFile(sfList)
       val pipeFile = writePipeFile(sfList)
 
-      val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f3:Float,f5:UUID,f6:Date")
       val pipeList = readPipeFile(pipeFile, oldType)
-      val avroList = readAvroWithFsr(avroFile, oldType, subsetType)
+      val avroList = readAvroWithFsr(avroFile, oldType)
 
       avroList.size mustEqual pipeList.size
       avroList.size mustEqual numRecords
@@ -258,32 +203,10 @@ class Version1BackwardsCompatTest extends Specification {
       for(i <- 0 until numRecords){
         val a = pipeList(i)
         val b = avroList(i)
-        List("f0","f3", "f5", "f6").foreach { s =>
-          Assert.assertEquals(a.getAttribute(s), b.getAttribute(s))
-          Assert.assertEquals(a.getAttribute(s), sfList(i).getAttribute(s))
-        }
+        a mustEqual ScalaSimpleFeature.copy(sfList(i)) // copy to get equality method
+        b mustEqual ScalaSimpleFeature.copy(sfList(i)) // copy to get equality method
       }
       success
-    }
-
-    "properly skip geoms from version 1" in {
-      val sft = SimpleFeatureTypes.createType("test", "a:Point,b:Point")
-      val bOnly = SimpleFeatureTypes.createType("bonly", "b:Point")
-
-      val v1 = new Version1ASF(new FeatureIdImpl("fakeid"), sft)
-      v1.setAttribute("a", WKTUtils.read("POINT(2 2)"))
-      v1.setAttribute("b", WKTUtils.read("POINT(45 56)"))
-
-      val baos = new ByteArrayOutputStream()
-      v1.write(baos)
-
-      val bais = new ByteArrayInputStream(baos.toByteArray)
-
-      val fsr = FeatureSpecificReader(sft, bOnly)
-      val asf = fsr.read(null, DecoderFactory.get.directBinaryDecoder(bais, null))
-
-      asf.getAttributeCount mustEqual 1
-      asf.getAttribute(0).asInstanceOf[Geometry] mustEqual WKTUtils.read("POINT(45 56)")
     }
 
     "properly handle null geoms from version 1" in {
@@ -295,7 +218,7 @@ class Version1BackwardsCompatTest extends Specification {
       v2.write(baos2)
 
       val bais2 = new ByteArrayInputStream(baos2.toByteArray)
-      val fsr2 = FeatureSpecificReader(sft)
+      val fsr2 = SimpleFeatureDatumReader(AvroSerialization(sft, Set.empty).schema, sft)
       val asf2 = fsr2.read(null, DecoderFactory.get.directBinaryDecoder(bais2, null))
 
       asf2.getAttributeCount mustEqual 2

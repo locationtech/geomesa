@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.tools.compact
-
-import java.io.File
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -27,11 +25,13 @@ import org.locationtech.geomesa.jobs.JobResult.JobSuccess
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
-import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
+import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
+
+import java.io.File
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 

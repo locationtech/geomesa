@@ -3,7 +3,7 @@ GeoMesa Spark: Broadcast Join and Aggregation
 
 This tutorial will show you how to:
 
-1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__ in Scala.
+1. Use GeoMesa with `Apache Spark <https://spark.apache.org/>`__ in Scala.
 2. Create and use DataFrames with our geospatial User Defined Functions.
 3. Calculate aggregate statistics using a covering set of polygons.
 4. Create a new simple feature type to represent this aggregation.
@@ -12,7 +12,7 @@ This tutorial will show you how to:
 Background
 ----------
 
-`GDELT <http://gdeltproject.org/>`__ provides a comprehensive time- and location-indexed archive of events reported
+`GDELT <https://gdeltproject.org/>`__ provides a comprehensive time- and location-indexed archive of events reported
 in broadcast, print, and web news media worldwide from 1979 to today.
 
 `FIPS Codes <https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html>`__ are
@@ -98,18 +98,18 @@ catalogs, we would set up the following parameter maps:
 .. code-block:: scala
 
   val fipsParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "fips")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "fips")
 
   val gdeltParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "gdelt")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "gdelt")
 
 .. note::
 
@@ -185,7 +185,7 @@ of the event density in each county, which we will see in the next section.
 Visualization
 -------------
 
-To visualize this result, we first need to map our data into the `GeoJSON <http://geojson.org/>`__ format. To do this,
+To visualize this result, we first need to map our data into the `GeoJSON <https://geojson.org/>`__ format. To do this,
 we make use of GeoMesa's DataFrame to GeoJSON converter.
 
 .. code-block:: scala
@@ -200,7 +200,7 @@ write to a distributed file system like HDFS.
 
     val geoJsonString = geojsonDF.collect.mkString("[",",","]")
 
-Once we have our data exported as GeoJSON, we can create a `Leaflet <http://leafletjs.com/>`__ map, which is an interactive
+Once we have our data exported as GeoJSON, we can create a `Leaflet <https://leafletjs.com/>`__ map, which is an interactive
 map in JavaScript that can be embedded into a web page.
 
 Loading and parsing the JSON is simple. In this case we are wrapping the file load in an ``XMLHttpRequest`` callback function
@@ -211,7 +211,7 @@ then the following JavaScript will load that a file into a Leaflet map.
 
     $(document).ready(function() {
         var map = L.map('map').setView([35.4746,-44.7022],3);
-        L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
+        L.tileLayer("https://{s}.tile.osm.org/{z}/{x}/{y}.png").addTo(map);
 
         var aggFeature = "eventCount";
         var colors = ["#1a9850", "#66bd63", "#a6d96a", "#d9ef8b", "#ffffbf", "#fee08b", "#fdae61", "#f46d43", "#d73027"]
@@ -285,14 +285,14 @@ Afterwards, this simple HTML will load a Leaflet map with the data.
 .. code-block:: html
 
     <html>
-	<meta charset="utf-8"/>
-	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="theAboveJavascriptFile.js"></script>
-	<body>
-		<div id="map" style="height: 100%"></div>
-	</body>
+      <meta charset="utf-8"/>
+      <link rel="stylesheet" href="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+      <script src="https://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="theAboveJavascriptFile.js"></script>
+      <body>
+        <div id="map" style="height: 100%"></div>
+      </body>
     </html>
 
 The end result will look something like this:

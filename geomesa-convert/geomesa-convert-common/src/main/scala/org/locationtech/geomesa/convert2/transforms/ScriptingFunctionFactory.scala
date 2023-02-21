@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,18 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.io.File
-import java.net.URI
-import java.nio.file.FileSystems
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
-import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import scala.collection.JavaConversions._
+import java.io.File
+import java.net.URI
+import java.nio.file.FileSystems
+import java.util.Collections
+import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
+import scala.collection.JavaConverters._
 
 /**
   * Provides TransformerFunctions that execute javax.scripts compatible functions defined
@@ -51,17 +50,13 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
 
   private def evaluateScriptsForEngine(loader: ClassLoader, files: Seq[(URI, String)], e: ScriptEngine, ext: String) = {
     files.foreach { case (f, _) => evalScriptFile(loader, e, f) }
-    e.getBindings(ScriptContext.ENGINE_SCOPE).map { case (k, v) =>
+    e.getBindings(ScriptContext.ENGINE_SCOPE).asScala.map { case (k, v) =>
       new ScriptTransformerFn(ext, k, e.asInstanceOf[Invocable])
     }
   }
 
-  // TODO try with no catch and logging...evaluate whats happening here
   def evalScriptFile(loader: ClassLoader, e: ScriptEngine, f: URI): AnyRef =
-    try {
-      val lines = IOUtils.toString(f, "UTF-8")
-      e.eval(lines)
-    }
+    e.eval(IOUtils.toString(f, "UTF-8"))
 }
 
 object ScriptingFunctionFactory extends LazyLogging {
@@ -84,7 +79,7 @@ object ScriptingFunctionFactory extends LazyLogging {
         Seq.empty
       } else if (f.isDirectory) {
         if (!f.canExecute) { Seq.empty } else {
-          FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).map(_.toURI)
+          FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).asScala.map(_.toURI)
         }
       } else {
         Seq(f.toURI)
@@ -101,19 +96,19 @@ object ScriptingFunctionFactory extends LazyLogging {
     * @return
     */
   def loadScripts(loader: ClassLoader): Seq[URI] = {
-    Option(loader.getResources(ConvertScriptsClassPath + "/")).toSeq.flatten.flatMap { url =>
+    Option(loader.getResources(ConvertScriptsClassPath + "/").asScala).toSeq.flatten.flatMap { url =>
       val uri = url.toURI
       uri.getScheme match {
         case "jar" =>
           val fs = FileSystems.newFileSystem(uri, Collections.emptyMap[String, AnyRef](), loader)
           val p = fs.getPath(ConvertScriptsClassPath + "/")
-          val uris = java.nio.file.Files.walk(p).iterator().toSeq
+          val uris = java.nio.file.Files.walk(p).iterator().asScala.toSeq
           val files = uris.filterNot(java.nio.file.Files.isDirectory(_)).map(_.toUri)
           logger.debug(s"Loaded scripts ${files.mkString(",")} from jar ${uri.toString}")
           files
         case "file" =>
           IOUtils.readLines(url.openStream(), "UTF-8")
-            .map { s => loader.getResource(s"$ConvertScriptsClassPath/$s").toURI }
+            .asScala.map { s => loader.getResource(s"$ConvertScriptsClassPath/$s").toURI }
       }
     }
   }

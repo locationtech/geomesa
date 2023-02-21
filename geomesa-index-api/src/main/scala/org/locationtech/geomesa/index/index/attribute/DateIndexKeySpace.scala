@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,8 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
-import java.time.ZonedDateTime
-import java.util.Date
-
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api._
@@ -22,12 +19,15 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.time.ZonedDateTime
+import java.util.Date
+
 /**
   * Encodes dates as lexicoded longs. Null values are encoded as Long.MinValue. This class is only used for
   * secondary tiering, so it never has sharing or shards
   */
 class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
-    extends IndexKeySpace[Seq[Bounds[ZonedDateTime]], Long] {
+    extends IndexKeySpace[FilterValues[Bounds[ZonedDateTime]], Long] {
 
   import DateIndexKeySpace.{Empty, MaxUpperBound, MinLowerBound}
 
@@ -55,23 +55,29 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
     SingleRowKeyValue(ByteArrays.toOrderedBytes(time), Empty, Empty, time, tier, Empty, Seq.empty)
   }
 
-  override def getIndexValues(filter: Filter, explain: Explainer): Seq[Bounds[ZonedDateTime]] =
-    FilterHelper.extractIntervals(filter, dtgField).values
+  override def getIndexValues(filter: Filter, explain: Explainer): FilterValues[Bounds[ZonedDateTime]] =
+    FilterHelper.extractIntervals(filter, dtgField)
 
-  override def getRanges(values: Seq[Bounds[ZonedDateTime]], multiplier: Int): Iterator[ScanRange[Long]] = {
-    values.iterator.map { bounds =>
-      if (bounds.isEquals) {
-        SingleRowRange(bounds.lower.value.get.toInstant.toEpochMilli)
-      } else {
-        val lower = bounds.lower.value.map { v =>
-          val millis = v.toInstant.toEpochMilli
-          if (bounds.lower.inclusive) { millis } else { millis + 1L }
+  override def getRanges(values: FilterValues[Bounds[ZonedDateTime]], multiplier: Int): Iterator[ScanRange[Long]] = {
+    if (values.isEmpty) {
+      Iterator.single(UnboundedRange(-1))
+    } else if (values.disjoint) {
+      Iterator.empty
+    } else {
+      values.values.iterator.map { bounds =>
+        if (bounds.isEquals) {
+          SingleRowRange(bounds.lower.value.get.toInstant.toEpochMilli)
+        } else {
+          val lower = bounds.lower.value.map { v =>
+            val millis = v.toInstant.toEpochMilli
+            if (bounds.lower.inclusive) { millis } else { millis + 1L }
+          }
+          val upper = bounds.upper.value.map { v =>
+            val millis = v.toInstant.toEpochMilli
+            if (bounds.upper.inclusive) { millis + 1L } else { millis }
+          }
+          BoundedRange(lower.getOrElse(MinLowerBound), upper.getOrElse(MaxUpperBound))
         }
-        val upper = bounds.upper.value.map { v =>
-          val millis = v.toInstant.toEpochMilli
-          if (bounds.upper.inclusive) { millis + 1L } else { millis }
-        }
-        BoundedRange(lower.getOrElse(MinLowerBound), upper.getOrElse(MaxUpperBound))
       }
     }
   }
@@ -89,16 +95,21 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
           BoundedByteRange(ordered, ByteArrays.rowFollowingPrefix(ordered))
         }
 
+      case UnboundedRange(_) =>
+        val max = ByteArrays.rowFollowingPrefix(ByteArrays.toOrderedBytes(MaxUpperBound))
+        UnboundedByteRange(ByteArrays.toOrderedBytes(MinLowerBound), max)
+
       case r => throw new IllegalArgumentException(s"Unexpected range type $r")
     }
   }
 
-  override def useFullFilter(values: Option[Seq[Bounds[ZonedDateTime]]],
-                             config: Option[GeoMesaDataStoreConfig],
-                             hints: Hints): Boolean = false
+  override def useFullFilter(
+      values: Option[FilterValues[Bounds[ZonedDateTime]]],
+      config: Option[GeoMesaDataStoreConfig],
+      hints: Hints): Boolean = false
 }
 
-object DateIndexKeySpace extends IndexKeySpaceFactory[Seq[Bounds[ZonedDateTime]], Long] {
+object DateIndexKeySpace extends IndexKeySpaceFactory[FilterValues[Bounds[ZonedDateTime]], Long] {
 
   // note: add 1 to exclude null values
   private val MinLowerBound = Long.MinValue + 1

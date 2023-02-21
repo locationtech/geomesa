@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,19 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
+import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{SerializationOption, SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
 import scala.util.Random
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
@@ -79,20 +79,47 @@ object GeoMessageSerializer {
     * @param `lazy` use lazy deserialization
     * @return
     */
+  @deprecated("Use apply(SimpleFeatureType, SerializationType, Set[SerializationOption])")
   def apply(
       sft: SimpleFeatureType,
       serialization: SerializationType = SerializationType.KRYO,
       `lazy`: Boolean = false): GeoMessageSerializer = {
-    val kryoBuilder = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable
-    val avroBuilder = AvroFeatureSerializer.builder(sft).withoutId.withUserData.immutable
-    val kryoSerializer = if (`lazy`) { kryoBuilder.`lazy`.build() } else { kryoBuilder.build() }
-    val avroSerializer = if (`lazy`) { avroBuilder.`lazy`.build() } else { avroBuilder.build() }
+    apply(sft, serialization, if (`lazy`) { Set(SerializationOption.Lazy) } else { Set.empty[SerializationOption] })
+  }
+
+  /**
+   * Create a message serializer
+   *
+   * @param sft simple feature type
+   * @param serialization serialization type (avro or kryo)
+   * @param opts extra serialization options
+   * @return
+   */
+  def apply(
+      sft: SimpleFeatureType,
+      serialization: SerializationType,
+      opts: Set[SerializationOption]): GeoMessageSerializer = {
+    val options = SerializationOptions.builder.withoutId.withUserData.immutable.build ++ opts
+    val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
+    val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
       case SerializationType.AVRO => (avroSerializer, AvroVersion)
       case _ => throw new NotImplementedError(s"Unhandled serialization type '$serialization'")
     }
     new GeoMessageSerializer(sft, serializer, kryoSerializer, avroSerializer, version)
+  }
+
+  def partition(numPartitions: Int, toKey: => Array[Byte]): Int = {
+    // use the feature id if available, otherwise (for clear) use random shard
+    if (numPartitions < 2) { 0 } else {
+      val key = toKey
+      if (key != null && key.length > 0) {
+        Math.abs(MurmurHash3.bytesHash(key, MurmurHash3.arraySeed)) % numPartitions
+      } else {
+        Random.nextInt(numPartitions)
+      }
+    }
   }
 
   /**
@@ -107,15 +134,7 @@ object GeoMessageSerializer {
                            valueBytes: Array[Byte],
                            cluster: Cluster): Int = {
       val count = cluster.partitionsForTopic(topic).size
-
-      try {
-        // use the feature id if available, otherwise (for clear) use random shard
-        if (keyBytes.length > 0) {
-          Math.abs(MurmurHash3.bytesHash(keyBytes, MurmurHash3.arraySeed)) % count
-        } else {
-          Random.nextInt(count)
-        }
-      } catch {
+      try { GeoMessageSerializer.partition(count, keyBytes) } catch {
         case NonFatal(e) =>
           throw new IllegalArgumentException(
             s"Unexpected message format: ${Option(keyBytes).map(ByteArrays.toHex).getOrElse("")} " +
@@ -129,9 +148,8 @@ object GeoMessageSerializer {
     override def close(): Unit = {}
   }
 
-  class GeoMessageSerializerFactory {
-    def apply(sft: SimpleFeatureType, serialization: SerializationType, `lazy`: Boolean): GeoMessageSerializer =
-      GeoMessageSerializer.apply(sft, serialization, `lazy`)
+  class GeoMessageSerializerFactory(serialization: SerializationType, opts: Set[SerializationOption] = Set.empty) {
+    def apply(sft: SimpleFeatureType): GeoMessageSerializer = GeoMessageSerializer.apply(sft, serialization, opts)
   }
 }
 
@@ -243,8 +261,8 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param deserializer deserializer appropriate for the message encoding
     * @return
     */
-  private def deserialize(key: Array[Byte], value: Array[Byte], deserializer: SimpleFeatureSerializer): GeoMessage = {
-    if (key.isEmpty && value.isEmpty) { Clear } else {
+  protected def deserialize(key: Array[Byte], value: Array[Byte], deserializer: SimpleFeatureSerializer): GeoMessage = {
+    if (key.isEmpty && (value == null || value.isEmpty)) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
       if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value)) }
     }

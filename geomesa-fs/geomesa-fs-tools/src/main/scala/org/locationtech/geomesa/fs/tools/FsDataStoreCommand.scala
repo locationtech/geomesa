@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.tools
-
-import java.io.File
-import java.util
-import java.util.ServiceLoader
 
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
@@ -22,6 +18,10 @@ import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator,
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
+
+import java.io.File
+import java.util
+import java.util.ServiceLoader
 
 /**
  * Abstract class for FSDS commands

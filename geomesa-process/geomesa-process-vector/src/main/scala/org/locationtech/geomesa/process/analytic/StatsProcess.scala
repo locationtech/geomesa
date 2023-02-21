@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -121,7 +121,7 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
         logger.warn(s"Overriding inner query's properties (${query.getProperties}) " +
             s"with properties/transforms ${properties.mkString(",")}.")
       }
-      query.setPropertyNames(properties)
+      query.setPropertyNames(properties: _*)
     }
     query.getHints.put(QueryHints.STATS_STRING, statString)
     query.getHints.put(QueryHints.ENCODE_STATS, new java.lang.Boolean(encode))

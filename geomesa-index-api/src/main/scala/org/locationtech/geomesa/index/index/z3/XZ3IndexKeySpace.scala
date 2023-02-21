@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,13 @@
 
 package org.locationtech.geomesa.index.index.z3
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
-import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, Z3ShardStrategy}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -24,10 +22,11 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.locationtech.sfcurve.IndexRange
+import org.locationtech.geomesa.zorder.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, geomField: String, dtgField: String)
@@ -117,7 +116,7 @@ class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
     // disjoint geometries are ok since they could still intersect a polygon
     if (intervals.disjoint) {
       explain("Disjoint dates extracted, short-circuiting to empty query")
-      return XZ3IndexValues(sfc, FilterValues.empty, Seq.empty, FilterValues.empty, Map.empty, Seq.empty)
+      return XZ3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty, Seq.empty)
     }
 
     // compute our ranges based on the coarse bounds for our query
@@ -167,32 +166,38 @@ class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
   }
 
   override def getRanges(values: XZ3IndexValues, multiplier: Int): Iterator[ScanRange[Z3IndexKey]] = {
-    val XZ3IndexValues(sfc, _, xy, _, timesByBin, unboundedBins) = values
+    val XZ3IndexValues(sfc, geoms, xy, intervals, timesByBin, unboundedBins) = values
 
-    // note: `target` will always be Some, as ScanRangesTarget has a default value
-    val target = QueryProperties.ScanRangesTarget.option.map { t =>
-      math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
+    if (geoms.disjoint || intervals.disjoint) {
+      Iterator.empty
+    } else if (timesByBin.isEmpty && unboundedBins.isEmpty) {
+      Iterator.single(UnboundedRange(null))
+    } else {
+      // note: `target` will always be Some, as ScanRangesTarget has a default value
+      val target = QueryProperties.ScanRangesTarget.option.map { t =>
+        math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
+      }
+
+      def toZRanges(t: (Double, Double)): Seq[IndexRange] =
+        sfc.ranges(xy.map { case (xmin, ymin, xmax, ymax) => (xmin, ymin, t._1, xmax, ymax, t._2) }, target)
+
+      lazy val wholePeriodRanges = toZRanges(sfc.zBounds)
+
+      val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
+        val zs = if (times.eq(sfc.zBounds)) { wholePeriodRanges } else { toZRanges(times) }
+        zs.map(r => BoundedRange(Z3IndexKey(bin, r.lower), Z3IndexKey(bin, r.upper)))
+      }
+
+      val unbounded = unboundedBins.iterator.map {
+        case (lower, Short.MaxValue) => LowerBoundedRange(Z3IndexKey(lower, 0L))
+        case (0, upper)              => UpperBoundedRange(Z3IndexKey(upper, Long.MaxValue))
+        case (lower, upper) =>
+          logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
+          UnboundedRange(Z3IndexKey(0, 0L))
+      }
+
+      bounded ++ unbounded
     }
-
-    def toZRanges(t: (Double, Double)): Seq[IndexRange] =
-      sfc.ranges(xy.map { case (xmin, ymin, xmax, ymax) => (xmin, ymin, t._1, xmax, ymax, t._2) }, target)
-
-    lazy val wholePeriodRanges = toZRanges(sfc.zBounds)
-
-    val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
-      val zs = if (times.eq(sfc.zBounds)) { wholePeriodRanges } else { toZRanges(times) }
-      zs.map(r => BoundedRange(Z3IndexKey(bin, r.lower), Z3IndexKey(bin, r.upper)))
-    }
-
-    val unbounded = unboundedBins.iterator.map {
-      case (lower, Short.MaxValue) => LowerBoundedRange(Z3IndexKey(lower, 0L))
-      case (0, upper)              => UpperBoundedRange(Z3IndexKey(upper, Long.MaxValue))
-      case (lower, upper) =>
-        logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
-        UnboundedRange(Z3IndexKey(0, 0L))
-    }
-
-    bounded ++ unbounded
   }
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]], tier: Boolean): Iterator[ByteRange] = {
@@ -253,7 +258,7 @@ object XZ3IndexKeySpace extends IndexKeySpaceFactory[XZ3IndexValues, Z3IndexKey]
         classOf[Date].isAssignableFrom(sft.getDescriptor(attributes.last).getType.getBinding)
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): XZ3IndexKeySpace = {
-    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    val shards = if (tier) { NoShardStrategy } else { Z3ShardStrategy(sft) }
     new XZ3IndexKeySpace(sft, shards, attributes.head, attributes.last)
   }
 }

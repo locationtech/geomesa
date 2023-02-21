@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.security
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.ConcurrentHashMap
-
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * Evaluates visibilities against authorizations. Abstracted from Accumulo visibility code
@@ -174,7 +174,13 @@ class VisibilityEvaluator private extends BasicParser {
 
   private def parens: Rule1[VisibilityExpression] = rule { "(" ~ expression ~ ")" }
 
+  private def authChar: Rule0 = rule { char | "-" | ":" | "." | "/" }
+
+  private def unquotedAuthString: Rule1[String] = rule { oneOrMore(authChar) ~> { c => c } }
+
+  private def authString: Rule1[String] = rule { quotedString | singleQuotedString | unquotedAuthString }
+
   private def value: Rule1[VisibilityExpression] = rule {
-    string ~~> { s => VisibilityValue(s.getBytes(StandardCharsets.UTF_8))}
+    authString ~~> { s => VisibilityValue(s.getBytes(StandardCharsets.UTF_8))}
   }
 }

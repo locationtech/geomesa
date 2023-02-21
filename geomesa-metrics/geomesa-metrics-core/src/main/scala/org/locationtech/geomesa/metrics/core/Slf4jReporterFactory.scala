@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,15 @@
 
 package org.locationtech.geomesa.metrics.core
 
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.Slf4jReporter.LoggingLevel
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter, Slf4jReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+import org.locationtech.geomesa.metrics.core.ReporterFactory.defaults
 import org.slf4j.LoggerFactory
-import pureconfig.ConfigReader
+import pureconfig.{ConfigReader, ConfigSource}
+
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class Slf4jReporterFactory extends ReporterFactory {
 
@@ -28,7 +29,7 @@ class Slf4jReporterFactory extends ReporterFactory {
       durations: TimeUnit): Option[ScheduledReporter] = {
 
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase("slf4j")) { None } else {
-      val slf4j = pureconfig.loadConfigOrThrow[Slf4jConfig](conf.withFallback(Slf4jDefaults))
+      val slf4j = ConfigSource.fromConfig(conf.withFallback(Slf4jDefaults)).loadOrThrow[Slf4jConfig]
       val logger = LoggerFactory.getLogger(slf4j.logger)
       val level = LoggingLevel.valueOf(slf4j.level.toUpperCase(Locale.US))
       val reporter =

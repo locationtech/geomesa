@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.BufferAllocator
@@ -25,6 +23,8 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyLogging {
@@ -49,7 +49,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
     "return projections" in {
       val filter =
         ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      val query = new Query(sft.getTypeName, filter, Array("name", "x=getX(geom)", "y=getY(geom)", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, filter, "name", "x=getX(geom)", "y=getY(geom)", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -71,7 +71,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
     "return projections into json fields" in {
       val filter =
         ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      val query = new Query(sft.getTypeName, filter, Array("team", "color=\"$.props.color\"", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, filter, "team", "color=\"$.props.color\"", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,color")

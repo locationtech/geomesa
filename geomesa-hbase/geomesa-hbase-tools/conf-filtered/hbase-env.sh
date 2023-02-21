@@ -18,13 +18,13 @@
 # export GEOMESA_HBASE_CLASSPATH=
 
 # HBase home directory
-# export HBASE_HOME="{HBASE_HOME:-/path/to/hbase}"
+# export HBASE_HOME="${HBASE_HOME:-/path/to/hbase}"
 
 # HBase lib directory, default to $HBASE_HOME/lib
-export HBASE_LIB="${HBASE_LIB:-$HBASE_HOME/lib}"
+# export HBASE_LIB="${HBASE_LIB:-$HBASE_HOME/lib}"
 
 # HBase conf directory, default to $HBASE_HOME/conf
-export HBASE_CONF_DIR="${HBASE_CONF_DIR:-$HBASE_HOME/conf}"
+# export HBASE_CONF_DIR="${HBASE_CONF_DIR:-$HBASE_HOME/conf}"
 
 # ==================================================================
 # Zookeeper Environment Variables
@@ -38,14 +38,23 @@ function get_hbase_classpath() {
   if [[ -n "$GEOMESA_HBASE_CLASSPATH" ]]; then
     echo "$GEOMESA_HBASE_CLASSPATH"
   else
+    if [[ -z "$HBASE_CONF_DIR" && -n "$HBASE_HOME" ]]; then
+      HBASE_CONF_DIR="$HBASE_HOME/conf"
+    fi
+    if [[ -z "$HBASE_LIB" && -n "$HBASE_HOME" ]]; then
+      HBASE_LIB="$HBASE_HOME/lib"
+    fi
     local hbase_cp=""
     if [[ -d "$HBASE_CONF_DIR" ]]; then
       hbase_cp="$HBASE_CONF_DIR"
     fi
     if [[ -d "$HBASE_LIB" ]]; then
-      hbase_cp="$hbase_cp:$(find_jars $HBASE_LIB true)"
+      hbase_find_jars="$(find_jars $HBASE_LIB true)"
+      if [[ -n "$hbase_find_jars" ]]; then
+        hbase_cp="$hbase_cp:$hbase_find_jars"
+      fi
     fi
-    # If the no hbase classpath is set from env vars perhaps try the path (works on AWS EMR)
+    # If no hbase env vars try the hbase classpath directly (works on AWS EMR)
     if [[ -z "${hbase_cp}" && -n "$(command -v hbase)" ]]; then
       hbase_cp=$(hbase classpath)
     fi

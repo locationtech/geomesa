@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,12 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import java.io.PrintStream
-
 import org.locationtech.geomesa.jobs.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 
-object TerminalCallback {
+import java.io.PrintStream
 
-  @deprecated("JLine breaks tty settings when invoked")
-  lazy val terminalWidth: () => Float = () => 1.0f
+object TerminalCallback {
 
   def apply(mock: Boolean = false): StatusCallback = {
     if (mock) {

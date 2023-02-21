@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
-import java.time.Duration
-
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.WritableFeatureCache
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
+
+import java.time.Duration
 
 /**
   * Consumes from kakfa and populates the local cache

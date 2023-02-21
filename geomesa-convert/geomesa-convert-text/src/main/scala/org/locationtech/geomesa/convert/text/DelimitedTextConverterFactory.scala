@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{InputStream, StringReader}
-import java.nio.charset.{Charset, StandardCharsets}
-
 import com.typesafe.config.Config
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -18,7 +15,7 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
-import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.TypeInference.FunctionTransform
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.{LiteralNull, TryExpression}
@@ -30,18 +27,15 @@ import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
+import java.io.{InputStream, StringReader}
+import java.nio.charset.{Charset, StandardCharsets}
 import scala.util.Try
 
 class DelimitedTextConverterFactory
-    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions] {
+    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions](
+      DelimitedTextConverterFactory.TypeToProcess, DelimitedTextConfigConvert, BasicFieldConvert, DelimitedTextOptionsConvert) {
 
   import scala.collection.JavaConverters._
-
-  override protected val typeToProcess: String = DelimitedTextConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[DelimitedTextConfig] = DelimitedTextConfigConvert
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-  override protected implicit def optsConvert: ConverterOptionsConvert[DelimitedTextOptions] = DelimitedTextOptionsConvert
 
   override def infer(
       is: InputStream,
@@ -59,7 +53,6 @@ class DelimitedTextConverterFactory
       format: CSVFormat,
       lines: Seq[String],
       sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
 
     // : Seq[List[String]]
     val rows = lines.flatMap { line =>
@@ -88,15 +81,19 @@ class DelimitedTextConverterFactory
       val converterConfig = DelimitedTextConfig(typeToProcess, formats.find(_._2 == format).get._1,
         Some(Expression("md5(string2bytes($0))")), Map.empty, Map.empty)
 
-      val fields = schema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-        BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
+      val fields = {
+        var i = -1
+        schema.getAttributeDescriptors.asScala.map { d =>
+          i += 1
+          BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
+        }
       }
 
       val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
         SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
       val config = configConvert.to(converterConfig)
-          .withFallback(fieldConvert.to(fields))
+          .withFallback(fieldConvert.to(fields.toSeq))
           .withFallback(optsConvert.to(options))
           .toConfig
 
@@ -152,7 +149,7 @@ class DelimitedTextConverterFactory
           SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(converterConfig)
-            .withFallback(fieldConvert.to(fields))
+            .withFallback(fieldConvert.to(fields.toSeq))
             .withFallback(optsConvert.to(options))
             .toConfig
 

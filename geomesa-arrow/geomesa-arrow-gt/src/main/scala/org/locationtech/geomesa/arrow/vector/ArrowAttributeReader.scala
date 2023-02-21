@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,23 +8,24 @@
 
 package org.locationtech.geomesa.arrow.vector
 
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicLong
-import java.util.{Date, UUID}
-
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{BaseRepeatedValueVector, FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.holders._
 import org.apache.arrow.vector.types.Types.MinorType
+import org.locationtech.geomesa.arrow.jts.impl.{AbstractLineStringVector, AbstractPointVector}
+import org.locationtech.geomesa.arrow.jts._
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
-import org.locationtech.geomesa.arrow.vector.impl.{AbstractLineStringVector, AbstractPointVector}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.AtomicLong
+import java.util.{Date, UUID}
 
 /**
   * Reads a simple feature attribute from an arrow vector
@@ -99,7 +100,7 @@ object ArrowAttributeReader {
       val name = descriptor.getLocalName
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
       apply(descriptor, vector.getChild(name), dictionary, encoding)
-    }
+    }.toSeq
   }
 
   def apply(descriptor: AttributeDescriptor,

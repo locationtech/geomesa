@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,15 @@
 
 package org.locationtech.geomesa.process.analytic
 
-import java.awt.image.DataBuffer
-
-import javax.media.jai.RasterFactory
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.util.factory.GeoTools
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.process.vector.{BBOXExpandingFilterVisitor, HeatmapSurface}
+import org.geotools.util.factory.GeoTools
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.process.GeoMesaProcess
@@ -27,6 +24,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
+
+import java.awt.image.DataBuffer
+import javax.media.jai.RasterFactory
 
 /**
  * Stripped down version of org.geotools.process.vector.HeatmapProcess

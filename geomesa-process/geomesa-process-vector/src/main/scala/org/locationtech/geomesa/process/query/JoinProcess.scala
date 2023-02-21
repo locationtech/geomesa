@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -60,7 +60,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
 
     import org.locationtech.geomesa.filter.ff
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     logger.trace(s"Attempting join query on ${joinAttribute.getClass.getName}")
 
@@ -71,12 +71,12 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
     require(joinDescriptor != null, s"Attribute '$joinAttribute' does not exist in the joined feature collection")
 
     // create the return sft based on the input attributes, or by combining the qualified names from each schema
-    val returnSft = if (attributes != null && attributes.nonEmpty) {
-      getCombinedSft(primary.getSchema, secondary.getSchema, attributes, joinAttribute)
+    val returnSft = if (attributes != null && attributes.asScala.nonEmpty) {
+      getCombinedSft(primary.getSchema, secondary.getSchema, attributes.asScala.toSeq, joinAttribute)
     } else {
       def toAttributes(schema: SimpleFeatureType): Seq[String] = {
-        val names = schema.getAttributeDescriptors.map(_.getLocalName)
-        names.filter(_ != joinAttribute).map(d => s"${schema.getTypeName}.$d")
+        val names = schema.getAttributeDescriptors.asScala.map(_.getLocalName)
+        names.filter(_ != joinAttribute).map(d => s"${schema.getTypeName}.$d").toSeq
       }
       val primaryAttributes = toAttributes(primary.getSchema)
       val secondaryAttributes = toAttributes(secondary.getSchema)
@@ -93,13 +93,13 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
     val joinProperty = ff.property(joinAttribute)
     val joinFilters = {
       val values = primaryFeatures.map(_.getAttribute(joinAttribute)).distinct
-      values.map(p => ff.equals(joinProperty, ff.literal(p)))
+      values.map(p => ff.equals(joinProperty, ff.literal(p)).asInstanceOf[Filter])
     }
 
     val result = if (joinFilters.isEmpty) {
       new ListFeatureCollection(returnSft)
     } else {
-      val or = ff.or(joinFilters.toList)
+      val or = ff.or(joinFilters.toList.asJava)
       val filter = if (joinFilter != null && joinFilter != Filter.INCLUDE) { ff.and(or, joinFilter) } else { or }
       val visitor = new QueryVisitor(secondary, filter, null)
       GeoMesaFeatureCollection.visit(secondary, visitor)
@@ -107,11 +107,11 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
 
       // mappings from the secondary feature result to the return schema
       // (return sft index, result sft index, is from primary result (or secondary result))
-      val attributeMappings: Seq[(Int, Int, Boolean)] = returnSft.getAttributeDescriptors.map { d =>
+      val attributeMappings: Seq[(Int, Int, Boolean)] = returnSft.getAttributeDescriptors.asScala.map { d =>
         val toAttribute = d.getLocalName
         val dot = toAttribute.indexOf('.')
         if (dot == -1) {
-          val fromPrimary = secondary.getSchema.getAttributeDescriptors.exists(_.getLocalName == toAttribute)
+          val fromPrimary = secondary.getSchema.getAttributeDescriptors.asScala.exists(_.getLocalName == toAttribute)
           val from = if (fromPrimary) {
             primary.getSchema.indexOf(toAttribute)
           } else {
@@ -127,7 +127,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
           }
           (returnSft.indexOf(toAttribute), from, fromPrimary)
         }
-      }
+      }.toSeq
 
       new DecoratingSimpleFeatureCollection(results) {
         override def getSchema: SimpleFeatureType = returnSft

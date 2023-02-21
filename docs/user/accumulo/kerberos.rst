@@ -16,8 +16,6 @@ Kerberos functionality should be used as follows:
 #. Programmatic access via the GeoTools API should specify the ``accumulo.keytab.path`` parameter.
 #. The GeoServer store should specify the ``accumulo.keytab.path`` parameter. Ensure ``core-site.xml`` is accessible to GeoServer e.g. in the ``webapps/geoserver/WEB-INF/classes/`` directory.
 
-Note that Kerberos support is only available in Accumulo 1.7.0 or newer.
-
 Development & Testing
 ---------------------
 

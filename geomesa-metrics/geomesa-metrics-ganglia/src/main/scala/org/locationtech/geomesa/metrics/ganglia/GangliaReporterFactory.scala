@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,16 +8,17 @@
 
 package org.locationtech.geomesa.metrics.ganglia
 
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.ganglia.GangliaReporter
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import info.ganglia.gmetric4j.gmetric.GMetric
 import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 import org.locationtech.geomesa.metrics.core.ReporterFactory
-import pureconfig.ConfigReader
+import org.locationtech.geomesa.metrics.core.Slf4jReporterFactory.{Slf4jConfig, Slf4jDefaults}
+import pureconfig.{ConfigReader, ConfigSource}
+
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class GangliaReporterFactory extends ReporterFactory {
 
@@ -29,7 +30,7 @@ class GangliaReporterFactory extends ReporterFactory {
       rates: TimeUnit,
       durations: TimeUnit): Option[ScheduledReporter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase("ganglia")) { None } else {
-      val ganglia = pureconfig.loadConfigOrThrow[GangliaConfig](conf.withFallback(GangliaDefaults))
+      val ganglia = ConfigSource.fromConfig(conf.withFallback(GangliaDefaults)).loadOrThrow[GangliaConfig]
       val mode = ganglia.addressingMode.toLowerCase(Locale.US) match {
         case "unicast" => UDPAddressingMode.UNICAST
         case "multicast" => UDPAddressingMode.MULTICAST

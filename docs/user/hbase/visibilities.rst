@@ -12,7 +12,7 @@ Setup and Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 To configure HBase for visibility filtering follow the setup in the HBase Book under the
-`Visibility Labels <http://hbase.apache.org/book.html#hbase.visibility.labels>`__ section of
+`Visibility Labels <https://hbase.apache.org/book.html#hbase.visibility.labels>`__ section of
 the HBase book which includes enabling the visibility coprocessors in your hbase-site.xml:
 
 .. code-block:: xml

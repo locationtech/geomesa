@@ -2,7 +2,7 @@ GeoLife GPS Trajectory Data
 ===========================
 
 This directory provides
-`GeoLife <http://research.microsoft.com/en-us/projects/geolife/>`__
+`GeoLife <https://research.microsoft.com/en-us/projects/geolife/>`__
 GeoMesa ingest commands and converter configuration files.
 
 The GeoLife dataset contain timestamped latitude, longitude, and
@@ -26,7 +26,7 @@ The GeoLife data set can be downloaded using the provided
     ./download-data.sh geolife
 
 Alternatively, download the GeoLife Data
-`here <http://research.microsoft.com/en-us/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/>`__.
+`here <https://download.microsoft.com/download/F/4/8/F4894AA5-FDBC-481E-9285-D5F8C4C4F039/Geolife%20Trajectories%201.3.zip>`__.
 
 Once you have downloaded the data, extract the ZIP file for ingestion.
 
@@ -63,7 +63,7 @@ the zip file):
 More information on features of the GeoLife data, see their `documentation`_ as well as the user
 guide contained in the zip of the dataset.
 
-.. _documentation: http://research.microsoft.com/en-us/downloads/b16d359d-d164-469e-9fd4-daa38f2b2e13/
+.. _documentation: https://www.microsoft.com/en-us/download/details.aspx?id=52367
 
 Ingesting the Data
 ------------------

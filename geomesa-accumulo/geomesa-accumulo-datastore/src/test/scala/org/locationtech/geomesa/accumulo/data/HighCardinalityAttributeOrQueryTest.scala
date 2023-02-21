@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFeatureType {
@@ -33,14 +31,14 @@ class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFea
     .spec
 
   val numFeatures = 10
-  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
+  val builder = ScalaSimpleFeatureFactory.featureBuilder(sft)
   val features = (0 until numFeatures).map { i =>
     builder.set("geom", WKTUtils.read(s"POINT(45.0 45.$i)"))
     builder.set("dtg", f"2014-01-01T01:00:$i%02d.000Z")
     builder.set("high", "h" + i.toString)
     builder.set("low", "l" + i.toString)
     val sf = builder.buildFeature(i.toString)
-    sf.getUserData.update(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf
   }
 

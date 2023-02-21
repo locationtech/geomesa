@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -20,9 +20,6 @@
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-jdbc</module>
         <module>geomesa-convert-json</module>
-        <module>geomesa-convert-metrics-cloudwatch</module>
-        <module>geomesa-convert-metrics-ganglia</module>
-        <module>geomesa-convert-metrics-graphite</module>
         <module>geomesa-convert-osm</module>
         <module>geomesa-convert-parquet</module>
         <module>geomesa-convert-redis-cache</module>

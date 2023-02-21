@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,13 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import java.time.Duration
-
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
-import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
+import org.locationtech.geomesa.kafka.versions.RecordVersions
 
+import java.time.Duration
 import scala.util.control.NonFatal
 
 /**

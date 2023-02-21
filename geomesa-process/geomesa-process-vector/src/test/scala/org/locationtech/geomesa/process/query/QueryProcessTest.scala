@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -21,6 +21,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class QueryProcessTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   val process = new QueryProcess
 
@@ -49,12 +51,11 @@ class QueryProcessTest extends Specification {
       }
     }
     "manually visit a feature collection and transform" in {
-      import scala.collection.JavaConversions._
       val filter = ECQL.toFilter("track = 't-1'")
       val transforms = Seq(Seq("track", "geom"), Seq("geom"))
       foreach(transforms) { transform =>
-        val retype = DataUtilities.createSubType(sft, transform.toArray)
-        val result = SelfClosingIterator(process.execute(fc, filter, transform).features).toSeq
+        val retype = DataUtilities.createSubType(sft, transform: _*)
+        val result = SelfClosingIterator(process.execute(fc, filter, transform.asJava).features).toSeq
         result mustEqual SelfClosingIterator(new ReTypingFeatureCollection(fc.subCollection(filter), retype).features()).toSeq
       }
     }

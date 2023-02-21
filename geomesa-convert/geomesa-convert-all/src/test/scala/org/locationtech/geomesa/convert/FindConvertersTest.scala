@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert
-
-import java.util.ServiceLoader
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.avro.{AvroConverter, AvroConverterFactory}
@@ -21,6 +19,8 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory
 import org.locationtech.geomesa.convert2.composite.{CompositeConverter, CompositeConverterFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.util.ServiceLoader
 
 @RunWith(classOf[JUnitRunner])
 class FindConvertersTest extends Specification {

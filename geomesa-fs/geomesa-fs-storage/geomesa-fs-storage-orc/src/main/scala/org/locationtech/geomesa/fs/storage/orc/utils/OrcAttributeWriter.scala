@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.fs.storage.orc.utils
 
-import java.nio.charset.StandardCharsets
-import java.util.UUID
-
 import org.apache.orc.storage.ql.exec.vector._
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.utils.geotools.ObjectType
@@ -18,6 +15,9 @@ import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
   * Writes a simple feature to a given Orc row
@@ -494,7 +494,7 @@ object OrcAttributeWriter {
     private val valueWriter = getInnerWriter(valueBinding, vector.values)
 
     override def apply(sf: SimpleFeature, row: Int): Unit = {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
 
       val value = sf.getAttribute(attribute).asInstanceOf[java.util.Map[AnyRef, AnyRef]]
       if (value != null) {
@@ -504,9 +504,9 @@ object OrcAttributeWriter {
         vector.offsets(row) = vector.childCount
         vector.lengths(row) = length
         var i = 0
-        value.foreach { case (k, v) =>
+        value.asScala.foreach { case (k, v) =>
           keyWriter.setValue(k, vector.childCount + i)
-          valueWriter.setValue(v, vector.childCount + i)
+          valueWriter.setValue(v.asInstanceOf[AnyRef], vector.childCount + i)
           i += 1
         }
         vector.childCount += length

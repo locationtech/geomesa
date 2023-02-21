@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,10 +18,11 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
@@ -36,9 +37,10 @@ trait QueryRunner {
     * @param explain explain output
     * @return
     */
-  def runQuery(sft: SimpleFeatureType,
-               query: Query,
-               explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature]
+  def runQuery(
+      sft: SimpleFeatureType,
+      query: Query,
+      explain: Explainer = new ExplainLogging): QueryResult
 
   /**
     * Hook for query interceptors
@@ -53,11 +55,11 @@ trait QueryRunner {
     * @param original query to configure
     * @param sft simple feature type associated with the query
     */
-  protected [geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+  protected[geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val query = new Query(original) // note: this ends up sharing a hints object between the two queries
+    val query = new Query(original)
 
     // query rewriting
     interceptors(sft).foreach { interceptor =>
@@ -140,10 +142,18 @@ object QueryRunner {
   // used for configuring input queries
   private val default: QueryRunner = new QueryRunner {
     override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
-    override def runQuery(sft: SimpleFeatureType,
-                          query: Query,
-                          explain: Explainer): CloseableIterator[SimpleFeature] = throw new NotImplementedError
+    override def runQuery(
+        sft: SimpleFeatureType,
+        query: Query,
+        explain: Explainer): QueryResult = {
+      throw new NotImplementedError()
+    }
   }
 
   def configureDefaultQuery(sft: SimpleFeatureType, original: Query): Query = default.configureQuery(sft, original)
+
+  case class QueryResult(schema: SimpleFeatureType, hints: Hints, iterator: () => CloseableIterator[SimpleFeature]) {
+    override def toString: String =
+      s"QueryResult(schema=${SimpleFeatureTypes.encodeType(schema)},hints=${ViewParams.getReadableHints(hints)})"
+  }
 }

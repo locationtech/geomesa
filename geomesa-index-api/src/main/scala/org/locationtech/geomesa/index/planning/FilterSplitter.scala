@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -94,8 +94,8 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
 
           // the non-cross-attribute ors, with the ors tacked on as secondary filters at the end
           lazy val simpleOptions = if (simple.isEmpty) { Seq.empty } else {
-            getSimpleQueryOptions(andFilters(simple), transform)
-                .map(s => FilterPlan(Seq(addSecondaryPredicates(s, complex))))
+            getSimpleQueryOptions(andFilters(simple.toSeq), transform)
+                .map(s => FilterPlan(Seq(addSecondaryPredicates(s, complex.toSeq))))
           }
           lazy val expandReduceOptions =
             expandReduceOrOptions(rewriteFilterInDNF(filter).asInstanceOf[Or], transform)
@@ -103,8 +103,8 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
 
           if (complexOptions.forall(o => o.lengthCompare(1) == 0 && o.head.strategies.forall(_.isPreferredScan))) {
             // if each of the complex options has a good scan available, return those plus the simple options
-            complexOptions.map(o => FilterPlan(o.head.strategies.map(addSecondaryPredicates(_, simple)))) ++
-                simpleOptions
+            complexOptions.map(o => FilterPlan(o.head.strategies.map(addSecondaryPredicates(_, simple.toSeq)))).toSeq ++
+                simpleOptions.toSeq
           } else if (ExpandReduceThreshold.toInt.exists(_ > permutations)) {
             logger.debug(s"Using ${getExpandReduceLog(filter, permutations)}")
             expandReduceOptions
@@ -192,7 +192,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
     // for each child of the or, get the query options
     // each filter plan should only have a single query filter
     def getChildOptions: Seq[Seq[FilterPlan]] =
-      filter.getChildren.asScala.map(getSimpleQueryOptions(_, transform).map(fs => FilterPlan(Seq(fs))))
+      filter.getChildren.asScala.map(getSimpleQueryOptions(_, transform).map(fs => FilterPlan(Seq(fs))).toSeq).toSeq
 
     // combine the filter plans so that each plan has multiple query filters
     // use the permutations of the different options for each child
@@ -217,12 +217,12 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
             case Some(n) => Seq(n)
             case None => Seq.empty
           }
-          val secondary = orOption(current ++ f.secondary)
+          val secondary = orOption((current ++ f.secondary).toSeq)
           val temporal = f.temporal && groups(i).temporal
           groups.update(i, FilterStrategy(f.index, f.primary, secondary, temporal, f.costMultiplier))
         }
       }
-      FilterPlan(groups)
+      FilterPlan(groups.toSeq)
     }
 
     // if a filter plan has any query filters that scan a subset of the range of a different query filter,
@@ -257,7 +257,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
       // if we have replaced anything, recreate the filter plan
       val overlapped = filters.filter(_ != null)
       if (overlapped.length < filterPlan.strategies.length) {
-        FilterPlan(overlapped)
+        FilterPlan(overlapped.toSeq)
       } else {
         filterPlan
       }
@@ -374,7 +374,7 @@ object FilterSplitter {
       val nots = ArrayBuffer.empty[Filter]
       strategies.map { filter =>
         val res = if (nots.isEmpty) { filter } else {
-          val secondary = Some(andFilters(nots ++ filter.secondary))
+          val secondary = Some(andFilters((nots ++ filter.secondary).toSeq))
           FilterStrategy(filter.index, filter.primary, secondary, filter.temporal, filter.costMultiplier)
         }
         nots ++= filter.filter.map(ff.not) // note - side effect

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -11,22 +11,15 @@
     <name>GeoMesa Cassandra</name>
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${cassandra.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-cassandra-datastore</module>
         <module>geomesa-cassandra-dist</module>
         <module>geomesa-cassandra-gs-plugin</module>
         <module>geomesa-cassandra-tools</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${cassandra.guava.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
 </project>

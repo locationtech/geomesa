@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,8 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.Collections
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.util.NullProgressListener
 import org.geotools.data.{FeatureReader, Query, Transaction}
@@ -21,7 +18,6 @@ import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingS
 import org.geotools.feature.visitor.GroupByVisitor.GroupByRawResult
 import org.geotools.feature.visitor._
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
@@ -36,71 +32,47 @@ import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
 
 /**
   * Feature collection implementation
   */
-class GeoMesaFeatureCollection(source: GeoMesaFeatureSource, original: Query)
-    extends GeoMesaFeatureVisitingCollection(source, source.ds.stats, original) {
+class GeoMesaFeatureCollection(source: GeoMesaFeatureSource, query: Query)
+    extends GeoMesaFeatureVisitingCollection(source, source.ds.stats, query) {
 
-  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-  private val open = new AtomicBoolean(false)
-
-  // copy of the original query, so that we don't modify hints/sorts/etc
-  private val query = {
-    val copy = new Query(original)
-    copy.setHints(new Hints(original.getHints))
-    copy
+  private val transaction = source match {
+    case s: SimpleFeatureStore => s.getTransaction
+    case _ => Transaction.AUTO_COMMIT
   }
 
-  // configured version of the query, with hints set
-  // once opened the query will already be configured by the query planner
-  private lazy val configured = {
-    if (!open.get) {
-      source.runner.configureQuery(source.sft, query)
-    }
-    query
-  }
+  private lazy val featureReader = source.ds.getFeatureReader(source.sft, transaction, query)
 
-  override def getSchema: SimpleFeatureType = configured.getHints.getReturnSft
+  override def getSchema: SimpleFeatureType = featureReader.schema
 
-  override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
-    val iter = super.openIterator()
-    open.set(true)
-    iter
-  }
-
-  override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
-    source.ds match {
-      case gm: GeoMesaDataStore[_] => gm.getFeatureReader(source.sft, query) // don't reload the sft
-      case ds => ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    }
-  }
+  override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = featureReader.reader()
 
   override def subCollection(filter: Filter): SimpleFeatureCollection = {
-    val merged = new Query(original)
-    merged.setHints(new Hints(original.getHints))
+    val merged = new Query(query)
     val filters = Seq(merged.getFilter, filter).filter(_ != Filter.INCLUDE)
     FilterHelper.filterListAsAnd(filters).foreach(merged.setFilter)
     new GeoMesaFeatureCollection(source, merged)
   }
 
   override def sort(order: SortBy): SimpleFeatureCollection = {
-    val merged = new Query(original)
-    merged.setHints(new Hints(original.getHints))
+    val merged = new Query(query)
     if (merged.getSortBy == null) {
-      merged.setSortBy(Array(order))
+      merged.setSortBy(order)
     } else {
-      merged.setSortBy(merged.getSortBy :+ order)
+      merged.setSortBy(merged.getSortBy :+ order: _*)
     }
     new GeoMesaFeatureCollection(source, merged)
   }
 
   override def getBounds: ReferencedEnvelope = source.getBounds(query)
 
-  override def getCount: Int = source.getCount(configured)
+  override def getCount: Int = source.getCount(query)
 
   // note: this shouldn't return -1 (as opposed to FeatureSource.getCount), but we still don't return a valid
   // size unless exact counts are enabled
@@ -269,7 +241,7 @@ object GeoMesaFeatureCollection extends LazyLogging {
 
         case v: GroupByVisitor if v.getExpression.isInstanceOf[PropertyName] =>
           val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
-          groupBy(attribute, v.getGroupByAttributes.asScala, v.getAggregateVisitor) match {
+          groupBy(attribute, v.getGroupByAttributes.asScala.toSeq, v.getAggregateVisitor) match {
             case Some(result) => v.setValue(result)
             case None         => unoptimized(visitor, progress)
           }

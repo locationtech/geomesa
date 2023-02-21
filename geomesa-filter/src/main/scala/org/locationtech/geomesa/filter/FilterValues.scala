@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -49,12 +49,16 @@ object FilterValues {
   def and[T](intersect: (T, T) => Option[T])(left: FilterValues[T], right: FilterValues[T]): FilterValues[T] = {
     if (left.disjoint || right.disjoint) {
       FilterValues.disjoint
+    } else if (left.isEmpty) {
+      right
+    } else if (right.isEmpty) {
+      left
     } else {
       val intersections = left.values.flatMap(v => right.values.flatMap(intersect(_, v)))
       if (intersections.isEmpty) {
         FilterValues.disjoint
       } else {
-        FilterValues(intersections, left.precise && right.precise)
+        FilterValues(intersections.distinct, left.precise && right.precise)
       }
     }
   }

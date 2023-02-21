@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,14 +9,12 @@
 package org.locationtech.geomesa.arrow
 package vector
 
-import java.nio.charset.StandardCharsets
-import java.util.Date
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
+import org.locationtech.geomesa.arrow.jts._
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
@@ -27,10 +25,15 @@ import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.nio.charset.StandardCharsets
+import java.util.{Date, UUID}
+
 /**
   * Writes a simple feature attribute to an arrow vector
   */
 trait ArrowAttributeWriter {
+
+  def name: String
 
   /**
     * Writes an attribute for the ith feature
@@ -71,7 +74,7 @@ object ArrowAttributeWriter {
   def id(sft: SimpleFeatureType, encoding: SimpleFeatureEncoding, vector: StructVector): ArrowAttributeWriter = {
     val name = SimpleFeatureVector.FeatureIdField
     encoding.fids match {
-      case None => ArrowNoopWriter
+      case None => ArrowNoFidWriter
       case Some(Encoding.Min) if sft.isUuid => new ArrowFeatureIdMinimalUuidWriter(name, VectorFactory(vector))
       case Some(Encoding.Max) if sft.isUuid => new ArrowFeatureIdUuidWriter(name, VectorFactory(vector))
       case Some(Encoding.Min) => new ArrowFeatureIdMinimalStringWriter(name, VectorFactory(vector))
@@ -96,7 +99,7 @@ object ArrowAttributeWriter {
       encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min): Seq[ArrowAttributeWriter] = {
     sft.getAttributeDescriptors.asScala.map { descriptor =>
       apply(sft, descriptor, dictionaries.get(descriptor.getLocalName), encoding, vector)
-    }
+    }.toSeq
   }
 
   /**
@@ -194,7 +197,7 @@ object ArrowAttributeWriter {
           case ObjectType.LIST     => new ArrowListWriter(name, bindings(1), encoding, metadata, factory)
           case ObjectType.MAP      => new ArrowMapWriter(name, bindings(1), bindings(2), encoding, metadata, factory)
           case ObjectType.BYTES    => new ArrowBytesWriter(name, metadata, factory)
-          case ObjectType.UUID     => new ArrowStringWriter(name, metadata, factory)
+          case ObjectType.UUID     => new ArrowUuidWriter(name, metadata, factory)
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }
     }
@@ -266,7 +269,7 @@ object ArrowAttributeWriter {
       case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }
-    new ArrowGeometryWriter(vector.asInstanceOf[GeometryVector[Geometry, FieldVector]])
+    new ArrowGeometryWriter(name, vector.asInstanceOf[GeometryVector[Geometry, FieldVector]])
   }
 
   trait ArrowDictionaryWriter extends ArrowAttributeWriter {
@@ -282,7 +285,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowDictionaryByteWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -303,7 +306,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowListDictionaryByteWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -344,7 +347,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowDictionaryShortWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -365,7 +368,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowListDictionaryShortWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -406,7 +409,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowDictionaryIntWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -427,7 +430,7 @@ object ArrowAttributeWriter {
    * @param factory vector factory
    */
   class ArrowListDictionaryIntWriter(
-      name: String,
+      val name: String,
       val dictionary: ArrowDictionary,
       metadata: Map[String, String],
       factory: VectorFactory
@@ -461,7 +464,8 @@ object ArrowAttributeWriter {
   /**
     * Writes geometries - delegates to our JTS geometry vectors
     */
-  class ArrowGeometryWriter(delegate: GeometryVector[Geometry, FieldVector]) extends ArrowAttributeWriter {
+  class ArrowGeometryWriter(val name: String, delegate: GeometryVector[Geometry, FieldVector])
+      extends ArrowAttributeWriter {
 
     override def vector: FieldVector = delegate.getVector
 
@@ -474,13 +478,40 @@ object ArrowAttributeWriter {
   /**
     * Doesn't actually write anything
     */
-  object ArrowNoopWriter extends ArrowAttributeWriter {
+  object ArrowNoFidWriter extends ArrowAttributeWriter {
+    override def name: String = SimpleFeatureVector.FeatureIdField
     override def vector: FieldVector = null
     override def apply(i: Int, value: AnyRef): Unit = {}
     override def setValueCount(count: Int): Unit = {}
   }
 
-  class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
+  class ArrowUuidWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
+    extends ArrowAttributeWriter {
+    val fieldType: FieldType = new FieldType(true, new ArrowType.FixedSizeList(2), null, metadata.asJava)
+    override val vector: FixedSizeListVector = factory.apply(name, fieldType)
+
+    private val bits = {
+      val result = vector.addOrGetVector[BigIntVector](FieldType.nullable(MinorType.BIGINT.getType))
+      if (result.isCreated) {
+        result.getVector.allocateNew()
+      }
+      result.getVector
+    }
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (value == null) {
+        vector.setNull(i) // note: calls .setSafe internally
+      } else {
+        val uuid = value.asInstanceOf[UUID]
+        val (msb, lsb) = (uuid.getMostSignificantBits, uuid.getLeastSignificantBits)
+        vector.setNotNull(i)
+        bits.setSafe(i * 2, msb)
+        bits.setSafe(i * 2 + 1, lsb)
+      }
+    }
+  }
+
+  class ArrowFeatureIdMinimalUuidWriter(val name: String, factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, Map.empty)
@@ -492,7 +523,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowFeatureIdMinimalStringWriter(name: String, factory: VectorFactory)
+  class ArrowFeatureIdMinimalStringWriter(val name: String, factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, Map.empty)
@@ -501,7 +532,7 @@ object ArrowAttributeWriter {
       vector.setSafe(i, ProxyIdFunction.proxyId(value.asInstanceOf[SimpleFeature].getID))
   }
 
-  class ArrowFeatureIdUuidWriter(name: String, factory: VectorFactory)
+  class ArrowFeatureIdUuidWriter(val name: String, factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: FixedSizeListVector = factory.apply(name, FieldType.nullable(new ArrowType.FixedSizeList(2)))
@@ -523,7 +554,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowFeatureIdStringWriter(name: String, factory: VectorFactory)
+  class ArrowFeatureIdStringWriter(val name: String, factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: VarCharVector = factory.apply(name, MinorType.VARCHAR, Map.empty)
@@ -534,7 +565,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowStringWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowStringWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: VarCharVector = factory.apply(name, MinorType.VARCHAR, metadata)
@@ -549,7 +580,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowIntWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowIntWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, metadata)
@@ -563,7 +594,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowLongWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowLongWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: BigIntVector = factory.apply(name, MinorType.BIGINT, metadata)
@@ -577,7 +608,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowFloatWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowFloatWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: Float4Vector = factory.apply(name, MinorType.FLOAT4, metadata)
@@ -591,7 +622,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowDoubleWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowDoubleWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: Float8Vector = factory.apply(name, MinorType.FLOAT8, metadata)
@@ -605,7 +636,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowBooleanWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowBooleanWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: BitVector = factory.apply(name, MinorType.BIT, metadata)
@@ -619,7 +650,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowDateMillisWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowDateMillisWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: BigIntVector = factory.apply(name, MinorType.BIGINT, metadata)
@@ -633,7 +664,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowDateSecondsWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowDateSecondsWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: IntVector = factory.apply(name, MinorType.INT, metadata)
@@ -647,7 +678,7 @@ object ArrowAttributeWriter {
     }
   }
 
-  class ArrowBytesWriter(name: String, metadata: Map[String, String], factory: VectorFactory)
+  class ArrowBytesWriter(val name: String, metadata: Map[String, String], factory: VectorFactory)
       extends ArrowAttributeWriter {
 
     override val vector: VarBinaryVector = factory.apply(name, MinorType.VARBINARY, metadata)
@@ -663,7 +694,7 @@ object ArrowAttributeWriter {
   }
 
   class ArrowListWriter(
-      name: String,
+      val name: String,
       binding: ObjectType,
       encoding: SimpleFeatureEncoding,
       metadata: Map[String, String],
@@ -696,7 +727,7 @@ object ArrowAttributeWriter {
   }
 
   class ArrowMapWriter(
-      name: String,
+      val name: String,
       keyBinding: ObjectType,
       valueBinding: ObjectType,
       encoding: SimpleFeatureEncoding,

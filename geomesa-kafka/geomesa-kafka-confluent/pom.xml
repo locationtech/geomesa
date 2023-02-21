@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-kafka_2.12</artifactId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
@@ -15,6 +15,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <avro.version>${confluent.avro.version}</avro.version>
+        <kafka.scala.version>${scala.binary.version}</kafka.scala.version> <!-- try to override the confluent pom -->
     </properties>
 
     <dependencies>
@@ -94,10 +95,22 @@
             <version>${confluent.version}</version>
             <scope>test</scope>
             <exclusions>
+                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
                 <exclusion>
-                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.kjetland</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -108,31 +121,53 @@
             <classifier>tests</classifier>
             <scope>test</scope>
             <exclusions>
+                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
                 <exclusion>
-                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
                     <groupId>org.apache.kafka</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.kjetland</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <!-- from kafka-schema-registry, above -->
+            <groupId>com.kjetland</groupId>
+            <artifactId>mbknor-jackson-jsonschema_${scala.binary.version}</artifactId>
+            <version>1.0.39</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-test</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-kafka-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
-
     </dependencies>
 
 </project>
-

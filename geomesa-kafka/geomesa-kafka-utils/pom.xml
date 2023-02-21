@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-kafka_2.12</artifactId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -44,4 +44,5 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
+
 </project>

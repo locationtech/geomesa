@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.index.index.z2
 
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
-import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, Z2ShardStrategy}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -21,6 +20,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -97,8 +97,10 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
   }
 
   override def getRanges(values: Z2IndexValues, multiplier: Int): Iterator[ScanRange[Long]] = {
-    val Z2IndexValues(_, _, xy) = values
-    if (xy.isEmpty) { Iterator.empty } else {
+    val Z2IndexValues(_, geoms, xy) = values
+    if (geoms.disjoint) {
+      Iterator.empty
+    } else {
       // note: `target` will always be Some, as ScanRangesTarget has a default value
       val target = QueryProperties.ScanRangesTarget.option.map(t => math.max(1, t.toInt / multiplier))
       sfc.ranges(xy, 64, target).iterator.map(r => BoundedRange(r.lower, r.upper))
@@ -117,7 +119,6 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
           val lower = ByteArrays.toBytes(lo)
           val upper = ByteArrays.toBytesFollowingPrefix(hi)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
-
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     }
@@ -145,7 +146,7 @@ object Z2IndexKeySpace extends IndexKeySpaceFactory[Z2IndexValues, Long] {
         classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding)
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): Z2IndexKeySpace = {
-    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    val shards = if (tier) { NoShardStrategy } else { Z2ShardStrategy(sft) }
     new Z2IndexKeySpace(sft, shards, attributes.head)
   }
 }

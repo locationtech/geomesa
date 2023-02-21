@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.conf
 
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.opengis.filter.Filter
 
 object QueryProperties {
 
@@ -36,18 +35,9 @@ object QueryProperties {
   val S2MaxLevel: Int = S2CoverConfig(1)
   val S2LevelMod: Int = S2CoverConfig(2)
   val S2MaxCells: Int = S2CoverConfig(3)
-  
-  // noinspection TypeAnnotation
+
   // allow for full table scans or preempt them due to size of data set
-  val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
-    def onFullTableScan(typeName: String, filter: Filter): Unit = {
-      val block = blockFullTableScansForFeatureType(typeName).orElse(toBoolean).getOrElse(false)
-      if (block) {
-        throw new RuntimeException(s"Full-table scans are disabled. Query being stopped for $typeName: " +
-            org.locationtech.geomesa.filter.filterToString(filter))
-      }
-    }
-  }
+  val BlockFullTableScans = SystemProperty("geomesa.scan.block-full-table", "false")
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 

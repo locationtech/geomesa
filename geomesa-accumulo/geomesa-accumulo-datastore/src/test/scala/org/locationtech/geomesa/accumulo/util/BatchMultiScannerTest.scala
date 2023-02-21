@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,10 +17,10 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, 
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
 class BatchMultiScannerTest extends TestWithFeatureType {
+
+  import scala.collection.JavaConverters._
 
   override val spec = s"name:String:index=join,age:String:index=join,idStr:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
@@ -47,12 +47,12 @@ class BatchMultiScannerTest extends TestWithFeatureType {
 
     foreach(qp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
     val attrScanner = ds.connector.createBatchScanner(qp.tables.head, new Authorizations(), 1)
-    attrScanner.setRanges(qp.ranges)
+    attrScanner.setRanges(qp.ranges.asJava)
 
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
     foreach(jp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
 
-    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, None, 5, batchSize)
+    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, false, None, 5, batchSize)
 
     val retrieved = bms.map(jp.resultsToFeatures.apply).toList
     forall(retrieved)(_.getAttribute(attr) mustEqual value)

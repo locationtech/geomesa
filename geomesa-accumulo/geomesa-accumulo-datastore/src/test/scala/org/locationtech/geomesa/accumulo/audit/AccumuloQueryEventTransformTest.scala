@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.accumulo.audit
 
 import org.apache.accumulo.core.client.BatchWriterConfig
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.geomesa.accumulo.MiniCluster.Users
-import org.locationtech.geomesa.accumulo.{AccumuloVersion, MiniCluster}
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -23,7 +24,7 @@ class AccumuloQueryEventTransformTest extends Specification {
 
   import scala.collection.JavaConverters._
 
-  lazy val connector = MiniCluster.cluster.getConnector(Users.root.name, Users.root.password)
+  lazy val connector = MiniCluster.cluster.createAccumuloClient(Users.root.name, new PasswordToken(Users.root.password))
 
   "AccumuloQueryEventTransform" should {
     "Convert from and to mutations" in {
@@ -54,6 +55,6 @@ class AccumuloQueryEventTransformTest extends Specification {
   }
 
   step {
-    AccumuloVersion.close(connector)
+    connector.close()
   }
 }

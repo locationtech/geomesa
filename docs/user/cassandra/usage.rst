@@ -38,8 +38,7 @@ Parameter                            Type    Description
 ``geomesa.query.threads``            Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``geomesa.stats.generate``           Boolean Toggle collection of statistics (currently not implemented)
-``geomesa.query.caching``            Boolean Toggle caching of results
 ==================================== ======= ========================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide
-<http://docs.geotools.org/stable/userguide/>`__.
+<https://docs.geotools.org/stable/userguide/>`__.

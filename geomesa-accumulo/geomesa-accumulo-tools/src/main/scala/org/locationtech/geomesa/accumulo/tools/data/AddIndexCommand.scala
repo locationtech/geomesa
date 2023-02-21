@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,12 +13,12 @@ import org.apache.hadoop.util.ToolRunner
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.tools.data.AddIndexCommand.AddIndexParameters
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
-import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob
-import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob.WriteIndexArgs
+import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob
+import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob.WriteIndexArgs
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.conf.IndexId
@@ -71,7 +71,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
 
   def addIndex(ds: AccumuloDataStore): Unit  = {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     val sft = Option(ds.getSchema(params.featureName)).map(SimpleFeatureTypes.mutable).orNull
     require(sft != null, s"Schema '${params.featureName}' does not exist in the specified data store")
@@ -82,7 +82,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
       val copy = builder.buildFeatureType()
       copy.getUserData.putAll(sft.getUserData)
       copy.getUserData.remove(InternalConfigs.IndexVersions)
-      copy.getUserData.put(Configs.EnabledIndices, params.indexNames.mkString(","))
+      copy.getUserData.put(Configs.EnabledIndices, params.indexNames.asScala.mkString(","))
       GeoMesaFeatureIndexFactory.indices(copy)
     }
 
@@ -140,7 +140,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
       args.inTableName  = params.catalog
       args.inFeature    = params.featureName
       args.inCql        = Option(params.cqlFilter).map(ECQL.toCQL).orNull
-      args.indexNames.addAll(indices.map(GeoMesaFeatureIndex.identifier))
+      args.indexNames.addAll(indices.map(GeoMesaFeatureIndex.identifier).asJava)
 
       val libjars = Some(AccumuloJobUtils.defaultLibJars, AccumuloJobUtils.defaultSearchPath)
       val result = try { ToolRunner.run(new WriteIndexJob(libjars), args.unparse()) } catch {

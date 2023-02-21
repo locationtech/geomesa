@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.Serializable
-import java.security.PrivilegedExceptionAction
-import java.util
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.security.SecurityCapability
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
@@ -22,10 +17,10 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
@@ -35,16 +30,19 @@ import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import java.io.Serializable
+import java.security.PrivilegedExceptionAction
 
 @RunWith(classOf[JUnitRunner])
 class HBaseVisibilityTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -71,7 +69,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
   def getAuths(user: String): Seq[String] = {
     adminUser.runAs(new PrivilegedExceptionAction[Seq[String]]() {
       override def run(): Seq[String] = {
-        VisibilityClient.getAuths(adminConn, user).getAuthList.map(_.toStringUtf8)
+        VisibilityClient.getAuths(adminConn, user).getAuthList.asScala.map(_.toStringUtf8).toSeq
       }
     })
   }
@@ -144,7 +142,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val params = Map(
         ConnectionParam.getName -> conn,
         HBaseCatalogParam.getName -> tableName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       idQueryWithDS(ds, typeName)
     }
 
@@ -163,7 +161,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val params = Map(
         ConnectionParam.getName -> adminConn,
         HBaseCatalogParam.getName -> tableName)
-      val writeDS = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val writeDS = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
       writeDS.getSchema(typeName) must beNull
       writeDS.createSchema(SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date,*geom:Point:srid=4326"))
@@ -189,10 +187,10 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
         sf.setAttribute(1, d.dtg)
         sf.setAttribute(2, d.wkt)
         sf.visibility = d.vis
-        sf
+        sf: SimpleFeature
       }
 
-      fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       val expect = Seq(
         (user1Conn, Seq("1", "1-2", "1-2-3")),
         (user2Conn, Seq("2", "1-2", "1-2-3")),
@@ -207,8 +205,8 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
     "work with an auth provider argument and dynamic visibilities" >> {
       var auths = List.empty[String]
       val authsProvider = new AuthorizationsProvider {
-        override def getAuthorizations: util.List[String] = auths
-        override def configure(params: util.Map[String, _ <: Serializable]): Unit = {}
+        override def getAuthorizations: java.util.List[String] = auths.asJava
+        override def configure(params: java.util.Map[String, _]): Unit = {}
       }
 
       val typeName = "vistest1"
@@ -218,7 +216,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
         HBaseCatalogParam.getName -> tableName,
         org.locationtech.geomesa.security.AuthProviderParam.getName -> authsProvider,
         EnableSecurityParam.getName -> "true")
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
       // User may have everything but that doesn't matter
       setAuths("dynUser", Array[String]("admin", "vis1", "vis2", "vis3", "super"))
@@ -268,7 +266,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val params = Map(
         ConnectionParam.getName -> user1Conn,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
 
@@ -288,10 +286,10 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
         sf.setAttribute(1, f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute(2, s"POINT(4$i 5$i)")
         if (i < 5) sf.visibility = "admin|vis1|super" else sf.visibility = "(admin|vis1)&super"
-        sf
+        sf: SimpleFeature
       }
 
-      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
+      val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       val adminParams = Map(
@@ -313,10 +311,10 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
 
       def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]) = {
-        val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+        val query = new Query(typeName, ECQL.toFilter(filter), transforms: _*)
         val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
         val features = SelfClosingIterator(fr).toList
-        val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+        val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
         features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
         forall(features) { feature =>
           feature.getAttributes must haveLength(attributes.length)
@@ -332,7 +330,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
 
       foreach(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[HBaseDataStore]
         val transforms = null
         foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd.take(5))
@@ -345,7 +343,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       }
 
       foreach(Seq(true, false)) { loose =>
-        val ds = DataStoreFinder.getDataStore(adminParams ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
+        val ds = DataStoreFinder.getDataStore((adminParams ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[HBaseDataStore]
         foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))

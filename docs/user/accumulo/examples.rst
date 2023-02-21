@@ -115,7 +115,7 @@ Run the following command:
 
 .. code:: bash
 
-    geomesa remove-schema -u <username> -p <password> -c cmd_tutorial -f feature
+    $ geomesa-accumulo remove-schema -u <username> -p <password> -c cmd_tutorial -f feature
 
 NOTE: Running this command will take a bit longer than the previous two,
 as it will delete three tables in Accumulo, as well as remove the
@@ -303,13 +303,13 @@ available data sets and a set of corresponding config files.
 The currently available data sets are GDELT_, GeoLife_, OSM-GPX_, T-Drive_, GeoNames_, 
 NYCTaxi_, GTD_, and Twitter_. The first five of these sets are easily downloadable via a provided script.
 
-.. _GDELT: http://gdeltproject.org/
-.. _GeoLife: http://research.microsoft.com/en-us/projects/geolife/
-.. _OSM-GPX: http://wiki.openstreetmap.org/wiki/Planet.gpx
-.. _T-Drive: http://research.microsoft.com/apps/pubs/?id=152883
-.. _GeoNames: http://www.geonames.org/
+.. _GDELT: https://gdeltproject.org/
+.. _GeoLife: https://research.microsoft.com/en-us/projects/geolife/
+.. _OSM-GPX: https://wiki.openstreetmap.org/wiki/Planet.gpx
+.. _T-Drive: https://research.microsoft.com/apps/pubs/?id=152883
+.. _GeoNames: https://www.geonames.org/
 .. _NYCTaxi: https://publish.illinois.edu/dbwork/open-data/
-.. _GTD: http://www.start.umd.edu/gtd/
+.. _GTD: https://www.start.umd.edu/gtd/
 .. _Twitter: https://dev.twitter.com/rest/public
 
 To download these sets, run the download script found in geomesa-tools/bin and 
@@ -370,7 +370,7 @@ would like to perform with optional flags for ``export``:
 -  ``-m`` or ``--max-features``: the maximum number of features to
    return in an export
 -  ``-q`` or ``--query``: a `CQL
-   query <http://docs.geotools.org/latest/userguide/library/cql/index.html>`__
+   query <https://docs.geotools.org/latest/userguide/library/cql/index.html>`__
    to perform on the features, to return only subset of features
    matching the query
 

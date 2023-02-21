@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.features.avro.serialization
 
-import java.util.{Date, UUID}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.util.factory.Hints
@@ -17,13 +15,15 @@ import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
 
-@deprecated("does not match declared schema")
+import java.util.{Date, UUID}
+
 object AvroUserDataSerializationV4 extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
   val NullMarkerString = "<null>"
 
+  @deprecated("does not match declared schema")
   def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     // may not be able to write all entries - must pre-filter to know correct count
     val filtered = map.asScala.filter { case (key, value) =>

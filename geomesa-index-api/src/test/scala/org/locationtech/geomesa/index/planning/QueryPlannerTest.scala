@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -66,42 +66,42 @@ class QueryPlannerTest extends Specification {
 
     "be able to sort by id asc" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.NATURAL_ORDER))
+      query.setSortBy(SortBy.NATURAL_ORDER)
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", false)))
     }
 
     "be able to sort by id desc" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(SortBy.REVERSE_ORDER))
+      query.setSortBy(SortBy.REVERSE_ORDER)
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", true)))
     }
 
     "be able to sort by an attribute asc" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(ff.sort("name", SortOrder.ASCENDING)))
+      query.setSortBy(ff.sort("name", SortOrder.ASCENDING))
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false)))
     }
 
     "be able to sort by an attribute desc" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(ff.sort("name", SortOrder.DESCENDING)))
+      query.setSortBy(ff.sort("name", SortOrder.DESCENDING))
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", true)))
     }
 
     "be able to sort by an attribute and id" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER))
+      query.setSortBy(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false), ("", false)))
     }
 
     "be able to sort by an multiple attributes" >> {
       val query = new Query(sft.getTypeName)
-      query.setSortBy(Array(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING)))
+      query.setSortBy(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("age", true), ("name", false)))
     }

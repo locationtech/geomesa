@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,28 +8,28 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.Flushable
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, DataUtilities, FeatureWriter, Transaction}
+import org.geotools.data._
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, Inputs}
+import org.locationtech.geomesa.tools.ingest.LocalConverterIngest.DataStoreWriter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.io.Flushable
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
 import scala.util.control.NonFatal
 
 /**
@@ -43,6 +43,7 @@ import scala.util.control.NonFatal
  */
 class LocalConverterIngest(
     ds: DataStore,
+    dsParams: java.util.Map[String, _],
     sft: SimpleFeatureType,
     converterConfig: Config,
     inputs: Inputs,
@@ -102,7 +103,19 @@ class LocalConverterIngest(
       s"with ${TextTools.getPlural(threads, "thread")}")
 
   private val converters = CloseablePool(SimpleFeatureConverter(sft, converterConfig), threads)
-  private val writers = CloseablePool(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT), threads)
+  private val writers = {
+    def factory: FeatureWriter[SimpleFeatureType, SimpleFeature] =
+      if (threads > 1 && ds.getClass.getSimpleName.equals("JDBCDataStore")) {
+        // creates a new data store for each writer to avoid synchronized blocks in JDBCDataStore.
+        // the synchronization is to allow for generated fids from the database.
+        // generally, this shouldn't be an issue since we use provided fids,
+        // but running with 1 thread  would restore the old behavior
+        new DataStoreWriter(dsParams, sft.getTypeName)
+      } else {
+        ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
+      }
+    CloseablePool(factory, threads)
+  }
 
   private val closer = new Runnable() {
     override def run(): Unit = {
@@ -202,6 +215,32 @@ class LocalConverterIngest(
       } finally {
         latch.countDown()
         bytesRead.addAndGet(file.length)
+      }
+    }
+  }
+}
+
+object LocalConverterIngest {
+
+  class DataStoreWriter(connection: java.util.Map[String, _], typeName: String)
+      extends FeatureWriter[SimpleFeatureType, SimpleFeature] {
+
+    private val ds = DataStoreFinder.getDataStore(connection)
+    private val writer = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+
+    override def getFeatureType: SimpleFeatureType = writer.getFeatureType
+    override def next(): SimpleFeature = writer.next()
+    override def remove(): Unit = writer.remove()
+    override def write(): Unit = writer.write()
+    override def hasNext: Boolean = writer.hasNext
+    override def close(): Unit = {
+      var err: Throwable = null
+      CloseQuietly(writer).foreach(err = _)
+      CloseQuietly(ds).foreach { e =>
+        if (err == null) { err = e } else { err.addSuppressed(e) }
+      }
+      if (err != null) {
+        throw err
       }
     }
   }

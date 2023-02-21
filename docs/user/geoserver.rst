@@ -12,29 +12,26 @@ GeoServer Versions
 ------------------
 
 Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
-version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
+version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version,
+although this may occasionally cause errors as GeoServer does not follow semantic versioning.
 
 .. note::
 
-    New versions of GeoServer are released regularly. GeoMesa 3+ may work with newer versions of GeoServer, but
+    New versions of GeoServer are released regularly. GeoMesa may work with newer versions of GeoServer, but
     only the versions listed below have been verified.
 
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
-| 3.2.x             | 2.17.3            |
+| 4.0.0 and later   | 2.22.1            |
 +-------------------+-------------------+
-| 3.1.1             | 2.17.3            |
+| 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
-| 3.1.0             | 2.17.0            |
-+-------------------+-------------------+
-| 3.0.x             | 2.17.0            |
+| 3.0.x to 3.1.0    | 2.17.0            |
 +-------------------+-------------------+
 | 2.4.x             | 2.15.x            |
 +-------------------+-------------------+
-| 2.3.x             | 2.14.x            |
-+-------------------+-------------------+
-| 2.2.x             | 2.14.x            |
+| 2.2.x to 2.3.x    | 2.14.x            |
 +-------------------+-------------------+
 | 2.1.x and earlier | 2.12.x            |
 +-------------------+-------------------+
@@ -52,13 +49,11 @@ available by datastore:
 
  * :ref:`install_accumulo_geoserver`
  * :ref:`install_hbase_geoserver`
- * :ref:`install_bigtable_geoserver`
  * :ref:`install_cassandra_geoserver`
  * :ref:`install_kafka_geoserver`
  * :ref:`install_fsds_geoserver`
  * :ref:`install_redis_geoserver`
  * :ref:`install_lambda_geoserver`
- * :ref:`install_kudu_geoserver`
 
 Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
 For new installations of GeoServer, the default username is ``admin`` and
@@ -72,13 +67,11 @@ Specific instructions by data store:
 
  * :doc:`/user/accumulo/geoserver`
  * :doc:`/user/hbase/geoserver`
- * :doc:`/user/bigtable/geoserver`
  * :doc:`/user/cassandra/geoserver`
  * :doc:`/user/kafka/geoserver`
  * :doc:`/user/filesystem/geoserver`
  * :doc:`/user/redis/geoserver`
  * :doc:`/user/lambda/geoserver`
- * :doc:`/user/kudu/geoserver`
 
 Publish a GeoMesa Layer
 -----------------------
@@ -123,7 +116,7 @@ show only those points matching your filter criterion.
 
 This is a CQL filter, which can be constructed in various ways to query data. You can
 find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
+tutorial <https://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
 
 .. note::
 
@@ -133,12 +126,12 @@ tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.ht
    That tells GeoServer to display the records for the entire month of January 2014. GeoServer will add an implicit
    time filter if you do not specify one, which may cause unexpected results. This TIME parameter is distinct from the
    CQL_FILTER parameter and specifying a CQL time filter without the TIME parameter may create an empty intersection
-   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <http://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
+   with the implicit time filter. You can find more information about the TIME parameter from `GeoServer's documentation <https://docs.geoserver.org/stable/en/user/services/wms/time.html>`__.
 
 Analysis with WPS
 -----------------
 
-As described by the Open Geospatial Consortium's `Web Map Service <http://www.opengeospatial.org/standards/wms>`_ page,
+As described by the Open Geospatial Consortium's `Web Map Service <https://www.opengeospatial.org/standards/wms>`_ page,
 
     The OpenGIS® Web Map Service Interface Standard (WMS) provides a simple HTTP
     interface for requesting geo-registered map images from one or more
@@ -184,24 +177,27 @@ configure your application server with the following system properties::
 Logging Explain Query Planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-GeoMesa data stores can explain their plan for executing queries,
+GeoMesa data stores can show their plan for executing queries,
 as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
-``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
+``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.xml`` file::
 
-    log4j.category.org.locationtech.geomesa.index.utils.Explainer=TRACE
+    <Logger name="org.locationtech.geomesa.index.utils.Explainer" level="trace">
+      <AppenderRef ref="stdout"/>
+      <AppenderRef ref="geoserverlogfile"/>
+    </Logger>
 
 If you are not sure of the location of your GeoServer data directory, it
 is printed out when you start GeoServer::
 
-    ----------------------------------
-    - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
-    ----------------------------------
+    --------------------------------------------------------------------
+    CONFIG [org.geoserver] - Loading catalog /path/to/geoserver-data-dir
+    --------------------------------------------------------------------
 
 It may also be helpful to refer to GeoServer's `Advanced log configuration`__ documentation for the
 specifics of how and where to manage the GeoServer logs.
 
-__ http://docs.geoserver.org/stable/en/user/configuration/logging.html
+__ https://docs.geoserver.org/stable/en/user/configuration/logging.html
 
 Auditing GeoMesa DataStores
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -211,14 +207,11 @@ when registering the data store in GeoServer.
 
 GeoMesa data stores will generally write audited queries to log files. To configure an audit log, set the level for
 ``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
-configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
+configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.xml``)::
 
-   log4j.appender.metrics=org.apache.log4j.FileAppender
-   log4j.appender.metrics.File=metrics.log
-   log4j.appender.metrics.layout=org.apache.log4j.PatternLayout
-   log4j.appender.metrics.layout.ConversionPattern=%m%n
-
-   log4j.logger.org.locationtech.geomesa.utils.audit=DEBUG, metrics
+   <Logger name="org.locationtech.geomesa.utils.audit" level="debug" additivity="false">
+     <AppenderRef ref="auditLogFile"/> <!-- note: requires an appender to be defined with this name -->
+   </Logger>
 
 The Accumulo data store will also write audited queries to the ``<catalog>_queries`` table.
 

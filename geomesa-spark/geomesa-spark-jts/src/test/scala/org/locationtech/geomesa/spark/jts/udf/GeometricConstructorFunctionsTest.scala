@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.locationtech.jts.geom._
 import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.functions._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.spark.jts.util.util.GeometryContainer
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -284,9 +284,8 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       r.collect().head.getAs[Point](0) mustEqual expected
       dfBlank.select(st_makePoint(0, 1)).first mustEqual expected
 
-      // it would be nice if this worked (GEOMESA-2454); check that it doesn't so we know if it does in the future
       import spark.implicits._
-      r.as[GeometryContainer].head must haveClass[GeometryContainer] must throwAn[AnalysisException]
+      r.as[GeometryContainer].head must haveClass[GeometryContainer]
     }
 
     "st_makePointM" >> {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
-
-import java.util.{Collections, Date}
 
 import org.geotools.data._
 import org.geotools.feature.NameImpl
@@ -25,7 +23,7 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
-import org.locationtech.geomesa.index.index.NamedIndex
+import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -35,18 +33,21 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.{Collections, Date}
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts {
 
   import org.locationtech.geomesa.filter.ff
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -74,7 +75,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val query = new Query(defaultSft.getTypeName, Filter.EXCLUDE)
 
-      ds.getQueryPlan(query) must beEmpty
+      forall(ds.getQueryPlan(query).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
 
       val features = fs.getFeatures(query).features
       try {
@@ -274,7 +275,6 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     "handle requests with namespaces" in {
       import AccumuloDataStoreParams.NamespaceParam
 
-      import scala.collection.JavaConversions._
 
       val ns = "mytestns"
       val typeName = "namespacetest"
@@ -287,7 +287,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       ds.getSchema(typeName) mustEqual SimpleFeatureTypes.immutable(sft)
       ds.getSchema(new NameImpl(ns, typeName)) mustEqual SimpleFeatureTypes.immutable(sft)
 
-      val dsWithNs = DataStoreFinder.getDataStore(dsParams ++ Map(NamespaceParam.key -> "ns0"))
+      val dsWithNs = DataStoreFinder.getDataStore((dsParams ++ Map(NamespaceParam.key -> "ns0")).asJava)
       val name = dsWithNs.getSchema(typeName).getName
       name.getNamespaceURI mustEqual "ns0"
       name.getLocalPart mustEqual typeName
@@ -298,8 +298,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val queries = Seq(
         new Query(typeName),
         new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)")),
-        new Query(typeName, Filter.INCLUDE, Array("geom")),
-        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), Array("geom"))
+        new Query(typeName, Filter.INCLUDE, "geom"),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), "geom")
       )
       foreach(queries) { query =>
         val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
@@ -409,7 +409,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val queryPlanner = new QueryPlanner(ds)
-      val results = queryPlanner.runQuery(sft, query, ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList)
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
@@ -442,13 +442,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
         bins must haveSize(7)
         val sorted = bins.sortBy(_.dtg)
-        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1(0).getTime, -1L)
-        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1(1).getTime, -1L)
-        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1(2).getTime, -1L)
-        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1(3).getTime, -1L)
-        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2(0).getTime, -1L)
-        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2(1).getTime, -1L)
-        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2(2).getTime, -1L)
+        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1.get(0).getTime, -1L)
+        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1.get(1).getTime, -1L)
+        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1.get(2).getTime, -1L)
+        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1.get(3).getTime, -1L)
+        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2.get(0).getTime, -1L)
+        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2.get(1).getTime, -1L)
+        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2.get(2).getTime, -1L)
       }
     }
 
@@ -482,7 +482,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       skipped("relies on thread.sleep timing")
       val params = dsParams ++ Map(AccumuloDataStoreParams.QueryTimeoutParam.getName -> "1s")
 
-      val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val dsWithTimeout = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.hasNext() must beTrue
       Thread.sleep(5000) // TODO this is error prone...
@@ -579,7 +579,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val params = dsParams ++ Map(AccumuloDataStoreParams.LooseBBoxParam.getName -> "false")
 
-      val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
+      val strictDs = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
       "with loose bbox as default" >> {
         "for z2 index" >> {
@@ -682,7 +682,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle Query.ALL" in {
-      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must not throwAn[IllegalArgumentException]()
+      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must not(throwAn[IllegalArgumentException]())
       ds.getFeatureReader(Query.ALL, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
     }
   }

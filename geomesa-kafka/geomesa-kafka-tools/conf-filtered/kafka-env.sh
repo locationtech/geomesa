@@ -18,7 +18,7 @@
 # export GEOMESA_KAFKA_CLASSPATH=
 
 # Kafka home directory
-# export KAFKA_HOME="{KAFKA_HOME:-/path/to/kafka}"
+# export KAFKA_HOME="${KAFKA_HOME:-/path/to/kafka}"
 
 # Kafka lib directory, default to $KAFKA_HOME/lib
 export KAFKA_LIB="${KAFKA_LIB:-$KAFKA_HOME/libs}"

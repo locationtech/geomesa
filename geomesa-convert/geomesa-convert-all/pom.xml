@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa-convert_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -63,11 +63,6 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mortbay.jetty</groupId>
             <artifactId>jetty</artifactId>
             <version>6.1.26</version>
@@ -86,4 +81,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
 </project>

@@ -3,7 +3,7 @@ GeoMesa Spark: Spatial Join and Aggregation
 
 This tutorial will show you how to:
 
-1. Use GeoMesa with `Apache Spark <http://spark.apache.org/>`__ in Scala.
+1. Use GeoMesa with `Apache Spark <https://spark.apache.org/>`__ in Scala.
 2. Create and use DataFrames with our geospatial User Defined Functions.
 3. Calculate aggregate statistics based on a threshold distance.
 4. Create a new simple feature type to represent this aggregation.
@@ -15,7 +15,7 @@ Background
 `NYCTaxi <https://databank.illinois.edu/datasets/IDB-9610843>`__ is  taxi activity data
 published by the University of Illinois from Freedom of Information Law requests to NYC Taxi and Limo Commission.
 
-`GeoNames <http://www.geonames.org>`__ is a geographical database containing over
+`GeoNames <https://www.geonames.org>`__ is a geographical database containing over
 10 million geographical names and over 9 million unique features.
 
 Suppose we wanted to answer the questions: "Do taxi pickups centralize near certain points of interest?",
@@ -88,18 +88,18 @@ catalogs, we would set up the following parameter maps:
 .. code-block:: scala
 
   val taxiParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "nyctaxi")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "nyctaxi")
 
   val geonamesParams = Map(
-    "accumulo.instance.id" -> "instance",
-    "accumulo.zookeepers"  -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "accumulo.user"        -> "user",
-    "accumulo.password"    -> "password",
-    "accumulo.catalog"     -> "geonames")
+    "accumulo.instance.name" -> "instance",
+    "accumulo.zookeepers"    -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    "accumulo.user"          -> "user",
+    "accumulo.password"      -> "password",
+    "accumulo.catalog"       -> "geonames")
 
 .. note::
 

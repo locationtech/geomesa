@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.tools.export
-
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.time.format.DateTimeFormatter
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
@@ -20,6 +17,9 @@ import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChang
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
+import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+
 class KafkaListenCommand extends KafkaDataStoreCommand with LazyLogging {
 
   override val name = "listen"
@@ -28,7 +28,7 @@ class KafkaListenCommand extends KafkaDataStoreCommand with LazyLogging {
   override def execute(): Unit = withDataStore { ds =>
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
-      throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
+      throw new ParameterException(s"Type ${params.featureName} does not exist in ${ds.config.catalog}")
     }
     Command.user.info(s"Listening to '${sft.getTypeName}' ${SimpleFeatureTypes.encodeType(sft)} ...")
 

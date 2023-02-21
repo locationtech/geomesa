@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
-import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -22,10 +19,11 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.{MultiPoint, Point}
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 @RunWith(classOf[JUnitRunner])
 class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogging {
@@ -46,7 +44,7 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
 
   "Arrow delta scans" should {
     "query multipoints" in {
-      val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
+      val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
       query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")

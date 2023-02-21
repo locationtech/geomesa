@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess.KNNVisitor
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geometry.DistanceCalculator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -31,6 +32,9 @@ import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.PropertyName
+
+import java.util.concurrent.Future
+import scala.collection.mutable.ArrayBuffer
 
 @DescribeProcess(
   title = "Geomesa-enabled K Nearest Neighbor Search",
@@ -126,7 +130,7 @@ object KNearestNeighborSearchProcess {
       val geom = ff.property(source.getSchema.getGeomField)
 
       // for each entry in the inputFeatures collection:
-      queries.par.foreach { p =>
+      def run(p: Point): Unit = {
         // tracks our nearest neighbors
         val results = Array.ofDim[FeatureWithDistance](k)
         // tracks features are in our search envelope but that aren't within our current search distance
@@ -204,6 +208,8 @@ object KNearestNeighborSearchProcess {
           }
         }
       }
+
+      queries.toList.map(p => CachedThreadPool.submit(() => run(p))).foreach(_.get)
 
       this.result = FeatureResult(collection)
     }

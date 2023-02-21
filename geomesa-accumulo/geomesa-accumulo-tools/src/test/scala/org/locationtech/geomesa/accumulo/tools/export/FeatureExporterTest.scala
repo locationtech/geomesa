@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,16 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
-import java.util.Date
-import java.util.zip.Deflater
-
 import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroDataFileReader
+import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExportStream
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -25,6 +20,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+import java.util.Date
+import java.util.zip.Deflater
 
 @RunWith(classOf[JUnitRunner])
 class FeatureExporterTest extends TestWithFeatureType {
@@ -58,7 +58,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle projections" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -75,7 +75,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle transforms" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("derived=strConcat(name, '-test')", "geom", "dtg"))
+      val query = new Query(sftName, Filter.INCLUDE, "derived=strConcat(name, '-test')", "geom", "dtg")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -92,7 +92,7 @@ class FeatureExporterTest extends TestWithFeatureType {
     }
 
     "should handle escapes" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, ',test')"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, ',test')")
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()
@@ -112,7 +112,7 @@ class FeatureExporterTest extends TestWithFeatureType {
   "Avro Export" >> {
 
     "should handle transforms" >> {
-      val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, '-test')"))
+      val query = new Query(sftName, Filter.INCLUDE, "geom", "dtg", "derived=strConcat(name, '-test')")
       val featureCollection = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteExportStream()

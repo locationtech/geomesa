@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,32 +8,25 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.io.ByteArrayOutputStream
-import java.util.Objects
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io._
-import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat, TopK}
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.reflect.ClassTag
+import java.util.Objects
 
 trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
 
@@ -47,7 +40,6 @@ trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
 
     import ArrowScan.Configuration._
 
-    val typ = options(TypeKey)
     val arrowSft = transform.getOrElse(sft)
     val includeFids = options(IncludeFidsKey).toBoolean
     val proxyFids = options.get(ProxyFidsKey).exists(_.toBoolean)
@@ -55,26 +47,8 @@ trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
     val sort = options.get(SortKey).map(name => (name, options.get(SortReverseKey).exists(_.toBoolean)))
     val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipcOpts = FormatVersion.options(options(IpcVersionKey))
-
-    if (typ == Types.DeltaType) {
-      val dictionaries = dictionary.split(",").filter(_.length > 0)
-      new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, sort, batchSize)
-    } else if (typ == Types.BatchType) {
-      val dictionaries = ArrowScan.decodeDictionaries(arrowSft, dictionary)
-      sort match {
-        case None => new BatchAggregate(arrowSft, dictionaries, encoding, ipcOpts)
-        case Some((s, r)) => new SortingBatchAggregate(arrowSft, dictionaries, encoding, ipcOpts, s, r, batchSize)
-      }
-    } else if (typ == Types.FileType) {
-      val dictionaries = dictionary.split(",").filter(_.length > 0)
-      // TODO file metadata created in the iterator has an empty sft name
-      sort match {
-        case None => new MultiFileAggregate(arrowSft, dictionaries, encoding, ipcOpts)
-        case Some((s, r)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, ipcOpts, s, r, batchSize)
-      }
-    } else {
-      throw new RuntimeException(s"Expected type, got $typ")
-    }
+    val dictionaries = dictionary.split(",").filterNot(_.isEmpty)
+    new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, sort, batchSize)
   }
 
   override protected def defaultBatchSize: Int = throw new IllegalArgumentException("Batch scan is specified per scan")
@@ -83,9 +57,6 @@ trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
 object ArrowScan extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-  import scala.collection.JavaConverters._
 
   object Configuration {
 
@@ -95,23 +66,7 @@ object ArrowScan extends LazyLogging {
     val IpcVersionKey  = "ipc"
     val SortKey        = "sort"
     val SortReverseKey = "sort-rev"
-
-    @deprecated("Deprecated with no replacement")
-    val TypeKey = "type"
-
-    @deprecated("AggregatingScan.Configuration.BatchSizeOpt")
-    val BatchSizeKey: String = AggregatingScan.Configuration.BatchSizeOpt
-
-    @deprecated("Deprecated with no replacement")
-    object Types {
-      val BatchType = "batch"
-      val DeltaType = "delta"
-      val FileType  = "file"
-    }
   }
-
-  @deprecated("Deprecated with no replacement")
-  val DictionaryTopK: SystemProperty = SystemProperty("geomesa.arrow.dictionary.top", "1000")
 
   /**
     * Configure the iterator
@@ -141,51 +96,23 @@ object ArrowScan extends LazyLogging {
     val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
     val ipcOpts = FormatVersion.options(ipc)
+    val dictionaryFields = hints.getArrowDictionaryFields
 
-    val baseConfig = {
+    val config = {
       val base = AggregatingScan.configure(sft, index, ecql, hints.getTransform, hints.getSampling, batchSize)
       base ++ AggregatingScan.optionalMap(
         IncludeFidsKey -> includeFids.toString,
         ProxyFidsKey   -> proxyFids.toString,
         IpcVersionKey  -> ipc,
         SortKey        -> sort.map(_._1),
-        SortReverseKey -> sort.map(_._2.toString)
+        SortReverseKey -> sort.map(_._2.toString),
+        DictionaryKey  -> dictionaryFields.mkString(",")
       )
     }
 
-    val dictionaryFields = hints.getArrowDictionaryFields
-    val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
-    val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
-      val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
-    }
-
-    if (hints.isArrowDoublePass ||
-          dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
-      logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
-      // we have all the dictionary values, or we will run a query to determine them up front
-      val dictionaries = createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
-      val config = baseConfig ++ Map(
-        TypeKey       -> Configuration.Types.BatchType,
-        DictionaryKey -> encodeDictionaries(dictionaries)
-      )
-      val reducer = new BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort, sorted = false)
-      ArrowScanConfig(config, reducer)
-    } else if (hints.isArrowMultiFile) {
-      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
-      val config = baseConfig ++ Map(
-        TypeKey       -> Configuration.Types.FileType,
-        DictionaryKey -> dictionaryFields.mkString(",")
-      )
-      ArrowScanConfig(config, new FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort))
-    } else {
-      val config = baseConfig ++ Map(
-        TypeKey       -> Configuration.Types.DeltaType,
-        DictionaryKey -> dictionaryFields.mkString(",")
-      )
-      val reducer = new DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false)
-      ArrowScanConfig(config, reducer)
-    }
+    val process = hints.isArrowProcessDeltas
+    val reducer = new DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false, process)
+    ArrowScanConfig(config, reducer)
   }
 
   /**
@@ -197,91 +124,6 @@ object ArrowScan extends LazyLogging {
   def getBatchSize(hints: Hints): Int = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
 
   /**
-    * Determine dictionary values, as required. Priority:
-    *   1. values provided by the user
-    *   2. cached topk stats
-    *   3. enumeration stats query against result set
-    *
-    * @param stats stats
-    * @param sft simple feature type
-    * @param filter full filter for the query being run, used if querying enumeration values
-    * @param attributes names of attributes to dictionary encode
-    * @param provided provided dictionary values, if any, keyed by attribute name
-    * @return
-    */
-  def createDictionaries(
-      stats: GeoMesaStats,
-      sft: SimpleFeatureType,
-      filter: Option[Filter],
-      attributes: Seq[String],
-      provided: Map[String, Array[AnyRef]],
-      cached: Map[String, TopK[AnyRef]]): Map[String, ArrowDictionary] = {
-
-    if (attributes.isEmpty) { Map.empty } else {
-      var id = -1L
-      // note: sort values to return same dictionary cache
-      val providedDictionaries = provided.map { case (k, v) =>
-        id += 1
-        val descriptor = sft.getDescriptor(k)
-        val bindings = ObjectType.selectType(descriptor)
-        val (binding, order) = if (descriptor.isList) {
-          (descriptor.getListType(), AttributeOrdering(bindings.tail))
-        } else {
-          (descriptor.getType.getBinding, AttributeOrdering(bindings))
-        }
-        java.util.Arrays.sort(v, order)
-        k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](binding))
-      }
-      val toLookup = attributes.filterNot(provided.contains)
-      if (toLookup.isEmpty) { providedDictionaries } else {
-        // use topk if available, otherwise run a live stats query to get the dictionary values
-        val queried = if (toLookup.forall(cached.contains)) {
-          cached.map { case (name, k) =>
-            id += 1
-            val descriptor = sft.getDescriptor(name)
-            val bindings = ObjectType.selectType(descriptor)
-            val (values, binding, order) = if (descriptor.isList) {
-              val lists = k.topK(DictionaryTopK.get.toInt).asInstanceOf[Iterator[(java.util.List[AnyRef], Long)]]
-              val values = lists.flatMap(_._1.asScala).toArray
-              (values, descriptor.getListType(), AttributeOrdering(bindings.tail))
-            } else {
-              val values = k.topK(DictionaryTopK.get.toInt).map(_._1).toArray
-              (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
-            }
-            java.util.Arrays.sort(values, order)
-            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
-          }
-        } else {
-          // if we have to run a query, might as well generate all values
-          val queries = toLookup.map(Stat.Enumeration)
-          val filt = filter.getOrElse(Filter.INCLUDE)
-          val enumerations = stats.getSeqStat[EnumerationStat[String]](sft, queries, filt, exact = true)
-          // enumerations should come back in the same order
-          // this has been fixed, but previously we couldn't use the enumeration attribute
-          // number b/c it might reflect a transform sft
-          val nameIter = toLookup.iterator
-          enumerations.map { e =>
-            id += 1
-            val name = nameIter.next
-            val descriptor = sft.getDescriptor(name)
-            val bindings = ObjectType.selectType(descriptor)
-            val (values, binding, order) = if (descriptor.isList) {
-              val values = e.values.flatMap(_.asInstanceOf[java.util.List[AnyRef]].asScala).toArray[AnyRef]
-              (values, descriptor.getListType(), AttributeOrdering(bindings.tail))
-            } else {
-              val values = e.values.toArray[AnyRef]
-              (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
-            }
-            java.util.Arrays.sort(values, order)
-            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
-          }.toMap
-        }
-        queried ++ providedDictionaries
-      }
-    }
-  }
-
-  /**
     * Simple feature used for returning from scans
     *
     * @return
@@ -290,378 +132,9 @@ object ArrowScan extends LazyLogging {
     new ScalaSimpleFeature(ArrowEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 
   /**
-    * Encodes the dictionaries as a string for passing to the iterator config
-    *
-    * @param dictionaries dictionaries
-    * @return
-    */
-  private def encodeDictionaries(dictionaries: Map[String, ArrowDictionary]): String =
-    StringSerialization.encodeSeqMap(dictionaries.map { case (k, v) => k -> v.iterator.toSeq })
-
-  /**
-    * Decodes an encoded dictionary string from an iterator config
-    *
-    * @param encoded dictionary string
-    * @return
-    */
-  private def decodeDictionaries(sft: SimpleFeatureType, encoded: String): Map[String, ArrowDictionary] = {
-    var id = -1L
-    StringSerialization.decodeSeqMap(sft, encoded).map { case (k, v) =>
-      id += 1
-      k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
-    }
-  }
-
-  /**
     * Trait for aggregating arrow files
     */
   trait ArrowAggregate extends AggregatingScan.Result
-
-  /**
-    * Returns full arrow files, with metadata. Builds dictionaries on the fly. Doesn't sort
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionaries fields
-    * @param encoding encoding
-    */
-  @deprecated("Deprecated with no replacement")
-  class MultiFileAggregate(
-      sft: SimpleFeatureType,
-      dictionaryFields: Seq[String],
-      encoding: SimpleFeatureEncoding,
-      ipcOpts: IpcOption
-    ) extends ArrowAggregate {
-
-    private var writer: DictionaryBuildingWriter = _
-    private val os = new ByteArrayOutputStream()
-
-    override def init(): Unit = {
-      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding, ipcOpts)
-    }
-
-    override def aggregate(sf: SimpleFeature): Int = { writer.add(sf); 1 }
-
-    override def encode(): Array[Byte] = {
-      try {
-        writer.encode(os)
-        os.toByteArray
-      } finally {
-        writer.clear()
-        os.reset()
-      }
-    }
-
-    override def cleanup(): Unit = {
-      CloseWithLogging(writer)
-      writer = null
-    }
-  }
-
-  /**
-   * Returns full arrow files, with metadata. Builds dictionaries on the fly. Sorts each file, but not between files
-   *
-   * @param sft simple feature type
-   * @param dictionaryFields dictionaries fields
-   * @param encoding encoding
-   * @param sortBy field to sort by
-   * @param reverse sort reverse or not
-   * @param batchSize batch size
-   */
-  @deprecated("Deprecated with no replacement")
-  class MultiFileSortingAggregate(
-      sft: SimpleFeatureType,
-      dictionaryFields: Seq[String],
-      encoding: SimpleFeatureEncoding,
-      ipcOpts: IpcOption,
-      sortBy: String,
-      reverse: Boolean,
-      batchSize: Int
-    ) extends ArrowAggregate {
-
-    private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
-    private var index = 0
-
-    private var writer: DictionaryBuildingWriter = _
-    private val os = new ByteArrayOutputStream()
-
-    private val ordering = SimpleFeatureOrdering(sft, sortBy, reverse)
-
-    override def init(): Unit = {
-      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding, ipcOpts)
-    }
-
-    override def aggregate(sf: SimpleFeature): Int = {
-      // we have to copy since the feature might be re-used
-      // TODO we could probably optimize this...
-      features(index) = ScalaSimpleFeature.copy(sf)
-      index += 1
-      1
-    }
-
-    override def encode(): Array[Byte] = {
-      try {
-        java.util.Arrays.sort(features, 0, index, ordering)
-
-        var i = 0
-        while (i < index) {
-          writer.add(features(i))
-          i += 1
-        }
-
-        writer.encode(os)
-        os.toByteArray
-      } finally {
-        index = 0
-        writer.clear()
-        os.reset()
-      }
-    }
-
-    override def cleanup(): Unit = {
-      CloseWithLogging(writer)
-      writer = null
-    }
-  }
-
-  /**
-    * Reduce function for whole arrow files coming back from the aggregating scan. Each feature
-    * will have a single arrow file
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionary fields
-    * @param encoding simple feature encoding
-    * @param sort sort
-    * @return
-    */
-  @deprecated("Deprecated with no replacement")
-  class FileReducer(
-      private var sft: SimpleFeatureType,
-      private var dictionaryFields: Seq[String],
-      private var encoding: SimpleFeatureEncoding,
-      private var ipcOpts: IpcOption,
-      private var sort: Option[(String, Boolean)]
-    ) extends FeatureReducer {
-
-    def this() = this(null, null, null, null, null) // no-arg constructor required for serialization
-
-    override def init(state: Map[String, String]): Unit = {
-      sft = ReducerConfig.sft(state)
-      dictionaryFields = StringSerialization.decodeSeq(state(ReducerConfig.DictionariesKey))
-      encoding = ReducerConfig.encoding(state)
-      ipcOpts = ReducerConfig.ipcOption(state)
-      sort = ReducerConfig.sort(state)
-    }
-
-    override def state: Map[String, String] = Map(
-      ReducerConfig.DictionariesKey -> StringSerialization.encodeSeq(dictionaryFields),
-      ReducerConfig.sftName(sft),
-      ReducerConfig.sftSpec(sft),
-      ReducerConfig.encoding(encoding),
-      ReducerConfig.ipcOption(ipcOpts),
-      ReducerConfig.sort(sort)
-    )
-
-    override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-      val bytes = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = ConcatenatedFileWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, bytes)
-      val sf = resultFeature()
-      result.map { bytes => sf.setAttribute(0, bytes); sf }
-    }
-
-    def canEqual(other: Any): Boolean = other.isInstanceOf[FileReducer]
-
-    override def equals(other: Any): Boolean = other match {
-      case that: FileReducer if that.canEqual(this) =>
-        sft == that.sft && dictionaryFields == that.dictionaryFields && encoding == that.encoding && sort == that.sort
-      case _ => false
-    }
-
-    override def hashCode(): Int = {
-      val state = Seq(sft, dictionaryFields, encoding, sort)
-      state.map(Objects.hashCode).foldLeft(0)((a, b) => 31 * a + b)
-    }
-  }
-
-  /**
-    * Returns record batches without any metadata. Dictionaries must be known up front. Doesn't sort
-    *
-    * @param sft simple feature type
-    * @param dictionaries dictionaries
-    * @param encoding encoding
-    */
-  @deprecated("Deprecated with no replacement")
-  class BatchAggregate(
-      sft: SimpleFeatureType,
-      dictionaries: Map[String, ArrowDictionary],
-      encoding: SimpleFeatureEncoding,
-      ipcOpts: IpcOption
-    ) extends ArrowAggregate {
-
-    private var vector: SimpleFeatureVector = _
-    private var unloader: RecordBatchUnloader = _
-
-    private var index = 0
-
-    override def init(): Unit = {
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-      unloader = new RecordBatchUnloader(vector, ipcOpts)
-    }
-
-    override def aggregate(sf: SimpleFeature): Int = {
-      vector.writer.set(index, sf)
-      index += 1
-      1
-    }
-
-    override def encode(): Array[Byte] = {
-      try {
-        unloader.unload(index)
-      } finally {
-        vector.clear()
-        index = 0
-      }
-    }
-
-    override def cleanup(): Unit = {
-      CloseWithLogging(vector)
-      vector = null
-    }
-  }
-
-  /**
-   * Returns record batches without any metadata. Dictionaries must be known up front. Sorts each batch,
-   * but not between batches
-   *
-   * @param sft simple feature type
-   * @param dictionaries dictionaries
-   * @param encoding encoding
-   * @param sortField sort field
-   * @param reverse sort reverse
-   * @param batchSize batch size
-   */
-  @deprecated("Deprecated with no replacement")
-  class SortingBatchAggregate(
-      sft: SimpleFeatureType,
-      dictionaries: Map[String, ArrowDictionary],
-      encoding: SimpleFeatureEncoding,
-      ipcOpts: IpcOption,
-      sortField: String,
-      reverse: Boolean,
-      batchSize: Int
-    ) extends ArrowAggregate {
-
-    private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
-
-    private var vector: SimpleFeatureVector = _
-    private var unloader: RecordBatchUnloader = _
-
-    private var index = 0
-
-    private val ordering = SimpleFeatureOrdering(sft, sortField, reverse)
-
-    override def init(): Unit = {
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-      unloader = new RecordBatchUnloader(vector, ipcOpts)
-    }
-
-    override def aggregate(sf: SimpleFeature): Int = {
-      // we have to copy since the feature might be re-used
-      // TODO we could probably optimize this...
-      features(index) = ScalaSimpleFeature.copy(sf)
-      index += 1
-      1
-    }
-
-    override def encode(): Array[Byte] = {
-      try {
-        java.util.Arrays.sort(features, 0, index, ordering)
-
-        var i = 0
-        while (i < index) {
-          vector.writer.set(i, features(i))
-          i += 1
-        }
-        unloader.unload(index)
-      } finally {
-        index = 0
-        vector.clear()
-      }
-    }
-
-    override def cleanup(): Unit = {
-      CloseWithLogging(vector)
-      vector = null
-    }
-  }
-
-  /**
-    * Reduce function for batches with a common schema.
-    *
-    * First feature contains metadata for arrow file and dictionary batch, subsequent features
-    * contain record batches, final feature contains EOF indicator
-    *
-    * @param sft simple feature type
-    * @param dictionaries dictionaries
-    * @param encoding encoding
-    * @param batchSize batch size
-    * @param sort sort
-    * @return
-    */
-  @deprecated("Deprecated with no replacement")
-  class BatchReducer(
-      private var sft: SimpleFeatureType,
-      private var dictionaries: Map[String, ArrowDictionary],
-      private var encoding: SimpleFeatureEncoding,
-      private var ipcOpts: IpcOption,
-      private var batchSize: Int,
-      private var sort: Option[(String, Boolean)],
-      private var sorted: Boolean
-  ) extends FeatureReducer {
-
-    def this() = this(null, null, null, null, -1, null, false) // no-arg constructor required for serialization
-
-    override def init(state: Map[String, String]): Unit = {
-      sft = ReducerConfig.sft(state)
-      dictionaries = decodeDictionaries(sft, state(ReducerConfig.DictionariesKey))
-      encoding = ReducerConfig.encoding(state)
-      ipcOpts = ReducerConfig.ipcOption(state)
-      batchSize = ReducerConfig.batch(state)
-      sort = ReducerConfig.sort(state)
-      sorted = ReducerConfig.sorted(state)
-    }
-
-    override def state: Map[String, String] = Map(
-      ReducerConfig.DictionariesKey -> encodeDictionaries(dictionaries),
-      ReducerConfig.sftName(sft),
-      ReducerConfig.sftSpec(sft),
-      ReducerConfig.encoding(encoding),
-      ReducerConfig.ipcOption(ipcOpts),
-      ReducerConfig.batch(batchSize),
-      ReducerConfig.sort(sort),
-      ReducerConfig.sorted(sorted)
-    )
-
-    override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-      val batches = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = BatchWriter.reduce(sft, dictionaries, encoding, ipcOpts, sort, sorted, batchSize, batches)
-      val sf = resultFeature()
-      result.map { bytes => sf.setAttribute(0, bytes); sf }
-    }
-
-    def canEqual(other: Any): Boolean = other.isInstanceOf[BatchReducer]
-
-    override def equals(other: Any): Boolean = other match {
-      case that: BatchReducer if that.canEqual(this) =>
-        sft == that.sft && dictionaries == that.dictionaries && encoding == that.encoding &&
-            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted
-      case _ => false
-    }
-
-    override def hashCode(): Int = {
-      val state = Seq(sft, dictionaries, encoding, batchSize, sort, sorted)
-      state.map(Objects.hashCode).foldLeft(0)((a, b) => 31 * a + b)
-    }
-  }
 
   /**
     * Returns batches of [threading key][dictionary deltas][record batch]. Will sort each batch,
@@ -728,10 +201,11 @@ object ArrowScan extends LazyLogging {
       private var ipcOpts: IpcOption,
       private var batchSize: Int,
       private var sort: Option[(String, Boolean)],
-      private var sorted: Boolean
+      private var sorted: Boolean,
+      private var process: Boolean
     ) extends FeatureReducer {
 
-    def this() = this(null, null, null, null, -1, null, false) // no-arg constructor required for serialization
+    def this() = this(null, null, null, null, -1, null, false, true) // no-arg constructor required for serialization
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)
@@ -741,6 +215,7 @@ object ArrowScan extends LazyLogging {
       batchSize = ReducerConfig.batch(state)
       sort = ReducerConfig.sort(state)
       sorted = ReducerConfig.sorted(state)
+      process = ReducerConfig.process(state)
     }
 
     override def state: Map[String, String] = Map(
@@ -751,12 +226,13 @@ object ArrowScan extends LazyLogging {
       ReducerConfig.ipcOption(ipcOpts),
       ReducerConfig.batch(batchSize),
       ReducerConfig.sort(sort),
-      ReducerConfig.sorted(sorted)
+      ReducerConfig.sorted(sorted),
+      ReducerConfig.process(process)
     )
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val files = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, files)
+      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, process, files)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -766,12 +242,12 @@ object ArrowScan extends LazyLogging {
     override def equals(other: Any): Boolean = other match {
       case that: DeltaReducer if that.canEqual(this) =>
         sft == that.sft && dictionaryFields == that.dictionaryFields && encoding == that.encoding &&
-            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted
+            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted && that.process == process
       case _ => false
     }
 
     override def hashCode(): Int = {
-      val state = Seq(sft, dictionaryFields, encoding, batchSize, sort)
+      val state = Seq(sft, dictionaryFields, encoding, batchSize, sort, process)
       state.map(Objects.hashCode).foldLeft(0)((a, b) => 31 * a + b)
     }
   }
@@ -786,6 +262,7 @@ object ArrowScan extends LazyLogging {
     val BatchKey        = "batch"
     val SortKey         = "sort"
     val SortedKey       = "sorted"
+    val ProcessKey      = "process"
 
     def sftName(sft: SimpleFeatureType): (String, String) = SftKey -> sft.getTypeName
     def sftSpec(sft: SimpleFeatureType): (String, String) =
@@ -821,6 +298,9 @@ object ArrowScan extends LazyLogging {
 
     def sorted(s: Boolean): (String, String) = SortedKey -> s.toString
     def sorted(options: Map[String, String]): Boolean = options.get(SortedKey).exists(_.toBoolean)
+
+    def process(s: Boolean): (String, String) = ProcessKey -> s.toString
+    def process(options: Map[String, String]): Boolean = options.get(ProcessKey).forall(_.toBoolean)
   }
 
   /**

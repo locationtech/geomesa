@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,29 +8,32 @@
 
 package org.locationtech.geomesa.spark
 
-import java.{util => ju}
-import java.util.{Map => JMap}
-
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.apache.spark.sql.{Column, DataFrame, SQLContext, SQLTypes, SparkSession}
-import org.geotools.data.{DataStore, DataStoreFinder}
-import org.geotools.geometry.jts.JTSFactoryFinder
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.interop.WKTUtils
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.spark.isUsingSedona
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.catalyst.plans.logical.Filter
 import org.apache.spark.sql.execution.datasources.LogicalRelation
+import org.apache.spark.sql.{Column, DataFrame, SQLContext, SparkSession}
+import org.geotools.data.{DataStore, DataStoreFinder}
+import org.geotools.geometry.jts.JTSFactoryFinder
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.sql.SQLTypes
+import org.locationtech.geomesa.utils.interop.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.{Map => JMap}
+import java.{util => ju}
 
 @RunWith(classOf[JUnitRunner])
 class SparkSQLDataTest extends Specification with LazyLogging {
+
+  import scala.collection.JavaConverters._
+
   sequential
 
-  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true")
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
   var ds: DataStore = _
   var spark: SparkSession = _
   var sc: SQLContext = _
@@ -50,6 +53,10 @@ class SparkSQLDataTest extends Specification with LazyLogging {
   }
 
   "sql data tests" should {
+
+    "not using sedona" >> {
+      isUsingSedona must beFalse
+    }
 
     "ingest chicago" >> {
       SparkSQLTestUtils.ingestChicago(ds)
@@ -78,6 +85,55 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       dfIndexed.createOrReplaceTempView("chicagoIndexed")
 
       dfIndexed.collect.length mustEqual 3
+    }
+    
+    
+    "create spatially partitioned relation with date query option" >> {
+      dfPartitioned = spark.read
+          .format("geomesa")
+          .options(dsParams)
+          .option("geomesa.feature", "chicago")
+          .option("spatial", "true")
+          .option("query", "dtg AFTER 2016-01-01T10:00:00.000Z")
+          .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("2", "3")
+    }
+
+    "create spatially partitioned relation with attribute query option" >> {
+      dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("spatial", "true")
+        .option("query", "case_number < 3")
+        .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("1", "2")
+    }
+
+    "create spatially partitioned relation with spatial query option" >> {
+      dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("spatial", "true")
+        .option("query", "BBOX(geom, -76.7, 38.2, -76.2, 38.7)")
+        .load()
+      logger.debug(df.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+
+      spark.sql("select * from chicagoPartitionedWithQuery")
+        .collect().map{ r=> r.get(0) } mustEqual Array("1")
     }
 
     "create spatially partitioned relation" >> {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,19 +14,20 @@ import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
-import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONER_CLASS_CONFIG}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
+import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
-import org.locationtech.geomesa.kafka.KafkaConsumerVersions
+import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -35,6 +36,7 @@ import org.locationtech.geomesa.kafka.index._
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
 import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
+import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -49,7 +51,7 @@ import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import java.io.{Closeable, IOException}
+import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
@@ -58,8 +60,8 @@ import scala.util.{Failure, Success, Try}
 class KafkaDataStore(
     val config: KafkaDataStoreConfig,
     val metadata: GeoMesaMetadata[String],
-    serialization: GeoMessageSerializerFactory
-  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
+    private[kafka] val serialization: GeoMessageSerializerFactory
+  ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with LocalLocking {
 
   import KafkaDataStore.TopicKey
   import org.apache.kafka.clients.producer.ProducerConfig.TRANSACTIONAL_ID_CONFIG
@@ -72,14 +74,10 @@ class KafkaDataStore(
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
-  @volatile
-  private var producerInitialized = false
-
   // only instantiate the producer if needed
-  private lazy val producer = {
-    producerInitialized = true
-    KafkaDataStore.producer(config)
-  }
+  private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
+  // noinspection ScalaDeprecation
+  private val partitionedProducer = new LazyProducer(KafkaDataStore.producer(config))
 
   // view type name -> actual type name
   private val layerViewLookup =
@@ -100,7 +98,7 @@ class KafkaDataStore(
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
-        val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+        val serializer = serialization.apply(sft)
         val initialLoad = config.consumers.readBack.isDefined
         val expiry = config.indices.expiry
         new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
@@ -109,12 +107,6 @@ class KafkaDataStore(
   })
 
   private val runner = new KafkaQueryRunner(this, cache)
-
-  // migrate old schemas, if any
-  if (!metadata.read("migration", "check").exists(_.toBoolean)) {
-    new MetadataMigration(this, config.catalog, config.zookeepers).run()
-    metadata.insert("migration", "check", "true")
-  }
 
   /**
     * Start consuming from all topics. Consumers are normally only started for a simple feature type
@@ -149,7 +141,7 @@ class KafkaDataStore(
       KafkaDataStore.consumers(config.brokers, topic, conf)
     }
     val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
-    val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+    val serializer = serialization.apply(sft)
     val consumer = new GeoMessageConsumer(consumers, frequency, serializer, processor)
     consumer.startConsumers(errorHandler)
     consumer
@@ -193,6 +185,11 @@ class KafkaDataStore(
       case topic if topic.contains("/") => throw new IllegalArgumentException(s"Topic cannot contain '/': $topic")
       case topic => logger.debug(s"Using user-defined topic [$topic]")
     }
+    // disable our custom partitioner by default, as it messes with Kafka streams co-partition joining
+    // and it's not required since we switched our keys to be feature ids
+    if (!sft.getUserData.containsKey(KafkaDataStore.PartitioningKey)) {
+      sft.getUserData.put(KafkaDataStore.PartitioningKey, KafkaDataStore.PartitioningDefault)
+    }
     // remove table sharing as it's not relevant
     sft.getUserData.remove(TableSharing)
     sft.getUserData.remove(TableSharingPrefix)
@@ -225,9 +222,13 @@ class KafkaDataStore(
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
-        logger.warn(s"Topic [$topic] already exists - it may contain stale data")
+        logger.warn(
+          s"Topic [$topic] already exists - it may contain invalid data and/or not " +
+              "match the expected topic configuration")
       } else {
-        val newTopic = new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+        val newTopic =
+          new NewTopic(topic, config.topics.partitions, config.topics.replication.toShort)
+              .configs(KafkaDataStore.topicConfig(sft))
         admin.createTopics(Collections.singletonList(newTopic)).all().get
       }
     }
@@ -275,85 +276,69 @@ class KafkaDataStore(
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new KafkaFeatureStore(this, sft, runner, cache(typeName))
+    new KafkaFeatureStore(this, sft, cache(typeName))
   }
 
-  override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {
-    val sft = getSchema(query.getTypeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
-    }
+  override private[geomesa] def getFeatureReader(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      query: Query): GeoMesaFeatureReader = {
     // kick off the kafka consumers for this sft, if not already started
     caches.get(layerViewLookup.getOrElse(query.getTypeName, query.getTypeName))
-    GeoMesaFeatureReader(sft, query, runner, None, config.audit)
+    GeoMesaFeatureReader(sft, query, runner, config.audit)
   }
 
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
+  override private[geomesa] def getFeatureWriter(
+      sft: SimpleFeatureType,
+      transaction: Transaction,
+      filter: Option[Filter]): FlushableFeatureWriter = {
+    if (layerViewLookup.contains(sft.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Schema '${sft.getTypeName}' is a read-only view of '${layerViewLookup(sft.getTypeName)}'")
     }
-    val producer = getTransactionalProducer(transaction)
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter) with RequiredVisibilityWriter
-      } else {
-        new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
-      writer.clear()
+    val producer = getTransactionalProducer(sft, transaction)
+    val vis = sft.isVisibilityRequired
+    val serializer = serialization.apply(sft)
+    val writer = filter match {
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, serializer)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, serializer, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, serializer, f)
     }
-    writer
-  }
-
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
-    val sft = getSchema(typeName)
-    if (sft == null) {
-      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
-    } else if (layerViewLookup.contains(typeName)) {
-      throw new IllegalArgumentException(s"Schema '$typeName' is a read-only view of '${layerViewLookup(typeName)}'")
-    }
-    val producer = getTransactionalProducer(transaction)
-    val writer =
-      if (sft.isVisibilityRequired) {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization) with RequiredVisibilityWriter
-      } else {
-        new AppendKafkaFeatureWriter(sft, producer, config.serialization)
-      }
-    if (config.clearOnStart && cleared.add(typeName)) {
+    if (config.clearOnStart && cleared.add(sft.getTypeName)) {
       writer.clear()
     }
     writer
   }
 
   override def dispose(): Unit = {
-    if (producerInitialized) {
-      CloseWithLogging(producer)
-    }
+    CloseWithLogging(defaultProducer)
+    CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
     caches.invalidateAll()
     super.dispose()
   }
 
-  // zookeeper locking methods
-  override protected def zookeepers: String = config.zookeepers
+  private def getTransactionalProducer(sft: SimpleFeatureType, transaction: Transaction): KafkaFeatureProducer = {
+    val useDefaultPartitioning = KafkaDataStore.usesDefaultPartitioning(sft)
 
-  private def getTransactionalProducer(transaction: Transaction): KafkaFeatureProducer = {
     if (transaction == null || transaction == Transaction.AUTO_COMMIT) {
+      val producer = if (useDefaultPartitioning) { defaultProducer.instance } else { partitionedProducer.instance }
       return AutoCommitProducer(producer)
     }
 
     val state = transaction.getState(KafkaDataStore.TransactionStateKey)
     if (state == null) {
+      val partitioner = if (useDefaultPartitioning) { Map.empty } else {
+        Map(PARTITIONER_CLASS_CONFIG -> classOf[GeoMessagePartitioner].getName)
+      }
       // add kafka transactional id if it's not set, but force acks to "all" as required by kafka
       val props =
         Map(TRANSACTIONAL_ID_CONFIG -> UUID.randomUUID().toString) ++
-            this.config.producers.properties ++
+            partitioner ++
+            config.producers.properties ++
             Map(ACKS_CONFIG -> "all")
-      val config = this.config.copy(producers = this.config.producers.copy(properties = props))
-      val producer = KafkaTransactionState(KafkaDataStore.producer(config))
+      val producer = KafkaTransactionState(KafkaDataStore.producer(config.brokers, props))
       transaction.putState(KafkaDataStore.TransactionStateKey, producer)
       producer
     } else {
@@ -385,21 +370,55 @@ class KafkaDataStore(
 object KafkaDataStore extends LazyLogging {
 
   val TopicKey = "geomesa.kafka.topic"
+  val TopicConfigKey = "kafka.topic.config"
+  val PartitioningKey = "geomesa.kafka.partitioning"
 
   val MetadataPath = "metadata"
 
   val TransactionStateKey = "geomesa.kafka.state"
 
+  val PartitioningDefault = "default"
+
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
-  private [kafka] val CqIndexFlag: (String, CQIndexType) = null
+  private[kafka] val CqIndexFlag: (String, CQIndexType) = null
 
   def topic(sft: SimpleFeatureType): String = sft.getUserData.get(TopicKey).asInstanceOf[String]
 
   def setTopic(sft: SimpleFeatureType, topic: String): Unit = sft.getUserData.put(TopicKey, topic)
 
+  def topicConfig(sft: SimpleFeatureType): java.util.Map[String, String] = {
+    val props = new Properties()
+    val config = sft.getUserData.get(TopicConfigKey).asInstanceOf[String]
+    if (config != null) {
+      props.load(new StringReader(config))
+    }
+    props.asInstanceOf[java.util.Map[String, String]]
+  }
+
+  def usesDefaultPartitioning(sft: SimpleFeatureType): Boolean =
+    sft.getUserData.get(PartitioningKey) == PartitioningDefault
+
+  @deprecated("Uses a custom partitioner which creates issues with Kafka streams. Use `producer(String, Map[String, String]) instead")
   def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
+    val props =
+      if (config.producers.properties.contains(PARTITIONER_CLASS_CONFIG)) {
+        config.producers.properties
+      } else {
+        config.producers.properties + (PARTITIONER_CLASS_CONFIG -> classOf[GeoMessagePartitioner].getName)
+      }
+    producer(config.brokers, props)
+  }
+
+  /**
+   * Create a Kafka producer
+   *
+   * @param bootstrapServers Kafka bootstrap servers config
+   * @param properties Kafka producer properties
+   * @return
+   */
+  def producer(bootstrapServers: String, properties: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
 
     val props = new Properties()
@@ -407,11 +426,10 @@ object KafkaDataStore extends LazyLogging {
     props.put(ACKS_CONFIG, "1") // mix of reliability and performance
     props.put(RETRIES_CONFIG, Int.box(3))
     props.put(LINGER_MS_CONFIG, Int.box(3)) // helps improve batching at the expense of slight delays in write
-    props.put(PARTITIONER_CLASS_CONFIG, classOf[GeoMessagePartitioner].getName)
     props.put(KEY_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[ByteArraySerializer].getName)
-    props.put(BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.producers.properties.foreach { case (k, v) => props.put(k, v) }
+    props.put(BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
+    properties.foreach { case (k, v) => props.put(k, v) }
     new KafkaProducer[Array[Byte], Array[Byte]](props)
   }
 
@@ -432,13 +450,13 @@ object KafkaDataStore extends LazyLogging {
   }
 
   // creates a consumer and sets to the latest offsets
-  private [kafka] def consumers(
+  private[kafka] def consumers(
       brokers: String,
       topic: String,
       config: ConsumerConfig): Seq[Consumer[Array[Byte], Array[Byte]]] = {
     require(config.count > 0, "Number of consumers must be greater than 0")
 
-    val props = Map(GROUP_ID_CONFIG -> UUID.randomUUID().toString) ++ config.properties
+    val props = Map(GROUP_ID_CONFIG -> s"${config.groupPrefix}${UUID.randomUUID()}") ++ config.properties
     lazy val partitions = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean])
 
     logger.debug(s"Creating ${config.count} consumers for topic [$topic] with group-id [${props(GROUP_ID_CONFIG)}]")
@@ -491,7 +509,7 @@ object KafkaDataStore extends LazyLogging {
         if (partitions.add(tp.partition())) {
           KafkaConsumerVersions.pause(consumer, tp)
           try {
-            if (readBack.isFinite()) {
+            if (readBack.isFinite) {
               val offset = Try {
                 val time = System.currentTimeMillis() - readBack.toMillis
                 KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
@@ -520,14 +538,22 @@ object KafkaDataStore extends LazyLogging {
     }
   }
 
+  class KafkaDataStoreWithZk(
+      config: KafkaDataStoreConfig,
+      metadata: GeoMesaMetadata[String],
+      serialization: GeoMessageSerializerFactory,
+      override protected val zookeepers: String
+    ) extends KafkaDataStore(config, metadata, serialization) with ZookeeperLocking
+
   case class KafkaDataStoreConfig(
       catalog: String,
       brokers: String,
-      zookeepers: String,
+      zookeepers: Option[String],
       consumers: ConsumerConfig,
       producers: ProducerConfig,
       clearOnStart: Boolean,
       topics: TopicConfig,
+      @deprecated("unused")
       serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
@@ -537,7 +563,12 @@ object KafkaDataStore extends LazyLogging {
       metrics: Option[GeoMesaMetrics],
       namespace: Option[String]) extends NamespaceConfig
 
-  case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])
+  case class ConsumerConfig(
+      count: Int,
+      groupPrefix: String,
+      properties: Map[String, String],
+      readBack: Option[Duration]
+    )
 
   case class ProducerConfig(properties: Map[String, String])
 
@@ -548,6 +579,7 @@ object KafkaDataStore extends LazyLogging {
       resolution: IndexResolution,
       ssiTiers: Seq[(Double, Double)],
       cqAttributes: Seq[(String, CQIndexType)],
+      @deprecated("unused")
       lazyDeserialization: Boolean,
       executor: Option[(ScheduledExecutorService, Ticker)]
     )

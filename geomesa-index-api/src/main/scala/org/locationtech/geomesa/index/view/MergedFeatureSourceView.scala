@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,36 +8,39 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.awt.RenderingHints.Key
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortBy
+
+import java.awt.RenderingHints.Key
+import java.util.Collections
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
   * Feature source for merged data store view
   *
   * @param ds data store
   * @param sources delegate feature sources
+ *  @param parallel scan stores in parallel (vs sequentially)
   * @param sft simple feature type
   */
 class MergedFeatureSourceView(
     ds: MergedDataStoreView,
     sources: Seq[(SimpleFeatureSource, Option[Filter])],
+    parallel: Boolean,
     sft: SimpleFeatureType
   ) extends SimpleFeatureSource with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])
 
@@ -46,11 +49,22 @@ class MergedFeatureSourceView(
   override def getSchema: SimpleFeatureType = sft
 
   override def getCount(query: Query): Int = {
-    // if one of our sources can't get a count (i.e. is negative), give up and return -1
-    val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
-      lazy val count = source.getCount(mergeFilter(query, filter))
-      if (sum < 0 || count < 0) { -1 } else { sum + count }
-    }
+    val total =
+      if (parallel) {
+        def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Int = {
+          val (source, filter) = sourceAndFilter
+          source.getCount(mergeFilter(sft, query, filter))
+        }
+        val results = new CopyOnWriteArrayList[Int]()
+        sources.toList.map(s => CachedThreadPool.submit(() => results.add(getSingle(s)))).foreach(_.get)
+        results.asScala.foldLeft(0)((sum, count) => if (sum < 0 || count < 0) { -1 } else { sum + count })
+      } else {
+        // if one of our sources can't get a count (i.e. is negative), give up and return -1
+        sources.foldLeft(0) { case (sum, (source, filter)) =>
+          lazy val count = source.getCount(mergeFilter(sft, query, filter))
+          if (sum < 0 || count < 0) { -1 } else { sum + count }
+        }
+      }
     if (query.isMaxFeaturesUnlimited) {
       total
     } else {
@@ -59,17 +73,40 @@ class MergedFeatureSourceView(
   }
 
   override def getBounds: ReferencedEnvelope = {
-    val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    sources.foreach {
-      case (source, None)    => bounds.expandToInclude(source.getBounds)
-      case (source, Some(f)) => bounds.expandToInclude(source.getBounds(new Query(sft.getTypeName, f)))
+    def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Option[ReferencedEnvelope] = {
+      sourceAndFilter match {
+        case (source, None)    => Option(source.getBounds)
+        case (source, Some(f)) => Option(source.getBounds(new Query(sft.getTypeName, f)))
+      }
     }
+
+    val sourceBounds = if (parallel) {
+      val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
+      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      results.asScala
+    } else {
+      sources.flatMap(getSingle)
+    }
+
+    val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+    sourceBounds.foreach(bounds.expandToInclude)
     bounds
   }
 
   override def getBounds(query: Query): ReferencedEnvelope = {
+    def getSingle(sourceAndFilter: (SimpleFeatureSource, Option[Filter])): Option[ReferencedEnvelope] =
+      Option(sourceAndFilter._1.getBounds(mergeFilter(sft, query, sourceAndFilter._2)))
+
+    val sourceBounds = if (parallel) {
+      val results = new CopyOnWriteArrayList[ReferencedEnvelope]()
+      sources.toList.map(s => CachedThreadPool.submit(() => getSingle(s).foreach(results.add))).foreach(_.get)
+      results.asScala
+    } else {
+      sources.flatMap(getSingle)
+    }
+
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
-    sources.foreach { case (source, filter) => bounds.expandToInclude(source.getBounds(mergeFilter(query, filter))) }
+    sourceBounds.foreach(bounds.expandToInclude)
     bounds
   }
 
@@ -101,29 +138,11 @@ class MergedFeatureSourceView(
   class MergedFeatureCollection(query: Query)
       extends GeoMesaFeatureVisitingCollection(MergedFeatureSourceView.this, ds.stats, query) {
 
-    private val open = new AtomicBoolean(false)
+    private lazy val featureReader = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query)
 
-    override def getSchema: SimpleFeatureType = {
-      if (!open.get) {
-        // once opened the query will already be configured by the query planner,
-        // otherwise we have to compute it here
-        ds.runner.configureQuery(sft, query)
-      }
-      // copy the query so that we don't set any hints for transforms, etc
-      val copy = new Query(query)
-      copy.setHints(new Hints(query.getHints))
-      QueryPlanner.setQueryTransforms(sft, copy)
-      ds.runner.getReturnSft(sft, copy.getHints)
-    }
+    override def getSchema: SimpleFeatureType = featureReader.schema
 
-    override protected def openIterator(): java.util.Iterator[SimpleFeature] = {
-      val iter = super.openIterator()
-      open.set(true)
-      iter
-    }
-
-    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
-      ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = featureReader.reader()
 
     override def getBounds: ReferencedEnvelope = MergedFeatureSourceView.this.getBounds(query)
 
@@ -146,8 +165,8 @@ object MergedFeatureSourceView {
     */
   class MergedQueryCapabilities(capabilities: Seq[QueryCapabilities]) extends QueryCapabilities {
     override def isOffsetSupported: Boolean = capabilities.forall(_.isOffsetSupported)
-    override def supportsSorting(sortAttributes: Array[SortBy]): Boolean =
-      capabilities.forall(_.supportsSorting(sortAttributes))
+    override def supportsSorting(sortAttributes: SortBy*): Boolean =
+      capabilities.forall(_.supportsSorting(sortAttributes: _*))
     override def isReliableFIDSupported: Boolean = capabilities.forall(_.isReliableFIDSupported)
     override def isUseProvidedFIDSupported: Boolean = capabilities.forall(_.isUseProvidedFIDSupported)
     override def isJoiningSupported: Boolean = capabilities.forall(_.isJoiningSupported)

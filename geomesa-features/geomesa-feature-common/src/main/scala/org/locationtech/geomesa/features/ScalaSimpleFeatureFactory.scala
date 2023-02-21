@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,7 +15,7 @@ import org.geotools.util.factory.Hints
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class ScalaSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 
@@ -35,11 +35,9 @@ object ScalaSimpleFeatureFactory {
   private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  def init(): Unit = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
-
   def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature = {
     val builder = featureBuilder(sft)
-    builder.addAll(attrs)
+    builder.addAll(attrs: _*)
     builder.buildFeature(id)
   }
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,9 @@
 
 package org.locationtech.geomesa.kafka.index
 
-import java.io.Closeable
-import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
-
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
@@ -25,6 +22,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
+import java.io.Closeable
+import java.util.Date
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.control.NonFatal
 
 /**
@@ -54,7 +54,7 @@ object FeatureStateFactory extends LazyLogging {
       // remove tasks when canceled, otherwise they will only be removed from the task queue
       // when they would be executed. we expect frequent cancellations due to feature updates
       es.setRemoveOnCancelPolicy(true)
-      (es, Ticker.systemTicker())
+      (es, CurrentTimeTicker)
     }
 
     expiry match {
@@ -66,7 +66,7 @@ object FeatureStateFactory extends LazyLogging {
 
       case EventTimeConfig(ex, time, ordering) =>
         val expression = FastFilterFactory.toExpression(sft, time)
-        if (!ex.isFinite() && ordering) {
+        if (!ex.isFinite && ordering) {
           new EventTimeFactory(index, geom, expression)
         } else if (ordering) {
           new EventTimeOrderedExpiryFactory(index, geom, expression, expiration, es, ticker, ex.toMillis)
@@ -199,6 +199,7 @@ object FeatureStateFactory extends LazyLogging {
   class BasicFactory(index: SpatialIndex[SimpleFeature], geom: Int) extends FeatureStateFactory {
     override def createState(feature: SimpleFeature): FeatureState = new BasicState(feature, index, geom, 0L)
     override def close(): Unit = {}
+    override def toString: String = s"BasicFactory[geom:$geom]"
   }
 
   /**
@@ -220,6 +221,8 @@ object FeatureStateFactory extends LazyLogging {
       new ExpiryState(feature, index, geom, 0L, expiration, executor, expiry)
 
     override def close(): Unit = executor.shutdownNow()
+
+    override def toString: String = s"ExpiryFactory[geom:$geom,expiry:$expiry]"
   }
 
   /**
@@ -236,6 +239,8 @@ object FeatureStateFactory extends LazyLogging {
       new BasicState(feature, index, geom, FeatureStateFactory.time(eventTime, feature))
 
     override def close(): Unit = {}
+
+    override def toString: String = s"EventTimeFactory[geom:$geom,eventTime:${ECQL.toCQL(eventTime)}]"
   }
 
   /**
@@ -267,6 +272,9 @@ object FeatureStateFactory extends LazyLogging {
     }
 
     override def close(): Unit = executor.shutdownNow()
+
+    override def toString: String =
+      s"EventTimeExpiryFactory[geom:$geom,eventTime:${ECQL.toCQL(eventTime)},expiry:$expiry]"
   }
 
   /**
@@ -299,6 +307,9 @@ object FeatureStateFactory extends LazyLogging {
     }
 
     override def close(): Unit = executor.shutdownNow()
+
+    override def toString: String =
+      s"EventTimeOrderedExpiryFactory[geom:$geom,eventTime:${ECQL.toCQL(eventTime)},expiry:$expiry]"
   }
 
   class FilteredExpiryFactory(delegates: Seq[(Filter, FeatureStateFactory)]) extends FeatureStateFactory {
@@ -314,5 +325,12 @@ object FeatureStateFactory extends LazyLogging {
     }
 
     override def close(): Unit = CloseWithLogging(delegates.map(_._2))
+
+    override def toString: String =
+      s"FilteredExpiryFactory[delegates:${delegates.map { case (f, d) => s"${ECQL.toCQL(f)}->$d"}.mkString(",")}]"
+  }
+
+  object CurrentTimeTicker extends Ticker {
+    override def read(): Long = System.currentTimeMillis() * 1000000L
   }
 }

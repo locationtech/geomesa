@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,18 +16,18 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.Metadata
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalEncodingParam, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
-import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
-import org.locationtech.geomesa.tools.{Command, TempPathParam}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
+import org.locationtech.geomesa.tools.{Command, TempPathParam}
 import org.opengis.feature.simple.SimpleFeatureType
 
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {

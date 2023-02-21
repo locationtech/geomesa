@@ -10,13 +10,13 @@ Accumulo RDD Provider
 
 The ``AccumuloSpatialRDDProvider`` is a spatial RDD provider for Accumulo data stores. The core code is in
 the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are available in the
-``geomesa-accumulo-spark-runtime-accumulo1`` and ``geomesa-accumulo-spark-runtime-accumulo2`` modules.
+``geomesa-accumulo-spark-runtime-accumulo20`` and ``geomesa-accumulo-spark-runtime-accumulo21`` modules.
 
 .. note::
 
     The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
-    There are two Accumulo Spark runtime JARs, one for Accumulo 1.x (``geomesa-accumulo-spark-runtime-accumulo1``)
-    and one for Accumulo 2.x (``geomesa-accumulo-spark-runtime-accumulo2``). Make sure that you use the JAR
+    There are two Accumulo Spark runtime JARs, one for Accumulo 2.0.x (``geomesa-accumulo-spark-runtime-accumulo20``)
+    and one for Accumulo 2.1.x (``geomesa-accumulo-spark-runtime-accumulo21``). Make sure that you use the JAR
     corresponding to your Accumulo version.
 
 This provider can read from and write to a GeoMesa ``AccumuloDataStore``. The configuration parameters
@@ -33,11 +33,11 @@ from the ``geomesa`` Accumulo table:
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(
-      "accumulo.instance.id" -> "mycloud",
-      "accumulo.user"        -> "user",
-      "accumulo.password"    -> "password",
-      "accumulo.zookeepers"  -> "zoo1,zoo2,zoo3",
-      "accumulo.catalog"     -> "geomesa")
+      "accumulo.instance.name" -> "mycloud",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "password",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.catalog"       -> "geomesa")
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
@@ -193,7 +193,7 @@ GeoMesa Spark, do the following:
     val query = new Query("locations")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
-.. _Postgis DataStore: http://docs.geotools.org/stable/userguide/library/jdbc/postgis.html
+.. _Postgis DataStore: https://docs.geotools.org/stable/userguide/library/jdbc/postgis.html
 
 The name of the feature type to access in the data store is passed as the type name of the
 query passed to the ``rdd()`` method. In the example above, this is "locations".
@@ -202,9 +202,3 @@ query passed to the ``rdd()`` method. In the example above, this is "locations".
 
     Do not use the GeoTools RDD provider with a GeoMesa data store that has a provider implementation.
     The providers described above provide additional optimizations to improve read and write performance.
-
-If your data store supports it, use the ``save()`` method to save features:
-
-.. code-block:: scala
-
-    GeoMesaSpark(params).save(rdd, params, "locations")

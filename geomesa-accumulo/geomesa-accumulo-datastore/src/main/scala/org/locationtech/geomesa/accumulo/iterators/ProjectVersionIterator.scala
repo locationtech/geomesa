@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.nio.charset.StandardCharsets
-import java.util
-
 import org.apache.accumulo.core.client.{IteratorSetting, Scanner}
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
+
+import java.nio.charset.StandardCharsets
+import java.util
 
 class ProjectVersionIterator extends SortedKeyValueIterator[Key, Value] {
 
@@ -47,8 +47,8 @@ object ProjectVersionIterator {
   def configure(): IteratorSetting = new IteratorSetting(30, classOf[ProjectVersionIterator])
 
   def scanProjectVersion(scanner: Scanner): Set[String] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
     scanner.addScanIterator(configure())
-    scanner.iterator.map(e => new String(e.getValue.get, StandardCharsets.UTF_8)).toSet
+    scanner.iterator.asScala.map(e => new String(e.getValue.get, StandardCharsets.UTF_8)).toSet
   }
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.conf.splitter
-
-import java.nio.charset.StandardCharsets
-import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.curve.BinnedTime
@@ -26,6 +23,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.{DateParsing, KVPairParser}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.nio.charset.StandardCharsets
+import java.util.Date
 import scala.util.Try
 
 /**

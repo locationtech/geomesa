@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.xml
-
-import java.io.InputStream
-import java.nio.charset.Charset
 
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode}
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.convert2.{AbstractCompositeConverter, ParsingCon
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
 import org.w3c.dom.Element
+
+import java.io.InputStream
+import java.nio.charset.Charset
 
 class XmlCompositeConverter(
     sft: SimpleFeatureType,

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.utils
-
-import java.util.Date
-import java.util.regex.Pattern
 
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.Query
@@ -27,7 +24,9 @@ import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
 
-import scala.collection.JavaConversions._
+import java.util.Date
+import java.util.regex.Pattern
+import scala.collection.JavaConverters._
 import scala.language._
 
 class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor {
@@ -42,7 +41,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   override def visit(filter: And, data: scala.Any): AnyRef = {
     val children = filter.getChildren
 
-    val query = children.map { f =>
+    val query = children.asScala.map { f =>
       f.accept(this, null) match {
         case q: Query[SimpleFeature] => q
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
@@ -51,7 +50,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     if (query.exists(_.isInstanceOf[All[_]])) {
       new cqquery.simple.All(classOf[SimpleFeature])
     } else {
-      new cqquery.logical.And[SimpleFeature](query)
+      new cqquery.logical.And[SimpleFeature](query.asJava)
     }
   }
 
@@ -61,7 +60,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   override def visit(filter: Or, data: scala.Any): AnyRef = {
     val children = filter.getChildren
 
-    val query = children.map { f =>
+    val query = children.asScala.map { f =>
       f.accept(this, null) match {
         case q: Query[SimpleFeature] => q
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
@@ -70,7 +69,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     if (query.exists(_.isInstanceOf[All[_]])) {
       new cqquery.simple.All(classOf[SimpleFeature])
     } else {
-      new cqquery.logical.Or[SimpleFeature](query)
+      new cqquery.logical.Or[SimpleFeature](query.asJava)
     }
   }
 
@@ -101,8 +100,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     */
   override def visit(filter: Id, extractData: scala.AnyRef): AnyRef = {
     val attr = SFTAttributes.fidAttribute
-    val values = filter.getIDs.map(_.toString)
-    new cqquery.simple.In[SimpleFeature, String](attr, true, values)
+    val values = filter.getIDs.asScala.map(_.toString)
+    new cqquery.simple.In[SimpleFeature, String](attr, true, values.asJava)
   }
 
   /**

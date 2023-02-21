@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.JoinPlan
 import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -29,7 +30,7 @@ class AccumuloJobUtilsTest extends Specification with TestWithFeatureType {
     "name:String:index=join:cardinality=high,age:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326"
 
   def getQuery(ecql: String, attributes: Array[String] = null): Query = {
-    val q = new Query(sftName, ECQL.toFilter(ecql), attributes)
+    val q = new Query(sftName, ECQL.toFilter(ecql), attributes: _*)
     // use heuristic cost evaluation to ensure consistent expectations
     q.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
     q

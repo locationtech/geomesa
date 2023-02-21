@@ -1,3 +1,5 @@
+.. _kafka_quickstart:
+
 GeoMesa Kafka Quick Start
 =========================
 
@@ -30,13 +32,13 @@ For this demo, only a single taxi is being tracked.
 Background
 ----------
 
-`Apache Kafka <http://kafka.apache.org/>`__ is "publish-subscribe
+`Apache Kafka <https://kafka.apache.org/>`__ is "publish-subscribe
 messaging rethought as a distributed commit log."
 
 In the context of GeoMesa, Kafka is a useful tool for working with
 streams of geospatial data. Interaction with Kafka in GeoMesa occurs
 through the KafkaDataStore which implements the GeoTools
-`DataStore <http://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
+`DataStore <https://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
 interface.
 
 Prerequisites
@@ -44,13 +46,13 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  a Kafka instance version |kafka_version|
+-  a Kafka |kafka_required_version| cluster
 
 Ensure your Kafka and Zookeeper instances are running. You can use
-Kafka's `quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
+Kafka's `quickstart <https://kafka.apache.org/documentation.html#quickstart>`__
 to get Kafka/Zookeeper instances up and running quickly.
 
 Configure GeoServer (optional)
@@ -174,7 +176,7 @@ Connection parameters:
 
 -  these are the same parameter values that you supplied on the
    command line when you ran the tutorial; they describe how to connect
-   to the Kafka instance where your data reside
+   to the Kafka instance where your data resides
 
 Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.
 
@@ -225,7 +227,7 @@ the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomes
 and the Kafka-specific ``org.geomesa.example.kafka.KafkaQuickStart`` in the ``geomesa-quickstart-kafka`` module.
 Some relevant methods are:
 
--  ``createDataStore`` get a datastore instance from the input configuration
+-  ``createDataStore`` overridden in the ``KafkaQuickStart``  to use the input configuration to get a pair of datastore instances, one for writing and one for reading data.
 -  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
 -  ``writeFeatures`` overridden in the ``KafkaQuickStart`` to simultaneously write and read features from Kafka
 -  ``queryFeatures`` not used in this tutorial
@@ -242,9 +244,9 @@ Listening for Feature Events (optional)
 ---------------------------------------
 
 The GeoTools API also includes a mechanism to fire off a
-`FeatureEvent <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
+`FeatureEvent <https://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
 each time there is an event in a ``DataStore`` (typically when the data is changed). A client may implement a
-`FeatureListener <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
+`FeatureListener <https://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
 which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 

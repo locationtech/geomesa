@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,12 +8,9 @@
 
 package org.locationtech.geomesa.features
 
-import java.util.UUID
-
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.avro.{AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -24,7 +21,7 @@ import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
+import java.util.UUID
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureSerializersTest extends Specification {
@@ -34,14 +31,8 @@ class SimpleFeatureSerializersTest extends Specification {
   val sftName = "SimpleFeatureSerializersTest"
   val sft = SimpleFeatureTypes.createType(sftName, "name:String,*geom:Point,dtg:Date")
 
-  val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
-
   def getFeatures: Seq[SimpleFeature] = (0 until 6).map { i =>
-    builder.reset()
-    builder.set("geom", WKTUtils.read("POINT(-110 30)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
-    builder.set("name",i.toString)
-    builder.buildFeature(i.toString)
+    ScalaSimpleFeature.create(sft, i.toString, i.toString, "POINT(-110 30)", "2012-01-02T05:06:07.000Z")
   }
 
   def getFeaturesWithVisibility: Seq[SimpleFeature] = {
@@ -64,78 +55,23 @@ class SimpleFeatureSerializersTest extends Specification {
       val opts = SerializationOptions.withUserData
 
       // AVRO without options
-      val avro1 = SimpleFeatureSerializers(sft, SerializationType.AVRO)
+      val avro1 = new AvroFeatureSerializer(sft)
       avro1 must beAnInstanceOf[AvroFeatureSerializer]
       avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
-      val avro2 = SimpleFeatureSerializers(sft, SerializationType.AVRO, opts)
+      val avro2 = new AvroFeatureSerializer(sft, opts)
       avro2 must beAnInstanceOf[AvroFeatureSerializer]
       avro2.options mustEqual opts
 
       // KRYO without options
-      val kryo1 = SimpleFeatureSerializers(sft, SerializationType.KRYO)
+      val kryo1 = KryoFeatureSerializer(sft)
       kryo1 must beAnInstanceOf[KryoFeatureSerializer]
       kryo1.options mustEqual SerializationOptions.none
 
       // KRYO with options
-      val kryo2 = SimpleFeatureSerializers(sft, SerializationType.KRYO, opts)
+      val kryo2 = KryoFeatureSerializer(sft, opts)
       kryo2 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo2.options mustEqual opts
-    }
-  }
-
-  "SimpleFeatureDecoder" should {
-
-    "have a properly working apply() method" >> {
-      val opts = SerializationOptions.withUserData
-
-      // AVRO without options
-      val avro1 = SimpleFeatureDeserializers(sft, SerializationType.AVRO)
-      avro1 must beAnInstanceOf[AvroFeatureSerializer]
-      avro1.options mustEqual SerializationOptions.none
-
-      // AVRO with options
-      val avro2 = SimpleFeatureDeserializers(sft, SerializationType.AVRO, opts)
-      avro2 must beAnInstanceOf[AvroFeatureSerializer]
-      avro2.options mustEqual opts
-
-      // KRYO without options
-      val kryo1 = SimpleFeatureDeserializers(sft, SerializationType.KRYO)
-      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo1.options mustEqual SerializationOptions.none
-
-      // KRYO with options
-      val kryo2 = SimpleFeatureDeserializers(sft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
-      kryo2.options mustEqual opts
-    }
-  }
-
-  "ProjectingSimpleFeatureDecoder" should {
-
-    "have a properly working apply() method" >> {
-      val projectedSft = SimpleFeatureTypes.createType(sftName, "*geom:Point")
-      val opts = SerializationOptions.withUserData
-
-      // AVRO without options
-      val avro1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO)
-      avro1 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
-      avro1.options mustEqual SerializationOptions.none
-
-      // AVRO with options
-      val avro2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.AVRO, opts)
-      avro2 must beAnInstanceOf[ProjectingAvroFeatureDeserializer]
-      avro2.options mustEqual opts
-
-      // KRYO without options
-      val kryo1 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO)
-      kryo1 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
-      kryo1.options mustEqual SerializationOptions.none
-
-      // KRYO with options
-      val kryo2 = ProjectingSimpleFeatureDeserializers(sft, projectedSft, SerializationType.KRYO, opts)
-      kryo2 must beAnInstanceOf[ProjectingKryoFeatureDeserializer]
       kryo2.options mustEqual opts
     }
   }
@@ -227,45 +163,6 @@ class SimpleFeatureSerializersTest extends Specification {
     }
   }
 
-  "ProjectingAvroFeatureDeserializer" should {
-
-    "properly project features" >> {
-      val encoder = new AvroFeatureSerializer(sft)
-
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val projectingDecoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft)
-
-      val features = getFeatures
-      val encoded = features.map(encoder.serialize)
-      val decoded = encoded.map(projectingDecoder.deserialize)
-
-      decoded.map(_.getID) mustEqual features.map(_.getID)
-      decoded.map(_.getDefaultGeometry) mustEqual features.map(_.getDefaultGeometry)
-
-      forall(decoded) { sf =>
-        sf.getAttributeCount mustEqual 1
-        sf.getAttribute(0) must beAnInstanceOf[Point]
-        sf.getFeatureType mustEqual projectedSft
-      }
-    }
-
-    "be able to decode points with user data" >> {
-      val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
-
-      val projectedSft = SimpleFeatureTypes.createType("projectedTypeName", "*geom:Point")
-      val decoder = new ProjectingAvroFeatureDeserializer(sft, projectedSft, SerializationOptions.withUserData)
-
-      val features = getFeaturesWithVisibility
-      val encoded = features.map(encoder.serialize)
-
-      val decoded = encoded.map(decoder.deserialize)
-
-      forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData mustEqual in.getUserData
-      }
-    }
-  }
-
   "KryoFeatureEncoder" should {
 
     "be able to encode points" >> {
@@ -334,7 +231,7 @@ class SimpleFeatureSerializersTest extends Specification {
       forall(decoded.zip(features)) { case (d, sf) =>
         d.getID mustEqual sf.getID
         d.getAttributes mustEqual sf.getAttributes
-        d.getUserData.toMap mustEqual sf.getUserData.toMap
+        d.getUserData mustEqual sf.getUserData
       }
     }
 
@@ -356,7 +253,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoder = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
       val decoded = decoder.deserialize(encoded)
-      decoded.getUserData must beEmpty
+      decoded.getUserData.size mustEqual 0
     }
   }
 
@@ -394,7 +291,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val decoded = encoded.map(decoder.deserialize)
 
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData.toMap mustEqual in.getUserData.toMap
+        out.getUserData mustEqual in.getUserData
       }
     }
   }
@@ -414,7 +311,10 @@ class SimpleFeatureSerializersTest extends Specification {
       }
 
       def doTest(typ: SerializationType.SerializationType): MatchResult[Any] = {
-        val serializer = SimpleFeatureSerializers(sft, typ, SerializationOptions.withUserData)
+        val serializer = typ match {
+          case SerializationType.KRYO => KryoFeatureSerializer(sft, SerializationOptions.withUserData)
+          case SerializationType.AVRO => new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
+        }
         foreach(features) { feature =>
           val reserialized = serializer.deserialize(serializer.serialize(feature))
           // note: can't compare whole map at once as byte arrays aren't considered equal in that comparison

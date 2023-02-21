@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,19 +8,20 @@
 
 package org.locationtech.geomesa.convert.avro.registry
 
-import java.io.ByteArrayInputStream
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.mortbay.jetty.{Handler, Request, Server}
+import org.mortbay.jetty.bio.SocketConnector
 import org.mortbay.jetty.handler.{AbstractHandler, ContextHandler}
+import org.mortbay.jetty.{Handler, Request, Server}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 @RunWith(classOf[JUnitRunner])
 class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegistryUtils with LazyLogging {
@@ -57,7 +58,11 @@ class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegis
       }
     }
 
-    val jetty = new Server(8089)
+    val jetty = new Server()
+    val connector = new SocketConnector()
+    connector.setPort(0)
+    jetty.addConnector(connector)
+
     val context1 = new ContextHandler()
     context1.setContextPath("/schemas/ids/1")
     jetty.setHandler(context1)
@@ -71,26 +76,27 @@ class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegis
 
     "properly convert a GenericRecord to a SimpleFeature with Schema Registry" >> {
 
-      val conf = ConfigFactory.parseString(
-        """
-          | {
-          |   type        = "avro-schema-registry"
-          |   schema-registry = "http://localhost:8089"
-          |   sft         = "testsft"
-          |   id-field    = "uuid()"
-          |   fields = [
-          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
-          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
-          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
-          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
-          |     { name = "geom", transform = "point($lon, $lat)" }
-          |     { name = "extra", transform = "avroPath($tobj, '/kvmap[$k=extra]/extra')" }
-          |   ]
-          | }
-        """.stripMargin)
-
       try {
         jetty.start()
+
+        val conf = ConfigFactory.parseString(
+          s"""
+            | {
+            |   type        = "avro-schema-registry"
+            |   schema-registry = "http://localhost:${connector.getLocalPort()}"
+          """.stripMargin + """
+            |   sft         = "testsft"
+            |   id-field    = "uuid()"
+            |   fields = [
+            |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+            |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+            |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+            |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+            |     { name = "geom", transform = "point($lon, $lat)" }
+            |     { name = "extra", transform = "avroPath($tobj, '/kvmap[$k=extra]/extra')" }
+            |   ]
+            | }
+        """.stripMargin)
 
         WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
           val ec = converter.createEvaluationContext()

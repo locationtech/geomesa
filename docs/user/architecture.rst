@@ -1,7 +1,9 @@
 Architecture Overview
 =====================
 
-GeoMesa supports several scalable, cloud-based data storage technologies, including Apache Accumulo, Apache HBase, and Google Cloud Bigtable, as well as the Apache Kafka message broker for streaming data. Apache Storm lets you define information sources and manipulations to allow batch distributed processing of streaming data with GeoMesa, and a GeoMesa environment can also take advantage of Apache Spark to do large-scale analytics of stored and streaming data.
+GeoMesa supports several scalable, cloud-based data storage technologies, including Apache Accumulo, Apache HBase,
+and Apache Kafka for streaming data. A GeoMesa environment can also take advantage of Apache Spark to do large-scale
+analytics of stored and streaming data.
 
 .. image:: _static/img/GMHadoopInfrastructure.png
    :align: center
@@ -24,13 +26,13 @@ If an application already uses GeoServer, integration with GeoMesa is simply a m
 Integration with GeoMesa
 ------------------------
 
-GeoMesa implements `GeoTools <http://geotools.org/>`_ interfaces to provide programmatic access, and HTTP access to
+GeoMesa implements `GeoTools <https://geotools.org/>`_ interfaces to provide programmatic access, and HTTP access to
 the following Open Geospatial Consortium standards:
 
-* `Web Feature Service (WFS) <http://www.opengeospatial.org/standards/wfs>`_
-* `Web Mapping Service (WMS) <http://www.opengeospatial.org/standards/wms>`_
-* `Web Processing Service (WPS) <http://www.opengeospatial.org/standards/wps>`_
-* `Web Coverage Service (WCS) <http://www.opengeospatial.org/standards/wcs>`_
+* `Web Feature Service (WFS) <https://www.opengeospatial.org/standards/wfs>`_
+* `Web Mapping Service (WMS) <https://www.opengeospatial.org/standards/wms>`_
+* `Web Processing Service (WPS) <https://www.opengeospatial.org/standards/wps>`_
+* `Web Coverage Service (WCS) <https://www.opengeospatial.org/standards/wcs>`_
 
 Multiple frameworks may be used for streaming and batch ingestion of data. These include the GeoMesa command line tools, map-reduce jobs with Apache Hadoop, and real-time topologies running on Apache Storm. The following diagram shows one possible ingest architecture:
 
@@ -47,11 +49,16 @@ The following shows one possible query architecture, in which the GeoTools and G
 Key-value stores and Z-curves
 -----------------------------
 
-The data stores that GeoMesa uses for long-term storage are key-value databases, a type of NoSQL database in which every record is stored and retrieved using a unique identifier for that record known as a key. Accumulo, HBase, and Google Cloud Bigtable sort these keys and can store them across any number of nodes (servers). 
+The data stores that GeoMesa uses for long-term storage are key-value databases, a type of NoSQL database in which every record
+is stored and retrieved using a unique identifier for that record known as a key. Accumulo and HBase sort these keys
+and can store them across any number of nodes (servers).
 
 When using a key-value database, good design of the keys themselves can lead to more efficient applications. Unlike relational databases, where the keys are frequently sequential integers, key value stores usually use the key to represent a feature by which the data are frequently queried. For example, imagine a database of customer orders being indexed by the order number. Then, when a client queries by order number, the database goes directly to that key and returns that order's record.
 
-This is a simplification of how Accumulo, HBase, and Bigtable key structures actually work, but the foundational principle of GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that represents the time/space location of the record. GeoMesa uses this system to store locations as points along a special line that visits all the sectors of a map, like the red line shown here:
+This is a simplification of how Accumulo and HBase key structures actually work, but the foundational principle of
+GeoMesa can be explained in terms of keys and values. To store spatio-temporal data, we need to create a key that
+represents the time/space location of the record. GeoMesa uses this system to store locations as points along a
+special line that visits all the sectors of a map, like the red line shown here:
 
 .. image:: _static/img/Zcurve-LoRes.png
    :scale: 50%
@@ -71,12 +78,17 @@ Each point in this curve can be assigned a sequential value, letting GeoMesa rep
 GeoMesa Indexing Key
 --------------------
 
-The basic principle of GeoMesa’s index is to represent the three dimensions of longitude, latitude, and time with a three-dimensional space filling curve, using the values of the points along this curve as the key. This lets it store a record in a key-value store with a key that represents the three data dimensions that we most often use for queries. 
+The basic principle of GeoMesa’s index is to represent the three dimensions of longitude, latitude, and time with a
+three-dimensional space filling curve, using the values of the points along this curve as the key. This lets it
+store a record in a key-value store with a key that represents the three data dimensions that we most often use for queries.
 
-The actual key structure is more complex than a simple key-value pair. Below is a more detailed representation of GeoMesa's index in Accumulo: 
+The actual key structure is more complex than a simple key-value pair. Below is a more detailed representation of
+GeoMesa's index key:
 
-.. image:: _static/img/accumulo-key.png
+.. image:: _static/img/row-key.png
    :align: center
 
-Note the  Z3 encoding in the Key section and the `Simple Feature <https://en.wikipedia.org/wiki/Simple_Features>`_ (a spatial record) in the Value section. The structure of this key can be adjusted depending on the data, but this is the default. 
+Note the  Z3 encoding in the Key section and the `Simple Feature <https://en.wikipedia.org/wiki/Simple_Features>`_
+(a spatial record) in the Value section. The structure of this key can be adjusted depending on the data,
+but this is the default.
 

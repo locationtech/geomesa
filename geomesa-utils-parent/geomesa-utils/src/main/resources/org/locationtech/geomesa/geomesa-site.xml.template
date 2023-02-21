@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!--
+  Template file for configuring system properties. Do not modify this file directly.
+  Instead, rename it to geomesa-site.xml and set values there.
+
+  To make a property take precedence over any values set as system properties, set the
+  <final> tag to true. Additionally, any empty values are ignored unless the <final>
+  tag is set to true.
+-->
+
+<configuration>
+
+  <!--
+  <property>
+    <name>geomesa.query.timeout</name>
+    <value>2 minutes</value>
+    <final>false</final>
+  </property>
+  -->
+
+</configuration>

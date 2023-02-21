@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,14 @@
 
 package org.locationtech.geomesa.lambda
 
-import java.io.ByteArrayInputStream
-import java.util.Date
-
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.util.factory.Hints
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -29,17 +25,18 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
+import org.specs2.runner.JUnitRunner
 
-class LambdaDataStoreTest extends LambdaTest with LazyLogging {
+import java.io.ByteArrayInputStream
+import java.util.Date
+
+@RunWith(classOf[JUnitRunner])
+class LambdaDataStoreTest extends LambdaContainerTest {
 
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential
-
-  step {
-    logger.info("LambdaDataStoreTest starting")
-  }
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
@@ -50,7 +47,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
   )
 
   def testTransforms(ds: LambdaDataStore, transform: SimpleFeatureType): MatchResult[Any] = {
-    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
+    val query = new Query(sft.getTypeName, Filter.INCLUDE, transform.getAttributeDescriptors.asScala.map(_.getLocalName).toSeq: _*)
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val result = iter.map(DataUtilities.encodeFeature).toSeq
@@ -137,7 +134,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
           // test queries against the transient store
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()).toSeq must
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
                 containTheSameElementsAs(features))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
@@ -152,7 +149,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           ds.persist(sft.getTypeName)
           // test mixed queries against both stores
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()).toSeq must
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
                 beEqualTo(features.drop(1)))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
@@ -180,7 +177,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           ds.persist(sft.getTypeName)
           // test queries against the persistent store
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
           }
@@ -205,7 +202,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           clock.tick = 252
           ds.persist(sft.getTypeName)
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(Seq(update, features.last))
           }

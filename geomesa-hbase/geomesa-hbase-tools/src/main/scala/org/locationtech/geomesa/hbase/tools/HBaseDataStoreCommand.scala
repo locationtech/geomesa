@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,6 @@
 
 package org.locationtech.geomesa.hbase.tools
 
-import java.io.File
-import java.util.Collections
-
 import com.beust.jcommander.Parameter
 import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.client.Connection
@@ -18,6 +15,9 @@ import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore,
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
 import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, OptionalZookeepersParam}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+
+import java.io.File
+import java.util.Collections
 
 /**
  * Abstract class for commands that have a pre-existing catalog

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,22 +8,23 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.io.Flushable
-import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
-
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
+import org.apache.kafka.common.TopicPartition
 import org.geotools.data.Transaction
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
-import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
+import org.locationtech.geomesa.kafka.versions.RecordVersions
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
+
+import java.io.Flushable
+import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
 trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
 
@@ -41,12 +42,10 @@ object KafkaFeatureWriter {
   class AppendKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType
+      protected val serializer: GeoMessageSerializer
     ) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
-
-    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -98,14 +97,14 @@ object KafkaFeatureWriter {
   class ModifyKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      serialization: SerializationType,
+      serializer: GeoMessageSerializer,
       filter: Filter
-    ) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
+    ) extends AppendKafkaFeatureWriter(sft, producer, serializer) {
 
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
     private val ids: Iterator[String] = filter match {
-      case ids: Id => ids.getIDs.iterator.map(_.toString)
+      case ids: Id => ids.getIDs.iterator.asScala.map(_.toString)
       case _ => throw new NotImplementedError("Only modify by ID is supported")
     }
 
@@ -157,6 +156,19 @@ object KafkaFeatureWriter {
         producer.beginTransaction()
       }
       producer.send(record)
+    }
+
+    /**
+     * Sends offsets to the consumer coordinator, as part of a consume/transform/produce operation.
+     * See `org.apache.kafka.clients.producer.KafkaProducer#sendOffsetsToTransaction(Map,String)`
+     *
+     * @param offsets offsets to send
+     * @param consumerGroupId consumer group id
+     */
+    def sendOffsets(offsets: java.util.Map[TopicPartition, OffsetAndMetadata], consumerGroupId: String): Unit = {
+      if (inTransaction) {
+        producer.sendOffsetsToTransaction(offsets, consumerGroupId)
+      }
     }
 
     override def flush(): Unit = producer.flush()

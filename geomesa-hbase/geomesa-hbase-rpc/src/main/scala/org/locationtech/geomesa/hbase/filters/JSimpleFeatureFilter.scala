@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.hbase.filters
 
 import org.apache.hadoop.hbase.exceptions.DeserializationException
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter
-import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter.{DelegateFilter, FilterDelegate, FilterTransformDelegate, NullFeatureIndex, TransformDelegate, deserialize}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.apache.hadoop.hbase.util.Bytes
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter
+import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 @deprecated("used for filter compatibility mode 2.3")
 class JSimpleFeatureFilter(delegate: DelegateFilter) extends CqlTransformFilter(delegate) {

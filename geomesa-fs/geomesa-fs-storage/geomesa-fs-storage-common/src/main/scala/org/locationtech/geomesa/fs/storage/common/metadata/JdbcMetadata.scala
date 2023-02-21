@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,11 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.metadata
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.nio.charset.StandardCharsets
-import java.sql.{Connection, ResultSet, SQLException}
-import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
@@ -21,6 +16,11 @@ import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.Metadata
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.charset.StandardCharsets
+import java.sql.{Connection, ResultSet, SQLException}
+import java.util.concurrent.ConcurrentHashMap
 
 /**
   * Storage metadata implementation backed by a SQL database. Currently tested with H2 and Postgres - other
@@ -116,9 +116,6 @@ class JdbcMetadata(
     }
   }
 
-  // noinspection ScalaDeprecation
-  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
-
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     // TODO execute as a transaction
     WithClose(pool.getConnection()) { connection =>
@@ -160,15 +157,15 @@ object JdbcMetadata extends LazyLogging {
     val TestWhileIdlKey = "jdbc.pool.test-while-idle"
   }
 
-  private val RootCol = "root"
-  private val NameCol = "name"
-  private val IdCol   = "id"
+  private val RootCol = "\"root\""
+  private val NameCol = "\"name\""
+  private val IdCol   = "\"id\""
 
   private object MetadataTable {
 
     val TableName = "storage_meta"
 
-    private val ValueCol = "value"
+    private val ValueCol = "\"value\""
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +
@@ -234,15 +231,15 @@ object JdbcMetadata extends LazyLogging {
 
     val TableName = "storage_partitions"
 
-    private val ActionCol     = "action"
-    private val CountCol      = "features"
-    private val BoundsXMinCol = "bounds_xmin"
-    private val BoundsXMaxCol = "bounds_xmax"
-    private val BoundsYMinCol = "bounds_ymin"
-    private val BoundsYMaxCol = "bounds_ymax"
+    private val ActionCol     = "\"action\""
+    private val CountCol      = "\"features\""
+    private val BoundsXMinCol = "\"bounds_xmin\""
+    private val BoundsXMaxCol = "\"bounds_xmax\""
+    private val BoundsYMinCol = "\"bounds_ymin\""
+    private val BoundsYMaxCol = "\"bounds_ymax\""
 
-    private val CreateSequence: String = s"create sequence if not exists ${TableName}_${IdCol}_seq"
-    private val NextIdStatement: String = s"select nextval('${TableName}_${IdCol}_seq')"
+    private val CreateSequence: String = s"create sequence if not exists ${TableName}_${IdCol.replace("\"", "")}_seq"
+    private val NextIdStatement: String = s"select nextval('${TableName}_${IdCol.replace("\"", "")}_seq')"
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +
@@ -552,7 +549,7 @@ object JdbcMetadata extends LazyLogging {
           statement.executeUpdate(s"alter table $TableName add column $TypeCol char(1)")
           statement.executeUpdate(s"alter table $TableName add column $TimeCol bigint")
           statement.executeUpdate(s"update $TableName set $TypeCol = 'a', $TimeCol = 0")
-          statement.executeUpdate(s"alter table $TableName alter column $TypeCol char(1) not null")
+          statement.executeUpdate(s"alter table $TableName alter column $TypeCol set not null")
         }
         def addSortAndBounds(): Unit = {
           statement.executeUpdate(s"alter table $TableName add column $SortCol varchar(256)")

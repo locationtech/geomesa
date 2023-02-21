@@ -3,12 +3,14 @@ FileSystem Data Store Example
 
 In this simple example we will ingest a small CSV into a local filesystem data store partitioned by an daily,z2-2bit
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
-folder which contains an example csv file that we will ingest:
+folder which contains an example csv file that we will ingest. First set the version you want to use:
 
-.. note::
+.. parsed-literal::
 
-  In the following examples, replace ``${TAG}`` with the corresponding GeoMesa version (e.g. |release_version|), and
-  ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|).
+    $ export TAG="|release_version|"
+    $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+
+Then download and extract the binary distribution:
 
 .. code-block:: bash
 
@@ -16,8 +18,10 @@ folder which contains an example csv file that we will ingest:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
-
     $ cat examples/ingest/csv/example.csv
+
+The output should look like::
+
     ID,Name,Age,LastSeen,Friends,Lon,Lat,Vis
     23623,Harry,20,2015-05-06,"Will, Mark, Suzan","patronus->10,expelliarmus->9",-100.236523,23,user
     26236,Hermione,25,2015-06-07,"Edward, Bill, Harry","accio->10",40.232,-53.2356,user
@@ -31,17 +35,20 @@ osm, etc:
 .. code-block:: bash
 
     $ bin/geomesa-fs env
-        Simple Feature Types:
-        example-avro
-        example-csv
-        example-csv-complex
-        ...
 
-        Simple Feature Type Converters:
-        example-avro-header
-        example-avro-no-header
-        example-csv
-        ...
+The output should look like::
+
+    Simple Feature Types:
+    example-avro
+    example-csv
+    example-csv-complex
+    ...
+
+    Simple Feature Type Converters:
+    example-avro-header
+    example-avro-no-header
+    example-csv
+    ...
 
 For this example we'll ingest the three rows to a local filesystem. Note that the records are all on different days::
 
@@ -64,6 +71,8 @@ Now lets ingest.
     $ bin/geomesa-fs ingest -p /tmp/dstest -e parquet -s example-csv -C example-csv \
     --partition-scheme daily,z2-2bit examples/ingest/csv/example.csv
 
+The output should look like::
+
     INFO  Creating schema example-csv
     INFO  Running ingestion in local mode
     INFO  Ingesting 1 file with 1 thread
@@ -77,17 +86,22 @@ We can verify our ingest by running an export:
 
     $ bin/geomesa-fs export -p /tmp/dstest -f example-csv
 
+The output should look like::
+
     id,fid:Integer:index=false,name:String:index=true,age:Integer:index=false,lastseen:Date:default=true:index=false,*geom:Point:srid=4326
     26236,26236,Hermione,25,2015-06-07T00:00:00.000Z,POINT (40.232 -53.2356)
     3233,3233,Severus,30,2015-10-23T00:00:00.000Z,POINT (3 -62.23)
     23623,23623,Harry,20,2015-05-06T00:00:00.000Z,POINT (-100.236523 23)
     INFO  Feature export complete to standard out in 1676ms for 3 features
 
-Now lets inspect the filesystem to see what it looks like:
+Now lets inspect the filesystem:
 
 .. code-block:: bash
 
     $ find /tmp/dstest | sort
+
+The output should look like::
+
     /tmp/dstest/
     /tmp/dstest/example-csv
     /tmp/dstest/example-csv/2015
@@ -127,6 +141,9 @@ Each new file (or file deletion) will create a separate metadata file, which con
 .. code-block:: bash
 
     $ cat /tmp/dstest/example-csv/metadata/update-2015-05-06-629788a4-6a70-4009-ae20-c45602a88483.json
+
+The output should look like::
+
     {
         "action" : "Add",
         "count" : 1,

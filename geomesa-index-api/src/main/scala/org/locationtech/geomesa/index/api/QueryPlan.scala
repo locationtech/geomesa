@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.api
 
-import java.util.Objects
-
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -17,9 +15,12 @@ import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import java.util.Objects
 import scala.util.Try
 
 /**
@@ -285,8 +286,16 @@ object QueryPlan {
     override def schema: SimpleFeatureType = sft
 
     protected def createSerializer: KryoFeatureSerializer = {
+      val hasAttributeLevelVis = sft.getVisibilityLevel == VisibilityLevel.Attribute
       val builder = KryoFeatureSerializer.builder(sft)
-      if (index.serializedWithId) { builder.withId.build() } else { builder.withoutId.build() }
+      // note: attribute level vis are serialized into the user data since they can't be held by a single key
+      val toBuild = (index.serializedWithId, hasAttributeLevelVis) match {
+        case (true, true)   => builder.withId.withUserData
+        case (true, false)  => builder.withId.withoutUserData
+        case (false, true)  => builder.withoutId.withUserData
+        case (false, false) => builder.withoutId.withoutUserData
+      }
+      toBuild.build()
     }
 
     def canEqual(other: Any): Boolean = other.isInstanceOf[IndexResultsToFeatures[T]]

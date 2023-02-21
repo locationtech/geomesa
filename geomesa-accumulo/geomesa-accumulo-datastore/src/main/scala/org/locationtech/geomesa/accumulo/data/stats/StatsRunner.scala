@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,18 +8,19 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import java.io.Closeable
-import java.time.temporal.ChronoUnit
-import java.time.{Clock, Instant}
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
-
+import org.apache.accumulo.core.conf.ClientProperty
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.io.Closeable
+import java.time.temporal.ChronoUnit
+import java.time.{Clock, Instant}
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
 /**
   * Update stats for a data store in a background thread. Uses distributed locking to ensure
@@ -71,14 +72,14 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
     * Updates metadata accordingly.
     */
   override def run(): Unit = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
     // convert to iterator so we check shutdown before each update
     val sfts = ds.getTypeNames.map(ds.getSchema).iterator.filter(_ => !shutdown.get())
     // try to get an exclusive lock on the sft - if not, don't wait just move along
     val lockTimeout = Some(1000L)
     // force execution of iterator
-    val minUpdate = sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.toEpochMilli).minOption
+    val minUpdate = if (sfts.isEmpty) { None } else {
+      Some(sfts.map(new StatRunner(ds, _, lockTimeout).call()).map(_.toEpochMilli).min)
+    }
     // wait at least one minute before running again
     val minWait = 60000L
     val nextRun = minUpdate.map(_ - Instant.now(Clock.systemUTC()).toEpochMilli).filter(_ > minWait).getOrElse(minWait)
@@ -105,7 +106,8 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
 class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Option[Long] = None)
     extends Callable[Instant] with ZookeeperLocking {
 
-  override protected def zookeepers: String = ds.connector.getInstance.getZooKeepers
+  override protected def zookeepers: String =
+    ds.connector.properties().getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)
 
   /**
     * Runs stats for the simple feature type

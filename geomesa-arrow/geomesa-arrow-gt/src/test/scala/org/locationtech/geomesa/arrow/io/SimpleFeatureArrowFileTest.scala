@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,10 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.io
-
-import java.io.{File, FileInputStream, FileOutputStream}
-import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.filter.text.ecql.ECQL
@@ -20,11 +16,15 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureArrowFileTest extends Specification {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.avro
-
-import java.io.{ByteArrayOutputStream, InputStream}
 
 import com.typesafe.config.Config
 import org.apache.avro.Schema
@@ -26,13 +24,20 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CopyingInputStream
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.io.{ByteArrayOutputStream, InputStream}
+
 class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[GenericRecord, AvroConfig, BasicField, BasicOptions](sft, config, fields, options) {
 
   private val schema = config.schema match {
+    case SchemaEmbedded => None
     case SchemaString(s) => Some(new Parser().parse(s))
-    case SchemaFile(s)   => Some(new Parser().parse(getClass.getResourceAsStream(s)))
-    case SchemaEmbedded  => None
+    case SchemaFile(s) =>
+      val loader = Option(Thread.currentThread.getContextClassLoader).getOrElse(getClass.getClassLoader)
+      val res = Option(loader.getResourceAsStream(s)).orElse(Option(getClass.getResourceAsStream(s))).getOrElse {
+        throw new IllegalArgumentException(s"Could not load schema resource at $s")
+      }
+      Some(new Parser().parse(res))
   }
 
   // if required, set the raw bytes in the result array
@@ -87,7 +92,7 @@ object AvroConverter {
         updated
 
       case Schema.Type.UNION =>
-        Schema.createUnion(schema.getTypes.asScala.map(addBytes): _*)
+        Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 
       case _ =>
         throw new NotImplementedError(

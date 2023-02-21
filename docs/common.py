@@ -20,6 +20,15 @@ import shlex
 import sphinx_rtd_theme
 from recommonmark.parser import CommonMarkParser
 
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# Warning: current version numbers are handled in versions.py, which is preprocessed
+# by Maven. Do not hardcode current GeoMesa version numbers here!
+from target.versions import release,version
+import target
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -35,7 +44,8 @@ from recommonmark.parser import CommonMarkParser
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,89 +60,70 @@ source_parsers = {
 master_doc = 'index'
 
 # General information about the project.
-project = u'GeoMesa'
+project = 'GeoMesa'
 # note: shown in our custom footer
-copyright = u'2013-2021'
-author = u''
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# Warning: current version numbers are handled in versions.py, which is preprocessed
-# by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version,release_version,scala_binary_version
+copyright = '2013-%(copyright_year)s' % {"copyright_year": target.versions.copyright_year}
+author = ''
 
 # Other versions and variables unlikely to change on every point release
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
-
-url_locationtech_release = "https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
 # prior to appending the RST epilog to each file)
 rst_epilog = """
 
-.. _GeoTools: http://geotools.org/
+.. _GeoTools: https://geotools.org/
 
-.. _GeoServer: http://geoserver.org/
+.. _GeoServer: https://geoserver.org/
 
-.. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+.. |maven_version| replace:: 3.6 or later
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_%(scala_binary_version)s/%(release_version)s/geomesa-accumulo_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
+.. |geoserver_version| replace:: %(geoserver_version)s
 
-.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_%(scala_binary_version)s/%(release_version)s/geomesa-kafka_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
+.. |geotools_version| replace:: %(gt_version)s
 
-.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_%(scala_binary_version)s/%(release_version)s/geomesa-hbase_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
+.. |accumulo_supported_versions| replace:: versions %(accumulo_version)s and %(accumulo_version_recommended)s
 
-.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_%(scala_binary_version)s/%(release_version)s/geomesa-cassandra_%(scala_binary_version)s-%(release_version)s-bin.tar.gz
+.. |accumulo_required_version| replace:: %(accumulo_version)s or %(accumulo_version_recommended)s
 
-.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_%(scala_binary_version)s-%(release_version)s.tar.gz
+.. |hbase_required_version| replace:: %(hbase_version)s or %(hbase_1_version)s
 
-.. |maven_version| replace:: 3.5.2 or later
-
-.. |geoserver_version| replace:: 2.17.3
-
-.. |geotools_version| replace:: 23.x
-
-.. |accumulo_required_version| replace:: 1.7.x, 1.8.x, 1.9.x or 2.0.x
-
-.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x, 1.9.x and 2.0.x
-
-.. |hbase_required_version| replace::  1.4.x or 2.2.x
-
-.. |hbase_supported_versions| replace:: versions 1.4.x and 2.2.x
-
-.. |hbase_bundled_version| replace:: 2.2.3
+.. |hbase_supported_versions| replace:: versions %(hbase_version)s and %(hbase_1_version)s
 
 .. |hadoop_version| replace:: 2.8 or later
 
-.. |zookeeper_version| replace:: 3.4.5 or later
+.. |kafka_supported_versions| replace:: versions 2.0 and later
 
-.. |kafka_version| replace:: 0.10.x or later
+.. |kafka_required_version| replace:: 2.0 or later
 
-.. |kafka_tested_version| replace:: 2.7.0
+.. |cassandra_version| replace:: 3
 
-.. |cassandra_version| replace:: 3.x
+.. |redis_supported_versions| replace:: versions 5.0 and later
 
-.. |redis_version| replace:: 5.0.x
+.. |spark_required_version| replace:: %(spark_version)s
 
-.. |kudu_version| replace:: 1.7.x
+.. |spark_supported_versions| replace:: version %(spark_version)s
 
-.. |spark_required_version| replace:: 2.4.x, 3.0.x or 3.1.x
+.. |release_version| replace:: %(release_version)s
 
-.. |spark_supported_versions| replace:: versions 2.4.x, 3.0.x and 3.1.x
-
-.. |release_version| replace:: ``%(release_version)s``
+.. |release_version_literal| replace:: ``%(release_version)s``
 
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
 .. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
 
-""" % {"release": release,
-       "release_version": release_version,
-       "scala_binary_version": scala_binary_version,
-       "url_locationtech_release": url_locationtech_release,
+""" % {"release": target.versions.release,
+       "release_version": target.versions.release_version,
+       "scala_binary_version": target.versions.scala_binary_version,
+       "geoserver_version": target.versions.geoserver_version,
+       "gt_version": target.versions.gt_version,
+       "accumulo_version": target.versions.accumulo_version,
+       "accumulo_version_recommended": target.versions.accumulo_version_recommended,
+       "hbase_version": target.versions.hbase_version,
+       "hbase_1_version": target.versions.hbase_1_version,
+       "kafka_version": target.versions.kafka_version,
+       "spark_version": target.versions.spark_version,
        "url_github_archive": url_github_archive}
 
 # The language for content autogenerated by Sphinx. Refer to documentation
@@ -369,3 +360,9 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# strip out the leading `$` in bash and `>` accumulo examples
+copybutton_prompt_text = "[$>] "
+copybutton_prompt_is_regexp = True
+# but keep all lines, as we also have a lot of scala/java examples that don't have prompts
+copybutton_only_copy_prompt_lines = False

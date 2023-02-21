@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,11 +26,6 @@ object EnrichmentCacheFunctionFactory {
     override def apply(args: Array[AnyRef]): AnyRef = {
       val cache = ec.cache(args(0).asInstanceOf[String])
       cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String])).asInstanceOf[AnyRef]
-    }
-
-    override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
-      val cache = ec.cache(args(0).asInstanceOf[String])
-      cache.get(Array(args(1).asInstanceOf[String], args(2).asInstanceOf[String]))
     }
 
     override def withContext(ec: EvaluationContext): TransformerFunction = new CacheLookup(ec)

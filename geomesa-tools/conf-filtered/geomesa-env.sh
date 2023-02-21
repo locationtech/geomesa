@@ -354,6 +354,11 @@ function remove_slf4j_from_classpath() {
   echo "$1" | sed 's/[^:]*slf4j[^:]*jar//g'
 }
 
+# remove log4j1 jars from a classpath string
+function remove_log4j1_from_classpath() {
+  echo "$1" | sed 's/[^:]*log4j-1[^:]*jar//g'
+}
+
 function geomesa_scala_console() {
   classpath=${1}
   shift 1

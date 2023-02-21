@@ -59,6 +59,7 @@ function get_classpath() {
       local env_cp="$(. "$file")"
       classpath="$classpath:$(remove_slf4j_from_classpath $env_cp)"
     done
+    classpath="$(remove_log4j1_from_classpath $classpath)"
     classpath="$(fix_classpath_format $classpath)"
     echo "$classpath"
   fi
@@ -98,6 +99,7 @@ elif [[ $1 = configure ]]; then
   geomesa_configure
 elif [[ $1 = scala-console ]]; then
   shift 1
+  load_classpath
   # scala console requires options to be passed in through java_opts
   export JAVA_OPTS="${GEOMESA_OPTS}"
   geomesa_scala_console "$(get_classpath)" "$@"

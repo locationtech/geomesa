@@ -8,7 +8,7 @@ take a moment to run through one of the quick start tutorials.
 
 This tutorial shows how to:
 
-1. Leverage the GeoMesa command-line tools to ingest big `GDELT <http://www.gdeltproject.org>`__
+1. Leverage the GeoMesa command-line tools to ingest big `GDELT <https://www.gdeltproject.org>`__
    data files into GeoMesa via a Hadoop Map/Reduce job
 2. Leverage GeoServer to query and visualize the data
 
@@ -17,8 +17,8 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <http://java.oracle.com/>`__ JDK 1.8
--  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
+-  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  a Hadoop |hadoop_version| cluster
 
@@ -42,7 +42,7 @@ Follow the instructions under the appropriate back-end to install the command-li
 Obtaining GDELT data
 --------------------
 
-The `GDELT Event database <http://www.gdeltproject.org>`__ provides a
+The `GDELT Event database <https://www.gdeltproject.org>`__ provides a
 comprehensive time- and location-indexed archive of events reported in
 broadcast, print, and web news media worldwide from 1979 to today.
 
@@ -57,7 +57,7 @@ files for January, 2018:
 
     $ mkdir gdelt && cd gdelt
     $ for day in {01..31}; do
-        do mkdir 201801$day && cd 201801$day;
+        mkdir 201801$day && cd 201801$day;
         for hour in {00..23}; do
           for minute in 00 15 30 45; do
             wget "http://data.gdeltproject.org/gdeltv2/201801${day}${hour}${minute}00.export.CSV.zip"
@@ -77,7 +77,7 @@ the following command will extract and concatenate all the files for January, 20
 Note: the individual files, when uncompressed, have ``*.csv``
 extensions, but the data contained within them are tab-separated values,
 hence the ``*.tsv`` extension. See the `GDELT raw data file
-documentation <http://www.gdeltproject.org/data.html#rawdatafiles>`__
+documentation <https://www.gdeltproject.org/data.html#rawdatafiles>`__
 for more information on the format of these files.
 
 Running the Ingest
@@ -106,7 +106,7 @@ You should see the following output:
     INFO  Creating schema 'gdelt'
     INFO  Running ingestion in distributed mode
     INFO  Submitting job - please wait...
-    INFO  Tracking available at http://namenode/proxy/application_xxxxxxx/
+    INFO  Tracking available at https://namenode/proxy/application_xxxxxxx/
     [============================================================] 100% complete xxxxxx ingested 0 failed in 00:00:45
     INFO  Distributed ingestion complete in 00:00:45
     INFO  Ingested xxxxxx features with no failures.
@@ -158,15 +158,15 @@ assumes a GeoServer workspace named "geomesa" - adjust the URL if you use someth
 
    Showing all GDELT events for January 2018
 
-The above map is using `Stamen Watercolor <http://maps.stamen.com/watercolor/>`__ as a base layer. For more
+The above map is using `Stamen Watercolor <https://maps.stamen.com/watercolor/>`__ as a base layer. For more
 information about adding multiple layers into one group see the
-`GeoServer documentation <http://docs.geoserver.org/2.9.1/user/data/webadmin/layergroups.html>`__.
+`GeoServer documentation <https://docs.geoserver.org/stable/en/user/data/webadmin/layergroups.html>`__.
 
 Filter
 ~~~~~~
 
 Let's narrow our results. GDELT labels events with `CAMEO (Conflict and
-Mediation Event Observations) <http://www.gdeltproject.org/data.html#documentation>`__
+Mediation Event Observations) <https://www.gdeltproject.org/data.html#documentation>`__
 codes. The CAMEO code for events of type 'THREATEN' starts with '13'. We
 can filter down to these events using the drop down in GeoServer's OpenLayers preview:
 
@@ -181,7 +181,7 @@ can filter down to these events using the drop down in GeoServer's OpenLayers pr
    Enter CQL Filter into Toolbar
 
 Let's use a custom icon to display THREATEN events, by adding an `SLD
-style <http://docs.geoserver.org/latest/user/styling/index.html>`__ to
+style <https://docs.geoserver.org/stable/en/user/styling/webadmin/index.html>`__ to
 the layer. Add the SLD file :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer by going to "Styles" on the left menu and then "Add new style".
 The SLD references an icon from `EmojiOne <https://www.emojione.com/>`__. Download the emojis

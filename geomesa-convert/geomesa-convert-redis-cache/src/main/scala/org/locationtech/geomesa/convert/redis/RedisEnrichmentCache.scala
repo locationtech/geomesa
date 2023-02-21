@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,16 +9,15 @@
 
 package org.locationtech.geomesa.convert.redis
 
-import java.io.Closeable
-import java.net.URI
-import java.util.concurrent.TimeUnit
-
-import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
 import redis.clients.jedis.util.JedisURIHelper
 import redis.clients.jedis.{Jedis, JedisPool}
 
+import java.io.Closeable
+import java.net.URI
+import java.util.concurrent.TimeUnit
 import scala.util.Try
 
 trait RedisConnectionBuilder extends Closeable {
@@ -32,12 +31,12 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
 
   private val builder =
     if (expiration > 0) {
-      CacheBuilder.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
+      Caffeine.newBuilder().expireAfterWrite(expiration, TimeUnit.MILLISECONDS)
     } else {
       if (!localCache) {
-        CacheBuilder.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
+        Caffeine.newBuilder().expireAfterWrite(0, TimeUnit.MILLISECONDS).maximumSize(0)
       } else {
-        CacheBuilder.newBuilder()
+        Caffeine.newBuilder()
       }
     }
 

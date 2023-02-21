@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,15 +8,11 @@
 
 package org.locationtech.geomesa.fs.storage.common.s3
 
-import java.net.URI
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{SetObjectTaggingRequest, Tag}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs._
+import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.util.Progressable
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -28,6 +24,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.net.URI
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 @RunWith(classOf[JUnitRunner])
 class S3VisibilityObserverTest extends Specification with Mockito {

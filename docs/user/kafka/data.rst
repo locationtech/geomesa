@@ -23,9 +23,17 @@ Kafka Topic Configuration
 -------------------------
 
 The Kafka topic for a given SimpleFeatureType will be created when calling ``createSchema`` (if it doesn't already
-exist). GeoMesa exposes a few configuration options through data store parameters. For more advanced options,
-the topic should be created using standard Kafka tools, and then the existing topic should be specified by name
-for the SimpleFeatureType (as described above).
+exist). GeoMesa exposes a few configuration options through data store parameters. Additional options can
+be configured by setting the user data key ``kafka.topic.config`` before calling ``createSchema``:
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("kafka.topic.config", "cleanup.policy=compact\nretention.ms=86400000");
+
+The value should be in standard Java properties format. For a list of available configurations, refer
+to the `Kafka documentation <https://kafka.apache.org/documentation/#topicconfigs>`__. For more information
+on how to set schema options, see :ref:`set_sft_options`.
 
 Parallelism in Kafka is achieved through the use of multiple topic partitions. Each partition can only be read
 by a single Kafka consumer. The number of consumers can be controlled through the ``kafka.consumer.count`` data
@@ -60,7 +68,7 @@ Integration with Other Systems
 The Kafka data store is easy to integrate with by consuming the Kafka topic. The messages are a change log of
 updates. Message keys consist of the simple feature ID, as UTF-8 bytes. Message bodies are serialized simple
 features, or null to indicate deletion. The internal serialization version is set as a message header under the
-key ``"v"``, when using Kafka 0.11.x or newer.
+key ``"v"``.
 
 By default, message bodies are serialized with a custom Kryo serializer. For Java/Scala clients, the
 ``org.locationtech.geomesa.features.kryo.KryoFeatureSerializer`` class may be used to decode messages, available

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -27,6 +27,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -36,7 +37,9 @@ import scala.util.Random
 class AttributeIndexTest extends Specification with LazyLogging {
 
   val typeName = "attr-idx-test"
-  val spec = "name:String:index=true,age:Int:index=true,height:Float:index=true,dtg:Date,*geom:Point:srid=4326"
+  val spec =
+    "name:String,age:Int,height:Float,dtg:Date,*geom:Point:srid=4326;" +
+      "geomesa.indices.enabled='attr:name:geom:dtg,attr:age:geom:dtg,attr:height:geom:dtg'"
 
   val sft = SimpleFeatureTypes.createType(typeName, spec)
 
@@ -353,6 +356,24 @@ class AttributeIndexTest extends Specification with LazyLogging {
         SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual
             features.slice(2, 3)
       }
+    }
+
+    "handle filter.EXCLUDE with query hint" in {
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+      }
+
+      val query = new Query(typeName, Filter.EXCLUDE)
+      query.getHints.put(QueryHints.QUERY_INDEX, "attr")
+
+      foreach(ds.getQueryPlan(query))(_.ranges must beEmpty)
+
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+
+      results must beEmpty
     }
   }
 }

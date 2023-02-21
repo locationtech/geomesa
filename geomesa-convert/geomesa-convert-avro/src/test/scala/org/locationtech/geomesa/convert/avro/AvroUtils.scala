@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import java.io.ByteArrayOutputStream
-
 import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord, GenericRecordBuilder}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 
-import scala.collection.JavaConversions._
+import java.io.ByteArrayOutputStream
 import scala.collection.JavaConverters._
 
 trait AvroUtils {
@@ -24,7 +22,7 @@ trait AvroUtils {
   val schema = parser.parse(spec)
 
   val contentSchema = schema.getField("content").schema()
-  val types = contentSchema.getTypes.toList
+  val types = contentSchema.getTypes.asScala.toList
   val tObjSchema = types(0)
   val otherObjSchema = types(1)
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,7 +16,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.{FastPropertyIsEqualTo, FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.PropertyIsEqualTo
 import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial.BBOX
 import org.specs2.execute.Result
@@ -112,6 +111,14 @@ class FastFilterFactoryTest extends Specification {
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
       }
+    }
+    "comparison operators should have consistent semantics" >> {
+      val sft = SimpleFeatureTypes.createType("test", "s:String")
+      val sf = ScalaSimpleFeature.create(sft, "id", "5")
+      FastFilterFactory.toFilter(sft, "s > '100'").evaluate(sf) must beTrue
+      FastFilterFactory.toFilter(sft, "s >= '100'").evaluate(sf) must beTrue
+      FastFilterFactory.toFilter(sft, "s < '100'").evaluate(sf) must beFalse
+      FastFilterFactory.toFilter(sft, "s <= '100'").evaluate(sf) must beFalse
     }
   }
 }

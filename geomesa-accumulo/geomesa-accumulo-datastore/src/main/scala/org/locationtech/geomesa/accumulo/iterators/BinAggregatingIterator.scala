@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import java.util.Map.Entry
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
@@ -17,7 +15,9 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
@@ -27,6 +27,8 @@ import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import java.util.Map.Entry
 
 /**
  * Iterator that computes and aggregates 'bin' entries
@@ -87,14 +89,20 @@ object BinAggregatingIterator extends LazyLogging {
 
     // noinspection ScalaDeprecation
     if (index.serializedWithId) {
-      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType)
+      val deserializer = serializationType match {
+        case SerializationType.KRYO => KryoFeatureSerializer(returnSft)
+        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft)
+      }
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
         new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
       }
     } else {
-      val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
+      val deserializer = serializationType match {
+        case SerializationType.KRYO => KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
+        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft, SerializationOptions.withoutId)
+      }
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val row = e.getKey.getRow

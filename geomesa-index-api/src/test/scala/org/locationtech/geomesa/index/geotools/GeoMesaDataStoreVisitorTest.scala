@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.Collections
-
-import org.geotools.data.{DataStore, Query}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.util.NullProgressListener
+import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor._
@@ -34,6 +32,8 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.util.Collections
+
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreVisitorTest extends Specification {
 
@@ -52,7 +52,7 @@ class GeoMesaDataStoreVisitorTest extends Specification {
 
   step {
     features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
   }
 
   "GeoMesaDataStore" should {

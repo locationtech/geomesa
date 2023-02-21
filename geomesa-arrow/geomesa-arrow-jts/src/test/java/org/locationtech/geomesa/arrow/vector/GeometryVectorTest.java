@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
-import org.apache.arrow.vector.types.pojo.ArrowType;
-import org.locationtech.jts.geom.*;
-import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.FieldVector;
@@ -21,9 +17,32 @@ import org.apache.arrow.vector.dictionary.DictionaryProvider;
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider;
 import org.apache.arrow.vector.ipc.ArrowStreamReader;
 import org.apache.arrow.vector.ipc.ArrowStreamWriter;
+import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.geomesa.arrow.jts.GeometryVector;
+import org.locationtech.geomesa.arrow.jts.LineStringFloatVector;
+import org.locationtech.geomesa.arrow.jts.LineStringVector;
+import org.locationtech.geomesa.arrow.jts.MultiLineStringFloatVector;
+import org.locationtech.geomesa.arrow.jts.MultiLineStringVector;
+import org.locationtech.geomesa.arrow.jts.MultiPointFloatVector;
+import org.locationtech.geomesa.arrow.jts.MultiPointVector;
+import org.locationtech.geomesa.arrow.jts.MultiPolygonFloatVector;
+import org.locationtech.geomesa.arrow.jts.MultiPolygonVector;
+import org.locationtech.geomesa.arrow.jts.PointFloatVector;
+import org.locationtech.geomesa.arrow.jts.PointVector;
+import org.locationtech.geomesa.arrow.jts.PolygonFloatVector;
+import org.locationtech.geomesa.arrow.jts.PolygonVector;
+import org.locationtech.geomesa.arrow.jts.WKBGeometryVector;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiPoint;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.WKTWriter;
 
 import java.io.File;
 import java.io.FileInputStream;

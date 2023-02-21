@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2021 Dstl
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2023 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.ParameterException
+import org.apache.accumulo.core.conf.ClientProperty
 import org.locationtech.geomesa.accumulo.data.AccumuloClientConfig
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
@@ -62,26 +63,29 @@ trait RunnerWithAccumuloEnvironment extends Runner {
 
     Option(command.params).collect { case p: AccumuloConnectionParams => p }.foreach { p =>
       if (p.user == null) {
-        p.user = config.principal.getOrElse(throw new ParameterException("Parameter '--user' is required"))
+        config.getProperty(ClientProperty.AUTH_PRINCIPAL.getKey) match {
+          case null => throw new ParameterException("Parameter '--user' is required")
+          case u => p.user = u
+        }
       }
       if (p.password != null && p.keytab != null) {
         // error if both password and keytab supplied
         throw new ParameterException("Cannot specify both password and keytab")
       } else if (p.password == null && p.keytab == null &&
-          (config.authType.isEmpty || config.authType.contains(AccumuloClientConfig.PasswordAuthType))) {
+          AccumuloClientConfig.PasswordAuthType.equalsIgnoreCase(ClientProperty.AUTH_TYPE.getValue(config))) {
         // if password not supplied, and not using keytab, prompt for it
-        p.password = config.token.getOrElse(Prompt.readPassword())
+        p.password = Option(config.getProperty(ClientProperty.AUTH_TOKEN.getKey)).getOrElse(Prompt.readPassword())
       }
     }
 
     Option(command.params).collect { case p: InstanceNameParams => p }.foreach { p =>
       if (p.instance == null) {
-        config.instance.foreach(p.instance = _)
+        Option(config.getProperty(ClientProperty.INSTANCE_NAME.getKey)).foreach(p.instance = _)
       }
       if (p.zookeepers == null) {
-        config.zookeepers.foreach(p.zookeepers = _)
+        Option(config.getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)).foreach(p.zookeepers = _)
         if (p.zkTimeout == null) {
-          config.zkTimeout.foreach(p.zkTimeout = _)
+          Option(config.getProperty(ClientProperty.INSTANCE_ZOOKEEPERS_TIMEOUT.getKey)).foreach(p.zkTimeout = _)
         }
       }
     }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
-import java.time.ZonedDateTime
-
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -20,6 +18,8 @@ import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV6.Z3IndexKeySpaceV
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexKeySpace, Z3IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
+
+import java.time.ZonedDateTime
 
 // legacy yearly epoch z curve
 class Z3IndexV6 protected (
@@ -34,7 +34,7 @@ class Z3IndexV6 protected (
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, dtg: String, mode: IndexMode) =
     this(ds, sft, 6, geom, dtg, mode)
 
-  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV6(sft, ZShardStrategy(sft), geom, dtg)
+  override val keySpace: Z3IndexKeySpace = new Z3IndexKeySpaceV6(sft, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object Z3IndexV6 {

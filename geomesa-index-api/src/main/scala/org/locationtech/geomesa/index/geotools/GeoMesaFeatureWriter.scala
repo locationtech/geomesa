@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
-
-import java.io.Flushable
-import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
@@ -21,11 +18,14 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import java.io.Flushable
+import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
@@ -114,10 +114,6 @@ object GeoMesaFeatureWriter extends LazyLogging {
     }
   }
 
-  @deprecated
-  // noinspection ScalaUnusedSymbol
-  def featureWithFid(sft: SimpleFeatureType, feature: SimpleFeature): SimpleFeature = featureWithFid(feature)
-
   /**
    * Sets the feature ID on the feature. If the user has requested a specific ID, that will be used,
    * otherwise one will be generated. If possible, the original feature will be modified and returned.
@@ -200,7 +196,9 @@ object GeoMesaFeatureWriter extends LazyLogging {
       if (writer == null) {
         // reconfigure the partition each time - this should be idempotent, and block
         // until it is fully created (which may happen in some other thread)
-        indices.par.foreach(index => ds.adapter.createTable(index, Some(p), index.getSplits(Some(p))))
+        def createOne(index: GeoMesaFeatureIndex[_, _]): Unit =
+          ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
+        indices.toList.map(i => CachedThreadPool.submit(() => createOne(i))).foreach(_.get)
         writer = ds.adapter.createWriter(sft, indices, Some(p))
         cache.put(p, writer)
       }

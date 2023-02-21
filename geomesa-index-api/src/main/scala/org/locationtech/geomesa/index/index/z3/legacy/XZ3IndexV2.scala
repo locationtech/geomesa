@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3.legacy
 
 import org.locationtech.geomesa.curve.{TimePeriod, XZ3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.legacy.XZ3IndexV2.XZ3IndexKeySpaceV2
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, XZ3IndexKeySpace}
@@ -30,7 +30,7 @@ class XZ3IndexV2 protected (
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, dtg: String, mode: IndexMode) =
     this(ds, sft, 2, geom, dtg, mode)
 
-  override val keySpace: XZ3IndexKeySpace = new XZ3IndexKeySpaceV2(sft, ZShardStrategy(sft), geom, dtg)
+  override val keySpace: XZ3IndexKeySpace = new XZ3IndexKeySpaceV2(sft, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object XZ3IndexV2 {

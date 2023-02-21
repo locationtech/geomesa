@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,9 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.testing
-
-import java.io.{ByteArrayInputStream, File}
-import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
@@ -19,6 +16,9 @@ import org.locationtech.geomesa.convert2.transforms.ScriptingFunctionFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.{ByteArrayInputStream, File}
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class ScriptingFunctionFactoryTest extends Specification {
@@ -54,13 +54,10 @@ class ScriptingFunctionFactoryTest extends Specification {
         val sff = new ScriptingFunctionFactory
         val hello = sff.functions.find(_.names.contains("js:hello")).head
         hello.apply(Array("geomesa")) mustEqual "hello: geomesa"
-        hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
-        gbye.eval(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
-        whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }

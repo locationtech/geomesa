@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,10 +8,8 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
-import java.util.Date
-
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.LegacyTableNaming
@@ -23,6 +21,7 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
+import java.util.Date
 import scala.util.control.NonFatal
 
 // supports table sharing
@@ -35,7 +34,7 @@ class XZ3IndexV1(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, 
 
   // noinspection ScalaDeprecation
   override val keySpace: XZ3IndexKeySpace =
-    new XZ3IndexKeySpaceV1(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom, dtg)
+    new XZ3IndexKeySpaceV1(sft, sft.getTableSharingBytes, Z3ShardStrategy(sft), geom, dtg)
 }
 
 object XZ3IndexV1 {

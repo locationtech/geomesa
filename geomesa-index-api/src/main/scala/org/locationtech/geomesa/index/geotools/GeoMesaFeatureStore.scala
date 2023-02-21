@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.{List => jList}
-
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
@@ -23,17 +21,17 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 
-import scala.collection.JavaConversions._
+import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
-    extends GeoMesaFeatureSource(ds, sft, runner) with SimpleFeatureStore {
+class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
+    extends GeoMesaFeatureSource(ds, sft) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 
-  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): jList[FeatureId] = {
+  override def addFeatures(collection: FeatureCollection[SimpleFeatureType, SimpleFeature]): java.util.List[FeatureId] = {
     if (collection.isEmpty) {
-      return List.empty[FeatureId]
+      return Collections.emptyList[FeatureId]()
     }
 
     val fids = new java.util.ArrayList[FeatureId](collection.size())
@@ -109,13 +107,17 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
   override def removeFeatures(filter: Filter): Unit = {
     ds match {
       case gm: GeoMesaDataStore[_] if filter == Filter.INCLUDE =>
+        val indices = gm.manager.indices(sft).toList
         if (TablePartition.partitioned(sft)) {
-          gm.manager.indices(sft).par.foreach(index => gm.adapter.deleteTables(index.deleteTableNames(None)))
+          def deleteOne(index: GeoMesaFeatureIndex[_, _]): Unit =
+            gm.adapter.deleteTables(index.deleteTableNames(None))
+          indices.map(i => CachedThreadPool.submit(() => deleteOne(i))).foreach(_.get)
         } else {
-          gm.manager.indices(sft).par.foreach { index =>
+          def deleteOne(index: GeoMesaFeatureIndex[_, _]): Unit = {
             val prefix = Some(index.keySpace.sharing).filterNot(_.isEmpty)
             gm.adapter.clearTables(index.getTableNames(None), prefix)
           }
+          indices.map(i => CachedThreadPool.submit(() => deleteOne(i))).foreach(_.get)
         }
         gm.stats.writer.clear(sft)
 
@@ -131,9 +133,6 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   override def setTransaction(transaction: Transaction): Unit = {
     require(transaction != null, "Transaction can't be null - did you mean Transaction.AUTO_COMMIT?")
-    if (ds.isInstanceOf[GeoMesaDataStore[_]] && transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
     this.transaction = transaction
   }
 
@@ -147,7 +146,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   private def writer(filter: Option[Filter]): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
     ds match {
-      case gm: GeoMesaDataStore[_] => gm.getFeatureWriter(sft, filter)
+      case gm: MetadataBackedDataStore => gm.getFeatureWriter(sft, transaction, filter)
       case _ if filter.isEmpty => ds.getFeatureWriterAppend(sft.getTypeName, transaction)
       case _ => ds.getFeatureWriter(sft.getTypeName, filter.get, transaction)
     }
