@@ -90,12 +90,12 @@ object DropAgedOffPartitions extends SqlProcedure {
        |          SELECT relid
        |            FROM pg_partition_tree(${mainPartitions.name.asRegclass})
        |            WHERE parentrelid IS NOT NULL
-       |            AND (SELECT relname FROM pg_class WHERE oid = relid) < ${literal(mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
+       |            AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(mainPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |          UNION ALL
        |            SELECT relid
        |              FROM pg_partition_tree(${spillPartitions.name.asRegclass})
        |              WHERE parentrelid IS NOT NULL
-       |              AND (SELECT relname FROM pg_class WHERE oid = relid) < ${literal(spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
+       |              AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |        LOOP
                   RAISE NOTICE 'Aging off partition %', partition_name;
        |          IF EXISTS(SELECT FROM pg_class WHERE oid = partition_name) THEN
