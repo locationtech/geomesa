@@ -20,12 +20,6 @@
             <classifier>data</classifier>
         </dependency>
 
-        <!-- geomesa process jar -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
-        </dependency>
-
         <!-- additional deps to manage in for deploying to lib dir-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
