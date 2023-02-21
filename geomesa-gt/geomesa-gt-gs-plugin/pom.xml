@@ -16,6 +16,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -38,6 +39,8 @@
 >>>>>>> e465896d8fe (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 3ad45c8677f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8062fb52017 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -61,6 +64,8 @@
 >>>>>>> 36da504cb44 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 965407c445b (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 8d1859e2515 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 =======
@@ -85,6 +90,8 @@
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 =======
 >>>>>>> 2b2e6e26ab (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 3bcff61f7d (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
@@ -164,6 +171,7 @@
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 4a074dd79bb ([maven-release-plugin] prepare for next development iteration)
@@ -171,6 +179,8 @@
 =======
 =======
 >>>>>>> d40f5683c26 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 8d1859e2515 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 =======
         <version>4.0.0-SNAPSHOT</version>
 >>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
@@ -425,8 +435,19 @@
 =======
 =======
 >>>>>>> 6627dee08f ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> d40f5683c26 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 5b0cab20dcd ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+        <version>4.0.0-SNAPSHOT</version>
+>>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 3bcff61f7d (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 8d1859e2515 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 8062fb52017 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
