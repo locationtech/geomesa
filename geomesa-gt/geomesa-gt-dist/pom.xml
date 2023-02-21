@@ -270,6 +270,20 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-gt-partitioning_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- geoserver plugin - needed as a dependency for reactor ordering, but don't bring in transitive deps -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-gt-gs-plugin_${scala.binary.version}</artifactId>
+            <type>pom</type>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <profiles>
