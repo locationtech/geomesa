@@ -16,6 +16,9 @@ Installing Partitioned PostGIS in GeoServer
 -------------------------------------------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 .. warning::
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
@@ -28,9 +31,12 @@ Restart GeoServer after the JARs are installed.
 
 Note that the regular PostGIS data store can also be used instead, but some queries may be slower due to lack of
 optimization.
+<<<<<<< HEAD
 =======
 The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 
 Upgrading Existing Schemas
 --------------------------
