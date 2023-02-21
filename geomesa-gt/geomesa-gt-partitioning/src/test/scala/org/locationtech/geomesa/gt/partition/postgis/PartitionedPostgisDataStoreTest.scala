@@ -6813,7 +6813,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         foreach(Seq("age-off", "ageoff")) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
-          sft.getUserData.put("pg.partitions.max", "1")
+          sft.getUserData.put("pg.partitions.max", "2")
 
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
