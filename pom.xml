@@ -1781,11 +1781,14 @@
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
 >>>>>>> e289c9ae736 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
@@ -6162,11 +6165,14 @@
 <<<<<<< HEAD
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>
