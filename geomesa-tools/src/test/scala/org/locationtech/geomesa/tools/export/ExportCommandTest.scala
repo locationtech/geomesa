@@ -13,6 +13,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -21,10 +22,13 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 package org.locationtech.geomesa.tools.`export`
 =======
 package org.locationtech.geomesa.tools.export
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -49,6 +53,11 @@ package org.locationtech.geomesa.tools.`export`
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+package org.locationtech.geomesa.tools.`export`
+>>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -81,16 +90,20 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8d65439b24 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -115,6 +128,8 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
@@ -184,6 +199,7 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -196,6 +212,8 @@ class ExportCommandTest extends Specification with Retries {
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 =======
     ds.getEntry(sft.getName).asInstanceOf[MemoryEntry].getMemory.asScala.foreach { case (_, feature) =>
       feature.getUserData.clear() // clear out the 'original feature' which causes serialization issues...
@@ -208,6 +226,7 @@ class ExportCommandTest extends Specification with Retries {
 =======
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
@@ -227,6 +246,8 @@ class ExportCommandTest extends Specification with Retries {
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
   }
 
   "Export command" should {
