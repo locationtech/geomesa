@@ -18012,6 +18012,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.1.0</geomesa.release.version>
         <geomesa.devel.version>5.2.0-SNAPSHOT</geomesa.devel.version>
 =======
@@ -18891,6 +18892,8 @@
 >>>>>>> 6f45aef055a ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> b1f393f7784 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9b6e85f885c (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
@@ -19770,6 +19773,8 @@
 >>>>>>> 9acadf0299b ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> c1cecabb063 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> be320f1bee0 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -20651,6 +20656,8 @@
 >>>>>>> 6932b537494 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 6be29e9c222 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 84580ba7fd1 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -21533,6 +21540,8 @@
 >>>>>>> 3882da5a972 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ce21d4f38d8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cbaeb926b59 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -22067,6 +22076,8 @@
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
         <geomesa.release.version>4.0.2</geomesa.release.version>
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
@@ -23240,6 +23251,7 @@
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29968,7 +29980,14 @@
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
+>>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
         <geomesa.release.version>3.5.0</geomesa.release.version>
+=======
+        <geomesa.release.version>3.5.1</geomesa.release.version>
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
