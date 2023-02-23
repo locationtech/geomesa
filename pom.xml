@@ -16550,12 +16550,17 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 02b88dddb7 (Add plugin repo for Eclipse dash tool)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 02b88dddb7 (Add plugin repo for Eclipse dash tool)
+>>>>>>> b0c5b7fcbe (Add plugin repo for Eclipse dash tool)
             <id>dash</id>
             <pluginRepositories>
                 <pluginRepository>
@@ -16569,6 +16574,7 @@
         </profile>
 
         <profile>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16593,6 +16599,9 @@
 =======
 <<<<<<< HEAD
 >>>>>>> add06a540dd (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> ce33ac6ed65 (Add plugin repo for Eclipse dash tool)
             <id>cyclonedx</id>
             <build>
                 <plugins>
@@ -16648,12 +16657,19 @@
 =======
 >>>>>>> 406d0e03c4 (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> b0c5b7fcbe (Add plugin repo for Eclipse dash tool)
+>>>>>>> 41bde8bb78 (Add plugin repo for Eclipse dash tool)
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 02b88dddb7 (Add plugin repo for Eclipse dash tool)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4ea7f6dd4a (Add plugin repo for Eclipse dash tool)
 =======
+=======
+>>>>>>> 41bde8bb78 (Add plugin repo for Eclipse dash tool)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -16665,7 +16681,12 @@
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> 406d0e03c4 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b0c5b7fcbe (Add plugin repo for Eclipse dash tool)
+>>>>>>> 41bde8bb78 (Add plugin repo for Eclipse dash tool)
             <id>bloop</id>
             <properties>
                 <scala.maven.plugin.version>4.8.0</scala.maven.plugin.version>
