@@ -15652,11 +15652,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ed8699346b6 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 =======
 >>>>>>> 0f1798f0924 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
+=======
+>>>>>>> f5857b686f5 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 931ffee4bdd (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -15719,7 +15722,12 @@
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+<<<<<<< HEAD
 >>>>>>> e868c4ea2bd (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+=======
+>>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+>>>>>>> f5857b686f5 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
@@ -31122,6 +31130,7 @@
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
@@ -31163,6 +31172,8 @@
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+=======
+>>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>
