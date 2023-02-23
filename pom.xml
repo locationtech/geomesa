@@ -6673,12 +6673,17 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 83c1777325 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+>>>>>>> 8d65439b24 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
         <gt.version>28.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
         <geoserver.version>2.22.2</geoserver.version>
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
