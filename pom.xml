@@ -413,7 +413,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>3.5.0</geomesa.release.version>
+=======
+        <geomesa.release.version>3.5.1</geomesa.release.version>
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
