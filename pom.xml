@@ -1863,6 +1863,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
 =======
@@ -2017,6 +2018,8 @@
 >>>>>>> bdecc12d07e ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ce2964d3fa2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 67c8f3fa6c7 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -2828,7 +2831,12 @@
 >>>>>>> e886d343d7 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
         <geomesa.release.version>3.5.0</geomesa.release.version>
+=======
+        <geomesa.release.version>3.5.1</geomesa.release.version>
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
