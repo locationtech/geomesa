@@ -674,6 +674,9 @@ geospatial analytics.
 
   &nbsp;&nbsp;&nbsp;&nbsp;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-hbase_2.12-3.5.1-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-accumulo_2.12-3.5.1-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-cassandra_2.12-3.5.1-bin.tar.gz) |
@@ -681,6 +684,7 @@ geospatial analytics.
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-redis_2.12-3.5.1-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-fs_2.12-3.5.1-bin.tar.gz) |
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-gt_2.12-3.5.1-bin.tar.gz)
+<<<<<<< HEAD
 =======
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-hbase_2.12-3.5.0-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-accumulo_2.12-3.5.0-bin.tar.gz) |
@@ -690,6 +694,8 @@ geospatial analytics.
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-fs_2.12-3.5.0-bin.tar.gz) |
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.0/geomesa-gt_2.12-3.5.0-bin.tar.gz)
 >>>>>>> 7dc3b0c3b (Add OpenSSF badge to README (#2965))
+=======
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
 
 ### Verifying Downloads
 
