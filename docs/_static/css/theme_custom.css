@@ -364,3 +364,6 @@ div.admonition.warning, div.admonition.note {
   margin: 0;
   width: 100%;
 }
+.sphinx-tabs .sphinx-tabs-panel div {
+  margin: 1px 0 1px;
+}
