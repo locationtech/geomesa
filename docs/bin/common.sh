@@ -13,10 +13,10 @@ function check_repo {
         echo "ERROR: $dir not a git repo"
         exit 3
     fi
-    cwd=`pwd`
-    cd $dir
-    n=`git remote -v show 2>&1 | grep "$url" | wc -l`
-    cd $cwd
+    cwd="$(pwd)"
+    cd "$dir" || exit
+    n=$(git remote -v show 2>&1 | grep -c "$url")
+    cd "$cwd" || exit
     if [[ "$n" -gt 0 ]] ; then
         return 0
     else

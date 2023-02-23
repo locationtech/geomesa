@@ -351,12 +351,12 @@ function fix_classpath_format() {
 
 # remove slf4j jars from a classpath string
 function remove_slf4j_from_classpath() {
-  echo "$1" | sed 's/[^:]*slf4j[^:]*jar//g'
+  echo "${1//[^:]*slf4j[^:]*jar/}"
 }
 
 # remove log4j1 jars from a classpath string
 function remove_log4j1_from_classpath() {
-  echo "$1" | sed 's/[^:]*log4j-1[^:]*jar//g'
+  echo "${1//[^:]*log4j-1[^:]*jar/}"
 }
 
 function geomesa_scala_console() {
