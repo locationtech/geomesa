@@ -18,10 +18,14 @@ jobs:
       - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '8'
           cache: 'maven'
       - name: Build with Maven
         run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - uses: actions/setup-java@3f07048e3d294f56e9b90ac5ea2c6f74e9ad0f98 # v3.10.0
+        with:
+          distribution: 'temurin'
+          java-version: '11'
       - name: License check
         run: mvn -B org.eclipse.dash:license-tool-plugin:license-check -Pdash -Ddash.fail=true -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
       - name: Remove geomesa artifacts
