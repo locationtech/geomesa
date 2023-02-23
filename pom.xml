@@ -22870,6 +22870,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
 =======
@@ -24113,6 +24114,8 @@
 >>>>>>> 2192b94062f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 06c25951034 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e7b62481017 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -25284,6 +25287,8 @@
 >>>>>>> e3f984bcac ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d1978ae015 (Set latest release version to 3.5.1)
         <geomesa.release.version>4.0.2</geomesa.release.version>
 =======
 =======
@@ -25489,6 +25494,8 @@
 >>>>>>> 122ebbdef2 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
@@ -26600,8 +26607,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d1978ae015 (Set latest release version to 3.5.1)
 =======
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 =======
@@ -30772,6 +30782,7 @@
 =======
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
+<<<<<<< HEAD
 =======
 >>>>>>> 7fd730a88a (Set release version)
 =======
@@ -37070,7 +37081,12 @@
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d1978ae015 (Set latest release version to 3.5.1)
         <geomesa.release.version>3.5.0</geomesa.release.version>
+=======
+        <geomesa.release.version>3.5.1</geomesa.release.version>
+>>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
