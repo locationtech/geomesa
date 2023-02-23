@@ -30,10 +30,11 @@ object DropAgedOffPartitions extends SqlProcedure {
        |      num_partitions int;                          -- number of partitions to keep
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
-       |      partition_name text;                         -- partition table name
+       |      partition_name regclass;                     -- partition table name
        |    BEGIN
        |      SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |        WHERE key = ${literal(PartitionedPostgisDialect.Config.MaxPartitions)}
+       |          AND type_name = ${literal(info.typeName)}
        |        INTO num_partitions;
        |      IF FOUND THEN
        |        main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
@@ -50,8 +51,10 @@ object DropAgedOffPartitions extends SqlProcedure {
        |              WHERE parentrelid IS NOT NULL
        |              AND (SELECT relname FROM pg_class WHERE oid = relid) <= ${literal(spillPartitions.name.raw + "_")} || to_char(partition_start, 'YYYY_MM_DD_HH24')
        |        LOOP
-       |          IF EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name) THEN
-       |            EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || quote_ident(partition_name);
+                  RAISE NOTICE 'Aging off partition %', partition_name;
+       |          IF EXISTS(SELECT FROM pg_class WHERE oid = partition_name) THEN
+       |            -- cast to text will handle quoting the table name appropriately
+       |            EXECUTE 'DROP TABLE IF EXISTS ${info.schema.quoted}.' || partition_name::text;
        |            RAISE NOTICE 'A partition has been deleted %', partition_name;
        |          END IF;
        |        END LOOP;

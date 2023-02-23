@@ -10,8 +10,8 @@ the file ``geomesa-site.xml`` from the classpath (if available), and use any pro
 Ensure the file is available at the root level of the classpath. In the GeoMesa command-line tools,
 place it in the ``conf`` folder. For GeoServer, place it under ``geoserver/WEB-INF/classes``.
 
-Each tools distribution contains a template file with the default settings at
-``conf/geomesa-site.xml.template``. Do not modify this file directly as it is never read;
+Each tools distribution contains a template file at ``conf/geomesa-site.xml.template`` that can be used
+as a starting point. Do not modify this file directly as it is never read;
 instead copy the desired configurations into ``geomesa-site.xml``.
 
 By default, system properties set through command line parameters will take precedence over the
@@ -117,7 +117,7 @@ By default, GeoMesa will estimate the size of a result set using statistics. Thi
 rough estimate very quickly. Some applications rely on knowing the exact size of a result set up
 front, so estimates will cause problems. To force GeoMesa to calculate the exact size of a result
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
-by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
+by using the query hint ``org.locationtech.geomesa.index.conf.QueryHints.EXACT_COUNT``.
 
 geomesa.exact.count.max.features
 ++++++++++++++++++++++++++++++++
@@ -204,7 +204,7 @@ geomesa.query.cost.type
 This property controls how GeoMesa performs query planning. By default, GeoMesa uses heuristics to determine the
 best index for a given query. Alternatively, this property may be set to ``stats`` to use cached data statistics
 and cost-based query planning. This may also be overridden on a per-query basis using the query hint
-``org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY``
+``org.locationtech.geomesa.index.conf.QueryHints.COST_EVALUATION_KEY``
 set to either ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Stats``
 or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``. See :ref:`query_planning`
 for more details on query planning strategies.

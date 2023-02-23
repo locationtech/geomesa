@@ -14,11 +14,15 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serdes.StringSerde;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
@@ -28,6 +32,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
+import org.apache.kafka.streams.test.TestRecord;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.Query;
 import org.geotools.data.Transaction;
@@ -38,7 +43,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
-import org.locationtech.geomesa.kafka.EmbeddedKafka;
 import org.locationtech.geomesa.kafka.data.KafkaDataStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 import org.locationtech.geomesa.utils.geotools.FeatureUtils;
@@ -48,6 +52,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -68,7 +75,7 @@ public class GeoMesaStreamsBuilderTest {
 
     private static final Logger logger = LoggerFactory.getLogger(GeoMesaStreamsBuilderTest.class);
 
-    static EmbeddedKafka kafka = null;
+    static KafkaContainer container = null;
 
     static final SimpleFeatureType sft =
           SimpleFeatureTypes.createImmutableType("streams", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326");
@@ -77,13 +84,20 @@ public class GeoMesaStreamsBuilderTest {
 
     static final Set<String> zkPaths = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+    static String zookeepers() {
+        return String.format("%s:%s", container.getHost(), container.getMappedPort(KafkaContainer.ZOOKEEPER_PORT));
+    }
+    static String brokers() {
+        return container.getBootstrapServers();
+    }
+
     public Map<String, String> getParams(String zkPath) {
         if (!zkPaths.add(zkPath)) {
             throw new IllegalArgumentException("zk path '" + zkPath + "' is reused between tests, may cause conflicts");
         }
         Map<String, String> params = new HashMap<>();
-        params.put("kafka.brokers", kafka.brokers());
-        params.put("kafka.zookeepers", kafka.zookeepers());
+        params.put("kafka.brokers", brokers());
+        params.put("kafka.zookeepers", zookeepers());
         params.put("kafka.topic.partitions", "1");
         params.put("kafka.topic.replication", "1");
         params.put("kafka.consumer.read-back", "Inf");
@@ -93,9 +107,12 @@ public class GeoMesaStreamsBuilderTest {
 
     @BeforeClass
     public static void init() {
-        logger.info("Starting embedded kafka/zk");
-        kafka = new EmbeddedKafka();
-        logger.info("Started embedded kafka/zk");
+        DockerImageName image =
+              DockerImageName.parse("confluentinc/cp-kafka")
+                             .withTag(System.getProperty("confluent.docker.tag", "7.3.1"));
+        container = new KafkaContainer(image);
+        container.start();
+        container.followOutput(new Slf4jLogConsumer(logger));
 
         for (int i = 0; i < 10; i ++) {
             ScalaSimpleFeature sf = new ScalaSimpleFeature(sft, "id" + i, null, null);
@@ -109,11 +126,9 @@ public class GeoMesaStreamsBuilderTest {
 
     @AfterClass
     public static void destroy() {
-        logger.info("Stopping embedded kafka/zk");
-        if (kafka != null) {
-            kafka.close();
+        if (container != null) {
+            container.stop();
         }
-        logger.info("Stopped embedded kafka/zk");
     }
 
     @Test
@@ -134,7 +149,7 @@ public class GeoMesaStreamsBuilderTest {
         }
 
         Properties consumerProps = new Properties();
-        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers());
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers());
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
@@ -170,18 +185,17 @@ public class GeoMesaStreamsBuilderTest {
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-word-count-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
 
-        Map<String, Long> output = new HashMap<>();
+        Map<String, Long> output;
         try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
-            messages.forEach(testDriver::pipeInput);
-            ProducerRecord<String, Long> out =
-                  testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
-            while (out != null) {
-                output.put(out.key(), out.value());
-                out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
-            }
+            TestInputTopic<byte[], byte[]> inputTopic = testDriver.createInputTopic(kryoTopic,
+                                                                                    new ByteArraySerializer(),
+                                                                                    new ByteArraySerializer());
+            messages.forEach(m -> inputTopic.pipeInput(new TestRecord<>(m)));
+            TestOutputTopic<String, Long> outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer());
+            output = new HashMap<>(outputTopic.readKeyValuesToMap());
         }
 
         Map<String, Long> expected = new HashMap<>();
@@ -232,24 +246,26 @@ public class GeoMesaStreamsBuilderTest {
             builder.wrapped().stream("input-topic",
                  Consumed.with(Serdes.String(), Serdes.String()).withTimestampExtractor(new WallclockTimestampExtractor()));
         KStream<String, GeoMesaMessage> output =
-            input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList(lines.split(","))));
+            input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList((Object[])lines.split(","))));
 
         builder.to(sft.getTypeName(), output);
 
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-write-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
-        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
 
         List<ProducerRecord<byte[], byte[]>> kryoMessages = new ArrayList<>();
         try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
-            testInput.forEach(testDriver::pipeInput);
-            ProducerRecord<byte[], byte[]> out =
-                  testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
-            while (out != null) {
-                kryoMessages.add(out);
-                out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+            TestInputTopic<byte[], byte[]> inputTopic = testDriver.createInputTopic("input-topic",
+                                                                                    new ByteArraySerializer(),
+                                                                                    new ByteArraySerializer());
+            testInput.forEach(m -> inputTopic.pipeInput(new TestRecord<>(m)));
+            TestOutputTopic<byte[], byte[]> outputTopic = testDriver.createOutputTopic(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+            while (!outputTopic.isEmpty()) {
+                TestRecord<byte[], byte[]> rec = outputTopic.readRecord();
+                kryoMessages.add(new ProducerRecord<>(kryoTopic, 0, rec.timestamp(), rec.getKey(), rec.getValue(), rec.getHeaders()));
             }
         }
 

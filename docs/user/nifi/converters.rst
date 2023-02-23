@@ -28,6 +28,16 @@ specifying the input source:
 | ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter and SFT definitions        |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 
+Additionally, the ``PutGeoMesa`` processor accepts additional configuration:
+
++-------------------------------+-----------------------------------------------------------------------------------------+
+| Property                      | Description                                                                             |
++===============================+=========================================================================================+
+| ``InitializeSchemas``         | Initialize schemas in the underlying data store when the processor is started. Schemas  |
+|                               | should be defined in standard Java properties format, with the type name as the key,    |
+|                               | and the feature type specification or lookup as the value                               |
++-------------------------------+-----------------------------------------------------------------------------------------+
+
 Defining SimpleFeatureTypes and Converters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -83,6 +93,19 @@ are available:
     Configuration via flow file attributes should be used with care, as any misconfigurations may multiply.
     For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
     flow file, potentially crashing your database by creating too many tables.
+
+Initializing Schemas
+~~~~~~~~~~~~~~~~~~~~
+
+The ``InitializeSchemas`` configuration can be used to create schemas in the underlying data store when the
+processor is started, instead of having to wait for data to flow through the processor. The schemas are defined
+as a standard Java properties file, where each line of the configuration should contain the name of a feature type
+as the key and the definition of the type as the value, corresponding to ``FeatureNameOverride`` and
+``SftName`` / ``SftSpec`` (see above). For example::
+
+    gdelt=gdelt2
+    example-csv=example-csv
+    test=name:String,dtg:Date,*geom:Point:srid=436
 
 Converter Metrics
 ~~~~~~~~~~~~~~~~~

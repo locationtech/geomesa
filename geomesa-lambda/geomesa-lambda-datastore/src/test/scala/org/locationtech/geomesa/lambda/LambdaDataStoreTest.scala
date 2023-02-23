@@ -8,15 +8,14 @@
 
 package org.locationtech.geomesa.lambda
 
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.util.factory.Hints
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -26,20 +25,18 @@ import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
+import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayInputStream
 import java.util.Date
 
-class LambdaDataStoreTest extends LambdaTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class LambdaDataStoreTest extends LambdaContainerTest {
 
   import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential
-
-  step {
-    logger.info("LambdaDataStoreTest starting")
-  }
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
