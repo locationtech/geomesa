@@ -21,6 +21,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v5.0.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v5.0.1</text>
 =======
@@ -30,6 +31,8 @@
 >>>>>>> 62dcecfb630 (Set latest release version to 3.5.1)
 =======
 >>>>>>> d7ce6f9b4e0 (Set release version)
+=======
+>>>>>>> be320f1bee0 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v5.0.0</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v5.0.0</text>
@@ -40,6 +43,8 @@
 >>>>>>> 6e99ff3e43a (Set latest release version to 3.5.1)
 =======
 >>>>>>> ffb832dd33d (Set release version)
+=======
+>>>>>>> 84580ba7fd1 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.5</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.5</text>
@@ -50,6 +55,8 @@
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
 =======
 >>>>>>> 84fa24f897b (Set release version)
+=======
+>>>>>>> cbaeb926b59 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
@@ -60,9 +67,14 @@
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.1</text>
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
 =======
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.2</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.2</text>
+>>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
+=======
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v3.5.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v3.5.1</text>
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -77,6 +89,8 @@
 =======
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
 =======
+=======
+>>>>>>> cbaeb926b59 (Set latest release version to 3.5.1)
 =======
 >>>>>>> 7fd730a88a (Set release version)
 >>>>>>> 84fa24f897b (Set release version)
@@ -108,8 +122,19 @@
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
 =======
 >>>>>>> 7fd730a88a (Set release version)
+<<<<<<< HEAD
 >>>>>>> 84fa24f897b (Set release version)
+<<<<<<< HEAD
 >>>>>>> ffb832dd33d (Set release version)
+<<<<<<< HEAD
 >>>>>>> d7ce6f9b4e0 (Set release version)
+=======
+=======
+=======
+=======
+>>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
+>>>>>>> cbaeb926b59 (Set latest release version to 3.5.1)
+>>>>>>> 84580ba7fd1 (Set latest release version to 3.5.1)
+>>>>>>> be320f1bee0 (Set latest release version to 3.5.1)
   </g>
 </svg>
