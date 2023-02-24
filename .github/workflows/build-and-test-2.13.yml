@@ -8,12 +8,19 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 =======
 >>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
+=======
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
+  MAVEN_TEST_OPTS: -o -Dtest.fork.count=1
+
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 jobs:
   build-scala:
     runs-on: ubuntu-latest
@@ -69,13 +76,23 @@ jobs:
       - name: Set Scala version
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
-        run: ./build/mvn clean install -B -DskipTests -T4 -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
+<<<<<<< HEAD
         run: mvn surefire:test -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> ce7c87cd883 (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> 7dc7bc5633c (Update github actions to latest versions)
+=======
+=======
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> 7b87d0240e7 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> a1f8f8a1f9c (Add Eclipse license scanning to CI (#2949))
         continue-on-error: true
         run: |
           set -o pipefail
@@ -83,6 +100,7 @@ jobs:
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
+<<<<<<< HEAD
 <<<<<<< HEAD
         continue-on-error: true
         run: |
@@ -97,9 +115,13 @@ jobs:
           RESUME_FROM="$(grep --text 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
 =======
+=======
+>>>>>>> a1f8f8a1f9c (Add Eclipse license scanning to CI (#2949))
 <<<<<<< HEAD
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 =======
+=======
+>>>>>>> 7b87d0240e7 (Add Eclipse license scanning to CI (#2949))
 <<<<<<< HEAD
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
@@ -111,10 +133,17 @@ jobs:
         id: hbase-test
         run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+      - name: HBase 1.4 unit tests
+        id: hbase-test
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
         continue-on-error: true
       - name: HBase 1.4 unit tests (retry)
         id: hbase-test-retry
         if: steps.hbase-test.outcome=='failure'
+<<<<<<< HEAD
 <<<<<<< HEAD
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 =======
@@ -129,4 +158,11 @@ jobs:
         if: success() || failure()
 =======
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+      - name: Integration Tests
+        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
