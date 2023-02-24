@@ -9,7 +9,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
-  MAVEN_TEST_OPTS: -o -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+  MAVEN_TEST_OPTS: -o -Dtest.fork.count=1
 
 jobs:
   build-scala:
