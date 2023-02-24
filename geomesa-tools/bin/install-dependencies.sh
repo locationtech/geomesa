@@ -12,7 +12,7 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
-export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "$(dirname "$0")"/.. || exit; pwd)}"
 export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
 export GEOMESA_DEPENDENCIES="${GEOMESA_DEPENDENCIES:-dependencies.sh}"
 
@@ -48,7 +48,7 @@ function download_dependencies() {
       fi
     done
     if [[ ${#jars[@]} -gt 0 ]]; then
-      echo >&2 "Found conflicting JAR(s):$newline  $(echo "${jars[@]}" | sed 's/ /\n  /g')${newline}"
+      echo >&2 "Found conflicting JAR(s):$newline  ${jars[*]// /\n  /}${newline}"
       confirm="yes"
       if [[ "$1" != "--no-prompt" ]]; then
         read -r -p "Remove them? (y/n) " confirm

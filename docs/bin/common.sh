@@ -1,3 +1,4 @@
+#!/bin/bash
 # Common functions used by documentation scripts
 
 function check_repo {

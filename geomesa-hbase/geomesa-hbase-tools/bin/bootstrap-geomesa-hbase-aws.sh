@@ -71,7 +71,7 @@ if [[ "$ROOTDIR" = s3* ]]; then
   aws --region ${availabilityZone::-1} s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME ${ROOTDIR}/lib/ && \
   echo "Installed GeoMesa distributed runtime to ${ROOTDIR}/lib/"
 elif [[ "$ROOTDIR" = hdfs* ]]; then
-  local libdir="${ROOTDIR}/lib"
+  libdir="${ROOTDIR}/lib"
   (sudo -u $GMUSER hadoop fs -test -d $libdir || sudo -u $GMUSER hadoop fs -mkdir $libdir) && \
   sudo -u $GMUSER hadoop fs -put -f ${GEOMESA_HBASE_HOME}/dist/hbase/$DISTRIBUTED_JAR_NAME $libdir/$DISTRIBUTED_JAR_NAME && \
   sudo -u $GMUSER hadoop fs -chown -R hbase:hbase $ROOTDIR/lib && \
