@@ -28,6 +28,9 @@ jobs:
           java-version: '11'
       - name: License check
         run: mvn -B org.eclipse.dash:license-tool-plugin:license-check -Pdash -Ddash.fail=true -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+      - name: Show license
+        if: success() || failure()
+        run: cat target/dash/summary
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
