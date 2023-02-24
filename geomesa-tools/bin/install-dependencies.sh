@@ -31,15 +31,15 @@ else
   exit 2
 fi
 
-install_dir="${%%tools.dist.name%%_HOME}/lib"
-
-if [[ -n "$1" && "$1" != "--no-prompt" ]]; then
-  install_dir="$1"
-  shift
-fi
-
 function download_dependencies() {
-  local excludes="$(exclude_dependencies)"
+  local install_dir="${%%tools.dist.name%%_HOME}/lib"
+  if [[ -n "$1" && "$1" != "--no-prompt" ]]; then
+    install_dir="$1"
+    shift
+  fi
+
+  local excludes
+  excludes="$(exclude_dependencies)"
   if [[ -n "$excludes" ]]; then
     local jars=()
     for jar in $excludes; do
@@ -62,7 +62,8 @@ function download_dependencies() {
     fi
   fi
 
-  local includes="$(dependencies)"
+  local includes
+  includes="$(dependencies)"
   local classpath=""
   if [[ -d "$install_dir" ]]; then
     classpath="$(ls $install_dir)"
@@ -85,4 +86,4 @@ function download_dependencies() {
   fi
 }
 
-download_dependencies
+download_dependencies "$@"

@@ -20,11 +20,12 @@
 # Accumulo home directory
 # export ACCUMULO_HOME="${ACCUMULO_HOME:-/path/to/accumulo}"
 
-# Accumulo lib directory, default to $ACCUMULO_HOME/lib
-export ACCUMULO_LIB="${ACCUMULO_LIB:-$ACCUMULO_HOME/lib}"
-
-# Accumulo conf directory, default to $ACCUMULO_HOME/conf
-export ACCUMULO_CONF_DIR="${ACCUMULO_CONF_DIR:-$ACCUMULO_HOME/conf}"
+if [[ -n "$ACCUMULO_HOME" ]]; then
+  # Accumulo lib directory, default to $ACCUMULO_HOME/lib
+  export ACCUMULO_LIB="${ACCUMULO_LIB:-$ACCUMULO_HOME/lib}"
+  # Accumulo conf directory, default to $ACCUMULO_HOME/conf
+  export ACCUMULO_CONF_DIR="${ACCUMULO_CONF_DIR:-$ACCUMULO_HOME/conf}"
+fi
 
 # ==================================================================
 # Zookeeper Environment Variables
@@ -43,15 +44,15 @@ function get_accumulo_classpath() {
       accumulo_cp="$ACCUMULO_CONF_DIR"
     fi
     if [[ -d "$ACCUMULO_LIB" ]]; then
-      accumulo_cp="$accumulo_cp:$(find_jars $ACCUMULO_LIB true)"
+      accumulo_cp="$accumulo_cp:$(find_jars "$ACCUMULO_LIB" true)"
     fi
     # for zookeeper only include the single root jar
     if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-      ZOOKEEPER_JAR="$(find -L $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar | head -n 1)"
+      ZOOKEEPER_JAR="$(find -L "$ZOOKEEPER_HOME" -maxdepth 1 -type f -name "*zookeeper*jar" | head -n 1)"
       accumulo_cp="$accumulo_cp:${ZOOKEEPER_JAR}"
     fi
     # if there's a geomesa runtime jar in accumulo, exclude it from the classpath
-    echo "$accumulo_cp" | sed 's/[^:]*geomesa-accumulo-distributed-runtime[^:]*jar//'
+    echo "$accumulo_cp" | sed -E 's/[^:]*geomesa-accumulo-distributed-runtime[^:]*jar//'
   fi
 }
 
