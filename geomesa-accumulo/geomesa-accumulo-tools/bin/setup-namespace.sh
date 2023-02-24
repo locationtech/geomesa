@@ -115,7 +115,7 @@ else
 fi
 
 if [[ -z "$ERROR" && -z "$ACCUMULO_PASSWORD" && -z "$USING_TOKEN" ]]; then
-    read -s -p "Enter Accumulo password for user $ACCUMULO_USER: " ACCUMULO_PASSWORD
+    read -r -s -p "Enter Accumulo password for user $ACCUMULO_USER: " ACCUMULO_PASSWORD
     echo
 fi
 
