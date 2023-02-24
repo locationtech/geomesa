@@ -40,7 +40,8 @@ function dependencies() {
   )
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+  local hadoop_maj_ver
+  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
   if [[ "$hadoop_maj_ver" -ge 3 ]]; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"

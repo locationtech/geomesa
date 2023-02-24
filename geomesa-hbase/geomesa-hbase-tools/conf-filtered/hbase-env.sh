@@ -60,7 +60,7 @@ function get_hbase_classpath() {
     fi
     # for zookeeper only include the single root jar
     if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-      ZOOKEEPER_JAR="$(find -L $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar | head -n 1)"
+      ZOOKEEPER_JAR="$(find -L "$ZOOKEEPER_HOME" -maxdepth 1 -type f -name "*zookeeper*jar" | head -n 1)"
       hbase_cp="$hbase_cp:${ZOOKEEPER_JAR}"
     fi
 

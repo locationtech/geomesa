@@ -30,7 +30,7 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)"
 
 # Load common functions and setup
 if [ -z "${%%tools.dist.name%%_HOME}" ]; then
-  export %%tools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+  export %%tools.dist.name%%_HOME="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 fi
 . $%%tools.dist.name%%_HOME/bin/common-functions.sh
 

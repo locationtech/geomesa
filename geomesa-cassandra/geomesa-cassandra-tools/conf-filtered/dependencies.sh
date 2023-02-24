@@ -44,7 +44,7 @@ function dependencies() {
   )
 
   # the cassandra install bundles the cassandra-all.jar as apache-cassandra.jar
-  if [[ -z "$(expr match "$classpath" ".*apache-cassandra-\([^:/][^:/]*\)\.jar.*")" ]]; then
+  if [[ -z "$([[ "$classpath" =~ .*apache-cassandra-([^:/][^:/]*)\.jar.* ]] && echo "${BASH_REMATCH[1]}")" ]]; then
     gavs+=("org.apache.cassandra:cassandra-all:${cassandra_version}:jar")
   fi
 

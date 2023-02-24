@@ -29,10 +29,14 @@ function help() {
   echo "  -d    Directory to create namespace in, default: /accumulo/classpath"
   echo "  -h    HDFS URI e.g. hdfs://localhost:9000"
   echo ""
-  exit 0
 }
 
-while getopts ":u:p:tn:g:h:d:help" opt; do
+if [[ $# -eq 0 ]]; then
+  help
+  exit 0
+fi
+
+while getopts ":u:p:tn:g:h:d" opt; do
   case $opt in
     u)
       ACCUMULO_USER=$OPTARG
@@ -54,9 +58,6 @@ while getopts ":u:p:tn:g:h:d:help" opt; do
       ;;
     h)
       HDFS_URI=$OPTARG
-      ;;
-     help)
-      help
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -86,7 +87,7 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     # double dirnames takes the parent of the parent of the script
     # which should be the GM home if this script is in "bin"
     if [ -z "${GEOMESA_ACCUMULO_HOME}" ]; then
-        GEOMESA_ACCUMULO_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+        GEOMESA_ACCUMULO_HOME="$(cd "$(dirname "$0")"/.. || exit; pwd)"
     fi
     GEOMESA_JAR=$(find -L ${GEOMESA_ACCUMULO_HOME}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
     if [[ "x$GEOMESA_JAR" == "x" ]]; then
@@ -103,7 +104,7 @@ if [[ -z "$NAMESPACE_DIR" ]]; then
 fi
 
 if [[ -z "$HDFS_URI" ]]; then
-    HDFS_URI=`hdfs getconf -confKey fs.defaultFS`
+    HDFS_URI="$(hdfs getconf -confKey fs.defaultFS)"
 fi
 
 if [[ $HDFS_URI == hdfs* ]]; then

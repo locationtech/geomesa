@@ -10,7 +10,7 @@
 type=$1
 
 # configure HOME
-export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "$(dirname "$0")"/.. || exit; pwd)}"
 data_dir="${%%tools.dist.name%%_HOME}/data"
 
 NL=$'\n'
@@ -38,17 +38,17 @@ case "$type" in
 
     UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36"
 
-    for i in `seq 1 $NUM`; do
+    for i in $(seq 1 "$NUM"); do
       echo "Downloading zip $i of $NUM"
       wget "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/0$i.zip" -P ${data_dir}/tdrive -U "$UA" \
-      || errorList="${errorList[@]} https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/0${i}.zip ${NL}";
+      || errorList+="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/0${i}.zip ${NL}";
     done
 
     wget "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/User_guide_T-drive.pdf" -P ${data_dir}/tdrive \
-      || errorList="${errorList[@]} https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/User_guide_T-drive.pdf ${NL}";
+      || errorList+="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/User_guide_T-drive.pdf ${NL}";
 
     if [[ -n "${errorList}" ]]; then
-      echo "Failed to download: ${NL} ${errorList[@]}";
+      echo "Failed to download: ${NL} ${errorList[*]}";
     fi
 
     ;;
@@ -56,7 +56,7 @@ case "$type" in
   geonames)
     read -p "Enter the country code to download data for: " CC
 
-    wget "http://download.geonames.org/export/dump/$CC.zip" -P ${data_dir}/geonames
+    wget "http://download.geonames.org/export/dump/$CC.zip" -P "${data_dir}"/geonames
     ;;
 
   *)
