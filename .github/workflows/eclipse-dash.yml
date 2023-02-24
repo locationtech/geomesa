@@ -30,7 +30,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
       - name: License check
-        run: mvn org.eclipse.dash:license-tool-plugin:license-check $MAVEN_CLI_OPTS -Pdash -Ddash.fail=true
+        run: mvn org.eclipse.dash:license-tool-plugin:license-check $MAVEN_CLI_OPTS -Pdash -Ddash.fail=true -Ddash.projectId=locationtech.geomesa
       - name: Show license
         if: success() || failure()
         run: cat target/dash/summary
