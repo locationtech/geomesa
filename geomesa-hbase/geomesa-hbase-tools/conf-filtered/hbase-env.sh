@@ -65,7 +65,7 @@ function get_hbase_classpath() {
     fi
 
     # if there's a geomesa runtime jar in hbase, exclude it from the classpath
-    echo "{$hbase_cp/[^:]*geomesa-hbase-distributed-runtime[^:]*jar/}"
+    echo "$hbase_cp" | sed -E 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//'
   fi
 }
 
