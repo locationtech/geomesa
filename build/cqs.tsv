@@ -827,6 +827,7 @@ org.ejml:ejml-simple	0.41	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.geotools.jdbc:gt-jdbc-postgis	30.2	compile
 org.geotools.ogc:net.opengis.fes	30.2	compile
 org.geotools.ogc:net.opengis.ows	30.2	compile
@@ -871,6 +872,8 @@ org.geotools:gt-xml	30.2	compile
 =======
 =======
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 91c68d81feb (Update cq list)
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -904,7 +907,14 @@ org.geotools:gt-xml	30.2	compile
 =======
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 4818f04155 (Update cq list)
+>>>>>>> ed8a64de15 (Update cq list)
+>>>>>>> 91c68d81feb (Update cq list)
 org.geotools.jdbc:gt-jdbc-postgis	28.2	compile
 org.geotools.ogc:net.opengis.fes	28.2	compile
 org.geotools.ogc:net.opengis.ows	28.2	compile
