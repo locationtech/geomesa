@@ -501,12 +501,17 @@ org.ejml:ejml-simple	0.41	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4818f04155 (Update cq list)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4818f04155 (Update cq list)
+>>>>>>> 1cb6d46e38 (Update cq list)
 org.geotools.jdbc:gt-jdbc-postgis	28.2	compile
 org.geotools.ogc:net.opengis.fes	28.2	compile
 org.geotools.ogc:net.opengis.ows	28.2	compile
