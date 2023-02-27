@@ -1494,6 +1494,7 @@ geospatial analytics.
 >>>>>>> 19dc67f19 (Update README.md)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -3176,6 +3177,8 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
 
+=======
+>>>>>>> 1f3b009e3 (Update README.md)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -3396,6 +3399,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21464,8 +21468,11 @@ See [CITATION](CITATION)
 >>>>>>> 1f3b009e3 (Update README.md)
 >>>>>>> 4319d58858 (Update README.md)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ddc40c27d6 (Update README.md)
 =======
+=======
+>>>>>>> 0d41ff608d (Update README.md)
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
@@ -23692,4 +23699,9 @@ See [CITATION](CITATION)
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> ae0d1e590b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 13a31518ec (Update README.md)
+>>>>>>> 0d41ff608d (Update README.md)
