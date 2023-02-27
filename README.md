@@ -393,6 +393,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8f48345a6c (Update README.md)
 =======
 
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -414,6 +417,7 @@ geospatial analytics.
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 44403206c5 (Update README.md)
+<<<<<<< HEAD
 =======
 
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -441,6 +445,8 @@ geospatial analytics.
 <<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8f48345a6c (Update README.md)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -6133,6 +6139,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 </p>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1f3b009e3 (Update README.md)
 =======
@@ -6142,6 +6149,10 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8b171d1b80 (Update README.md)
+=======
+=======
+>>>>>>> 1f3b009e30 (Update README.md)
+>>>>>>> 44403206c5 (Update README.md)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -10990,6 +11001,7 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -14330,6 +14342,8 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 44403206c5 (Update README.md)
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -42482,6 +42496,7 @@ See [CITATION](CITATION)
 =======
 >>>>>>> 1f3b009e30 (Update README.md)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 44403206c5 (Update README.md)
 <<<<<<< HEAD
 >>>>>>> 0414a3826b (Update README.md)
@@ -46975,4 +46990,10 @@ See [CITATION](CITATION)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> e44b1aa291 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 44403206c5 (Update README.md)
+>>>>>>> 8f48345a6c (Update README.md)
+>>>>>>> 752f581c36 (Update README.md)
