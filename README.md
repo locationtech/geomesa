@@ -704,6 +704,7 @@ geospatial analytics.
 >>>>>>> 19dc67f19 (Update README.md)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -1179,6 +1180,8 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
 
+=======
+>>>>>>> 1f3b009e3 (Update README.md)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -1399,6 +1402,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.13
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10366,5 +10370,13 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 See [CITATION](CITATION)
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> 694f50160e (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+=======
+>>>>>>> 1f3b009e3 (Update README.md)
+>>>>>>> 4319d58858 (Update README.md)
+>>>>>>> ddc40c27d6 (Update README.md)
