@@ -355,6 +355,9 @@ org.ejml:ejml-ddense	0.41	compile
 org.ejml:ejml-fsparse	0.41	compile
 org.ejml:ejml-simple	0.41	compile
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4818f04155 (Update cq list)
 org.geotools.jdbc:gt-jdbc-postgis	28.2	compile
 org.geotools.ogc:net.opengis.fes	28.2	compile
 org.geotools.ogc:net.opengis.ows	28.2	compile
@@ -384,6 +387,10 @@ org.geotools:gt-render	28.2	compile
 org.geotools:gt-shapefile	28.2	compile
 org.geotools:gt-transform	28.2	compile
 org.geotools:gt-xml	28.2	compile
+<<<<<<< HEAD
+=======
+org.hdrhistogram:HdrHistogram	2.1.12	compile
+>>>>>>> 4818f04155 (Update cq list)
 org.hsqldb:hsqldb	jdk8:2.7.1	compile
 =======
 org.geotools:gt-coverage	28.0	compile
