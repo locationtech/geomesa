@@ -16,6 +16,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8b171d1b80 (Update README.md)
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -144,6 +147,11 @@ geospatial analytics.
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<p align="center">
+  <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
+</p>
+>>>>>>> 19dc67f198 (Update README.md)
 
 <<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1837,6 +1845,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
 
+<<<<<<< HEAD
 =======
 >>>>>>> 1f3b009e3 (Update README.md)
 =======
@@ -1844,6 +1853,8 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 
 <<<<<<< HEAD
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8b171d1b80 (Update README.md)
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
 computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase and
 Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
@@ -1851,6 +1862,7 @@ stream processing of spatio-temporal data by layering spatial semantics on top o
 GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
+<<<<<<< HEAD
 =======
 [![Travis Status](https://travis-ci.com/OSGeo/PROJ.svg?branch=master)](https://travis-ci.com/OSGeo/PROJ)
 [![AppVeyor Status](https://ci.appveyor.com/api/projects/status/github/OSGeo/PROJ?branch=master&svg=true)](https://ci.appveyor.com/project/OSGeo/PROJ?branch=master)
@@ -1880,6 +1892,23 @@ For more information on the PROJ project please see the web page at:
 https://proj.org/
 
 <<<<<<< HEAD
+=======
+
+<p align="center">
+  <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
+</p>
+
+#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
+
+## Join the Community
+
+* <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
+* GeoMesa [Users](https://accounts.eclipse.org/mailing-list/geomesa-users) and [Dev](https://accounts.eclipse.org/mailing-list/geomesa-dev) mailing lists
+* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
+
+## Documentation
+
+>>>>>>> 8b171d1b80 (Update README.md)
 * [Main documentation](https://www.geomesa.org/documentation/)
 * [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
@@ -1890,6 +1919,7 @@ https://proj.org/
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
   [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
 * [Tutorials](https://www.geomesa.org/tutorials/)
+<<<<<<< HEAD
 =======
 The PROJ mailing list can be found at:
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1906,6 +1936,11 @@ https://lists.osgeo.org/mailman/listinfo/proj/
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+
+## Downloads
+
+>>>>>>> 8b171d1b80 (Update README.md)
 **Current release: [3.5.1](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.1)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -1916,6 +1951,7 @@ https://lists.osgeo.org/mailman/listinfo/proj/
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-redis_2.12-3.5.1-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-fs_2.12-3.5.1-bin.tar.gz) |
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-3.5.1/geomesa-gt_2.12-3.5.1-bin.tar.gz)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 6d17d625fd ([maven-release-plugin] prepare for next development iteration)
@@ -2516,10 +2552,42 @@ CDN.
 
 <<<<<<< HEAD
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+
+### Verifying Downloads
+
+Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files). To verify a download using gpg,
+import the appropriate key:
+
+```bash
+$ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+```
+
+Then verify the file:
+
+```bash
+$ gpg2 --verify geomesa-accumulo_2.12-3.5.1-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.1-bin.tar.gz
+```
+
+The keys currently used for signing are:
+
+| Key ID | Name |
+| ------ | ---- |
+| `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
+| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
+
+## Maven Integration
+
+[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
+
+GeoMesa is hosted on Maven Central. To include it as a dependency, add the desired modules, for example:
+
+>>>>>>> 8b171d1b80 (Update README.md)
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2823,6 +2891,15 @@ CDN.
 ## Citing PROJ in publications
 
 <<<<<<< HEAD
+=======
+  <version>3.5.1</version>
+</dependency>
+```
+
+GeoMesa depends on several third-party libraries that are only available in separate repositories. To include
+GeoMesa in your project, add the following repositories to your pom:
+
+>>>>>>> 8b171d1b80 (Update README.md)
 ```xml
 <repositories>
   <!-- geotools -->
@@ -2840,6 +2917,7 @@ CDN.
 
 ### Nightly Snapshots
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4089,6 +4167,9 @@ Snapshot versions are published nightly to the Eclipse repository:
 >>>>>>> a0515b751 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 78d1db9c25 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 320c3cc14c ([maven-release-plugin] prepare for next development iteration)
+=======
+Snapshot versions are published nightly to the Eclipse repository:
+>>>>>>> 8b171d1b80 (Update README.md)
 
 ```xml
 <repository>
@@ -4114,6 +4195,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4354,6 +4436,9 @@ DataStore implementations:
 >>>>>>> c8e685410 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> 5ad2f6a7b2 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> ae468ad6f1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+  <version>3.5.1</version>
+>>>>>>> 8b171d1b80 (Update README.md)
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -4379,6 +4464,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4629,11 +4715,15 @@ libraryDependencies ++= Seq(
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 7d90b9e8fd ([maven-release-plugin] prepare for next development iteration)
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.1"
+>>>>>>> 8b171d1b80 (Update README.md)
 )
 ```
 
 ## Building from Source
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6541,6 +6631,9 @@ libraryDependencies ++= Seq(
 =======
 >>>>>>> 9a1ca2afcc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> c0e046d1aa (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+**Development version: 4.0.0-SNAPSHOT**
+>>>>>>> 8b171d1b80 (Update README.md)
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
@@ -6597,6 +6690,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 ### Scala Cross Build
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
@@ -9939,6 +10033,11 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
     ./build/change-scala-version.sh 2.13
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.13
+>>>>>>> 8b171d1b80 (Update README.md)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
