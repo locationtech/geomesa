@@ -14,6 +14,9 @@ package object hbase {
 
   object HBaseSystemProperties {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
     val CoprocessorUrl             : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
     val WriteBatchSize             : SystemProperty = SystemProperty("geomesa.hbase.write.batch")
@@ -32,10 +35,13 @@ package object hbase {
     val RemoteStatsProperty        : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
     val YieldPartialResultsProperty: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
 <<<<<<< HEAD
+<<<<<<< HEAD
     val CoprocessorThreadsProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.threads", "16")
     val MaxRangesPerExtendedScanProperty   : SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-extended-scan", "100")
     val MaxRangesPerCoprocessorScanProperty: SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-coprocessor-scan", Int.MaxValue.toString)
 =======
+=======
+>>>>>>> 202ecaea0e (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
     val CoprocessorUrl           : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads    : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
@@ -48,7 +54,12 @@ package object hbase {
     val TableAvailabilityTimeout : SystemProperty = SystemProperty("geomesa.hbase.table.availability.timeout", "30 minutes")
     val DeleteVis                : SystemProperty = SystemProperty("geomesa.hbase.delete.vis")
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> e9312bc69c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+>>>>>>> 202ecaea0e (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 
     @deprecated("Use coprocessor url")
     val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")
