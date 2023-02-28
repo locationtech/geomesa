@@ -268,6 +268,7 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
   val OffsetManagerParam =
     new GeoMesaParam[OffsetManager](
 <<<<<<< HEAD
+<<<<<<< HEAD
       "lambda.offset-manager",
       "Offset manager instance to use",
       deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
@@ -276,6 +277,11 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "Offset manager instance to use",
       deprecatedKeys = Seq("offsetManager"))
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+      "lambda.offset-manager",
+      "Offset manager instance to use",
+      deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
+>>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
