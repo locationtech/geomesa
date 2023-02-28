@@ -796,10 +796,14 @@ GeoTools/GeoServer Versions
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -812,6 +816,8 @@ GeoTools/GeoServer Versions
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 =======
 GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
@@ -821,8 +827,11 @@ GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
@@ -842,6 +851,7 @@ GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -857,6 +867,8 @@ GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 JTS has been upgraded from ``1.17.0`` to ``1.19.0``.
 
 As part of this upgrade, various GeoTools methods have changed in incompatible ways. Several classes, in
@@ -1032,6 +1044,7 @@ For a full changelist of all dependencies, see the diff
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
@@ -1040,6 +1053,10 @@ For a full changelist of all dependencies, see the diff
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 
 Minimum Library Versions
@@ -1078,6 +1095,9 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -1104,6 +1124,7 @@ Support for older versions of some libraries has been dropped. The following min
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
@@ -1133,6 +1154,10 @@ Support for older versions of some libraries has been dropped. The following min
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 
 Removal of Deprecated Modules
 -----------------------------
@@ -1160,10 +1185,14 @@ In addition, various other deprecated classes and methods were removed. To ident
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1176,6 +1205,8 @@ In addition, various other deprecated classes and methods were removed. To ident
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 =======
 build your project against GeoMesa 3.5.0 and note any deprecation warnings generated by the compiler.
@@ -1185,8 +1216,11 @@ build your project against GeoMesa 3.5.0 and note any deprecation warnings gener
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
@@ -1206,6 +1240,7 @@ build your project against GeoMesa 3.5.0 and note any deprecation warnings gener
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 >>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1221,6 +1256,8 @@ build your project against GeoMesa 3.5.1 and note any deprecation warnings gener
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 
 Package Changes
 ---------------
