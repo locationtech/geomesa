@@ -23,12 +23,15 @@ package object hbase {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> d19a46c929 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
@@ -42,6 +45,7 @@ package object hbase {
 =======
 >>>>>>> 585c5638c0 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
 =======
 >>>>>>> e30217c0a7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
@@ -56,6 +60,8 @@ package object hbase {
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
     val CoprocessorUrl             : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
     val WriteBatchSize             : SystemProperty = SystemProperty("geomesa.hbase.write.batch")
@@ -73,6 +79,7 @@ package object hbase {
     val RemoteDensityProperty      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
     val RemoteStatsProperty        : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
     val YieldPartialResultsProperty: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -104,14 +111,19 @@ package object hbase {
 >>>>>>> f291de6965 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 =======
+>>>>>>> 14c7559e85 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> ef2b6ffbbc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 523f31ca47 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
@@ -129,6 +141,10 @@ package object hbase {
 =======
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
     val CoprocessorUrl           : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads    : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
     val WriteBatchSize           : SystemProperty = SystemProperty("geomesa.hbase.write.batch")
@@ -213,12 +229,17 @@ package object hbase {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 202ecaea0e (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 =======
 >>>>>>> 6fb402b89d (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 >>>>>>> dc1e06182b (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+>>>>>>> 14c7559e85 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 8effb11c46 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -234,8 +255,11 @@ package object hbase {
 =======
 >>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6fb402b89d (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
+=======
+>>>>>>> 14c7559e85 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 =======
 =======
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -277,7 +301,12 @@ package object hbase {
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 1b25b28b73 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 65018efac6 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> ef2b6ffbbc (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+>>>>>>> 14c7559e85 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
 
     @deprecated("Use coprocessor url")
     val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")
