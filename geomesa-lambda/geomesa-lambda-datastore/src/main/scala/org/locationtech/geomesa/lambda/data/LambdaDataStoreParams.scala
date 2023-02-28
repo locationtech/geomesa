@@ -1552,6 +1552,7 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -1564,6 +1565,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 >>>>>>> 7edcee4732 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
       "lambda.offset-manager",
       "Offset manager instance to use",
       deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
@@ -1585,6 +1588,7 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 16f912e1ef (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -1601,6 +1605,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 =======
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 4a51affd9e (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
