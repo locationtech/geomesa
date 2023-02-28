@@ -38,8 +38,11 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 =======
 =======
 import com.typesafe.scalalogging.LazyLogging
@@ -63,6 +66,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
@@ -118,6 +122,8 @@ class ZookeeperOffsetManagerTest extends LambdaContainerTest {
 class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with LazyLogging {
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with LazyLogging {
@@ -234,6 +240,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -244,6 +251,10 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
       try {
         foreach(0 until 3) { i =>
           manager.getOffset("foo", i) mustEqual -1L
@@ -257,12 +268,15 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 =======
       val offsets = 0 until 3
       forall(offsets)(i => manager.getOffset("foo", i) mustEqual -1L)
@@ -272,6 +286,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -282,6 +297,10 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
     }
 
     "trigger listeners" in {
@@ -291,6 +310,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -301,6 +321,10 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
       try {
         val triggers = new LinkedBlockingQueue[(Int, Int)]()
         manager.addOffsetListener("bar", new OffsetListener() {
@@ -310,12 +334,15 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 =======
       val triggers = scala.collection.mutable.Map(0 -> 0, 1 -> 0, 2 -> 0)
       manager.addOffsetListener("bar", new OffsetListener() {
@@ -326,6 +353,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -336,6 +364,10 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+=======
+=======
+>>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
+>>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 
         manager.setOffset("bar", 0, 1)
         triggers.poll(4, TimeUnit.SECONDS) mustEqual 0 -> 1
