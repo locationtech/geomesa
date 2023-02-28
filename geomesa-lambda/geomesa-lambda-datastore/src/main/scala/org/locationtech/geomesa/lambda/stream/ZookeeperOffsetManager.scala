@@ -69,12 +69,12 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
   }
 
   override protected def acquireDistributedLock(path: String): Releasable =
-    acquireLock(path, (lock) => { lock.acquire(); true })
+    acquireLock(path, lock => { lock.acquire(); true })
 
   override protected def acquireDistributedLock(path: String, timeOut: Long): Option[Releasable] =
-    Option(acquireLock(path, (lock) => lock.acquire(timeOut, TimeUnit.MILLISECONDS)))
+    Option(acquireLock(path, lock => lock.acquire(timeOut, TimeUnit.MILLISECONDS)))
 
-  private def acquireLock(path: String, acquire: (InterProcessSemaphoreMutex) => Boolean): Releasable = {
+  private def acquireLock(path: String, acquire: InterProcessSemaphoreMutex => Boolean): Releasable = {
     val lock = new InterProcessSemaphoreMutex(client, s"/$path/locks")
     if (acquire(lock)) {
       new Releasable { override def release(): Unit = lock.release() }
