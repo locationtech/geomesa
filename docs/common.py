@@ -335,7 +335,6 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 html_theme_options = {
   'canonical_url': 'https://www.geomesa.org/documentation/',
-  'analytics_id': 'UA-53087457-1',
   'collapse_navigation': True,
   'navigation_depth': 4
 }
