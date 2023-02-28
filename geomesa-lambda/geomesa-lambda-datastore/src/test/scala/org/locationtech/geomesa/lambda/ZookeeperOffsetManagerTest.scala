@@ -19,10 +19,10 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+
 @RunWith(classOf[JUnitRunner])
 class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with LazyLogging {
-
-  import scala.concurrent.duration._
 
   private var container: GenericContainer[_] = _
 
@@ -49,25 +49,34 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
   "ZookeeperOffsetManager" should {
     "store and retrieve offsets" in {
       val manager = new ZookeeperOffsetManager(zookeepers, "ZookeeperOffsetManagerTest")
-      val offsets = 0 until 3
-      forall(offsets)(i => manager.getOffset("foo", i) mustEqual -1L)
-      offsets.foreach(i => manager.setOffset("foo", i, i))
-      forall(offsets)(i => manager.getOffset("foo", i) mustEqual i)
+      try {
+        foreach(0 until 3) { i =>
+          manager.getOffset("foo", i) mustEqual -1L
+          manager.setOffset("foo", i, i)
+          manager.getOffset("foo", i) mustEqual i
+        }
+      } finally {
+        manager.close()
+      }
     }
 
     "trigger listeners" in {
       val manager = new ZookeeperOffsetManager(zookeepers, "ZookeeperOffsetManagerTest")
-      val triggers = scala.collection.mutable.Map(0 -> 0, 1 -> 0, 2 -> 0)
-      manager.addOffsetListener("bar", new OffsetListener() {
-        override def offsetChanged(partition: Int, offset: Long): Unit =
-          triggers(partition) = offset.toInt
-      })
+      try {
+        val triggers = new LinkedBlockingQueue[(Int, Int)]()
+        manager.addOffsetListener("bar", new OffsetListener() {
+          override def offsetChanged(partition: Int, offset: Long): Unit = triggers.add(partition, offset.toInt)
+        })
 
-      manager.setOffset("bar", 0, 1)
-      eventually(40, 100.millis)(triggers.toMap must beEqualTo(Map(0 -> 1, 1 -> 0, 2 -> 0)))
-      manager.setOffset("bar", 0, 2)
-      manager.setOffset("bar", 2, 1)
-      eventually(40, 100.millis)(triggers.toMap must beEqualTo(Map(0 -> 2, 1 -> 0, 2 -> 1)))
+        manager.setOffset("bar", 0, 1)
+        triggers.poll(4, TimeUnit.SECONDS) mustEqual 0 -> 1
+        manager.setOffset("bar", 0, 2)
+        triggers.poll(4, TimeUnit.SECONDS) mustEqual 0 -> 2
+        manager.setOffset("bar", 2, 1)
+        triggers.poll(4, TimeUnit.SECONDS) mustEqual 2 -> 1
+      } finally {
+        manager.close()
+      }
     }
   }
 }

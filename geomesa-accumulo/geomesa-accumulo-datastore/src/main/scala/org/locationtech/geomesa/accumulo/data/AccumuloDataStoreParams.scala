@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 
+import org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -104,7 +105,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       "accumulo.remote.arrow.enable",
       "Process Arrow encoding in Accumulo tablets servers as a distributed call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteArrowProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(RemoteProcessingProperties.RemoteArrowProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -113,7 +114,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       "accumulo.remote.bin.enable",
       "Process binary encoding in Accumulo tablets servers as a distributed call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteBinProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(RemoteProcessingProperties.RemoteBinProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -122,7 +123,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       "accumulo.remote.density.enable",
       "Process heatmap encoding in Accumulo tablets servers as a distributed call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteDensityProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(RemoteProcessingProperties.RemoteDensityProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -131,7 +132,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       "accumulo.remote.stats.enable",
       "Process statistical calculations in Accumulo tablets servers as a distributed call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteStatsProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(RemoteProcessingProperties.RemoteStatsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 }
