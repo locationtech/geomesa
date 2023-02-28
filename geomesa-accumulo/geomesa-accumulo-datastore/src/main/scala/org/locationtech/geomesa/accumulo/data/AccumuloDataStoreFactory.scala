@@ -21,7 +21,7 @@ import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
+import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
@@ -71,10 +71,14 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   import scala.collection.JavaConverters._
 
-  val RemoteArrowProperty   : SystemProperty = SystemProperty("geomesa.accumulo.remote.arrow.enable")
-  val RemoteBinProperty     : SystemProperty = SystemProperty("geomesa.accumulo.remote.bin.enable")
-  val RemoteDensityProperty : SystemProperty = SystemProperty("geomesa.accumulo.remote.density.enable")
-  val RemoteStatsProperty   : SystemProperty = SystemProperty("geomesa.accumulo.remote.stats.enable")
+  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
+  val RemoteArrowProperty   : SystemProperty = RemoteProcessingProperties.RemoteArrowProperty
+  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
+  val RemoteBinProperty     : SystemProperty = RemoteProcessingProperties.RemoteBinProperty
+  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
+  val RemoteDensityProperty : SystemProperty = RemoteProcessingProperties.RemoteDensityProperty
+  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
+  val RemoteStatsProperty   : SystemProperty = RemoteProcessingProperties.RemoteStatsProperty
 
   override val DisplayName = "Accumulo (GeoMesa)"
   override val Description = "Apache Accumulo\u2122 distributed key/value store"
