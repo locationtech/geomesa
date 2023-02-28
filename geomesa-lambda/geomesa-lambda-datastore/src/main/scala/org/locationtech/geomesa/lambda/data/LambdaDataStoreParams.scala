@@ -117,9 +117,9 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 
   val OffsetManagerParam =
     new GeoMesaParam[OffsetManager](
-      "lamdab.offset-manager",
+      "lambda.offset-manager",
       "Offset manager instance to use",
-      deprecatedKeys = Seq("offsetManager"))
+      deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
