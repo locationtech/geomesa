@@ -16,6 +16,7 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -115,13 +116,20 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
-  val ConfigPathProperty          : SystemProperty = SystemProperty("geomesa.hbase.config.paths")
-  val RemoteFilterProperty        : SystemProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
-  val RemoteArrowProperty         : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.arrow.enable")
-  val RemoteBinProperty           : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.bin.enable")
-  val RemoteDensityProperty       : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
-  val RemoteStatsProperty         : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
-  val YieldPartialResultsProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val ConfigPathProperty: SystemProperty = HBaseSystemProperties.ConfigPathProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val RemoteFilterProperty: SystemProperty = HBaseSystemProperties.RemoteFilterProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val RemoteArrowProperty: SystemProperty = HBaseSystemProperties.RemoteArrowProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val RemoteBinProperty: SystemProperty = HBaseSystemProperties.RemoteBinProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val RemoteDensityProperty: SystemProperty = HBaseSystemProperties.RemoteDensityProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val RemoteStatsProperty: SystemProperty = HBaseSystemProperties.RemoteStatsProperty
+  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
+  val YieldPartialResultsProperty: SystemProperty = HBaseSystemProperties.YieldPartialResultsProperty
 
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"

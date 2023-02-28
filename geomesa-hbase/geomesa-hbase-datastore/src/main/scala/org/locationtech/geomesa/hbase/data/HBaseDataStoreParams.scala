@@ -10,6 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.Connection
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -72,7 +73,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "Enable remote filtering, i.e. filters and coprocessors",
       default = java.lang.Boolean.TRUE,
       deprecatedKeys = Seq("remote.filtering"),
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.RemoteFilterProperty)),
       readWrite = ReadWriteFlag.ReadUpdate
     )
 
@@ -123,7 +124,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.arrow.enable",
       "Processes Arrow encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteArrowProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.RemoteArrowProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -132,7 +133,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.bin.enable",
       "Processes binary encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteBinProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.RemoteBinProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -141,7 +142,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.density.enable",
       "Processes heatmap encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteDensityProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.RemoteDensityProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -150,7 +151,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.stats.enable",
       "Processes statistical calculations in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteStatsProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.RemoteStatsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -160,7 +161,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "Yield Partial Results",
       default = java.lang.Boolean.FALSE,
       deprecatedKeys = Seq(),
-      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.YieldPartialResultsProperty)),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseSystemProperties.YieldPartialResultsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 }

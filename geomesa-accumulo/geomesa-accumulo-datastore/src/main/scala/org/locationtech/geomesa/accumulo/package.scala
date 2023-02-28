@@ -29,5 +29,12 @@ package object accumulo {
     object StatsProperties {
       val STAT_COMPACTION_INTERVAL = SystemProperty("geomesa.stats.compact.interval", "1 hour")
     }
+
+    object RemoteProcessingProperties {
+      val RemoteArrowProperty: SystemProperty = SystemProperty("geomesa.accumulo.remote.arrow.enable")
+      val RemoteBinProperty: SystemProperty = SystemProperty("geomesa.accumulo.remote.bin.enable")
+      val RemoteDensityProperty: SystemProperty = SystemProperty("geomesa.accumulo.remote.density.enable")
+      val RemoteStatsProperty: SystemProperty = SystemProperty("geomesa.accumulo.remote.stats.enable")
+    }
   }
 }
