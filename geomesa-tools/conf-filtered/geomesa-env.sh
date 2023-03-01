@@ -431,7 +431,7 @@ function geomesa_configure() {
     echo "export PATH=\${%%tools.dist.name%%_HOME}/bin:\$PATH"
     } >> ~/.bashrc
   else
-    echo >&2 "To put $(basename $0) on the executable path, add the following line to your environment:"
+    echo >&2 "To put $(basename "$0") on the executable path, add the following line to your environment:"
     echo >&2 "export %%tools.dist.name%%_HOME=\"$%%tools.dist.name%%_HOME\""
     echo >&2 "export GEOMESA_LIB=\"${GEOMESA_LIB}\""
     echo >&2 "export GEOMESA_LOG_DIR=\"${GEOMESA_LOG_DIR}\""
