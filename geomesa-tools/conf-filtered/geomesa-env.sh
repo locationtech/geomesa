@@ -93,7 +93,8 @@ function get_options() {
   fi
 
   # set java opts
-  local GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
+  local GEOMESA_OPTS
+  GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dgeomesa.home=${%%tools.dist.name%%_HOME}"
@@ -140,7 +141,8 @@ function get_nailgun_options() {
 function get_base_classpath() {
   # start constructing GEOMESA_CP (classpath)
   # include geomesa first so that the correct log4j.properties is picked up
-  local GEOMESA_CP="${GEOMESA_CONF_DIR}:$(find_jars $GEOMESA_LIB)"
+  local GEOMESA_CP
+  GEOMESA_CP="${GEOMESA_CONF_DIR}:$(find_jars "$GEOMESA_LIB")"
   # prepend user defined directories to the classpath using java classpath syntax
   # we prepend so that they take precedence when explicitly defined by the user
   if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
@@ -165,15 +167,13 @@ function find_jars() {
   local home="$1"
   local jars=()
   if [[ -d "${home}" ]]; then
-    local depth=""
+    local find_args
+    find_args=("-type" "f" "-iname" "*.jar" "-not" "-iname" "*-sources.jar" "-not" "-iname" "*-tests.jar" "-print0")
     if [[ "$2" == "true" ]]; then
-      depth="-maxdepth 1"
+      find_args+=("-maxdepth" "1")
     fi
-    for jar in $(find -L ${home} ${depth} -iname "*.jar" -type f); do
-      if [[ "$jar" != *-sources.jar && "$jar" != *-tests.jar ]]; then
-        jars+=(${jar})
-      fi
-    done
+    # read results of find into jars array
+    mapfile -d '' jars < <(find "-L" "$home" "${find_args[@]}")
     if [[ -d "${home}/native" ]]; then
       # TODO this doesn't export back to the parent shell... fix it
       if [[ -z "${JAVA_LIBRARY_PATH}" ]]; then
@@ -217,9 +217,9 @@ function check_classpath() {
     echo >&2 "" # get the newline
     if [[ "${noprompt}" = "--no-prompt" ]]; then
       echo >&2 "Detected missing classpath entries:"
-      download_maven $dest missing[@] "--no-prompt"
+      download_maven "$dest" missing[@] "--no-prompt"
     else
-      download_maven $dest missing[@] "Detected missing classpath entries:"
+      download_maven "$dest" missing[@] "Detected missing classpath entries:"
     fi
     error=$?
     if [[ $error -eq 0 ]]; then
@@ -241,10 +241,11 @@ function check_classpath() {
 }
 
 function disable_classpath_checks() {
-  if $(grep -q '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh"); then
-    local tmpfile="$(mktemp)"
+  if grep -q '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh"; then
+    local tmpfile
+    tmpfile="$(mktemp)"
     sed 's/^export GEOMESA_CHECK_DEPENDENCIES.*/export GEOMESA_CHECK_DEPENDENCIES="false"/' \
-      "${GEOMESA_CONF_DIR}/geomesa-env.sh" >> $tmpfile && mv $tmpfile "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
+      "${GEOMESA_CONF_DIR}/geomesa-env.sh" >> "$tmpfile" && mv "$tmpfile" "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
       && echo >&2 "You may re-enable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=true in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
   else
     echo >&2 "You may disable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=false in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
@@ -378,11 +379,10 @@ function geomesa_scala_console() {
       sourceURL=("https://downloads.lightbend.com/scala/%%scala.version%%/scala-%%scala.version%%.tgz")
       outputDir="${%%tools.dist.name%%_HOME}/dist/"
       outputFile="${outputDir}/scala-%%scala.version%%.tgz"
-      download_urls ${outputDir} sourceURL[@]
-      if [[ $? -ne 0 ]]; then
+      if ! download_urls "$outputDir" sourceURL[@]; then
         exit 1
       fi
-      tar xf $outputFile -C "${%%tools.dist.name%%_HOME}/dist/"
+      tar xf "$outputFile" -C "${%%tools.dist.name%%_HOME}/dist/"
       scalaCMD="${%%tools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
     else
       echo >&2 "Please install Scala version %%scala.binary.version%% and re-run this script"
@@ -390,7 +390,7 @@ function geomesa_scala_console() {
     fi
   fi
 
-  exec "$scalaCMD" "${OPTS[@]}" -classpath "${classpath}" -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
+  exec "$scalaCMD" "${OPTS[@]}" -classpath "$classpath" -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
 function geomesa_configure() {

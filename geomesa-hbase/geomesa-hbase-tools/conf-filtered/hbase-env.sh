@@ -49,7 +49,7 @@ function get_hbase_classpath() {
       hbase_cp="$HBASE_CONF_DIR"
     fi
     if [[ -d "$HBASE_LIB" ]]; then
-      hbase_find_jars="$(find_jars $HBASE_LIB true)"
+      hbase_find_jars="$(find_jars "$HBASE_LIB" true)"
       if [[ -n "$hbase_find_jars" ]]; then
         hbase_cp="$hbase_cp:$hbase_find_jars"
       fi

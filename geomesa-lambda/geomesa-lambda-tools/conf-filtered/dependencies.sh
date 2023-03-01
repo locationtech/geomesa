@@ -31,11 +31,11 @@ function dependencies() {
   local zkclient_version="$zkclient_install_version"
 
   if [[ -n "$classpath" ]]; then
-    accumulo_version="$(get_classpath_version accumulo-core $classpath $accumulo_version)"
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
-    zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
-    kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
+    accumulo_version="$(get_classpath_version accumulo-core "$classpath" $accumulo_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" $hadoop_version)"
+    zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
+    kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
+    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
   fi
 
   declare -a gavs=(

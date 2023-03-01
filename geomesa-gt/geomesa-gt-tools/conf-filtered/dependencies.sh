@@ -21,7 +21,7 @@ function dependencies() {
   local hadoop_version="$hadoop_install_version"
 
   if [[ -n "$classpath" ]]; then
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
   fi
 
   declare -a gavs=(

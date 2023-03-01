@@ -14,7 +14,7 @@
 confluent_install_version="%%confluent.recommended.version%%"
 
 function dependencies() {
-  local classpath="$1"
+  # local classpath="$1"
 
   declare -a gavs=(
     "io.confluent:kafka-schema-registry-client:${confluent_install_version}:jar"

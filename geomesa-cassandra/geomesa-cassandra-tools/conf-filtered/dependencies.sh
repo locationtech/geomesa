@@ -22,9 +22,9 @@ function dependencies() {
 
   if [[ -n "$classpath" ]]; then
     # check for both cassandra-all and apache-cassandra
-    cassandra_version="$(get_classpath_version cassandra-all $classpath $cassandra_version)"
-    cassandra_version="$(get_classpath_version apache-cassandra $classpath $cassandra_version)"
-    driver_version="$(get_classpath_version cassandra-driver-core $classpath $driver_version)"
+    cassandra_version="$(get_classpath_version cassandra-all "$classpath" "$cassandra_version")"
+    cassandra_version="$(get_classpath_version apache-cassandra "$classpath" "$cassandra_version")"
+    driver_version="$(get_classpath_version cassandra-driver-core "$classpath" "$driver_version")"
   fi
 
   declare -a gavs=(

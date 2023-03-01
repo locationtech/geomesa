@@ -26,9 +26,9 @@ function dependencies() {
   local zk_version="$zookeeper_install_version"
 
   if [[ -n "$classpath" ]]; then
-    kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
-    zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
+    kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
+    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
+    zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
   fi
 
   declare -a gavs=(
@@ -42,7 +42,7 @@ function dependencies() {
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
   JUTE_FROM_VERSION="3.5.5"
-  if version_ge ${zk_version} $JUTE_FROM_VERSION; then
+  if version_ge "$zk_version" $JUTE_FROM_VERSION; then
     gavs+=(
       "org.apache.zookeeper:zookeeper-jute:${zk_version}:jar"
     )

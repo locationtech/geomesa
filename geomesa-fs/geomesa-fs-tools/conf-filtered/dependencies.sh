@@ -24,9 +24,9 @@ function dependencies() {
   local snappy_version="$snappy_install_version"
 
   if [[ -n "$classpath" ]]; then
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
-    aws_sdk_version="$(get_classpath_version aws-java-sdk-core $classpath $aws_sdk_version)"
-    snappy_version="$(get_classpath_version snappy-java $classpath $snappy_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
+    aws_sdk_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_version")"
+    snappy_version="$(get_classpath_version snappy-java "$classpath" "$snappy_version")"
   fi
 
   declare -a gavs=(
