@@ -702,10 +702,13 @@ org.apache.spark:spark-sql_2.12	3.3.1	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.scala-lang:scala-compiler	2.12.17	provided
 =======
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.0	provided
 org.apache.accumulo:accumulo-start	2.0.0	provided
@@ -733,7 +736,13 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 =======
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 org.scala-lang:scala-compiler	2.12.13	provided
+<<<<<<< HEAD
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+org.scala-lang:scala-compiler	2.12.17	provided
+>>>>>>> 8add6fe71 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 org.slf4j:slf4j-reload4j	1.7.36	provided
 org.springframework.security:spring-security-core	5.8.3	provided
 =======
