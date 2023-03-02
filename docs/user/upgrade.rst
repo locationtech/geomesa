@@ -832,10 +832,14 @@ For a full changelist of all dependencies, see the diff
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 =======
 >>>>>>> 717bb1864b (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
@@ -844,6 +848,8 @@ For a full changelist of all dependencies, see the diff
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 
 Minimum Library Versions
@@ -883,8 +889,11 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -920,6 +929,7 @@ Support for older versions of some libraries has been dropped. The following min
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 =======
 >>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
 =======
@@ -945,6 +955,8 @@ Support for older versions of some libraries has been dropped. The following min
 =======
 >>>>>>> 54b98b2eea (GEOMESA-3253 Include full dependency change list for 4.0.0)
 >>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 
 Removal of Deprecated Modules
 -----------------------------
