@@ -53,7 +53,7 @@ env:
 =======
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
-  MAVEN_TEST_OPTS: -o -Dtest.fork.count=1
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
@@ -318,8 +318,11 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 <<<<<<< HEAD
@@ -333,6 +336,7 @@ jobs:
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
 >>>>>>> a0805e2ff17 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -340,6 +344,8 @@ jobs:
 =======
 =======
 >>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 <<<<<<< HEAD
@@ -378,8 +384,16 @@ jobs:
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 >>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 >>>>>>> aee7b28ec91 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 98946267e81 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
         continue-on-error: true
         run: |
           set -o pipefail
@@ -387,6 +401,7 @@ jobs:
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -422,6 +437,8 @@ jobs:
 >>>>>>> 636de6de947 (Update github actions to latest versions)
 =======
 >>>>>>> aee7b28ec91 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> 98946267e81 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 =======
@@ -442,6 +459,8 @@ jobs:
 >>>>>>> b3675c6f5e1 (Update github actions to latest versions)
 =======
 >>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
@@ -462,7 +481,12 @@ jobs:
 =======
 =======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 >>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
         id: hbase-test
@@ -490,14 +514,18 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
         id: hbase-test
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
@@ -509,6 +537,8 @@ jobs:
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 =======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
         continue-on-error: true
       - name: HBase 1.4 unit tests (retry)
         id: hbase-test-retry
@@ -521,6 +551,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
@@ -531,6 +562,8 @@ jobs:
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 =======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 =======
         run: mvn surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
@@ -557,6 +590,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -594,6 +628,11 @@ jobs:
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
 >>>>>>> 318648dd37 (Update github actions to latest versions)
 =======
+=======
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+>>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
