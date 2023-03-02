@@ -141,7 +141,7 @@ The following high-level dependencies have been upgraded:
 * Saxon ``9.7.0-20`` -> ``11.4``
 
 For a full changelist of all dependencies, see the diff
-`here <https://gist.github.com/elahrvivaz/dd76a6c03154f9c65ce596e965a9c084/revisions?diff=split>`__.
+`here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 
 Removal of Deprecated Modules
 -----------------------------
