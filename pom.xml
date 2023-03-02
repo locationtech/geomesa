@@ -282,7 +282,7 @@
 
         <!-- *** main dependency versions *** -->
 
-        <scala.version>2.12.13</scala.version>
+        <scala.version>2.12.17</scala.version>
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
 
         <scala.xml.version>2.1.0</scala.xml.version>
