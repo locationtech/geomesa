@@ -11,6 +11,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -27,6 +28,12 @@
 =======
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 >>>>>>> 6c817843d31 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -172,10 +179,13 @@
 =======
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> b2e9f0a646 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.0.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -665,6 +675,7 @@
 =======
         <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
@@ -2462,7 +2473,13 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes'):geomesa-zk-utils/pom.xml
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
