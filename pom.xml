@@ -155,8 +155,8 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>3.5.1</geomesa.release.version>
-        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>4.0.0</geomesa.release.version>
+        <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2023</copyright.year>
 
         <!-- recommended installation versions -->
