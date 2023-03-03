@@ -36,6 +36,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -102,6 +103,8 @@
 >>>>>>> 03c2591b94d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -171,6 +174,8 @@
 >>>>>>> 954a02d7e06 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
 >>>>>>> b081210161 ([maven-release-plugin] prepare for next development iteration)
@@ -274,7 +279,12 @@
 =======
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
@@ -317,6 +327,7 @@
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -332,6 +343,10 @@
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
 <<<<<<< HEAD:geomesa-spark/geomesa-spark-jupyter-leaflet/pom.xml
         <version>3.4.0-SNAPSHOT</version>
@@ -1067,6 +1082,9 @@
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
@@ -1078,6 +1096,7 @@
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -1942,8 +1961,17 @@
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
