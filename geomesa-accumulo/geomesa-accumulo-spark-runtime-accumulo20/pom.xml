@@ -159,6 +159,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -471,6 +472,8 @@
 >>>>>>> 6932b537494 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 6be29e9c222 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 04c05827657 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -785,6 +788,8 @@
 >>>>>>> 52bfd3027ec ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> 67c850bb2f ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -3418,6 +3423,8 @@
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
 <<<<<<< HEAD:geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo20/pom.xml
@@ -5057,6 +5064,7 @@
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
@@ -5115,6 +5123,10 @@
 >>>>>>> 8114419c9f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -7939,10 +7951,25 @@
 =======
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 0f88177d291 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 6be29e9c222 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+        <version>4.0.0</version>
+>>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 04c05827657 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
