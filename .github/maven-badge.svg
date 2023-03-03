@@ -18,11 +18,16 @@
     <text x="45" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="360">maven</text>
     <text x="45" y="140" transform="scale(.1)" textLength="360">maven</text>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 =======
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v3.5.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v3.5.1</text>
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
+=======
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.0</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.0</text>
+>>>>>>> 66945bac29 (Set release version)
   </g>
 </svg>
