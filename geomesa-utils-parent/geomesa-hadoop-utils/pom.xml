@@ -34,12 +34,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -47,6 +50,10 @@
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -249,9 +256,21 @@
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> fb47f5073b ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> 848040ab2b ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 16be586886e ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> c1a50ad10e4 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+        <version>4.0.0</version>
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
