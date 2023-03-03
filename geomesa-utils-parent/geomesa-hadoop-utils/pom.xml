@@ -131,10 +131,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
@@ -143,6 +147,8 @@
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -241,6 +247,7 @@
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
 <<<<<<< HEAD
@@ -380,6 +387,7 @@
 <<<<<<< HEAD
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
+<<<<<<< HEAD
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
@@ -477,6 +485,9 @@
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

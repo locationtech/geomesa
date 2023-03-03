@@ -10,10 +10,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
@@ -22,6 +26,8 @@
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>4.0.0</version>
@@ -31,19 +37,26 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
 =======
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
@@ -53,6 +66,8 @@
 >>>>>>> 0ea8471e76 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
