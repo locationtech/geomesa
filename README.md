@@ -4242,9 +4242,10 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: [3.5.1](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.1)**
+**Current release: [4.0.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -4268,6 +4269,15 @@ geospatial analytics.
 >>>>>>> 7dc3b0c3b (Add OpenSSF badge to README (#2965))
 =======
 >>>>>>> 56c97eb7c (Set latest release version to 3.5.1)
+=======
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-hbase_2.12-4.0.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-accumulo_2.12-4.0.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-cassandra_2.12-4.0.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-kafka_2.12-4.0.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-redis_2.12-4.0.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-fs_2.12-4.0.0-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.0/geomesa-gt_2.12-4.0.0-bin.tar.gz)
+>>>>>>> e17adf156 (Set release version)
 
 ### Verifying Downloads
 
@@ -4281,7 +4291,7 @@ $ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 Then verify the file:
 
 ```bash
-$ gpg2 --verify geomesa-accumulo_2.12-3.5.1-bin.tar.gz.asc geomesa-accumulo_2.12-3.5.1-bin.tar.gz
+$ gpg2 --verify geomesa-accumulo_2.12-4.0.0-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.0-bin.tar.gz
 ```
 
 The keys currently used for signing are:
@@ -4301,7 +4311,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-hbase-datastore_2.12</artifactId>
-  <version>3.5.1</version>
+  <version>4.0.0</version>
 </dependency>
 ```
 
@@ -4351,7 +4361,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
-  <version>3.5.1</version>
+  <version>4.0.0</version>
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -4377,13 +4387,13 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.1"
+  "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.0"
 )
 ```
 
 ## Building from Source
 
-**Development version: 4.0.0-SNAPSHOT**
+**Development version: 4.1.0-SNAPSHOT**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
