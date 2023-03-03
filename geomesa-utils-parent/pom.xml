@@ -3,7 +3,15 @@
   <parent>
     <artifactId>geomesa_2.12</artifactId>
     <groupId>org.locationtech.geomesa</groupId>
+<<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
+=======
+<<<<<<< HEAD
+    <version>4.1.0-SNAPSHOT</version>
+=======
+    <version>4.0.0</version>
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
   </parent>
   <modelVersion>4.0.0</modelVersion>
 

@@ -8,13 +8,18 @@
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.0.0-SNAPSHOT</version>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31,6 +36,7 @@
 =======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> f9c85b7d56 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 9c6c750db93 ([maven-release-plugin] prepare for next development iteration)
@@ -59,7 +65,15 @@
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
 >>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 8d8a1669809 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+        <version>4.0.0</version>
+>>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
