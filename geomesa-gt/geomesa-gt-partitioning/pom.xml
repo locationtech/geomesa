@@ -9,17 +9,22 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 41b0b79cc0d (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <version>4.1.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
         <version>4.0.0-SNAPSHOT</version>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -72,8 +77,17 @@
 =======
         <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+=======
+        <version>4.1.0-SNAPSHOT</version>
+>>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
