@@ -17,6 +17,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
@@ -44,6 +45,8 @@
 >>>>>>> 8aa42618d3a (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 >>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 00aea531e3 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
@@ -73,7 +76,12 @@
 =======
 =======
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> 0ea8471e76 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -274,6 +282,7 @@
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -291,6 +300,10 @@
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 0ea8471e76 ([maven-release-plugin] prepare for next development iteration)
         <version>4.0.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -867,6 +880,7 @@
 =======
         <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4849,7 +4863,18 @@
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+        <version>4.1.0-SNAPSHOT</version>
+>>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 0ea8471e76 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
