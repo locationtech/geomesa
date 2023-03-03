@@ -76,6 +76,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -208,6 +209,8 @@
 >>>>>>> a3f61ab9aa4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
@@ -341,6 +344,8 @@
 >>>>>>> ea557866879 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
     <version>4.1.0-SNAPSHOT</version>
 =======
@@ -406,6 +411,8 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
     <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1782,9 +1789,21 @@
 =======
     <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+=======
+=======
+    <version>4.1.0-SNAPSHOT</version>
+>>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
 
     <licenses>
         <license>
@@ -7478,14 +7497,23 @@
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <tag>HEAD</tag>
 =======
+=======
+>>>>>>> 81d14e9734d ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <tag>geomesa-5.0.0-m.0</tag>
 =======
         <tag>geomesa-4.0.0</tag>
 >>>>>>> 708d8f286d8 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> b076abf4741 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+        <tag>geomesa_2.11-3.1.0</tag>
+>>>>>>> 0cdd38034a1 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 81d14e9734d ([maven-release-plugin] prepare for next development iteration)
     </scm>
 
     <issueManagement>
