@@ -20,6 +20,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.5</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.5</text>
 =======
@@ -27,10 +28,14 @@
 >>>>>>> cfb36f66827 (Set release version)
 =======
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
+=======
+>>>>>>> 84fa24f897b (Set release version)
 <<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 =======
+=======
+>>>>>>> 7fd730a88a (Set release version)
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.1</text>
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
@@ -40,19 +45,31 @@
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 67c8f3fa6c7 (Set latest release version to 3.5.1)
 =======
 =======
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
 =======
+=======
+>>>>>>> 7fd730a88a (Set release version)
+>>>>>>> 84fa24f897b (Set release version)
+=======
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.0</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.0</text>
 >>>>>>> 66945bac29 (Set release version)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cfb36f66827 (Set release version)
 =======
 =======
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
+=======
+=======
+>>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
+=======
+>>>>>>> 7fd730a88a (Set release version)
+>>>>>>> 84fa24f897b (Set release version)
   </g>
 </svg>
