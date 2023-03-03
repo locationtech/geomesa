@@ -6,15 +6,20 @@
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> d95554283e7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 038b27c4861 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -125,6 +130,8 @@
 =======
 =======
 =======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.0.0-SNAPSHOT</version>
 =======
         <artifactId>geomesa_2.12</artifactId>
@@ -623,9 +630,21 @@
         <version>3.5.0-SNAPSHOT</version>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes'):geomesa-zk-utils/pom.xml
+<<<<<<< HEAD
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> ea557866879 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> a3f61ab9aa4 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+        <version>4.0.0</version>
+>>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

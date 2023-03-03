@@ -8,11 +8,16 @@
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-hadoop-utils/pom.xml
         <artifactId>geomesa-utils-parent_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
+=======
+>>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <version>5.0.0-SNAPSHOT</version>
 =======
+=======
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
         <version>4.1.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
@@ -52,8 +57,17 @@
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 61d746ac26 ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> ac19ac318b7 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 0a8feb05802 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+        <version>4.0.0</version>
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
