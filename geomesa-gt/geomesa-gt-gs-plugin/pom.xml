@@ -12,6 +12,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 =======
@@ -24,6 +25,8 @@
 >>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-gs-plugin/pom.xml
@@ -69,6 +72,7 @@
 =======
         <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 =======
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-arrow/geomesa-arrow-gs-plugin/pom.xml
 <<<<<<< HEAD
@@ -124,6 +128,8 @@
         <version>4.0.0</version>
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
