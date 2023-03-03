@@ -2197,6 +2197,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
         <geomesa.devel.version>5.1.0-SNAPSHOT</geomesa.devel.version>
 =======
@@ -2354,6 +2355,8 @@
 >>>>>>> a3f61ab9aa4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> acb54646749 (Set latest release version to 3.5.1)
+=======
+>>>>>>> a92c1573cef (Set release version)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -2511,6 +2514,8 @@
 >>>>>>> ce2964d3fa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 67c8f3fa6c7 (Set latest release version to 3.5.1)
+=======
+>>>>>>> cfb36f66827 (Set release version)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -3325,6 +3330,8 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
+=======
+>>>>>>> 66945bac29 (Set release version)
         <geomesa.release.version>3.5.0</geomesa.release.version>
 =======
         <geomesa.release.version>3.5.1</geomesa.release.version>
@@ -3332,6 +3339,10 @@
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+        <geomesa.release.version>4.0.0</geomesa.release.version>
+        <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
+>>>>>>> e17adf156 (Set release version)
         <copyright.year>2023</copyright.year>
 =======
 =======
