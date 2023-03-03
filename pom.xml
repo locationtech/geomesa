@@ -229,6 +229,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -667,6 +668,8 @@
 >>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
@@ -1109,6 +1112,8 @@
 >>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1514,7 +1519,12 @@
 =======
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.4.0-SNAPSHOT</version>
@@ -1616,6 +1626,7 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
@@ -1774,6 +1785,10 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
     <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -7668,10 +7683,25 @@
 =======
     <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+=======
+=======
+=======
+    <version>4.1.0-SNAPSHOT</version>
+>>>>>>> 1b97445cb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
 
     <licenses>
         <license>
@@ -18589,12 +18619,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <tag>HEAD</tag>
 =======
 =======
 >>>>>>> 81d14e9734d ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> a4397a24984 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 175a3e29dae ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
         <tag>geomesa-5.0.0-m.0</tag>
 =======
@@ -18612,7 +18645,13 @@
 =======
         <tag>geomesa-4.0.0</tag>
 >>>>>>> 5a8309d7e80 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 >>>>>>> a4397a24984 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+=======
+        <tag>geomesa_2.11-3.1.0</tag>
+>>>>>>> b3930cb599b ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 175a3e29dae ([maven-release-plugin] prepare for next development iteration)
     </scm>
 
     <issueManagement>
