@@ -228,6 +228,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
 =======
@@ -664,6 +665,8 @@
 >>>>>>> de7ad20f03f ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
@@ -1104,6 +1107,8 @@
 >>>>>>> a91b137c96e ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 =======
 >>>>>>> 3a2e956065 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -1504,7 +1509,12 @@
 =======
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>3.4.0-SNAPSHOT</version>
@@ -1606,6 +1616,7 @@
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 =======
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
@@ -1761,6 +1772,8 @@
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
     <version>3.4.0-SNAPSHOT</version>
 =======
 >>>>>>> 5e8ce12ec (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -3997,6 +4010,9 @@
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 12a626bb844 (Merge branch 'feature/postgis-fixes')
@@ -6858,6 +6874,7 @@
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> b5d6d6cf864 (Merge branch 'feature/postgis-fixes')
@@ -7640,8 +7657,21 @@
 =======
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 56c570abb92 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 >>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+=======
+=======
+=======
+    <version>4.0.0</version>
+>>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
 
     <licenses>
         <license>
@@ -18558,10 +18588,13 @@
         <url>https://github.com/locationtech/geomesa</url>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <tag>HEAD</tag>
 =======
 =======
 >>>>>>> 81d14e9734d ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a4397a24984 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
         <tag>geomesa-5.0.0-m.0</tag>
 =======
@@ -18573,7 +18606,13 @@
 =======
         <tag>geomesa_2.11-3.1.0</tag>
 >>>>>>> 0cdd38034a1 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 81d14e9734d ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+        <tag>geomesa-4.0.0</tag>
+>>>>>>> 5a8309d7e80 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> a4397a24984 ([maven-release-plugin] prepare release geomesa-4.0.0)
     </scm>
 
     <issueManagement>
