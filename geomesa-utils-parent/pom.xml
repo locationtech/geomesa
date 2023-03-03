@@ -5,25 +5,36 @@
     <groupId>org.locationtech.geomesa</groupId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <version>5.2.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 37130fe93d1 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 4ad20fc8233 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
     <version>5.1.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
     <version>5.0.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
     <version>4.1.0-SNAPSHOT</version>
 =======
     <version>4.0.0</version>
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
@@ -37,8 +48,21 @@
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 37130fe93d1 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+=======
+=======
+    <version>4.1.0-SNAPSHOT</version>
+>>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 4ad20fc8233 ([maven-release-plugin] prepare release geomesa-4.0.0)
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
