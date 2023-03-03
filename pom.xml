@@ -8455,6 +8455,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <geomesa.release.version>5.0.1</geomesa.release.version>
 =======
 =======
@@ -8973,6 +8974,8 @@
 >>>>>>> 0468f315f46 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 62dcecfb630 (Set latest release version to 3.5.1)
+=======
+>>>>>>> d7ce6f9b4e0 (Set release version)
 <<<<<<< HEAD
         <geomesa.release.version>5.0.0</geomesa.release.version>
 >>>>>>> f65c0d8670f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -9494,6 +9497,8 @@
 >>>>>>> 3ad1a418a01 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6e99ff3e43a (Set latest release version to 3.5.1)
+=======
+>>>>>>> ffb832dd33d (Set release version)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.5</geomesa.release.version>
 =======
@@ -10016,6 +10021,8 @@
 >>>>>>> 7bed5f441db (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> ac19444c1da (Set latest release version to 3.5.1)
+=======
+>>>>>>> 84fa24f897b (Set release version)
 <<<<<<< HEAD
         <geomesa.release.version>4.0.4</geomesa.release.version>
 <<<<<<< HEAD
@@ -10236,6 +10243,8 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
+=======
+>>>>>>> 7fd730a88a (Set release version)
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
@@ -11148,6 +11157,7 @@
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 =======
 >>>>>>> 66945bac29 (Set release version)
+<<<<<<< HEAD
 =======
 >>>>>>> 0dbede148d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -14368,6 +14378,8 @@
 =======
 >>>>>>> 7542c0e90a (Set latest release version to 3.5.1)
 >>>>>>> 068ea1eb39 (Set latest release version to 3.5.1)
+=======
+>>>>>>> 7fd730a88a (Set release version)
         <geomesa.release.version>3.5.0</geomesa.release.version>
 =======
         <geomesa.release.version>3.5.1</geomesa.release.version>
@@ -14375,6 +14387,10 @@
         <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+        <geomesa.release.version>4.0.0</geomesa.release.version>
+        <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
+>>>>>>> e17adf156 (Set release version)
         <copyright.year>2023</copyright.year>
 =======
 =======
