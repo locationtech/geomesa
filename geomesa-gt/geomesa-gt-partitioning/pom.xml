@@ -442,6 +442,9 @@
 >>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> ba28f1a0135 ([maven-release-plugin] prepare for next development iteration)
@@ -451,6 +454,7 @@
 =======
         <version>4.0.0</version>
 >>>>>>> f9651a99a ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
@@ -893,7 +897,14 @@
 =======
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 0683b797f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 >>>>>>> 2124ac4f6a5 ([maven-release-plugin] prepare for next development iteration)
+=======
+=======
+>>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
+>>>>>>> 3448c11b21f ([maven-release-plugin] prepare release geomesa-4.0.0)
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
