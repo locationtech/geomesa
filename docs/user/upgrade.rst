@@ -869,6 +869,7 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
 =======
@@ -879,6 +880,10 @@ Support for older versions of some libraries has been dropped. The following min
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
+>>>>>>> 4ceb5035c3 (Add min library version to upgrade guide)
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -903,10 +908,13 @@ Support for older versions of some libraries has been dropped. The following min
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4ceb5035c3 (Add min library version to upgrade guide)
 =======
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -929,6 +937,7 @@ Support for older versions of some libraries has been dropped. The following min
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
@@ -957,6 +966,10 @@ Support for older versions of some libraries has been dropped. The following min
 >>>>>>> dd6626657f (GEOMESA-3253 Include full dependency change list for 4.0.0)
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> dc6c9b2b22 (Add min library version to upgrade guide)
+>>>>>>> 4ceb5035c3 (Add min library version to upgrade guide)
 
 Removal of Deprecated Modules
 -----------------------------
