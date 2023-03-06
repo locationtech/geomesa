@@ -30,6 +30,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 | 5.0.0             | 2.24.2            |
 +-------------------+-------------------+
 | 4.0.0             | 2.22.2            |
@@ -49,6 +50,8 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 462ed890b49 (Fix recommended GeoServer version in docs)
 <<<<<<< HEAD
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -64,11 +67,17 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 =======
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 9334c8ec5d (Fix recommended GeoServer version in docs)
+>>>>>>> 462ed890b49 (Fix recommended GeoServer version in docs)
 | 4.0.0 and later   | 2.22.2            |
 =======
 | 4.0.0 and later   | 2.22.0            |
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -81,6 +90,8 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> c04ca2d2a2e (Fix recommended GeoServer version in docs)
 =======
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 462ed890b49 (Fix recommended GeoServer version in docs)
 =======
 | 4.0.0 and later   | 2.22.2            |
 >>>>>>> fe2b699d58 (Fix recommended GeoServer version in docs)
@@ -119,7 +130,15 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 =======
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+| 4.0.0 and later   | 2.22.2            |
+>>>>>>> fe2b699d58 (Fix recommended GeoServer version in docs)
+>>>>>>> 9334c8ec5d (Fix recommended GeoServer version in docs)
+>>>>>>> 462ed890b49 (Fix recommended GeoServer version in docs)
 +-------------------+-------------------+
 | 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
