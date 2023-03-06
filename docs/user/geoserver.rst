@@ -23,7 +23,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
-| 4.0.0 and later   | 2.22.1            |
+| 4.0.0 and later   | 2.22.2            |
 +-------------------+-------------------+
 | 3.1.1 to 3.5.x    | 2.17.3            |
 +-------------------+-------------------+
