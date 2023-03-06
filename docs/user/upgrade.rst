@@ -144,6 +144,15 @@ The following high-level dependencies have been upgraded:
 For a full changelist of all dependencies, see the diff
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 
+Minimum Library Versions
+------------------------
+
+Support for older versions of some libraries has been dropped. The following minimum versions are now required:
+
+* Apache Accumulo ``2.0.0`` (dropped support for ``1.7``, ``1.8``, ``1.9``, and ``1.10``)
+* Apache Spark ``3.0`` (dropped support for ``2.4``)
+* Apache Kafka ``2.0`` (dropped support for ``0.10``, ``0.11``, ``1.0``, and ``1.1``)
+
 Removal of Deprecated Modules
 -----------------------------
 
