@@ -342,6 +342,7 @@ Support for older versions of some libraries has been dropped. The following min
 * Apache Accumulo ``2.0.0`` (dropped support for ``1.7``, ``1.8``, ``1.9``, and ``1.10``)
 * Apache Spark ``3.0`` (dropped support for ``2.4``)
 * Apache Kafka ``2.0`` (dropped support for ``0.10``, ``0.11``, ``1.0``, and ``1.1``)
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
@@ -350,6 +351,8 @@ Support for older versions of some libraries has been dropped. The following min
 =======
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> f813a10b55 (Add min library version to upgrade guide)
 
 Removal of Deprecated Modules
 -----------------------------
