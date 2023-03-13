@@ -11,10 +11,14 @@ package org.locationtech.geomesa.utils.uuid
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 =======
 import java.util.Date
 
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d79d99099b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -55,6 +59,8 @@ import java.util.Date
 =======
 >>>>>>> 234aacdc1 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> d79d99099b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> locationtech-main
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}

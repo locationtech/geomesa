@@ -74,10 +74,14 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       "kafka.catalog.topic",
       "Topic used for cataloging feature types, if not using Zookeeper",
 <<<<<<< HEAD
+<<<<<<< HEAD
       default = DefaultCatalog,
 =======
       default = KafkaDataStoreFactory.DefaultCatalog,
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+      default = DefaultCatalog,
+>>>>>>> locationtech-main
       supportsNiFiExpressions = true
     )
 
@@ -86,10 +90,14 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
       "kafka.zk.path",
       "Zookeeper discoverable path (namespace), if using Zookeeper",
 <<<<<<< HEAD
+<<<<<<< HEAD
       default = DefaultZkPath,
 =======
       default = KafkaDataStoreFactory.DefaultZkPath,
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+      default = DefaultZkPath,
+>>>>>>> locationtech-main
       deprecatedKeys = Seq("zkPath"),
       supportsNiFiExpressions = true
     )

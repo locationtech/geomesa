@@ -183,6 +183,7 @@ const BoundCRSPtr &CRS::canonicalBoundCRS() PROJ_PURE_DEFN {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -244,6 +245,8 @@ bool CRS::isDynamic(bool considerWGS84AsDynamic) const {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 /** \brief Return the GeodeticCRS of the CRS.
  *
  * Returns the GeodeticCRS contained in a CRS. This works currently with
@@ -687,6 +690,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             bool candidateHasExactlyMatchingExtent = false;
 =======
             bool candidateHasExactlyMachingExtent = false;
@@ -703,6 +707,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
             bool candidateHasExactlyMachingExtent = false;
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            bool candidateHasExactlyMachingExtent = false;
+>>>>>>> locationtech-main
             for (const auto &op : list) {
                 auto transf =
                     util::nn_dynamic_pointer_cast<operation::Transformation>(
@@ -726,6 +733,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                             !candidateHasExactlyMatchingExtent) {
@@ -738,10 +746,13 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
                             !candidateHasExactlyMachingExtent) {
                             candidateBoundCRS = nullptr;
                         } else if (exactlyMatchingExtent ==
                                    candidateHasExactlyMachingExtent) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -756,6 +767,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
                             candidateCount++;
                         }
                     }
@@ -765,6 +778,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         candidateHasExactlyMatchingExtent =
 =======
                         candidateHasExactlyMachingExtent =
@@ -781,6 +795,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                         candidateHasExactlyMachingExtent =
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                        candidateHasExactlyMachingExtent =
+>>>>>>> locationtech-main
                             exactlyMatchingExtent;
                         candidateBoundCRS =
                             BoundCRS::create(thisAsCRS, hubCRS,
@@ -832,6 +849,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                                             !candidateHasExactlyMatchingExtent) {
@@ -845,11 +863,14 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
                                             !candidateHasExactlyMachingExtent) {
                                             candidateBoundCRS = nullptr;
                                         } else if (
                                             exactlyMatchingExtent ==
                                             candidateHasExactlyMachingExtent) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -865,6 +886,8 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
                                             candidateCount++;
                                         }
                                     }
@@ -874,6 +897,7 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                                         candidateHasExactlyMatchingExtent =
 =======
                                         candidateHasExactlyMachingExtent =
@@ -890,6 +914,9 @@ CRSNNPtr CRS::createBoundCRSToWGS84IfPossible(
                                         candidateHasExactlyMachingExtent =
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                        candidateHasExactlyMachingExtent =
+>>>>>>> locationtech-main
                                             exactlyMatchingExtent;
                                         candidateBoundCRS =
                                             BoundCRS::create(
@@ -4471,6 +4498,7 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 // If the id of the object is in the ESRI namespace, then
 =======
                 // If the id of the objet is in the ESRI namespace, then
@@ -4487,6 +4515,9 @@ void ProjectedCRS::_exportToWKT(io::WKTFormatter *formatter) const {
                 // If the id of the objet is in the ESRI namespace, then
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                // If the id of the objet is in the ESRI namespace, then
+>>>>>>> locationtech-main
                 // try to find the full ESRI WKT from the database
                 const auto definition = dbContext->getTextDefinition(
                     "projected_crs", "ESRI", l_identifiers[0]->code());
@@ -5036,6 +5067,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName,
                             bool hasNonMatchingId) {
 =======
@@ -5065,6 +5097,10 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                             bool hasNonMatchingId) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    const auto addCRS = [&](const ProjectedCRSNNPtr &crs, const bool eqName,
+                            bool hasNonMatchingId) {
+>>>>>>> locationtech-main
         const auto &l_unit = cs->axisList()[0]->unit();
         if (_isEquivalentTo(crs.get(),
                             util::IComparable::Criterion::
@@ -5088,6 +5124,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 =======
                 res.emplace_back(crs, 100);
@@ -5114,6 +5151,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                 res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                res.emplace_back(crs, hasNonMatchingId ? 70 : 100);
+>>>>>>> locationtech-main
             } else {
                 res.emplace_back(crs, eqName ? 90 : 70);
             }
@@ -5158,6 +5198,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         bool hasNonMatchingId = false;
 =======
 <<<<<<< HEAD
@@ -5182,6 +5223,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
         bool hasNonMatchingId = false;
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        bool hasNonMatchingId = false;
+>>>>>>> locationtech-main
         if (hasCodeCompatibleOfAuthorityFactory(this, authorityFactory)) {
             // If the CRS has already an id, check in the database for the
             // official object, and verify that they are equivalent.
@@ -5202,6 +5246,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         if (match) {
                             return res;
                         }
@@ -5234,6 +5279,11 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                         }
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                        if (match) {
+                            return res;
+                        }
+>>>>>>> locationtech-main
                     } catch (const std::exception &) {
                     }
                 }
@@ -5242,6 +5292,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             hasNonMatchingId = true;
 =======
 <<<<<<< HEAD
@@ -5266,6 +5317,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
             hasNonMatchingId = true;
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+            hasNonMatchingId = true;
+>>>>>>> locationtech-main
         } else if (!insignificantName) {
             for (int ipass = 0; ipass < 2; ipass++) {
                 const bool approximateMatch = ipass == 1;
@@ -5285,6 +5339,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                     if (addCRS(crsNN, eqName, false).second == 100) {
 =======
                     if (addCRS(crsNN, eqName).second == 100) {
@@ -5311,6 +5366,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                     if (addCRS(crsNN, eqName, false).second == 100) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                    if (addCRS(crsNN, eqName, false).second == 100) {
+>>>>>>> locationtech-main
                         return res;
                     }
                 }
@@ -5350,6 +5408,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
 =======
         if (!hasCodeCompatibleOfAuthorityFactory(this, authorityFactory) &&
@@ -5378,6 +5437,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
         if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        if (!foundEquivalentName && (res.empty() || res.front().second < 50)) {
+>>>>>>> locationtech-main
             std::set<std::pair<std::string, std::string>> alreadyKnown;
             for (const auto &pair : res) {
                 const auto &ids = pair.first->identifiers();
@@ -5403,6 +5465,7 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 addCRS(crs, insignificantName, hasNonMatchingId);
 =======
                 addCRS(crs, insignificantName);
@@ -5429,6 +5492,9 @@ ProjectedCRS::identify(const io::AuthorityFactoryPtr &authorityFactory) const {
                 addCRS(crs, insignificantName, hasNonMatchingId);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                addCRS(crs, insignificantName, hasNonMatchingId);
+>>>>>>> locationtech-main
             }
 
             res.sort(lambdaSort);

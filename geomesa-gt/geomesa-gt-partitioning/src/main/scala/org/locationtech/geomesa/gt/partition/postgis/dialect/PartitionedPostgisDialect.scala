@@ -20,6 +20,7 @@ import org.geotools.util.factory.Hints
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
@@ -52,6 +53,14 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterV
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 91b820951 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
+=======
+=======
+>>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.LiteralFunctionVisitor
+>>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
@@ -224,8 +233,17 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] = {
+    import PartitionedPostgisDialect.Config.ConfigConversions
+    super.splitFilter(SplitFilterVisitor(filter, schema.isFilterWholeWorld), schema)
+  }
+=======
+>>>>>>> locationtech-main
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] =
     super.splitFilter(LiteralFunctionVisitor(filter), schema)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -255,9 +273,13 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 >>>>>>> e694961e05 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 =======
+>>>>>>> 713060f3a2 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+>>>>>>> locationtech-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 >>>>>>> cf1d94c7a (GEOMESA-3215 Postgis - support List-type attributes)
 <<<<<<< HEAD
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -270,6 +292,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 =======
 >>>>>>> 713060f3a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 >>>>>>> 50a84fd0eb (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> locationtech-main
 
   override def registerClassToSqlMappings(mappings: java.util.Map[Class[_], Integer]): Unit = {
     super.registerClassToSqlMappings(mappings)
@@ -287,6 +312,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
+<<<<<<< HEAD
     att match {
       case gd: GeometryDescriptor =>
         val nullable = gd.getMinOccurs <= 0 || gd.isNillable
@@ -333,12 +359,17 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 
       case _ => // no-op
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     super.encodePostColumnCreateTable(att, sql)
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 230ae6c3ab (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+=======
+    super.encodePostColumnCreateTable(att, sql)
+>>>>>>> locationtech-main
     if (att.isJson()) {
       // replace 'VARCHAR' with jsonb
       val i = sql.lastIndexOf(" VARCHAR")
@@ -349,11 +380,14 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       }
     } else if (att.isList) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     if (att.isList) {
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
 =======
 >>>>>>> 230ae6c3ab (GEOMESA-3217,GEOMESA-3216 Support Postgis json attributes, top-level arrays in json)
+=======
+>>>>>>> locationtech-main
       // go back and encode the array type in the CQL create statement
       val i = sql.lastIndexOf(" ARRAY")
       if (i == sql.length() - 6) {
@@ -362,8 +396,11 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
         logger.warn(s"Found list-type attribute but no ARRAY column binding: $sql")
       }
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
     }
   }
 
@@ -410,10 +447,14 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 =======
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3a1e1d7213 (GEOMESA-3215 Postgis - support List-type attributes)
@@ -596,6 +637,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 42af7673b (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> locationtech-main
 }
 
 object PartitionedPostgisDialect {
@@ -662,9 +705,13 @@ object PartitionedPostgisDialect {
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
 <<<<<<< HEAD
+<<<<<<< HEAD
       def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+      def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
+>>>>>>> locationtech-main
     }
   }
 }

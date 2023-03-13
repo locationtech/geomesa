@@ -18,8 +18,11 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.utils.concurrent.LazyCloseable
 =======
 <<<<<<< HEAD

@@ -11,6 +11,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
  * Crown Copyright (c) 2016-2023 Dstl
 =======
 =======
@@ -27,6 +30,7 @@
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -121,6 +125,8 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at

@@ -9,10 +9,15 @@ Commands
 --------
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. _postgis_partition_upgrade:
 
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+.. _postgis_partition_upgrade:
+
+>>>>>>> locationtech-main
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 

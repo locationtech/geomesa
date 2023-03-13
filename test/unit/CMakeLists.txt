@@ -133,6 +133,7 @@ add_executable(proj_test_cpp_api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   test_coordinates.cpp
 =======
 >>>>>>> locationtech-main
@@ -146,6 +147,8 @@ add_executable(proj_test_cpp_api
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
   test_crs.cpp
   test_metadata.cpp
   test_io.cpp

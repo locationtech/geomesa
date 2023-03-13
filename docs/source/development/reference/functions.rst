@@ -143,6 +143,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
@@ -161,6 +162,8 @@ paragraph for more details.
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     An "area of use" can be specified in area. When it is supplied, the more
     accurate transformation between two given systems can be chosen.
 
@@ -190,6 +193,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     :param `source_crs`: Source CRS or CoordinateMetadata.
@@ -214,6 +218,11 @@ paragraph for more details.
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    :param `source_crs`: Source CRS.
+    :type `source_crs`: `const char*`
+    :param `target_crs`: Destination SRS.
+>>>>>>> locationtech-main
     :type `target_crs`: `const char*`
     :param `area`: Descriptor of the desired area for the transformation.
     :type `area`: :c:type:`PJ_AREA` *
@@ -233,6 +242,7 @@ paragraph for more details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     Starting with PROJ 9.2, source_crs or target_crs can be a CoordinateMetadata
@@ -251,6 +261,8 @@ paragraph for more details.
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     :param `options`: a list of NUL terminated options, or NULL.
 
     The list of supported options is:
@@ -270,6 +282,7 @@ paragraph for more details.
     - ALLOW_BALLPARK=YES/NO: can be set to NO to disallow the use of
       :term:`Ballpark transformation` in the candidate coordinate operations.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -302,6 +315,8 @@ paragraph for more details.
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     - FORCE_OVER=YES/NO: can be set to YES to force the ``+over`` flag on the transformation
       returned by this function. See :ref:`longitude_wrapping`
 
@@ -383,6 +398,7 @@ Coordinate transformation
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Return the operation used during the last invocation of proj_trans().
 =======
     Return the operation used during the last invokation of proj_trans().
@@ -399,6 +415,9 @@ Coordinate transformation
     Return the operation used during the last invokation of proj_trans().
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    Return the operation used during the last invokation of proj_trans().
+>>>>>>> locationtech-main
     This is especially useful when P has been created with proj_create_crs_to_crs()
     and has several alternative operations.
     The returned object must be freed with proj_destroy().

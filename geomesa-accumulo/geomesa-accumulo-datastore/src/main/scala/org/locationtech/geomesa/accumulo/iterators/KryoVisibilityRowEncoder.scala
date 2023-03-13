@@ -11,6 +11,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
  * Portions Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -31,6 +34,7 @@
  * Portions Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -145,6 +149,8 @@
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -223,6 +229,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -269,6 +276,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
     // Calculate length of serialised attributes, excluding attribute values themselves
     var length = 1 +            // version
       2 +                       // attribute count
@@ -277,6 +288,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       1 * 4 +                   // user data offset (will use 4 bytes)
       IntBitSet.size(count) * 4 // null bit set, written in units of ints
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -307,6 +319,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> e22b6ade6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
 =======
 
     // Calculate length of serialised attributes, excluding attribute values themselves
@@ -324,6 +338,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -368,6 +383,10 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
     // Tracks our output position for copying attribute value bytes
     // Begins immediately after the above
     var valueCursor = length
@@ -387,6 +406,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -417,11 +437,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 =======
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -443,9 +466,12 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> locationtech-main
+=======
       val key = keys.get(i)
       key.getColumnQualifier.getBytes.foreach { unsigned =>
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -483,6 +509,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         if(!metadata.nulls.contains(index)) {
           val pos = metadata.setPosition(index)
@@ -497,6 +525,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -515,12 +544,15 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
           attributeVis(index) = key.getColumnVisibility.toString
 =======
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
           attributeVis(index) = key.getColumnVisibility.toString
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -566,6 +598,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
           length += len
         }
       }
@@ -609,6 +643,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e521cdaeb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -639,12 +674,15 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
 =======
       attributes(i) = null // reset for next time through with new keys/values
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -666,10 +704,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> locationtech-main
+=======
       // reset for next time through with new keys/values
       attributes(i) = null
       attributeVis(i) = ""
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -708,6 +749,8 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
       i += 1
     }
     output.writeInt(valueCursor - 4) // user-data offset. Note no user data has actually been copied in.

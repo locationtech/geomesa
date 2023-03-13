@@ -19,6 +19,7 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 91b820951 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
@@ -49,6 +50,8 @@ import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 =======
 >>>>>>> 42af7673b (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 =======
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect
@@ -57,6 +60,7 @@ import org.opengis.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData}
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -112,6 +116,11 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 42af7673b (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
+>>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+>>>>>>> locationtech-main
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
@@ -167,6 +176,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 47f8de1bb (GEOMESA-3215 Postgis - support List-type attributes)
 =======
@@ -201,10 +211,13 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 =======
 =======
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -242,6 +255,8 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 =======
 >>>>>>> 42af7673b (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> 6d3c0ecb75 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> locationtech-main
         ds.setSQLDialect(new PostGISPSDialect(ds, dialect) {
           // fix bug with PostGISPSDialect dialect not delegating these methods
           override def getDefaultVarcharSize: Int = dialect.getDefaultVarcharSize
@@ -260,10 +275,13 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f31d66ef5 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 =======
 >>>>>>> d1cc27725 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
+=======
+>>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
           override def getDesiredTablesType: Array[String] = dialect.getDesiredTablesType
@@ -272,6 +290,9 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 >>>>>>> f9fc40305 (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
         })
 <<<<<<< HEAD
 >>>>>>> dcd872c1a (GEOMESA-3212 Postgis - convert constant functions to literals for SQL translation (#2875))
@@ -280,6 +301,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
         ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
 >>>>>>> c79be4f83 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> ee1d5f207 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -353,6 +375,11 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+        ds.setSQLDialect(new PartitionedPostgisPsDialect(ds, dialect))
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }

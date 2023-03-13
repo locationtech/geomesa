@@ -100,6 +100,7 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double lat1, lon1, lat2, lon2;
 
     coslam = cos(lp.lam);
@@ -140,11 +141,17 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
     coslam = cos(lp.lam);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    double lat1, lon1, lat2, lon2;
+
+    coslam = cos(lp.lam);
+>>>>>>> locationtech-main
     switch (Q->mode) {
     case N_POLE:
         coslam = - coslam;
         PROJ_FALLTHROUGH;
     case S_POLE:
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -176,6 +183,10 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         sinphi = sin(lp.phi);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        cosphi = cos(lp.phi);
+        sinphi = sin(lp.phi);
+>>>>>>> locationtech-main
         rho = fabs(Q->Mp - pj_mlfn(lp.phi, sinphi, cosphi, Q->en));
         xy.x = rho * sin(lp.lam);
         xy.y = rho * coslam;
@@ -191,21 +202,28 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         lat2 = lp.phi / DEG_TO_RAD;
         lon2 = lp.lam / DEG_TO_RAD;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 
         geod_inverse(&Q->g, lat1, lon1, lat2, lon2, &s12, &azi1, &azi2);
         azi1 *= DEG_TO_RAD;
         xy.x = s12 * sin(azi1);
         xy.y = s12 * cos(azi1);
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -254,6 +272,8 @@ static PJ_XY aeqd_e_forward (PJ_LP lp, PJ *P) {          /* Ellipsoidal, forward
         xy.y = s12 * cos(azi1);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
         break;
     }
     return xy;
@@ -267,6 +287,9 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 
     if (Q->mode == EQUIT)
     {
@@ -279,6 +302,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 
         if (fabs(fabs(xy.y) - 1.) < TOL)
         {
+<<<<<<< HEAD
 =======
     double  coslam, cosphi, sinphi;
 =======
@@ -332,6 +356,8 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         {
 >>>>>>> 31034f944 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> fac79eb83f (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> locationtech-main
             if (xy.y < 0.) {
                 proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
                 return xy;
@@ -342,6 +368,9 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
         }
         else
         {
@@ -387,6 +416,7 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
             lp.phi = -lp.phi;
             coslam = -coslam;
         }
+<<<<<<< HEAD
 =======
         else {
 =======
@@ -517,11 +547,14 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
 =======
 >>>>>>> 31034f944 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> fac79eb83f (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+>>>>>>> locationtech-main
         if (fabs(lp.phi - M_HALFPI) < EPS10) {
             proj_errno_set(P, PROJ_ERR_COORD_TRANSFM_OUTSIDE_PROJECTION_DOMAIN);
             return xy;
         }
         xy.y = (M_HALFPI + lp.phi);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -559,6 +592,10 @@ static PJ_XY aeqd_s_forward (PJ_LP lp, PJ *P) {           /* Spheroidal, forward
         xy.y *= coslam;
 >>>>>>> 31034f944 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> fac79eb83f (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
+=======
+        xy.x = xy.y * sinlam;
+        xy.y *= coslam;
+>>>>>>> locationtech-main
     }
     return xy;
 }
@@ -585,6 +622,7 @@ static PJ_LP e_guam_inv(PJ_XY xy, PJ *P) { /* Guam elliptical */
 static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse */
     PJ_LP lp = {0.0,0.0};
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -628,6 +666,11 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
     if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    double azi1, azi2, s12, lat1, lon1, lat2, lon2;
+
+    if ((s12 = hypot(xy.x, xy.y)) < EPS10) {
+>>>>>>> locationtech-main
         lp.phi = P->phi0;
         lp.lam = 0.;
         return (lp);
@@ -637,6 +680,9 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
         lat1 = P->phi0 / DEG_TO_RAD;
         lon1 = 0;
         azi1 = atan2(xy.x, xy.y) / DEG_TO_RAD; // Clockwise from north
@@ -646,6 +692,7 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
     } else { /* Polar */
         lp.phi = pj_inv_mlfn(Q->mode == N_POLE ? Q->Mp - s12 : Q->Mp + s12,
                              Q->en);
+<<<<<<< HEAD
 =======
 
         x2 = xy.x * P->a;
@@ -699,6 +746,8 @@ static PJ_LP aeqd_e_inverse (PJ_XY xy, PJ *P) {          /* Ellipsoidal, inverse
                              Q->en);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
         lp.lam = atan2(xy.x, Q->mode == N_POLE ? -xy.y : xy.y);
     }
     return lp;
@@ -758,6 +807,7 @@ PJ *PROJECTION(aeqd) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     geod_init(&Q->g, 1, P->f);
 =======
     geod_init(&Q->g, P->a, P->es / (1 + sqrt(P->one_es)));
@@ -784,6 +834,9 @@ PJ *PROJECTION(aeqd) {
     geod_init(&Q->g, 1, P->f);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    geod_init(&Q->g, 1, P->f);
+>>>>>>> locationtech-main
 
     if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
         Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;

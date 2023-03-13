@@ -18,6 +18,7 @@ source:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   patches:
 =======
 >>>>>>> locationtech-main
@@ -31,6 +32,8 @@ source:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 build:
   number: 2112

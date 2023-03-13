@@ -9,9 +9,12 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.data.{DataUtilities, Query, Transaction}
@@ -31,11 +34,16 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Properties}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @RunWith(classOf[JUnitRunner])
 class KafkaStoreTest extends LambdaContainerTest {
 =======
 class KafkaStoreTest extends LambdaTest with LazyLogging {
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+@RunWith(classOf[JUnitRunner])
+class KafkaStoreTest extends LambdaContainerTest {
+>>>>>>> locationtech-main
 
   import scala.concurrent.duration._
 

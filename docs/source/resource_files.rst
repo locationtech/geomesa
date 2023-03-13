@@ -121,6 +121,7 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. literalinclude:: ../../data/proj.ini
 =======
 =======
@@ -129,6 +130,8 @@ Its default content is:
 .. literalinclude:: ../../data/proj.ini
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 ::
 
     [general]
@@ -162,6 +165,7 @@ Its default content is:
     tmerc_default_algo = poder_engsager
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -171,6 +175,8 @@ Its default content is:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 
 Transformation grids
@@ -350,6 +356,7 @@ To compile the program do something like the following to produce the binary
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ``htdp`` from the source code.
 =======
 :program:`htdp` from the source code.
@@ -376,6 +383,9 @@ To compile the program do something like the following to produce the binary
 ``htdp`` from the source code.
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+``htdp`` from the source code.
+>>>>>>> locationtech-main
 
 ::
 
@@ -425,6 +435,9 @@ continental US region is used.  The script creates a set of sample points for
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 the grid definition, runs ``htdp`` against it and then parses the
 resulting points and computes a point by point shift to encode into the final
 grid shift file.  By default it is assumed that ``htdp`` is in the
@@ -432,6 +445,7 @@ executable path.  If not, please provide the path to the executable using the
 ``-htdp`` switch.
 
 The ``htdp`` program supports transformations between many CRSes and for each (or
+<<<<<<< HEAD
 =======
 the grid definition, runs :program:`htdp` against it and then parses the
 =======
@@ -477,6 +491,8 @@ The :program:`htdp` program supports transformations between many CRSes and for 
 The ``htdp`` program supports transformations between many CRSes and for each (or
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 

@@ -175,6 +175,7 @@ fallback_strategy
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   specified triangles are not transformed. This is also the behavior for
 =======
   specified triangles are not transformed. This is also the behaviour for
@@ -191,6 +192,9 @@ fallback_strategy
   specified triangles are not transformed. This is also the behaviour for
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  specified triangles are not transformed. This is also the behaviour for
+>>>>>>> locationtech-main
   ``format_version`` before 1.1. If ``fallback_strategy`` is set to
   ``nearest_side``, then points that do not fall into any triangle are 
   transformed according to the triangle closest to them by euclidean distance.

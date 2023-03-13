@@ -240,6 +240,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -256,6 +257,9 @@ Optional
     the inverse tranformation.
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> locationtech-main
 
 .. option:: +inv_u=<u_11,u_12,...,u_ij,..,u_mn>
 
@@ -268,6 +272,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -284,6 +289,9 @@ Optional
     the inverse tranformation.
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> locationtech-main
 
 .. option:: +inv_v=<v_11,v_12,...,v_ij,..,v_mn>
 
@@ -296,6 +304,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -312,6 +321,9 @@ Optional
     the inverse tranformation.
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> locationtech-main
 
 .. option:: +inv_c=<c_1,c_2,...,c_N>
 
@@ -324,6 +336,7 @@ Optional
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     the inverse transformation.
 =======
     the inverse tranformation.
@@ -340,6 +353,9 @@ Optional
     the inverse tranformation.
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    the inverse tranformation.
+>>>>>>> locationtech-main
 
 .. option:: +range=<value>
 

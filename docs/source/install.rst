@@ -106,6 +106,7 @@ Fedora
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 On Fedora the ``dnf`` package manager is used::
 =======
 On Fedora the :program:`dnf` package manager is used::
@@ -132,6 +133,9 @@ On Fedora the :program:`dnf` package manager is used::
 On Fedora the ``dnf`` package manager is used::
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+On Fedora the ``dnf`` package manager is used::
+>>>>>>> locationtech-main
 
     sudo dnf install proj
 
@@ -142,6 +146,7 @@ Red Hat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 On Red Hat based system packages are installed with ``yum``::
 =======
 On Red Hat based system packages are installed with :program:`yum`::
@@ -168,6 +173,9 @@ On Red Hat based system packages are installed with :program:`yum`::
 On Red Hat based system packages are installed with ``yum``::
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+On Red Hat based system packages are installed with ``yum``::
+>>>>>>> locationtech-main
 
     sudo yum install proj
 
@@ -268,6 +276,7 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     package can be downloaded and its content decompressed into one of the
     directories where PROJ looks for :ref:`resources <resource_files>`
 =======
@@ -299,6 +308,10 @@ can be modified to suit the users needs. See :ref:`projsync` for more options.
     directories where PROJ looks for :ref:`resources <resource_files>`
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+    package can be downloaded and its content decompressed into one of the
+    directories where PROJ looks for :ref:`resources <resource_files>`
+>>>>>>> locationtech-main
 
 Starting with PROJ 9.2, a ``uninstall`` target is available to remove files
 installed by the ``install`` target::

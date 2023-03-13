@@ -380,6 +380,7 @@ static void set_ellipsoid(PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
         geod_init(P->geod, P->a,  P->f);
 =======
@@ -413,6 +414,10 @@ static void set_ellipsoid(PJ *P) {
         geod_init(P->geod, P->a,  P->f);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
+        geod_init(P->geod, P->a,  P->f);
+>>>>>>> locationtech-main
 
     /* Re-attach the dangling list */
     /* Note: cur will always be non 0 given argv_sentinel presence, */

@@ -5,6 +5,7 @@
         <groupId>org.locationtech.geomesa</groupId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15,10 +16,19 @@
         <artifactId>geomesa-gt_2.12</artifactId>
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+<<<<<<< HEAD:geomesa-gt/geomesa-gt-partitioning/pom.xml
+        <artifactId>geomesa-gt_2.12</artifactId>
+<<<<<<< HEAD
+        <version>4.1.0-SNAPSHOT</version>
+=======
+>>>>>>> locationtech-main
         <version>4.0.0-SNAPSHOT</version>
 =======
         <version>3.3.0-SNAPSHOT</version>
 >>>>>>> 1108247cc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 =======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
@@ -56,9 +66,14 @@
 >>>>>>> 562f547289 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
+<<<<<<< HEAD
+>>>>>>> cf42b98f8f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+>>>>>>> locationtech-main
+=======
 =======
         <version>3.4.0-SNAPSHOT</version>
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
+<<<<<<< HEAD
 >>>>>>> f9c85b7d5 ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> d19a0298a4 ([maven-release-plugin] prepare for next development iteration)
@@ -88,6 +103,9 @@
 >>>>>>> 5792d822c ([maven-release-plugin] prepare for next development iteration):geomesa-features/geomesa-feature-nio/pom.xml
 >>>>>>> a084f35eb ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 4ac54e7892 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> a084f35ebb ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locationtech-main
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

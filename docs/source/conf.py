@@ -42,6 +42,7 @@ extensions = [
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     'program_with_link',
 =======
 <<<<<<< HEAD
@@ -66,6 +67,9 @@ extensions = [
     'program_with_link',
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    'program_with_link',
+>>>>>>> locationtech-main
 ]
 
 # Add any paths that contain templates here, relative to this directory.

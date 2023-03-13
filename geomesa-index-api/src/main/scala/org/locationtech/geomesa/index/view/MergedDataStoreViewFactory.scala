@@ -137,14 +137,17 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 =======
+=======
+>>>>>>> locationtech-main
 =======
 
 <<<<<<< HEAD
@@ -152,6 +155,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 >>>>>>> 4623d9a68 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> df76300d2c (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 
@@ -184,12 +188,15 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     ConfigLoaderParam.toArray ++ Array(ConfigParam, DeduplicateParam)
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> locationtech-main
 
 =======
 >>>>>>> f8f49130b (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 <<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -226,6 +233,8 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locationtech-main
   val ParallelScanParam =
     new GeoMesaParam[java.lang.Boolean](
       "geomesa.merged.scan.parallel",

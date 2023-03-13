@@ -6,11 +6,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 #include <float.h>
 
 #include "geodesic.h"
 #include "proj.h"
 #include "proj_internal.h"
+<<<<<<< HEAD
 =======
 =======
 #include <float.h>
@@ -50,6 +54,8 @@
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 
 PROJ_HEAD(gnom, "Gnomonic") "\n\tAzi, Sph";
 
@@ -73,6 +79,7 @@ struct pj_opaque {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     struct geod_geodesic g;
 =======
 <<<<<<< HEAD
@@ -97,6 +104,9 @@ struct pj_opaque {
     struct geod_geodesic g;
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    struct geod_geodesic g;
+>>>>>>> locationtech-main
 };
 } // anonymous namespace
 
@@ -198,10 +208,13 @@ static PJ_LP gnom_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, inverse
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 static PJ_XY gnom_e_forward (PJ_LP lp, PJ *P) { /* Ellipsoidal, forward */
     PJ_XY xy = {0.0,0.0};
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(P->opaque);
@@ -278,6 +291,7 @@ static PJ_LP gnom_e_inverse (PJ_XY xy, PJ *P) { /* Ellipsoidal, inverse */
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -299,6 +313,8 @@ static PJ_LP gnom_e_inverse (PJ_XY xy, PJ *P) { /* Ellipsoidal, inverse */
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 
 PJ *PROJECTION(gnom) {
     struct pj_opaque *Q = static_cast<struct pj_opaque*>(calloc (1, sizeof (struct pj_opaque)));
@@ -310,10 +326,13 @@ PJ *PROJECTION(gnom) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
     if (P->es == 0) {
         if (fabs(fabs(P->phi0) - M_HALFPI) < EPS10) {
             Q->mode = P->phi0 < 0. ? S_POLE : N_POLE;
@@ -326,6 +345,9 @@ PJ *PROJECTION(gnom) {
         }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 
         P->inv = gnom_s_inverse;
         P->fwd = gnom_s_forward;
@@ -335,6 +357,7 @@ PJ *PROJECTION(gnom) {
         P->inv = gnom_e_inverse;
         P->fwd = gnom_e_forward;
     }
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -386,6 +409,8 @@ PJ *PROJECTION(gnom) {
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
     P->es = 0.;
 
     return P;

@@ -100,6 +100,7 @@ class PROJ_GCC_DLL CRS : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     PROJ_DLL bool isDynamic(bool considerWGS84AsDynamic = false) const;
 =======
 >>>>>>> locationtech-main
@@ -113,6 +114,8 @@ class PROJ_GCC_DLL CRS : public common::ObjectUsage,
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     PROJ_DLL GeodeticCRSPtr extractGeodeticCRS() const;
     PROJ_DLL GeographicCRSPtr extractGeographicCRS() const;
     PROJ_DLL VerticalCRSPtr extractVerticalCRS() const;

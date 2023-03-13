@@ -7,10 +7,14 @@
  ***********************************************************************/
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 package org.locationtech.geomesa.tools.`export`
 =======
 package org.locationtech.geomesa.tools.export
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+package org.locationtech.geomesa.tools.`export`
+>>>>>>> locationtech-main
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -36,9 +40,13 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.locationtech.geomesa.index.TestGeoMesaDataStore
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
@@ -101,11 +109,14 @@ class ExportCommandTest extends Specification {
     ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
         .addFeatures(new ListFeatureCollection(sft, features.map(ScalaSimpleFeature.copy): _*))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     ds.getEntry(sft.getName).asInstanceOf[MemoryEntry].getMemory.asScala.foreach { case (_, feature) =>
       feature.getUserData.clear() // clear out the 'original feature' which causes serialization issues...
     }
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
   }
 
   "Export command" should {

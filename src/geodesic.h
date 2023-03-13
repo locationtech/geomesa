@@ -35,6 +35,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #define GEODESIC_VERSION_MINOR 1
 =======
 #define GEODESIC_VERSION_MINOR 0
@@ -61,6 +62,9 @@
 #define GEODESIC_VERSION_MINOR 1
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+#define GEODESIC_VERSION_MINOR 1
+>>>>>>> locationtech-main
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)

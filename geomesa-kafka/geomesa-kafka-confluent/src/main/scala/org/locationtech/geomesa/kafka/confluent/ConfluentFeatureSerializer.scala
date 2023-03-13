@@ -238,6 +238,7 @@ object ConfluentFeatureSerializer {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
@@ -258,6 +259,9 @@ object ConfluentFeatureSerializer {
 =======
 =======
 >>>>>>> eef10da74 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> locationtech-main
 <<<<<<< HEAD
 =======
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
@@ -300,6 +304,7 @@ object ConfluentFeatureSerializer {
 >>>>>>> d657014c8 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -323,6 +328,8 @@ object ConfluentFeatureSerializer {
 =======
 >>>>>>> eef10da74 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 769842a4bf (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
@@ -338,6 +345,7 @@ object ConfluentFeatureSerializer {
     def read(id: String, record: GenericRecord): SimpleFeature = {
       val attributes = fieldReaders.map { fieldReader =>
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -388,6 +396,10 @@ object ConfluentFeatureSerializer {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))

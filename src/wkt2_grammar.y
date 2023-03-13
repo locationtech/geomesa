@@ -65,6 +65,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 %token T_ANCHOREPOCH            "ANCHOREPOCH";
 =======
 >>>>>>> locationtech-main
@@ -78,6 +79,8 @@
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 %token T_CONVERSION             "CONVERSION";
 %token T_METHOD                 "METHOD";
 %token T_REMARK                 "REMARK";
@@ -137,6 +140,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -158,6 +162,8 @@
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 /* WKT2 alternate (longer or shorter) */
 %token T_GEODETICCRS            "GEODETICCRS";
@@ -719,6 +725,7 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -735,10 +742,13 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 =======
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     | axis_order opt_separator_identifier_list
     | axis_order wkt_separator spatial_unit opt_separator_identifier_list
     | spatial_unit opt_separator_identifier_list
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -749,6 +759,8 @@ axis_direction_except_n_s_cw_ccw_opt_axis_spatial_unit_identifier_list_options:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 
 axis_direction_opt_axis_order_identifier_list:
@@ -784,6 +796,7 @@ axis_direction_except_n_s_cw_ccw_opt_axis_identifier_list_options:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     | axis_order opt_separator_axis_range_opt_separator_identifier_list
@@ -802,6 +815,9 @@ axis_direction_except_n_s_cw_ccw_opt_axis_identifier_list_options:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    | axis_order opt_separator_identifier_list
+>>>>>>> locationtech-main
 
 
 
@@ -811,6 +827,7 @@ opt_separator_axis_time_unit_identifier_list:
 
 axis_direction_except_n_s_cw_ccw_opt_axis_time_unit_identifier_list_options:
     identifier opt_separator_identifier_list
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -843,6 +860,11 @@ axis_direction_except_n_s_cw_ccw_opt_axis_time_unit_identifier_list_options:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    | axis_order opt_separator_identifier_list
+    | axis_order wkt_separator time_unit opt_separator_identifier_list
+    | time_unit opt_separator_identifier_list
+>>>>>>> locationtech-main
 
 axis_direction_except_n_s_cw_ccw:
                   T_NORTHNORTHEAST
@@ -899,6 +921,7 @@ axis_order_keyword: T_ORDER
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -937,6 +960,8 @@ axis_range_meaning_value: T_exact | T_wraparound
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 cs_unit: unit
 
 /*
@@ -1141,6 +1166,7 @@ geodetic_reference_frame_without_pm: geodetic_reference_frame_keyword
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                           opt_separator_datum_anchor_anchor_epoch_identifier_list
 =======
                           opt_separator_datum_anchor_identifier_list
@@ -1157,6 +1183,9 @@ geodetic_reference_frame_without_pm: geodetic_reference_frame_keyword
                           opt_separator_datum_anchor_identifier_list
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                          opt_separator_datum_anchor_identifier_list
+>>>>>>> locationtech-main
                           right_delimiter
 
 geodetic_reference_frame_keyword: T_DATUM | T_TRF | T_GEODETICDATUM
@@ -1167,6 +1196,7 @@ datum_name: quoted_latin_text
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 opt_separator_datum_anchor_anchor_epoch_identifier_list:
@@ -1200,12 +1230,17 @@ opt_separator_datum_anchor_anchor_epoch_identifier_list:
     | wkt_separator datum_anchor wkt_separator datum_anchor_epoch wkt_separator identifier opt_separator_identifier_list
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
 opt_separator_datum_anchor_identifier_list:
     | wkt_separator datum_anchor
     | wkt_separator identifier opt_separator_identifier_list
     | wkt_separator datum_anchor wkt_separator identifier opt_separator_identifier_list
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 datum_anchor: datum_anchor_keyword left_delimiter
               datum_anchor_description right_delimiter
@@ -1214,6 +1249,7 @@ datum_anchor_keyword: T_ANCHOR
 
 datum_anchor_description: quoted_latin_text
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1241,6 +1277,8 @@ anchor_epoch: unsigned_integer | unsigned_integer period | unsigned_integer peri
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 // Projected CRS
 
 projected_crs: projected_crs_keyword left_delimiter crs_name
@@ -1388,6 +1426,7 @@ vertical_reference_frame: vertical_reference_frame_keyword left_delimiter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                           opt_separator_datum_anchor_anchor_epoch_identifier_list
 =======
                           opt_separator_datum_anchor_identifier_list
@@ -1404,6 +1443,9 @@ vertical_reference_frame: vertical_reference_frame_keyword left_delimiter
                           opt_separator_datum_anchor_identifier_list
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                          opt_separator_datum_anchor_identifier_list
+>>>>>>> locationtech-main
                           right_delimiter
 
 vertical_reference_frame_keyword: T_VDATUM | T_VRF | T_VERTICALDATUM
@@ -1423,6 +1465,7 @@ engineering_datum: engineering_datum_keyword left_delimiter datum_name
 
 engineering_datum_keyword: T_EDATUM | T_ENGINEERINGDATUM
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1448,6 +1491,8 @@ opt_separator_datum_anchor_identifier_list:
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 // Parametric CRS
 
 parametric_crs: parametric_crs_keyword left_delimiter crs_name

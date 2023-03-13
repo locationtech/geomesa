@@ -22,6 +22,7 @@ package org.locationtech.geomesa.kafka.data
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e1f939a3e (GEOMESA-3100 Kafka layer views (#2784))
@@ -59,10 +60,15 @@ package org.locationtech.geomesa.kafka.data
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
 import java.util.{Collections, Date}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -165,9 +171,12 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -183,6 +192,8 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> 1e11ed51a6 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -192,6 +203,9 @@ import java.util.{Collections, Date}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 <<<<<<< HEAD
@@ -233,6 +247,7 @@ import java.util.{Collections, Date}
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 import com.typesafe.scalalogging.LazyLogging
+<<<<<<< HEAD
 =======
 >>>>>>> d40f742b4 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
@@ -490,6 +505,9 @@ import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> f7038468b (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> e1f939a3e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> 17f13b3a7a (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
 import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
 import kafka.zk.{AdminZkClient, KafkaZkClient}
 =======
@@ -545,10 +563,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
   lazy val baseParams = Map(
 //    "kafka.serialization.type" -> "avro",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "kafka.brokers"            -> brokers,
 =======
     "kafka.brokers"            -> kafka.brokers,
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+    "kafka.brokers"            -> brokers,
+>>>>>>> locationtech-main
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
     "kafka.consumer.read-back" -> "Inf"
@@ -641,10 +663,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
         val (producer, consumer, _) = try {
 <<<<<<< HEAD
+<<<<<<< HEAD
           createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
 =======
           createStorePair(if (zk) { Map("kafka.zookeepers" -> kafka.zookeepers) } else { Map.empty[String, String] })
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+          createStorePair(if (zk) { Map("kafka.zookeepers" -> zookeepers) } else { Map.empty[String, String] })
+>>>>>>> locationtech-main
         } finally {
           TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
@@ -687,10 +713,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       foreach(Seq(true, false)) { cqEngine =>
         val params = if (cqEngine) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+>>>>>>> locationtech-main
         } else {
           Map.empty[String, String]
         }
@@ -760,10 +790,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         }
         val params = if (cqEngine) {
 <<<<<<< HEAD
+<<<<<<< HEAD
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
           Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+>>>>>>> locationtech-main
         } else {
           Map.empty[String, String]
         }
@@ -919,10 +953,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
             "kafka.cache.executor" -> (executor, ticker),
             "kafka.index.cqengine" -> "geom:default,name:unique",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "kafka.zookeepers" -> zookeepers)
 =======
             "kafka.zookeepers" -> kafka.zookeepers)
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+            "kafka.zookeepers" -> zookeepers)
+>>>>>>> locationtech-main
         } else {
           Map("kafka.cache.expiry" -> "100ms", "kafka.cache.executor" -> (executor, ticker))
         }
@@ -987,10 +1025,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           )
           if (cqEngine) {
 <<<<<<< HEAD
+<<<<<<< HEAD
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
 =======
             base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> kafka.zookeepers)
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+            base + ("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+>>>>>>> locationtech-main
           } else {
             base
           }
@@ -1210,8 +1252,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0185d52d3 (GEOMESA-3135 Fix classpath for HBase/Kudu/Bigtable GeoServer Avro export (#2805))
+=======
+>>>>>>> locationtech-main
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -1255,6 +1300,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1356,6 +1402,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
     "support listeners without indexing" >> {
       val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
       val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
@@ -1442,6 +1490,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1666,6 +1715,96 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "support listeners without indexing" >> {
+      val params = Map(KafkaDataStoreParams.CacheExpiry.getName -> "0s")
+      val (producer, consumer, sft) = createStorePair("listenersNonIndexing", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 1
+        val maxLon = 80.0
+
+        var latestLon = -1.0
+        var count = 0
+
+        val listener = new FeatureListener {
+          override def changed(event: FeatureEvent): Unit = {
+            val feature = event.asInstanceOf[KafkaFeatureChanged].feature
+            feature.getID mustEqual id
+            latestLon = feature.getDefaultGeometry.asInstanceOf[Point].getX
+            count += 1
+          }
+        }
+
+        producer.createSchema(sft)
+        val consumerStore = consumer.getFeatureSource(sft.getTypeName)
+        consumerStore.addFeatureListener(listener)
+
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          (numUpdates to 1 by -1).foreach { i =>
+            val ll = maxLon - maxLon / i
+            val sf = writer.next()
+            sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+            sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+            sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+            writer.write()
+          }
+        }
+
+        eventually(40, 100.millis)(count must beEqualTo(numUpdates))
+        latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
     "support transactions" >> {
       val (producer, consumer, _) = createStorePair()
       try {
@@ -1726,6 +1865,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           |}
           |
           |""".stripMargin
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1852,6 +1992,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
@@ -1862,6 +2004,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -1909,12 +2052,15 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 429ffc55e (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1996,9 +2142,15 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdf (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+=======
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locationtech-main
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2028,9 +2180,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 88ef67cdf (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2052,9 +2207,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c57b5f538 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 =======
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2070,9 +2228,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 976f319530 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2206,10 +2367,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> bc97b07a31 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locationtech-main
       val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
 =======
       val (producer, consumer, _) = createStorePair("views", Map(KafkaDataStoreParams.LayerViews.key -> views))
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2318,6 +2482,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 89fb9950e (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
@@ -2328,6 +2494,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -2375,10 +2542,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 429ffc55e (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 >>>>>>> locationtech-main
 =======
 >>>>>>> 58286bfd3 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 5ca0cd6de (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2460,9 +2630,15 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 88ef67cdf (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+=======
+>>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locationtech-main
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d0dc799ff (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2492,9 +2668,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 88ef67cdf (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> 95c83ca7f (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 936154130 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2516,9 +2695,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> c57b5f538 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 =======
 >>>>>>> bddfdbea5 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 2f6607232 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2534,9 +2716,12 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 =======
 >>>>>>> 976f319530 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> locationtech-main
+=======
 >>>>>>> ea3b40e18 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> d2cb939f5 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2706,6 +2891,11 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+      val (producer, consumer, _) = createStorePair(Map(KafkaDataStoreParams.LayerViews.key -> views))
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
       try {
         val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
         producer.createSchema(sft)
@@ -2943,10 +3133,14 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         client.create.forPath("/test/Topic", "test-topic".getBytes(StandardCharsets.UTF_8))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
 =======
         val ds = getStore(path, 0, Map("kafka.zookeepers" -> kafka.zookeepers))
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+        val ds = getStore(path, 0, Map("kafka.zookeepers" -> zookeepers))
+>>>>>>> locationtech-main
         try {
           ds.getTypeNames.toSeq mustEqual Seq("test")
           val sft = ds.getSchema("test")

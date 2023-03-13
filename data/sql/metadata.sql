@@ -13,6 +13,7 @@ INSERT INTO "metadata" VALUES('DATABASE.LAYOUT.VERSION.MINOR', 2);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.081');
@@ -33,6 +34,10 @@ INSERT INTO "metadata" VALUES('EPSG.DATE', '2023-01-19');
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "metadata" VALUES('EPSG.VERSION', 'v10.078');
+INSERT INTO "metadata" VALUES('EPSG.DATE', '2022-12-13');
+>>>>>>> locationtech-main
 
 -- The value of ${PROJ_VERSION} is substituted at build time by the actual
 -- value.

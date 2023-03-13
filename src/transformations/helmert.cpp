@@ -454,15 +454,19 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto xyz = helmert_forward_3d (point.lpz, P);
     point.xyz = xyz;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -488,6 +492,8 @@ static void helmert_forward_4d (PJ_COORD &point, PJ *P) {
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 }
 
 
@@ -507,15 +513,19 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto lpz = helmert_reverse_3d (point.xyz, P);
     point.lpz = lpz;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -541,6 +551,8 @@ static void helmert_reverse_4d (PJ_COORD& point, PJ *P) {
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 }
 
 /* Arcsecond to radians */

@@ -165,6 +165,7 @@ test_projjson EPSG:5613
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 test_projjson "ITRF2014@2025.0"
 =======
 >>>>>>> locationtech-main
@@ -178,6 +179,8 @@ test_projjson "ITRF2014@2025.0"
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 validate_json $TRAVIS_BUILD_DIR/schemas/v0.5/examples/point_motion_operation.json
 

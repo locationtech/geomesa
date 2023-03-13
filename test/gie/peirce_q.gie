@@ -13,6 +13,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # tessellation but means that there is no uniform scale
 =======
 # tesselation but means that there is no uniform scale
@@ -29,6 +30,9 @@
 # tesselation but means that there is no uniform scale
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+# tesselation but means that there is no uniform scale
+>>>>>>> locationtech-main
 # across the coordinate space, so tolerance can be high.
 ------------------------------------------------------------
 

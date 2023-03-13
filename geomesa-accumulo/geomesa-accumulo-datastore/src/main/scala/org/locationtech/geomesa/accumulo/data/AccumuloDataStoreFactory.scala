@@ -22,10 +22,14 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 =======
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._

@@ -37,6 +37,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // windows.h can conflict with Criterion::STRICT
 =======
 // windows.h can confict with Criterion::STRICT
@@ -53,6 +54,9 @@
 // windows.h can confict with Criterion::STRICT
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+// windows.h can confict with Criterion::STRICT
+>>>>>>> locationtech-main
 #ifdef STRICT
 #undef STRICT
 #endif

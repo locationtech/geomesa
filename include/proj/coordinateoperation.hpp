@@ -53,6 +53,7 @@ class ProjectedCRS;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -75,6 +76,8 @@ using CoordinateMetadataNNPtr = util::nn<CoordinateMetadataPtr>;
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 /** osgeo.proj.operation namespace
 
   \brief Coordinate operations (relationship between any two coordinate
@@ -224,6 +227,7 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -245,6 +249,8 @@ class PROJ_GCC_DLL CoordinateOperation : public common::ObjectUsage,
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     setProperties(const util::PropertyMap
                       &properties); // throw(InvalidValueTypeException)
 
@@ -1000,6 +1006,7 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1021,6 +1028,8 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     PROJ_DLL static ConversionNNPtr
     createAlbersEqualArea(const util::PropertyMap &properties,
                           const common::Angle &latitudeFalseOrigin,
@@ -1459,6 +1468,7 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
                               const common::Angle &offsetLong);
@@ -1495,6 +1505,8 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
         const common::Angle &offsetLong, const common::Length &offsetHeight);
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
                               const common::Angle &offsetLon);
 
     PROJ_DLL static ConversionNNPtr createGeographic3DOffsets(
@@ -1504,8 +1516,11 @@ class PROJ_GCC_DLL Conversion : public SingleOperation {
     PROJ_DLL static ConversionNNPtr createGeographic2DWithHeightOffsets(
         const util::PropertyMap &properties, const common::Angle &offsetLat,
         const common::Angle &offsetLon, const common::Length &offsetHeight);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
     PROJ_DLL static ConversionNNPtr
     createVerticalOffset(const util::PropertyMap &properties,
@@ -1705,6 +1720,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const common::Angle &offsetLong,
 =======
         const common::Angle &offsetLon,
@@ -1721,6 +1737,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
         const common::Angle &offsetLon,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLon,
+>>>>>>> locationtech-main
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic3DOffsets(
@@ -1730,6 +1749,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
         const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -1746,6 +1766,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
         const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLon, const common::Length &offsetHeight,
+>>>>>>> locationtech-main
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createGeographic2DWithHeightOffsets(
@@ -1755,6 +1778,7 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         const common::Angle &offsetLong, const common::Length &offsetHeight,
 =======
         const common::Angle &offsetLon, const common::Length &offsetHeight,
@@ -1771,6 +1795,9 @@ class PROJ_GCC_DLL Transformation : public SingleOperation {
         const common::Angle &offsetLon, const common::Length &offsetHeight,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const common::Angle &offsetLon, const common::Length &offsetHeight,
+>>>>>>> locationtech-main
         const std::vector<metadata::PositionalAccuracyNNPtr> &accuracies);
 
     PROJ_DLL static TransformationNNPtr createVerticalOffset(
@@ -2078,6 +2105,7 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2106,10 +2134,13 @@ class PROJ_GCC_DLL CoordinateOperationContext {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     PROJ_DLL static CoordinateOperationContextNNPtr
     create(const io::AuthorityFactoryPtr &authorityFactory,
            const metadata::ExtentPtr &extent, double accuracy);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2142,6 +2173,10 @@ class PROJ_GCC_DLL CoordinateOperationContext {
     PROJ_INTERNAL CoordinateOperationContext();
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  protected:
+    PROJ_INTERNAL CoordinateOperationContext();
+>>>>>>> locationtech-main
     INLINED_MAKE_UNIQUE
 
   private:
@@ -2183,6 +2218,7 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -2209,6 +2245,8 @@ class PROJ_GCC_DLL CoordinateOperationFactory {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     PROJ_DLL static CoordinateOperationFactoryNNPtr create();
 
   protected:

@@ -14,6 +14,9 @@ package object hbase {
 
   object HBaseSystemProperties {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
     val CoprocessorUrl             : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
     val WriteBatchSize             : SystemProperty = SystemProperty("geomesa.hbase.write.batch")
@@ -31,6 +34,7 @@ package object hbase {
     val RemoteDensityProperty      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
     val RemoteStatsProperty        : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
     val YieldPartialResultsProperty: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
+<<<<<<< HEAD
 =======
     val CoprocessorUrl           : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.url")
     val CoprocessorMaxThreads    : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.maximize.threads", "true")
@@ -43,6 +47,8 @@ package object hbase {
     val TableAvailabilityTimeout : SystemProperty = SystemProperty("geomesa.hbase.table.availability.timeout", "30 minutes")
     val DeleteVis                : SystemProperty = SystemProperty("geomesa.hbase.delete.vis")
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> locationtech-main
 
     @deprecated("Use coprocessor url")
     val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")

@@ -19,6 +19,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.Serdes;
@@ -29,12 +30,21 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 =======
+=======
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+>>>>>>> locationtech-main
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serdes.StringSerde;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.apache.kafka.streams.TestInputTopic;
+import org.apache.kafka.streams.TestOutputTopic;
+>>>>>>> locationtech-main
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
@@ -45,9 +55,13 @@ import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.apache.kafka.streams.test.TestRecord;
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.apache.kafka.streams.test.TestRecord;
+>>>>>>> locationtech-main
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.Query;
 import org.geotools.data.Transaction;
@@ -59,9 +73,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.locationtech.geomesa.kafka.EmbeddedKafka;
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.kafka.data.KafkaDataStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 import org.locationtech.geomesa.utils.geotools.FeatureUtils;
@@ -72,11 +89,17 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.DockerImageName;
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.DockerImageName;
+>>>>>>> locationtech-main
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -98,10 +121,14 @@ public class GeoMesaStreamsBuilderTest {
     private static final Logger logger = LoggerFactory.getLogger(GeoMesaStreamsBuilderTest.class);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     static KafkaContainer container = null;
 =======
     static EmbeddedKafka kafka = null;
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+    static KafkaContainer container = null;
+>>>>>>> locationtech-main
 
     static final SimpleFeatureType sft =
           SimpleFeatureTypes.createImmutableType("streams", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326");
@@ -111,6 +138,9 @@ public class GeoMesaStreamsBuilderTest {
     static final Set<String> zkPaths = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
     static String zookeepers() {
         return String.format("%s:%s", container.getHost(), container.getMappedPort(KafkaContainer.ZOOKEEPER_PORT));
     }
@@ -118,13 +148,17 @@ public class GeoMesaStreamsBuilderTest {
         return container.getBootstrapServers();
     }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
     public Map<String, String> getParams(String zkPath) {
         if (!zkPaths.add(zkPath)) {
             throw new IllegalArgumentException("zk path '" + zkPath + "' is reused between tests, may cause conflicts");
         }
         Map<String, String> params = new HashMap<>();
+<<<<<<< HEAD
 <<<<<<< HEAD
         params.put("kafka.brokers", brokers());
         params.put("kafka.zookeepers", zookeepers());
@@ -132,6 +166,10 @@ public class GeoMesaStreamsBuilderTest {
         params.put("kafka.brokers", kafka.brokers());
         params.put("kafka.zookeepers", kafka.zookeepers());
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+        params.put("kafka.brokers", brokers());
+        params.put("kafka.zookeepers", zookeepers());
+>>>>>>> locationtech-main
         params.put("kafka.topic.partitions", "1");
         params.put("kafka.topic.replication", "1");
         params.put("kafka.consumer.read-back", "Inf");
@@ -142,17 +180,23 @@ public class GeoMesaStreamsBuilderTest {
     @BeforeClass
     public static void init() {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
         DockerImageName image =
               DockerImageName.parse("confluentinc/cp-kafka")
                              .withTag(System.getProperty("confluent.docker.tag", "7.3.1"));
         container = new KafkaContainer(image);
         container.start();
         container.followOutput(new Slf4jLogConsumer(logger));
+<<<<<<< HEAD
 =======
         logger.info("Starting embedded kafka/zk");
         kafka = new EmbeddedKafka();
         logger.info("Started embedded kafka/zk");
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locationtech-main
 
         for (int i = 0; i < 10; i ++) {
             ScalaSimpleFeature sf = new ScalaSimpleFeature(sft, "id" + i, null, null);
@@ -167,6 +211,7 @@ public class GeoMesaStreamsBuilderTest {
     @AfterClass
     public static void destroy() {
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (container != null) {
             container.stop();
         }
@@ -177,6 +222,11 @@ public class GeoMesaStreamsBuilderTest {
         }
         logger.info("Stopped embedded kafka/zk");
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+        if (container != null) {
+            container.stop();
+        }
+>>>>>>> locationtech-main
     }
 
     @Test
@@ -198,10 +248,14 @@ public class GeoMesaStreamsBuilderTest {
 
         Properties consumerProps = new Properties();
 <<<<<<< HEAD
+<<<<<<< HEAD
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers());
 =======
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers());
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+        consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers());
+>>>>>>> locationtech-main
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
@@ -238,6 +292,7 @@ public class GeoMesaStreamsBuilderTest {
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-word-count-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
 <<<<<<< HEAD
+<<<<<<< HEAD
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
 
@@ -252,9 +307,14 @@ public class GeoMesaStreamsBuilderTest {
 =======
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+=======
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
+>>>>>>> locationtech-main
 
-        Map<String, Long> output = new HashMap<>();
+        Map<String, Long> output;
         try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
+<<<<<<< HEAD
             messages.forEach(testDriver::pipeInput);
             ProducerRecord<String, Long> out =
                   testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
@@ -263,6 +323,14 @@ public class GeoMesaStreamsBuilderTest {
                 out = testDriver.readOutput("word-count", new StringDeserializer(), new LongDeserializer());
             }
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+            TestInputTopic<byte[], byte[]> inputTopic = testDriver.createInputTopic(kryoTopic,
+                                                                                    new ByteArraySerializer(),
+                                                                                    new ByteArraySerializer());
+            messages.forEach(m -> inputTopic.pipeInput(new TestRecord<>(m)));
+            TestOutputTopic<String, Long> outputTopic = testDriver.createOutputTopic("word-count", new StringDeserializer(), new LongDeserializer());
+            output = new HashMap<>(outputTopic.readKeyValuesToMap());
+>>>>>>> locationtech-main
         }
 
         Map<String, Long> expected = new HashMap<>();
@@ -314,16 +382,21 @@ public class GeoMesaStreamsBuilderTest {
                  Consumed.with(Serdes.String(), Serdes.String()).withTimestampExtractor(new WallclockTimestampExtractor()));
         KStream<String, GeoMesaMessage> output =
 <<<<<<< HEAD
+<<<<<<< HEAD
             input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList((Object[])lines.split(","))));
 =======
             input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList(lines.split(","))));
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+            input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList((Object[])lines.split(","))));
+>>>>>>> locationtech-main
 
         builder.to(sft.getTypeName(), output);
 
         Properties streamsProps = new Properties();
         streamsProps.put(StreamsConfig.APPLICATION_ID_CONFIG, "java-write-test");
         streamsProps.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
+<<<<<<< HEAD
 <<<<<<< HEAD
         streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
         streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
@@ -351,6 +424,21 @@ public class GeoMesaStreamsBuilderTest {
                 kryoMessages.add(out);
                 out = testDriver.readOutput(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+        streamsProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, StringSerde.class);
+        streamsProps.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, StringSerde.class);
+
+        List<ProducerRecord<byte[], byte[]>> kryoMessages = new ArrayList<>();
+        try (TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsProps)) {
+            TestInputTopic<byte[], byte[]> inputTopic = testDriver.createInputTopic("input-topic",
+                                                                                    new ByteArraySerializer(),
+                                                                                    new ByteArraySerializer());
+            testInput.forEach(m -> inputTopic.pipeInput(new TestRecord<>(m)));
+            TestOutputTopic<byte[], byte[]> outputTopic = testDriver.createOutputTopic(kryoTopic, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+            while (!outputTopic.isEmpty()) {
+                TestRecord<byte[], byte[]> rec = outputTopic.readRecord();
+                kryoMessages.add(new ProducerRecord<>(kryoTopic, 0, rec.timestamp(), rec.getKey(), rec.getValue(), rec.getHeaders()));
+>>>>>>> locationtech-main
             }
         }
 

@@ -8,10 +8,13 @@ Gnomonic
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 For a sphere, the gnomonic projection is a projection from the center of
 the sphere onto a plane tangent to the center point of the projection.
 This projects great circles to straight lines.  For an ellipsoid, it is
@@ -23,12 +26,16 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 +---------------------+----------------------------------------------------------+
 | **Classification**  | Azimuthal                                                |
 +---------------------+----------------------------------------------------------+
 | **Available forms** | Forward and inverse, spherical and ellipsoidal           |
 +---------------------+----------------------------------------------------------+
 | **Defined area**    | Within a quarter circumference of the center point       |
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -70,6 +77,8 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 | **Defined area**    | Within a quarter circumference of the center point       |
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 +---------------------+----------------------------------------------------------+
 | **Alias**           | gnom                                                     |
 +---------------------+----------------------------------------------------------+
@@ -90,6 +99,7 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 =======
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50``
@@ -116,6 +126,9 @@ point).  For details, see Section 8 of :cite:`Karney2013`.
    proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+   proj-string: ``+proj=gnom +lat_0=90 +lon_0=-50 +R=6.4e6``
+>>>>>>> locationtech-main
 
 Parameters
 ################################################################################
@@ -130,6 +143,9 @@ Parameters
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
 .. include:: ../options/x_0.rst
 
 .. include:: ../options/y_0.rst
@@ -137,6 +153,7 @@ Parameters
 .. include:: ../options/ellps.rst
 
 .. include:: ../options/R.rst
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -181,3 +198,5 @@ Parameters
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main

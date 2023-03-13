@@ -2621,6 +2621,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         EXPECT_EQ(res.size(), 1U);
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
@@ -2653,6 +2654,11 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().second, 70);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        EXPECT_EQ(res.size(), 1U);
+        EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
+        EXPECT_EQ(res.front().second, 70);
+>>>>>>> locationtech-main
     }
     {
         // Existing code, but not matching content
@@ -2671,6 +2677,7 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
         EXPECT_EQ(res.front().second, 70);
 =======
@@ -2702,6 +2709,10 @@ TEST(crs, projectedCRS_identify_db) {
         EXPECT_EQ(res.front().second, 70);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+        EXPECT_EQ(res.front().first->getEPSGCode(), 2172);
+        EXPECT_EQ(res.front().second, 70);
+>>>>>>> locationtech-main
     }
     {
         // Identify by exact name
@@ -3324,10 +3335,13 @@ TEST(crs, projectedCRS_identify_db) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
     {
         // Identify from a pseudo WKT ESRI with has an AUTHORITY node that
         // points to another object.
@@ -3356,6 +3370,7 @@ TEST(crs, projectedCRS_identify_db) {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3377,6 +3392,8 @@ TEST(crs, projectedCRS_identify_db) {
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locationtech-main
 }
 
 // ---------------------------------------------------------------------------
@@ -7274,6 +7291,7 @@ TEST(crs, projected_is_equivalent_to_with_proj4_extension) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -7335,3 +7353,5 @@ TEST(crs, is_dynamic) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main

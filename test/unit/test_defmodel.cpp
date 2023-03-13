@@ -732,6 +732,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
     constexpr double longOffsetQueriedX = 0.01;
@@ -752,6 +753,10 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    constexpr double lonOffsetQueriedX = 0.01;
+    constexpr double lonOffsetQueriedXp1 = 0.02;
+>>>>>>> locationtech-main
     constexpr double latOffsetQueriedY = 0.03;
     constexpr double latOffsetQueriedYp1 = 0.04;
     constexpr double zOffsetQueriedXY = 10.;
@@ -766,6 +771,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         bool getLongLatOffset(int ix, int iy, double &longOffsetRadian,
@@ -797,14 +803,19 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
                 longOffsetRadian = DegToRad(longOffsetQueriedXp1);
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
         bool getLonLatOffset(int ix, int iy, double &lonOffsetRadian,
                              double &latOffsetRadian) const {
             if (ix == iQueriedX) {
                 lonOffsetRadian = DegToRad(lonOffsetQueriedX);
             } else if (ix == iQueriedX + 1) {
                 lonOffsetRadian = DegToRad(lonOffsetQueriedXp1);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             } else {
                 return false;
             }
@@ -837,6 +848,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -865,6 +877,11 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        bool getLonLatZOffset(int ix, int iy, double &lonOffsetRadian,
+                              double &latOffsetRadian, double &zOffset) const {
+            return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
+>>>>>>> locationtech-main
                    getZOffset(ix, iy, zOffset);
         }
 
@@ -913,6 +930,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     double newLong;
 =======
     double newLon;
@@ -929,6 +947,9 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
     double newLon;
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double newLon;
+>>>>>>> locationtech-main
     double newLat;
     double newZ;
     constexpr double tValid = 2018;
@@ -941,6 +962,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -955,11 +977,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon + tFactor * lonOffsetQueriedX, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -976,6 +1001,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat + tFactor * latOffsetQueriedY, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -988,6 +1015,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude =
@@ -1006,6 +1034,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
@@ -1015,6 +1045,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
             lon + tFactor * (lonOffsetQueriedX + alphaX * (lonOffsetQueriedXp1 -
                                                            lonOffsetQueriedX)),
             EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1035,6 +1066,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(
             RadToDeg(newLat),
             lat + tFactor * (latOffsetQueriedY + alphaY * (latOffsetQueriedYp1 -
@@ -1049,6 +1082,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = modelMinX - 1e-1;
@@ -1061,10 +1095,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = modelMinX - 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   tValid, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1079,6 +1116,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // Longitude > model max
@@ -1087,6 +1126,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = modelMaxX + 1e-1;
@@ -1099,10 +1139,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = modelMaxX + 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   tValid, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1117,6 +1160,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // Latitude < model min
@@ -1125,6 +1170,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1137,10 +1183,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = modelMinY - 1e-1;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   tValid, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1155,6 +1204,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // Latitude > model max
@@ -1163,6 +1214,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1175,10 +1227,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = modelMaxY + 1e-1;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   tValid, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1193,6 +1248,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // Before timeExtent.first
@@ -1201,6 +1258,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1213,10 +1271,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   1000, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1231,6 +1292,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // After timeExtent.last
@@ -1239,6 +1302,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1251,10 +1315,13 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_FALSE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                   3000, newLon, newLat, newZ));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1269,6 +1336,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     }
 
     // Longitude < grid min
@@ -1277,6 +1346,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX - 1e-1;
@@ -1290,11 +1360,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX - 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1310,6 +1383,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1320,6 +1395,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMaxX + 1e-1;
@@ -1333,11 +1409,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMaxX + 1e-1;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1353,6 +1432,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1363,6 +1444,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1376,11 +1458,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY - 1e-1;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1396,6 +1481,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1406,6 +1493,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1419,11 +1507,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMaxY + 1e-1;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1439,6 +1530,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1449,6 +1542,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX + iQueriedX * gridResX;
@@ -1462,11 +1556,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  2000, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1482,6 +1579,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
         EXPECT_EQ(newZ, zVal);
     }
@@ -1498,6 +1597,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude =
@@ -1513,11 +1613,14 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
         EXPECT_TRUE(evalVertical.forward(iface, DegToRad(lon), DegToRad(lat),
                                          zVal, tValid, newLon, newLat, newZ));
         EXPECT_NEAR(RadToDeg(newLon), lon, EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1535,6 +1638,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(newLat), lat, EPS);
 
         const double zBottom =
@@ -1558,6 +1663,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude =
@@ -1576,6 +1682,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX + iQueriedX * gridResX + alphaX * gridResX;
         const double lat = gridMinY + iQueriedY * gridResY + alphaY * gridResY;
         EXPECT_TRUE(eval3d.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
@@ -1585,6 +1693,7 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
             lon + tFactor * (lonOffsetQueriedX + alphaX * (lonOffsetQueriedXp1 -
                                                            lonOffsetQueriedX)),
             EPS);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -1605,6 +1714,8 @@ TEST(defmodel, evaluator_horizontal_unit_degree) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(
             RadToDeg(newLat),
             lat + tFactor * (latOffsetQueriedY + alphaY * (latOffsetQueriedYp1 -
@@ -1823,6 +1934,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         double longitude;
 =======
         double lon;
@@ -1839,6 +1951,9 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         double lon;
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        double lon;
+>>>>>>> locationtech-main
         double lat;
         double expected_de;
         double expected_dn;
@@ -1880,6 +1995,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = testPoint.longitude;
@@ -1920,6 +2036,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             << longitude << " " << lat << " " << testPoint.displacement_type
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
         const double lon = testPoint.lon;
         const double lat = testPoint.lat;
         double newLon;
@@ -1931,12 +2049,16 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             << testPoint.interpolation_method;
         EXPECT_NEAR(newZ - zVal, tFactor * testPoint.expected_dz, 1e-8)
             << lon << " " << lat << " " << testPoint.displacement_type
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             << testPoint.interpolation_method;
 
         double de;
         double dn;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1997,6 +2119,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             EXPECT_EQ(newLong2, newLong);
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
         DeltaLongLatToEastingNorthing(DegToRad(lat), newLon - DegToRad(lon),
                                       newLat - DegToRad(lat), a, b, de, dn);
         EXPECT_NEAR(de, tFactor * testPoint.expected_de, 1e-8)
@@ -2014,12 +2138,16 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                      tValid, newLon2, newLat2, newZ2));
             EXPECT_EQ(newLon2, newLon);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
 
             // Shift in longitude
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2040,6 +2168,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon - gridResX / 2),
                                      DegToRad(lat), zVal, tValid, newLon2,
                                      newLat2, newZ2));
@@ -2050,6 +2180,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             EXPECT_EQ(newLon2, newLon);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2066,10 +2197,13 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
 
             // Shift in latitude
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2110,6 +2244,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             EXPECT_EQ(newLong2, newLong);
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon),
                                      DegToRad(lat - gridResY / 2), zVal, tValid,
                                      newLon2, newLat2, newZ2));
@@ -2118,8 +2254,11 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
             EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                      tValid, newLon2, newLat2, newZ2));
             EXPECT_EQ(newLon2, newLon);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             EXPECT_EQ(newLat2, newLat);
             EXPECT_EQ(newZ2, newZ);
         }
@@ -2138,6 +2277,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = 165.9;
@@ -2186,6 +2326,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         EXPECT_NEAR(RadToDeg(invLongitude), longitude, 1e-10);
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
         const double lon = 165.9;
         const double lat = -37.3;
         double newLon;
@@ -2200,8 +2342,11 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         EXPECT_TRUE(eval.inverse(iface, newLon, newLat, newZ, tValid, invLon,
                                  invLat, invZ));
         EXPECT_NEAR(RadToDeg(invLon), lon, 1e-10);
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         EXPECT_NEAR(RadToDeg(invLat), lat, 1e-10);
         EXPECT_NEAR(invZ, zVal, 1e-4);
     }
@@ -2219,6 +2364,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         const double longitude = gridMinX;
@@ -2252,6 +2398,8 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
                                  zVal, tValid, newLong, newLat, newZ));
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+=======
+>>>>>>> locationtech-main
         const double lon = gridMinX;
         const double lat = gridMinY;
         double newLon;
@@ -2259,8 +2407,11 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
         double newZ;
         EXPECT_TRUE(eval.forward(iface, DegToRad(lon), DegToRad(lat), zVal,
                                  tValid, newLon, newLat, newZ));
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
         double de;
         double dn;
@@ -2270,6 +2421,7 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
         DeltaLongLatToEastingNorthing(DegToRad(lat),
@@ -2288,6 +2440,9 @@ TEST(defmodel, evaluator_horizontal_unit_metre) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        DeltaLongLatToEastingNorthing(DegToRad(lat), newLon - DegToRad(lon),
+>>>>>>> locationtech-main
                                       newLat - DegToRad(lat), a, b, de, dn);
         EXPECT_NEAR(de, tFactor * expected_de, 1e-10);
         EXPECT_NEAR(dn, tFactor * expected_dn, 1e-9);
