@@ -22,6 +22,7 @@ import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future, TimeUnit}
 import java.util.{Collections, Properties, UUID}
 import scala.util.Try
@@ -37,12 +38,13 @@ import scala.util.control.NonFatal
 class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
+  import KafkaMetadata.LazyCloseable
   import org.apache.kafka.clients.consumer.ConsumerConfig.{AUTO_OFFSET_RESET_CONFIG, GROUP_ID_CONFIG}
 
   import scala.collection.JavaConverters._
 
   private val producer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
-  private lazy val consumer = new TopicMap()
+  private val consumer = new LazyCloseable(new TopicMap())
 
   override protected def checkIfTableExists: Boolean =
     adminClientOp(_.listTopics().names().get.contains(config.catalog))
@@ -71,12 +73,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     producer.producer.flush()
   }
 
-  override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = consumer.get(row)
+  override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = consumer.instance.get(row)
 
   override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
     prefix match {
-      case None => consumer.all()
-      case Some(p) => consumer.prefix(p)
+      case None => consumer.instance.all()
+      case Some(p) => consumer.instance.prefix(p)
     }
   }
 
@@ -99,6 +101,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 
     private val state = new ConcurrentHashMap[KeyBytes, Array[Byte]]()
     private val complete = new CountDownLatch(1)
+    private val closed = new AtomicBoolean(false)
 
     private val consumer =
       KafkaDataStore.consumer(config.brokers,
@@ -195,7 +198,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
         }
         complete.await(10, TimeUnit.SECONDS)
       } finally {
-        cleanupConsumer()
+        // avoid checking consumer assignment if consumer is already closed, which will throw an error
+        if (closed.compareAndSet(false, true)) {
+          cleanupConsumer()
+        }
       }
     }
 
@@ -225,6 +231,24 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
       obj match {
         case KeyBytes(other) => java.util.Arrays.equals(bytes, other)
         case _ => false
+      }
+    }
+  }
+}
+
+object KafkaMetadata {
+  private class LazyCloseable[T <: Closeable](create: => T) extends Closeable {
+
+    @volatile private var initialized = false
+
+    lazy val instance: T = {
+      initialized = true
+      create
+    }
+
+    override def close(): Unit = {
+      if (initialized) {
+        instance.close()
       }
     }
   }
