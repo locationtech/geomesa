@@ -8,13 +8,15 @@
 
 package org.locationtech.geomesa.gt.partition.postgis
 
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.dbcp.BasicDataSource
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 
-class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
+class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 
-  import PartitionedPostgisDataStoreParams.DbType
+  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout}
 
   override def getDisplayName: String = "PostGIS (partitioned)"
 
@@ -24,8 +26,22 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
-    // override postgis dbkey
-    parameters.put(DbType.key, DbType)
+    Seq(DbType, IdleInTransactionTimeout)
+        .foreach(p => parameters.put(p.key, p))
+  }
+
+  override def createDataSource(params: java.util.Map[String, _]): BasicDataSource = {
+    val source = super.createDataSource(params)
+    val options =
+      Seq(IdleInTransactionTimeout)
+          .flatMap(p => p.opt(params).map(t => s"-c ${p.key}=${t.millis}"))
+
+    logger.debug(s"Connection options: ${options.mkString(" ")}")
+
+    if (options.nonEmpty) {
+      source.addConnectionProperty("options", options.mkString(" "))
+    }
+    source
   }
 
   override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
@@ -57,6 +73,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory {
 
       case d => throw new IllegalArgumentException(s"Expected PostGISDialect but got: ${d.getClass.getName}")
     }
+
     ds
   }
 
