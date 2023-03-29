@@ -38,10 +38,10 @@ object PartitionedPostgisDataStoreParams {
   // note: need a default string constructor so geotools can create it from the param
   class Timeout(repr: String) {
     private val duration = Duration(repr)
-    require(duration.isFinite() && duration.gt(Duration.Zero), s"Invalid duration: $repr")
+    require(duration.isFinite && duration.gt(Duration.Zero), s"Invalid duration: $repr")
 
     val millis: Long = duration.toMillis
-    val seconds: Int = math.max(1, millis / 1000L).toInt
+    val seconds: Int = math.ceil(millis / 1000.0).toInt
   }
 
   trait TimeoutParam extends Param {
