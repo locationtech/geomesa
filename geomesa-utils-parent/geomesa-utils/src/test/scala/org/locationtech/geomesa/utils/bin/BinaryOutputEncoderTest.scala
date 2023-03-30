@@ -16,6 +16,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{LineString, Point}
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -48,7 +49,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with label field" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(4), Some(0), Some(1)))
-        encoder.encode(CloseableIterator(fc.features), out)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 24, (i + 1) * 24))
@@ -63,7 +64,7 @@ class BinaryOutputEncoderTest extends Specification {
       "without label field" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(4), Some(0), None))
-        encoder.encode(CloseableIterator(fc.features), out)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -78,7 +79,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with id field" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(4), None, None))
-        encoder.encode(CloseableIterator(fc.features), out)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -108,7 +109,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with label field" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(3), Some(0), Some(1)))
-        encoder.encode(CloseableIterator(fc.features), out)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 24, (i + 1) * 24))
@@ -123,7 +124,7 @@ class BinaryOutputEncoderTest extends Specification {
       "without label field" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(3), Some(0), None))
-        encoder.encode(CloseableIterator(fc.features), out)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -138,7 +139,7 @@ class BinaryOutputEncoderTest extends Specification {
       "with sorting" >> {
         val out = new ByteArrayOutputStream()
         val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(3), Some(0), None))
-        encoder.encode(CloseableIterator(fc.features), out, sort = true)
+        encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out, sort = true)
         val encoded = out.toByteArray
         forall(0 until 4) { i =>
           val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -174,7 +175,7 @@ class BinaryOutputEncoderTest extends Specification {
 
       val out = new ByteArrayOutputStream()
       val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(1), Some(0), None))
-      encoder.encode(CloseableIterator(fc.features), out)
+      encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
       val encoded = out.toByteArray
       forall(0 until 4) { i =>
         val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
@@ -211,7 +212,7 @@ class BinaryOutputEncoderTest extends Specification {
 
       val out = new ByteArrayOutputStream()
       val encoder = BinaryOutputEncoder(fc.getSchema, EncodingOptions(None, Some(2), Some(0), None))
-      encoder.encode(CloseableIterator(fc.features), out)
+      encoder.encode(CloseableIterator(fc.features).asInstanceOf[Iterator[SimpleFeature]], out)
       val encoded = out.toByteArray
       forall(0 until 4) { i =>
         val decoded = BinaryOutputEncoder.decode(encoded.slice(i * 16, (i + 1) * 16))
