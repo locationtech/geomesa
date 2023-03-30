@@ -33,6 +33,27 @@ class BinaryOutputEncoder private (toValues: ToValues) {
 
   def encode(f: SimpleFeature, callback: BinaryOutputCallback): Unit = toValues(f, callback)
 
+  def encode(f: Iterator[SimpleFeature], os: OutputStream): Long =
+    encode(f, os, sort = false)
+
+  def encode(f: Iterator[SimpleFeature], os: OutputStream, sort: Boolean): Long = {
+    if (sort) {
+      val byteStream = new ByteArrayOutputStream
+      val callback = new ByteStreamCallback(byteStream)
+      f.foreach(toValues(_, callback))
+      val count = callback.result
+      val bytes = byteStream.toByteArray
+      val size = (bytes.length / count).toInt
+      bytes.grouped(size).toSeq.sorted(BinaryOutputEncoder.DateOrdering).foreach(os.write)
+      count
+    } else {
+      val callback = new ByteStreamCallback(os)
+      f.foreach(toValues(_, callback))
+      callback.result
+    }
+  }
+
+  @deprecated("Can leak resources - use non-CloseableIterator version and close any resources outside this function")
   def encode(f: CloseableIterator[SimpleFeature], os: OutputStream, sort: Boolean = false): Long = {
     if (sort) {
       val byteStream = new ByteArrayOutputStream
