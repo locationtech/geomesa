@@ -19,7 +19,7 @@ GMUSER=hadoop
 # todo bootstrap from the current running location and ask the user if they want to 
 # install to /opt/geomesa ? Maybe propmpt with a default of /opt/geomesa similar to
 # how the maven release plugin works?
-GMDIR="/opt/geomesa-hbase_2.12-%%project.version%%"
+GMDIR="/opt/geomesa-hbase_%%scala.binary.version%%-%%project.version%%"
 
 if [[ ! -d "${GMDIR}" ]]; then
   echo "Unable to find geomesa directory at ${GMDIR}"
