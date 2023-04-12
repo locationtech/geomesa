@@ -19,7 +19,7 @@ GMUSER=hadoop
 # todo bootstrap from the current running location and ask the user if they want to 
 # install to /opt/geomesa ? Maybe propmpt with a default of /opt/geomesa similar to
 # how the maven release plugin works?
-GMDIR="/opt/geomesa-hbase_2.11-%%project.version%%"
+GMDIR="/opt/geomesa-hbase_%%scala.binary.version%%-%%project.version%%"
 
 if [[ ! -d "${GMDIR}" ]]; then
   echo "Unable to find geomesa directory at ${GMDIR}"
@@ -28,7 +28,7 @@ fi
 
 echo "Bootstrapping GeoMesa HBase with version %%project.version%% installed at ${GMDIR}"
 
-pip install --upgrade awscli
+pip3 install --upgrade awscli
 
 if [[ ! -d "/opt" ]]; then
   echo "Unable to find /opt"
@@ -59,7 +59,7 @@ ROOTDIR="${ROOTDIR%/}" # standardize to remove trailing slash
 chown -R $GMUSER:$GMUSER ${GMDIR}
 
 # Configure coprocessor auto-registration
-DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime-hbase1_2.11-%%project.version%%.jar
+DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime-hbase2_%%scala.binary.version%%-%%project.version%%.jar
 
 NL=$'\n'
 echo The HBase Root dir is ${ROOTDIR}.
