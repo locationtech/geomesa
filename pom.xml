@@ -3460,32 +3460,32 @@
         <developer>
             <name>Anthony Fox</name>
             <email>anthony@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>James Hughes</name>
-            <email>jhughes@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <email>jhughes@confluent.io</email>
+            <organization>Confluent</organization>
+            <organizationUrl>https://www.confluent.io</organizationUrl>
         </developer>
         <developer>
             <name>Emilio Lahr-Vivaz</name>
             <email>elahrvivaz@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>Andrew Hulbert</name>
             <email>ahulbert@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>Austin Heyne</name>
             <email>aheyne@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
     </developers>
 
