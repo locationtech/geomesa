@@ -62,13 +62,7 @@ object SimpleFeatureSpec {
       * @return a partial spec string
       */
     def toSpec: String = {
-      val opts = specOptions.map { case (k, v) =>
-        if (simpleOptionPattern.matcher(v).matches()) {
-          s":$k=$v"
-        } else {
-          s":$k='${StringEscapeUtils.escapeJava(v)}'"
-        }
-      }
+      val opts = specOptions.map { case (k, v) => encodeAttributeOption(k, v) }
       s"$name:$getClassSpec${opts.mkString}"
     }
 
@@ -155,6 +149,21 @@ object SimpleFeatureSpec {
       MapAttributeSpec(name, keyClass, valueClass, options)
     } else {
       throw new IllegalArgumentException(s"Unknown type binding $binding")
+    }
+  }
+
+  /**
+   * Encode an attribute option for a spec string
+   *
+   * @param key key for the option
+   * @param value value for the option
+   * @return
+   */
+  def encodeAttributeOption(key: String, value: String): String = {
+    if (simpleOptionPattern.matcher(value).matches()) {
+      s":$key=$value"
+    } else {
+      s":$key='${StringEscapeUtils.escapeJava(value)}'"
     }
   }
 
