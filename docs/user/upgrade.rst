@@ -90,6 +90,23 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 4.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* Spring security ``5.8.0`` -> ``5.8.3``
+
+Deprecated Classes and Methods
+------------------------------
+
+The following classes have been deprecated and will be removed in a future version:
+
+* org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
+
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
