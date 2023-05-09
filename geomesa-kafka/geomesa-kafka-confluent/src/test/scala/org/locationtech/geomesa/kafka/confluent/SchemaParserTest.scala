@@ -304,8 +304,7 @@ class SchemaParserTest extends Specification {
 
   "AvroSimpleFeatureParser" should {
     "fail to convert a schema with invalid geomesa avro properties into an SFT" in {
-      SchemaParser.schemaToSft(invalidGeomesaAvroSchema) must
-        throwAn[GeoMesaAvroProperty.InvalidPropertyTypeException]
+      SchemaParser.schemaToSft(invalidGeomesaAvroSchema) must throwAn[IllegalArgumentException]
     }
 
     "fail to convert a schema with multiple default geometries into an SFT" in {
@@ -370,8 +369,8 @@ class SchemaParserTest extends Specification {
             Map("srid" -> "4326", "default" -> "false"),
             Map.empty,
             Map("srid" -> "4326", "default" -> "true"),
-            Map.empty,
-            Map.empty
+            Map("geomesa.date.format" -> "epoch-millis"),
+            Map("geomesa.date.format" -> "iso-datetime")
           )
 
       sft.getUserData.asScala mustEqual Map(
@@ -381,6 +380,23 @@ class SchemaParserTest extends Specification {
         "geomesa.table.sharing" -> "false",
         "geomesa.mixed.geometries" -> "true"
       )
+    }
+
+    "support logical date types" in {
+      val schema =
+        """{
+          |  "type":"record",
+          |  "name":"dtgSchema",
+          |  "fields":[
+          |    { "name":"id", "type": "string" },
+          |    { "name":"dtg", "type": { "type": "long", "logicalType": "timestamp-millis" } }
+          |  ]
+          |}""".stripMargin
+
+      val sft = SchemaParser.schemaToSft(new Schema.Parser().parse(schema))
+      sft.getAttributeCount mustEqual 2
+      sft.getAttributeDescriptors.get(0).getType.getBinding mustEqual classOf[String]
+      sft.getAttributeDescriptors.get(1).getType.getBinding mustEqual classOf[Date]
     }
   }
 }

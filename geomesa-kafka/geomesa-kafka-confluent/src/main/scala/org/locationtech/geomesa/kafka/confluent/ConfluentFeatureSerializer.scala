@@ -19,11 +19,14 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSeria
 import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.ConfluentFeatureMapper
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{InputStream, OutputStream}
 import java.net.URL
+import java.nio.ByteBuffer
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
@@ -96,7 +99,7 @@ class ConfluentFeatureSerializer(
 
 object ConfluentFeatureSerializer {
 
-  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
+  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroVisibilityField}
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)
@@ -118,15 +121,13 @@ object ConfluentFeatureSerializer {
    * @param sftIndex index of the field in the sft
    * @param schemaIndex index of the field in the avro schema
    * @param default default value defined in the avro schema
-   * @param conversionToFeature convert from an avro value to a simple feature type attribute
-   * @param conversionToAvro convert from a simple feature type attribute to an avro value
+   * @param conversion convert from an avro value to a simple feature type attribute, and vice-versa
    */
   private case class FieldMapping(
       sftIndex: Int,
       schemaIndex: Int,
       default: Option[AnyRef],
-      conversionToFeature: Option[AnyRef => AnyRef],
-      conversionToAvro: Option[AnyRef => AnyRef]
+      conversion: Option[FieldConverter]
     )
 
   /**
@@ -144,20 +145,33 @@ object ConfluentFeatureSerializer {
 
     // feature type field index, schema field index and default value, any conversions necessary
     private val fieldMappings = sft.getAttributeDescriptors.asScala.map { d =>
+      val field = schema.getField(d.getLocalName)
+
       val conversion =
         if (classOf[Geometry].isAssignableFrom(d.getType.getBinding)) {
-          Some(GeoMesaAvroGeomFormat.asInstanceOf[GeoMesaAvroDeserializableEnumProperty[AnyRef, AnyRef]])
+          lazy val union = field.schema.getTypes.asScala.map(_.getType).filter(_ != Schema.Type.NULL).toSet
+          field.schema.getType match {
+            case Schema.Type.STRING => Some(WktConverter)
+            case Schema.Type.BYTES  => Some(WkbConverter)
+            case Schema.Type.UNION if union == Set(Schema.Type.STRING) => Some(WktConverter)
+            case Schema.Type.UNION if union == Set(Schema.Type.BYTES)  => Some(WkbConverter)
+            case _ => throw new IllegalStateException(s"Found a geometry field with an invalid schema: $field")
+          }
         } else if (classOf[Date].isAssignableFrom(d.getType.getBinding)) {
-          Some(GeoMesaAvroDateFormat.asInstanceOf[GeoMesaAvroDeserializableEnumProperty[AnyRef, AnyRef]])
+          d.getUserData.get(GeoMesaAvroDateFormat.KEY) match {
+            case GeoMesaAvroDateFormat.ISO_DATE     => Some(IsoDateConverter)
+            case GeoMesaAvroDateFormat.ISO_DATETIME => Some(IsoDateTimeConverter)
+            case GeoMesaAvroDateFormat.EPOCH_MILLIS => Some(EpochMillisConverter)
+            case null /* avro logical date type */  => Some(EpochMillisConverter)
+            case _ =>
+              throw new IllegalStateException(s"Found a date field with no format defined:" +
+                s" ${d.getLocalName} ${d.getUserData.asScala.mkString(", ")}")
+          }
         } else {
           None
         }
 
-      val field = schema.getField(d.getLocalName)
-      val conversionToFeature = conversion.map(_.getFieldReader(schema, field.name()))
-      val conversionToAvro = conversion.map(_.getFieldWriter(schema, field.name()))
-
-      FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversionToFeature, conversionToAvro)
+      FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversion)
     }
 
     // visibility field index in the avro schema
@@ -197,7 +211,7 @@ object ConfluentFeatureSerializer {
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
-            case v => record.put(m.schemaIndex, m.conversionToAvro.fold(v)(_.apply(v)))
+            case v => record.put(m.schemaIndex, m.conversion.fold(v)(_.featureToRecord(v)))
           }
         } catch {
           case NonFatal(e) =>
@@ -223,10 +237,10 @@ object ConfluentFeatureSerializer {
       val record = kafkaDeserializer.deserialize(topic, bytes).asInstanceOf[GenericRecord]
       val attributes = fieldMappings.map { m =>
         try {
-          val value = record.get(m.schemaIndex)
-          m.conversionToFeature match {
-            case Some(c) if value != null => c.apply(value)
-            case _ => value
+          val v = record.get(m.schemaIndex)
+          m.conversion match {
+            case None => v
+            case Some(c) => c.recordToFeature(v)
           }
         } catch {
           case NonFatal(e) =>
@@ -263,4 +277,94 @@ object ConfluentFeatureSerializer {
       }
     }
   }
+
+  /**
+   * Converts between avro and feature attribute values
+   */
+  private sealed trait FieldConverter {
+    def recordToFeature(value: AnyRef): AnyRef
+    def featureToRecord(value: AnyRef): AnyRef
+  }
+
+  /**
+   * Converts WKT text fields
+   */
+  private case object WktConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      // note: value is an org.apache.avro.util.Utf8
+      if (value == null) { null } else { WKTUtils.read(value.toString) }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { WKTUtils.write(value.asInstanceOf[Geometry]) }
+  }
+
+  /**
+   * Converts WKB bytes fields
+   */
+  private case object WkbConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef =
+      if (value == null) { null } else { WKBUtils.read(unwrap(value.asInstanceOf[ByteBuffer])) }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { ByteBuffer.wrap(WKBUtils.write(value.asInstanceOf[Geometry])) }
+
+    private def unwrap(buf: ByteBuffer): Array[Byte] = {
+      if (buf.hasArray && buf.arrayOffset() == 0 && buf.limit() == buf.array().length) {
+        buf.array()
+      } else {
+        val array = Array.ofDim[Byte](buf.limit())
+        buf.get(array)
+        array
+      }
+    }
+  }
+
+  /**
+   * Converts ISO_DATE formatted string fields
+   */
+  private case object IsoDateConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        // note: value is an org.apache.avro.util.Utf8
+        DateParsing.parseDate(value.toString, DateTimeFormatter.ISO_DATE)
+      }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        DateParsing.formatDate(value.asInstanceOf[Date], DateTimeFormatter.ISO_DATE)
+      }
+    }
+  }
+
+  /**
+   * Converts ISO_DATE_TIME formatted string fields
+   */
+  private case object IsoDateTimeConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        // note: value is an org.apache.avro.util.Utf8
+        DateParsing.parseDate(value.toString, DateTimeFormatter.ISO_DATE_TIME)
+      }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        DateParsing.formatDate(value.asInstanceOf[Date], DateTimeFormatter.ISO_DATE_TIME)
+      }
+    }
+  }
+
+  /**
+   * Converts milliseconds since epoch long fields
+   */
+  private case object EpochMillisConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef =
+      if (value == null) { null } else { new Date(value.asInstanceOf[java.lang.Long]) }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { Long.box(value.asInstanceOf[Date].getTime) }
+  }
+
 }
