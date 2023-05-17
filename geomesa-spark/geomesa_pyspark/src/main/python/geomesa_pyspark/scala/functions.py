@@ -261,6 +261,10 @@ def st_idlSafeGeom(col: ColumnOrName) -> Column:
     """Alias of st_antimeridianSafeGeom."""
     return build_scala_udf(spark_context, geomesa_udfs.st_antimeridianSafeGeom)(col)
 
+def st_makeValid(col: ColumnOrName) -> Column:
+    """Returns the repaired geometry."""
+    return build_scala_udf(spark_context, geomesa_udfs.st_makeValid)(col)
+
 # Spatial Relation Functions
 
 def st_translate(col1: ColumnOrName, col2: ColumnOrName, col3: ColumnOrName) -> Column:

@@ -35,8 +35,8 @@ class GeometricProcessingFunctionsTest extends Specification with TestEnvironmen
       }
 
       "should return a point buffered in meters" >> {
-        val buf = sc.sql("select st_bufferPoint(st_makePoint(0,0), 10)").collect().head.get(0)
-        val dfBuf = dfBlank.select(st_bufferPoint(st_makePoint(lit(0),lit(0)), lit(10))).first
+        val buf = sc.sql("select st_bufferPoint(st_makePoint(0, 0), 10)").collect().head.get(0)
+        val dfBuf = dfBlank.select(st_bufferPoint(st_makePoint(lit(0), lit(0)), lit(10))).first
 
         val bufferedPoly = WKTUtils.read(
           """
@@ -74,10 +74,55 @@ class GeometricProcessingFunctionsTest extends Specification with TestEnvironmen
 
         val expected = WKTUtils.read(
           "MULTIPOLYGON (((-180 50, -180 60, -170 60, -170 50, -180 50)), ((180 60, 180 50, 170 50, 170 60, 180 60)))")
-
         decomposed mustEqual expected
         dfDecomposed mustEqual expected
       }
     }
+
+    "st_makeValid" >> {
+
+      "should handle nulls" >> {
+        sc.sql("select st_makeValid(null)").collect.head(0) must beNull
+        dfBlank.select(st_makeValid(lit(null))).first must beNull
+      }
+
+      "should return valid geometry" >> {
+
+        val wkt = "POLYGON((0 0, 0 1, 2 1, 2 2, 1 2, 1 0, 0 0))"
+        val geom = s"st_geomFromWKT('$wkt')"
+        val decomposed = sc.sql(s"select st_isValid($geom), st_isValid(st_makeValid($geom))").first
+        val dfDecomposed = dfBlank.select(st_isValid(st_geomFromWKT(lit(wkt))), st_isValid(st_makeValid(st_geomFromWKT(lit(wkt))))).first
+
+        val expected = (false, true)
+
+        (decomposed.getBoolean(0), decomposed.getBoolean(1)) mustEqual expected
+        dfDecomposed mustEqual expected
+
+      }
+
+      "should repair geometry" >> {
+
+        // these polygons are taken from the PostGIS docs: https://postgis.net/docs/ST_MakeValid.html
+        val input_wkt = Seq("POLYGON ((0 0, 0 1, 2 1, 2 2, 1 2, 1 0, 0 0))", 
+          "MULTIPOLYGON (((186 194, 187 194, 188 195, 189 195, 190 195, 191 195, 192 195, 193 194, 194 194, 194 193, 195 192, 195 191, 195 190, 195 189, 195 188, 194 187, 194 186, 14 6, 13 6, 12 5, 11 5, 10 5, 9 5, 8 5, 7 6, 6 6, 6 7, 5 8, 5 9, 5 10, 5 11, 5 12, 6 13, 6 14, 186 194)), ((150 90, 149 80, 146 71, 142 62, 135 55, 128 48, 119 44, 110 41, 100 40, 90 41, 81 44, 72 48, 65 55, 58 62, 54 71, 51 80, 50 90, 51 100, 54 109, 58 118, 65 125, 72 132, 81 136, 90 139, 100 140, 110 139, 119 136, 128 132, 135 125, 142 118, 146 109, 149 100, 150 90)))", 
+          "MULTIPOLYGON (((91 50, 79 22, 51 10, 23 22, 11 50, 23 78, 51 90, 79 78, 91 50)), ((91 100, 79 72, 51 60, 23 72, 11 100, 23 128, 51 140, 79 128, 91 100)), ((91 150, 79 122, 51 110, 23 122, 11 150, 23 178, 51 190, 79 178, 91 150)), ((141 50, 129 22, 101 10, 73 22, 61 50, 73 78, 101 90, 129 78, 141 50)), ((141 100, 129 72, 101 60, 73 72, 61 100, 73 128, 101 140, 129 128, 141 100)), ((141 150, 129 122, 101 110, 73 122, 61 150, 73 178, 101 190, 129 178, 141 150)))", 
+          "LINESTRING (0 0, 0 0)")
+        val expected_wkt = Seq("MULTIPOLYGON (((0 0, 0 1, 1 1, 1 0, 0 0)), ((1 1, 1 2, 2 2, 2 1, 1 1)))",
+          "MULTIPOLYGON (((149 80, 146 71, 142 62, 135 55, 128 48, 119 44, 110 41, 100 40, 90 41, 81 44, 72 48, 65 55, 64 56, 14 6, 13 6, 12 5, 11 5, 10 5, 9 5, 8 5, 7 6, 6 6, 6 7, 5 8, 5 9, 5 10, 5 11, 5 12, 6 13, 6 14, 56.76923076923077 64.76923076923077, 54 71, 51 80, 50 90, 51 100, 54 109, 58 118, 65 125, 72 132, 81 136, 90 139, 100 140, 110 139, 119 136, 125.23076923076923 133.23076923076923, 186 194, 187 194, 188 195, 189 195, 190 195, 191 195, 192 195, 193 194, 194 194, 194 193, 195 192, 195 191, 195 190, 195 189, 195 188, 194 187, 194 186, 134 126, 135 125, 142 118, 146 109, 149 100, 150 90, 149 80)))",
+          "MULTIPOLYGON (((51 10, 23 22, 11 50, 21.714285714285715 75, 11 100, 21.714285714285715 125, 11 150, 23 178, 51 190, 76 179.28571428571428, 101 190, 129 178, 141 150, 130.28571428571428 125, 141 100, 130.28571428571428 75, 141 50, 129 22, 101 10, 76 20.714285714285715, 51 10)))",
+          "LINESTRING EMPTY")
+
+        input_wkt.zip(expected_wkt).foreach { case (wkt, expected) =>
+          val geom = s"st_geomFromWKT('$wkt')"
+          val decomposed = sc.sql(s"select st_asText(st_makeValid($geom))").first.getAs[String](0)
+          val dfDecomposed = dfBlank.select(st_asText(st_makeValid(st_geomFromWKT(lit(wkt))))).first
+
+          decomposed mustEqual expected
+          dfDecomposed mustEqual expected
+        }
+        true mustEqual true // happy ending for JUnitRunner
+      }
+    }
+
   }
 }

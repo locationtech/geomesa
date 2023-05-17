@@ -14,7 +14,7 @@ import org.locationtech.geomesa.spark.jts.udf.GeometricAccessorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricCastFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricConstructorFunctions._
 import org.locationtech.geomesa.spark.jts.udf.GeometricOutputFunctions._
-import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions.{ST_BufferPoint, ST_antimeridianSafeGeom}
+import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions.{ST_BufferPoint, ST_MakeValid, ST_antimeridianSafeGeom}
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.sql.GeometricDistanceFunctions._
 
@@ -86,6 +86,7 @@ object GeomesaPysparkFunctions {
   def st_antimeridianSafeGeom: UserDefinedFunction = udf(ST_antimeridianSafeGeom)
   def st_bufferPoint: UserDefinedFunction = udf(ST_BufferPoint)
   def st_idlSafeGeom: UserDefinedFunction = udf(ST_antimeridianSafeGeom)
+  def st_makeValid: UserDefinedFunction = udf(ST_MakeValid)
 
   /* Spatial Relation Functions */
   def st_translate: UserDefinedFunction = udf(ST_Translate)
