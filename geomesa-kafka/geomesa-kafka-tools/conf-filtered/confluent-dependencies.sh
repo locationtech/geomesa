@@ -19,6 +19,7 @@ function dependencies() {
   declare -a gavs=(
     "io.confluent:kafka-schema-registry-client:${confluent_install_version}:jar"
     "io.confluent:kafka-avro-serializer:${confluent_install_version}:jar"
+    "io.confluent:kafka-schema-serializer:${confluent_install_version}:jar"
     "io.confluent:common-utils:${confluent_install_version}:jar"
     "io.confluent:common-config:${confluent_install_version}:jar"
   )
