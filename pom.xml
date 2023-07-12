@@ -77,7 +77,7 @@
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
         <hsql.version>2.4.1</hsql.version> <!-- newer versions (at least 2.7+) require java 11 -->
-        <h2.version>2.1.214</h2.version>
+        <h2.version>2.2.220</h2.version>
         <curator.version>4.3.0</curator.version> <!-- last version that supports zk 3.4 -->
         <json.smart.version>2.4.8</json.smart.version> <!-- used by json-path (2.2.1) and hadoop-auth (2.3)-->
         <json.path.version>2.7.0</json.path.version>
