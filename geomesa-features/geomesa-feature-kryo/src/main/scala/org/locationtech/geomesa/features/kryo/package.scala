@@ -92,7 +92,14 @@ package object kryo {
       output.writeShort(count) // track the number of attributes
       output.write(size) // size of each offset
       val offset = output.position()
-      output.setPosition(offset + (size * (count + 1)) + (IntBitSet.size(count) * 4))
+      val position = offset + (size * (count + 1)) + (IntBitSet.size(count) * 4)
+      // setting the position to greater than the buffer size results in errors when trying to write some values later on
+      if (output.getBuffer.length < position) {
+        val buf = Array.ofDim[Byte](position * 2)
+        System.arraycopy(output.getBuffer, 0, buf, 0, offset)
+        output.setBuffer(buf, -1)
+      }
+      output.setPosition(position)
       offset
     }
   }
