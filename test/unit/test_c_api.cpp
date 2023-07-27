@@ -944,20 +944,47 @@ TEST_F(CApi, proj_get_type) {
 =======
         ASSERT_EQ(obj, nullptr);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         ASSERT_EQ(obj, nullptr);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
         ASSERT_NE(obj, nullptr);
         EXPECT_EQ(proj_get_type(obj), PJ_TYPE_UNKNOWN);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
         ASSERT_EQ(obj, nullptr);
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        ASSERT_EQ(obj, nullptr);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     }
 }
 
@@ -1865,22 +1892,47 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
         // lat,long=49,-4 if using grid
 =======
         // lat,lon=49,-4 if using grid
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         // lat,lon=49,-4 if using grid
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         // lat,long=49,-4 if using grid
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        // lat,long=49,-4 if using grid
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         // lat,long=49,-4 if using grid
 =======
         // lat,lon=49,-4 if using grid
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         // lat,lon=49,-4 if using grid
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        // lat,lon=49,-4 if using grid
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
         coord.xy.x = 136555.58288992;
         coord.xy.y = 463344.51894296;
         int idx = proj_get_suggested_operation(m_ctxt, res, PJ_FWD, coord);
@@ -2704,22 +2756,47 @@ TEST_F(CApi, proj_create_projections) {
         auto projCRS = proj_create_conversion_tunisia_mining_grid(
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         auto projCRS = proj_create_conversion_tunisia_mining_grid(
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        auto projCRS = proj_create_conversion_tunisia_mining_grid(
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         auto projCRS = proj_create_conversion_tunisia_mining_grid(
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        auto projCRS = proj_create_conversion_tunisia_mapping_grid(
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
             m_ctxt, 0, 0, 0, 0, "Degree", 0.0174532925199433, "Metre", 1.0);
         ObjectKeeper keeper_projCRS(projCRS);
         ASSERT_NE(projCRS, nullptr);
@@ -4830,17 +4907,40 @@ TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_target) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
+=======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 static void
 check_axis_is_latitude(PJ_CONTEXT *ctx, PJ *cs, int axis_number,
                        const char *unit_name = "degree",
@@ -5489,22 +5589,47 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
     // Check there's an associated area of use
 =======
     // Check there's an asssociated area of use
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     // Check there's an asssociated area of use
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     // Check there's an associated area of use
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    // Check there's an associated area of use
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     // Check there's an associated area of use
 =======
     // Check there's an asssociated area of use
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     // Check there's an asssociated area of use
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Check there's an asssociated area of use
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     double west_lon_degree = 0;
     double south_lat_degree = 0;
     double east_lon_degree = 0;
@@ -6269,12 +6394,39 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
     // Before the ellipsoidal version of the gnomonic projection was
     // implemented the WGS84 ellipsoid was treated as a sphere of radius
     // 6378137m and the equator was the "horizon" for the projection with the
@@ -6288,19 +6440,38 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), long = 180d.
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
     // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
 >>>>>>> locationtech-main
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+    // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
     //
     // With the implementation of the ellipsoidal gnonomic projection, the
     // horizon is now at lat = +0.3035d.
@@ -6311,14 +6482,37 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
 =======
     // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+    // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+    // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
+>>>>>>> e771dc363a (typo fixes)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -6328,9 +6522,13 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     // now lat = -90+4.15*ndiv = -2.85d, long = 180d for which y = -116576598.5.
 >>>>>>> e771dc363 (typo fixes)
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
     // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
 >>>>>>> locationtech-main
+=======
+>>>>>>> aa21c6fa76 (typo fixes)
+>>>>>>> location-main
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
@@ -6338,9 +6536,48 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_left, 0, 1);
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+    int success =
+        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
+                          &out_left, &out_bottom, &out_right, &out_top, 21);
+    EXPECT_TRUE(success == 1);
+    EXPECT_NEAR(out_left, 0, 1);
+<<<<<<< HEAD
+    EXPECT_NEAR(out_bottom, -89178008, 1);
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    EXPECT_NEAR(out_bottom, -116576598.5, 1);
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+    int success =
+        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
+                          &out_left, &out_bottom, &out_right, &out_top, 21);
+    EXPECT_TRUE(success == 1);
+    EXPECT_NEAR(out_left, 0, 1);
+<<<<<<< HEAD
+    EXPECT_NEAR(out_bottom, -89178008, 1);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    EXPECT_NEAR(out_bottom, -116576598.5, 1);
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+=======
+>>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
@@ -6350,16 +6587,34 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_bottom, -89178008, 1);
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 =======
 =======
 =======
@@ -6375,13 +6630,38 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+    int success =
+        proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
+                          &out_left, &out_bottom, &out_right, &out_top, 21);
+    EXPECT_TRUE(success == 1);
+    EXPECT_NEAR(out_left, 0, 1);
+<<<<<<< HEAD
+    EXPECT_NEAR(out_bottom, -89178008, 1);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    EXPECT_NEAR(out_bottom, -116576598.5, 1);
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
     EXPECT_NEAR(out_right, 0, 1);
     EXPECT_NEAR(out_top, 0, 1);
 }

@@ -35,12 +35,39 @@ typedef double T;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 #if !defined(OLD_BUGGY_REMQUO)
 /*
  * glibc prior to version 2.22 had a bug in remquo.  This was reported in 2014
@@ -57,29 +84,80 @@ typedef double T;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+<<<<<<< HEAD
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
+=======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 static const T wgs84_a = 6378137, wgs84_f = 1/298.257223563; /* WGS84 */
 
 static int equiv(T x, T y) {
@@ -178,17 +256,61 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
 =======
   checksincosd(-810.0, -1.0, +0.0);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+  checksincosd(-810.0, -1.0, +0.0);
+#endif
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(-810.0, -1.0, +0.0);
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+  checksincosd(-810.0, -1.0, +0.0);
+#endif
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 #if !OLD_BUGGY_REMQUO
@@ -197,12 +319,24 @@ int main() {
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 =======
   checksincosd(-810.0, -1.0, +0.0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 #if !OLD_BUGGY_REMQUO
@@ -210,11 +344,22 @@ int main() {
 #endif
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+  checksincosd(-810.0, -1.0, +0.0);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 =======
 #if !OLD_BUGGY_REMQUO
   checksincosd(-810.0, -1.0, +0.0);
 #endif
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
   checksincosd(-720.0, -0.0, +1.0);
   checksincosd(-630.0, +1.0, +0.0);
   checksincosd(-540.0, -0.0, -1.0);
@@ -238,8 +383,24 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 #if !OLD_BUGGY_REMQUO
   checksincosd(+810.0, +1.0, +0.0);
 #endif
@@ -248,10 +409,48 @@ int main() {
 
 #if !OLD_BUGGY_REMQUO
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+  checksincosd(+810.0, +1.0, +0.0);
+#endif
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+<<<<<<< HEAD
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+  checksincosd(+810.0, +1.0, +0.0);
+#endif
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 =======
 #if !OLD_BUGGY_REMQUO
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
   checksincosd(+810.0, +1.0, +0.0);
 #endif
   checksincosd(+  inf,  nan,  nan);
@@ -260,9 +459,21 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -270,6 +481,12 @@ int main() {
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 =======
 =======
@@ -284,13 +501,37 @@ int main() {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 #if !OLD_BUGGY_REMQUO
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+  checksincosd(+810.0, +1.0, +0.0);
+#endif
+  checksincosd(+  inf,  nan,  nan);
+  checksincosd(   nan,  nan,  nan);
+
+<<<<<<< HEAD
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#if !OLD_BUGGY_REMQUO
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
   {
     T s1, c1, s2, c2, s3, c3;
     geod_sincosd(         9.0, &s1, &c1);
@@ -306,33 +547,92 @@ int main() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+#endif
+=======
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#endif
+>>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#endif
+>>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+=======
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 #endif
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 #endif
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 #endif
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 1823506050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 =======
 #endif
 >>>>>>> locationtech-main
+=======
+>>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#endif
+>>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> location-main
 
   check( geod_atan2d(+0.0 , -0.0 ), +180 );
   check( geod_atan2d(-0.0 , -0.0 ), -180 );

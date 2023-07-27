@@ -165,22 +165,47 @@ the ISO-19111 standard. The solution adopted here is to use std::weak_ptr
 in the CoordinateOperation class to avoid the cycle. This design artifact is
 =======
 in the CoordinateOperation class to avoid the cycle. This design artefact is
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 in the CoordinateOperation class to avoid the cycle. This design artefact is
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 in the CoordinateOperation class to avoid the cycle. This design artifact is
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+in the CoordinateOperation class to avoid the cycle. This design artifact is
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
 in the CoordinateOperation class to avoid the cycle. This design artifact is
 =======
 in the CoordinateOperation class to avoid the cycle. This design artefact is
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 in the CoordinateOperation class to avoid the cycle. This design artefact is
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+in the CoordinateOperation class to avoid the cycle. This design artefact is
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 transparent to users.
 
 Another important design point is that all ISO19111 objects are immutable after
@@ -667,22 +692,47 @@ New files (excluding makefile.am, CMakeLists.txt and other build infrastructure
 artifacts):
 =======
 artefacts):
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 artefacts):
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 artifacts):
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+artifacts):
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
 artifacts):
 =======
 artefacts):
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 artefacts):
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+artefacts):
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 
     * include/proj/: Public installed C++ headers
         - `common.hpp`_: declarations of osgeo::proj::common namespace.

@@ -288,22 +288,47 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     double lat;
 =======
     double lat, lon;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     double lat, lon;
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     double lat;
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    double lat;
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     double lat;
 =======
     double lat, lon;
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     double lat, lon;
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    double lat, lon;
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 
     /* Convert the geodetic latitude to a geocentric latitude.
      * This corresponds to the shift from the ellipsoid to the sphere
@@ -327,24 +352,52 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
 
     // Convert the lat/lon to x,y,z on the unit sphere
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     lon = lp.lam;
 
     // Convert the lat/lon to x,y,z on the unit sphere
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 
     // Convert the lat/long to x,y,z on the unit sphere
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
     lon = lp.lam;
 
     // Convert the lat/lon to x,y,z on the unit sphere
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     double x, y, z;
     double sinlat, coslat;
     double sinlon, coslon;
@@ -364,15 +417,30 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     sinlon = sin(lon);
     coslon = cos(lon);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     sinlon = sin(lon);
     coslon = cos(lon);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
     sinlon = sin(lp.lam);
     coslon = cos(lp.lam);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -380,6 +448,19 @@ static PJ_XY s2_forward (PJ_LP lp, PJ *P) {
     sinlon = sin(lon);
     coslon = cos(lon);
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    sinlon = sin(lon);
+    coslon = cos(lon);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     x = coslat * coslon;
     y = coslat * sinlon;
     z = sinlat;

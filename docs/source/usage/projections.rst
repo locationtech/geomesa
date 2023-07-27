@@ -77,22 +77,47 @@ radians are interpreted to be decimal degrees by convention.
 Explicit specification of input units can be accomplished by adding the appropriate
 =======
 Explict specification of input units can be accomplished by adding the appropriate
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 Explict specification of input units can be accomplished by adding the appropriate
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Explicit specification of input units can be accomplished by adding the appropriate
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+Explicit specification of input units can be accomplished by adding the appropriate
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
 Explicit specification of input units can be accomplished by adding the appropriate
 =======
 Explict specification of input units can be accomplished by adding the appropriate
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Explict specification of input units can be accomplished by adding the appropriate
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Explict specification of input units can be accomplished by adding the appropriate
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 suffix to input values.
 
 
@@ -118,22 +143,47 @@ suffix to input values.
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explicitly
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+Example of use.  The longitude of the central meridian ``+lon_0=90``, can also be expressed more explictly
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 with units of decimal degrees as ``+lon_0=90d`` or in radian
 units as ``+lon_0=1.570796r`` (approximately).
 

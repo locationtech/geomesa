@@ -906,6 +906,21 @@ st_bufferPoint
 
 Returns a ``Geometry`` covering all points within a given *radius* of ``Point`` *p*, where *radius* is given in meters.
 
+.. _st_makeValid:
+
+_st_makeValid
+^^^^^^^^^^^^^
+
+::
+
+    Geometry st_makeValid(Geometry geom)
+
+Returns a valid ``Geometry``.
+The behavior of this function is similar to PostGIS function `st_makeValid(geom, 'method=structure')`.
+The function will not collapse geometries and may return EMPTY geometries instead.
+Invalid MULTI-geometries may be reduced to regular geometries.
+
+
 .. _st_convexHull:
 
 st_convexHull

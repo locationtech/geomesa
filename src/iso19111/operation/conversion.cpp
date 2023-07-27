@@ -331,16 +331,31 @@ Conversion::create(const util::PropertyMap &properties,
 /** \brief Instantiate a [Universal Transverse Mercator]
  *(https://proj.org/operations/projections/utm.html) conversion.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a [Universal Transverse Mercator]
  *(https://proj.org/operations/projections/utm.html) conversion.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a
  * <a href="../../../operations/projections/utm.html">
  * Universal Transverse Mercator</a> conversion.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -348,6 +363,19 @@ Conversion::create(const util::PropertyMap &properties,
 /** \brief Instantiate a [Universal Transverse Mercator]
  *(https://proj.org/operations/projections/utm.html) conversion.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a [Universal Transverse Mercator]
+ *(https://proj.org/operations/projections/utm.html) conversion.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * UTM is a family of conversions, of EPSG codes from 16001 to 16060 for the
  * northern hemisphere, and 17001 to 17060 for the southern hemisphere,
@@ -399,7 +427,11 @@ ConversionNNPtr Conversion::createUTM(const util::PropertyMap &properties,
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Transverse Mercator]
  *(https://proj.org/operations/projections/tmerc.html) projection method.
  *
@@ -408,9 +440,23 @@ ConversionNNPtr Conversion::createUTM(const util::PropertyMap &properties,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tmerc.html">
@@ -420,11 +466,23 @@ ConversionNNPtr Conversion::createUTM(const util::PropertyMap &properties,
  * <a href="https://epsg.org/coord-operation-method_9807/index.html">
  * EPSG:9807</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -461,25 +519,53 @@ ConversionNNPtr Conversion::createTransverseMercator(
  *Mercator]
  *(https://proj.org/operations/projections/gstmerc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Gauss Schreiber Transverse
  *Mercator]
  *(https://proj.org/operations/projections/gstmerc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gstmerc.html">
  * Gauss Schreiber Transverse Mercator</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Gauss Schreiber Transverse
  *Mercator]
  *(https://proj.org/operations/projections/gstmerc.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This method is also known as Gauss-Laborde Reunion.
  *
@@ -527,7 +613,11 @@ ConversionNNPtr Conversion::createGaussSchreiberTransverseMercator(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Transverse Mercator South
  *Orientated]
  *(https://proj.org/operations/projections/tmerc.html) projection method.
@@ -537,9 +627,23 @@ ConversionNNPtr Conversion::createGaussSchreiberTransverseMercator(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tmerc.html">
@@ -549,11 +653,23 @@ ConversionNNPtr Conversion::createGaussSchreiberTransverseMercator(
  * <a href="https://epsg.org/coord-operation-method_9808/index.html">
  * EPSG:9808</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -590,16 +706,31 @@ ConversionNNPtr Conversion::createTransverseMercatorSouthOriented(
 /** \brief Instantiate a conversion based on the  [Two Point Equidistant]
  *(https://proj.org/operations/projections/tpeqd.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the  [Two Point Equidistant]
  *(https://proj.org/operations/projections/tpeqd.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/tpeqd.html">
  * Two Point Equidistant</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -607,6 +738,19 @@ ConversionNNPtr Conversion::createTransverseMercatorSouthOriented(
 /** \brief Instantiate a conversion based on the  [Two Point Equidistant]
  *(https://proj.org/operations/projections/tpeqd.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the  [Two Point Equidistant]
+ *(https://proj.org/operations/projections/tpeqd.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -653,16 +797,31 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
  * This method is defined as [EPSG:9816]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9816)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:9816]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9816)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9816/index.html">
  * EPSG:9816</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -670,6 +829,19 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
  * This method is defined as [EPSG:9816]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9816)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:9816]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9816)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * \note There is currently no implementation of the method formulas in PROJ.
  *
@@ -687,6 +859,7 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
 <<<<<<< HEAD
  * @deprecated. Use createTunisiaMiningGrid() instead
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -694,12 +867,35 @@ Conversion::createTwoPointEquidistant(const util::PropertyMap &properties,
  * @deprecated. Use createTunisiaMiningGrid() instead
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+ * @deprecated. Use createTunisiaMiningGrid() instead
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
+=======
  * @deprecated. Use createTunisiaMiningGrid() instead
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  */
 ConversionNNPtr Conversion::createTunisiaMappingGrid(
     const util::PropertyMap &properties, const common::Angle &centerLat,
@@ -714,22 +910,47 @@ ConversionNNPtr Conversion::createTunisiaMappingGrid(
         properties, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        properties, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MINING_GRID,
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        properties, EPSG_CODE_METHOD_TUNISIA_MAPPING_GRID,
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
         createParams(centerLat, centerLong, falseEasting, falseNorthing));
 }
 
@@ -785,7 +1006,11 @@ ConversionNNPtr Conversion::createTunisiaMiningGrid(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Albers Conic Equal Area]
  *(https://proj.org/operations/projections/aea.html) projection method.
  *
@@ -794,9 +1019,23 @@ ConversionNNPtr Conversion::createTunisiaMiningGrid(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the Tunisia Mining Grid projection
  * method.
@@ -835,11 +1074,23 @@ ConversionNNPtr Conversion::createTunisiaMiningGrid(
  * <a href="https://epsg.org/coord-operation-method_9822/index.html">
  * EPSG:9822</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @note the order of arguments is conformant with the corresponding EPSG
  * mode and different than OGRSpatialReference::setACEA() of GDAL &lt;= 2.3
@@ -891,7 +1142,11 @@ Conversion::createAlbersEqualArea(const util::PropertyMap &properties,
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Conic Conformal 1SP]
  *(https://proj.org/operations/projections/lcc.html) projection method.
  *
@@ -900,9 +1155,23 @@ Conversion::createAlbersEqualArea(const util::PropertyMap &properties,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
@@ -912,11 +1181,23 @@ Conversion::createAlbersEqualArea(const util::PropertyMap &properties,
  * <a href="https://epsg.org/coord-operation-method_9801/index.html">
  * EPSG:9801</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -959,7 +1240,11 @@ ConversionNNPtr Conversion::createLambertConicConformal_1SP(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP)]
  *(https://proj.org/operations/projections/lcc.html) projection method.
  *
@@ -968,9 +1253,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_1SP(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
@@ -980,11 +1279,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_1SP(
  * <a href="https://epsg.org/coord-operation-method_9802/index.html">
  * EPSG:9802</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @note the order of arguments is conformant with the corresponding EPSG
  * mode and different than OGRSpatialReference::setLCC() of GDAL &lt;= 2.3
@@ -1036,7 +1347,11 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP
  *Michigan)]
  *(https://proj.org/operations/projections/lcc.html) projection method.
@@ -1046,9 +1361,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
@@ -1058,11 +1387,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP(
  * <a href="https://epsg.org/coord-operation-method_1051/index.html">
  * EPSG:1051</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1115,7 +1456,11 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Michigan(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Conic Conformal (2SP
  *Belgium)]
  *(https://proj.org/operations/projections/lcc.html) projection method.
@@ -1125,9 +1470,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Michigan(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/lcc.html">
@@ -1137,11 +1496,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Michigan(
  * <a href="https://epsg.org/coord-operation-method_9803/index.html">
  * EPSG:9803</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * \warning The formulas used currently in PROJ are, incorrectly, the ones of
  * the regular LCC_2SP method.
@@ -1198,7 +1569,11 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Belgium(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Modified Azimuthal
  *Equidistant]
  *(https://proj.org/operations/projections/aeqd.html) projection method.
@@ -1208,9 +1583,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Belgium(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/aeqd.html">
@@ -1220,11 +1609,23 @@ ConversionNNPtr Conversion::createLambertConicConformal_2SP_Belgium(
  * <a href="https://epsg.org/coord-operation-method_9832/index.html">
  * EPSG:9832</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1266,7 +1667,11 @@ ConversionNNPtr Conversion::createAzimuthalEquidistant(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Guam Projection]
  *(https://proj.org/operations/projections/aeqd.html) projection method.
  *
@@ -1275,9 +1680,23 @@ ConversionNNPtr Conversion::createAzimuthalEquidistant(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/aeqd.html">
@@ -1287,11 +1706,23 @@ ConversionNNPtr Conversion::createAzimuthalEquidistant(
  * <a href="https://epsg.org/coord-operation-method_9831/index.html">
  * EPSG:9831</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  *is
@@ -1334,7 +1765,11 @@ ConversionNNPtr Conversion::createGuamProjection(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Bonne]
  *(https://proj.org/operations/projections/bonne.html) projection method.
  *
@@ -1343,9 +1778,23 @@ ConversionNNPtr Conversion::createGuamProjection(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/bonne.html">
@@ -1355,11 +1804,23 @@ ConversionNNPtr Conversion::createGuamProjection(
  * <a href="https://epsg.org/coord-operation-method_9827/index.html">
  * EPSG:9827</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1403,7 +1864,11 @@ ConversionNNPtr Conversion::createBonne(const util::PropertyMap &properties,
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Cylindrical Equal Area
  *(Spherical)]
  *(https://proj.org/operations/projections/cea.html) projection method.
@@ -1413,9 +1878,23 @@ ConversionNNPtr Conversion::createBonne(const util::PropertyMap &properties,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cea.html">
@@ -1425,11 +1904,23 @@ ConversionNNPtr Conversion::createBonne(const util::PropertyMap &properties,
  * <a href="https://epsg.org/coord-operation-method_9834/index.html">
  * EPSG:9834</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * \warning The PROJ cea computation code would select the ellipsoidal form if
  * a non-spherical ellipsoid is used for the base GeographicCRS.
@@ -1476,7 +1967,11 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualAreaSpherical(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Cylindrical Equal Area
  *(ellipsoidal form)]
  *(https://proj.org/operations/projections/cea.html) projection method.
@@ -1486,9 +1981,23 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualAreaSpherical(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cea.html">
@@ -1498,11 +2007,23 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualAreaSpherical(
  * <a href="https://epsg.org/coord-operation-method_9835/index.html">
  * EPSG:9835</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1545,7 +2066,11 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualArea(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Cassini-Soldner]
  * (https://proj.org/operations/projections/cass.html) projection method.
  *
@@ -1554,9 +2079,23 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualArea(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/cass.html">
@@ -1566,11 +2105,23 @@ ConversionNNPtr Conversion::createLambertCylindricalEqualArea(
  * <a href="https://epsg.org/coord-operation-method_9806/index.html">
  * EPSG:9806</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -1605,16 +2156,31 @@ ConversionNNPtr Conversion::createCassiniSoldner(
 /** \brief Instantiate a conversion based on the [Equidistant Conic]
  *(https://proj.org/operations/projections/eqdc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Equidistant Conic]
  *(https://proj.org/operations/projections/eqdc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqdc.html">
  * Equidistant Conic</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1622,6 +2188,19 @@ ConversionNNPtr Conversion::createCassiniSoldner(
 /** \brief Instantiate a conversion based on the [Equidistant Conic]
  *(https://proj.org/operations/projections/eqdc.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Equidistant Conic]
+ *(https://proj.org/operations/projections/eqdc.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1666,16 +2245,31 @@ ConversionNNPtr Conversion::createEquidistantConic(
 /** \brief Instantiate a conversion based on the [Eckert I]
  * (https://proj.org/operations/projections/eck1.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert I]
  * (https://proj.org/operations/projections/eck1.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck1.html">
  * Eckert I</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1683,6 +2277,19 @@ ConversionNNPtr Conversion::createEquidistantConic(
 /** \brief Instantiate a conversion based on the [Eckert I]
  * (https://proj.org/operations/projections/eck1.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert I]
+ * (https://proj.org/operations/projections/eck1.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1717,16 +2324,31 @@ ConversionNNPtr Conversion::createEckertI(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Eckert II]
  * (https://proj.org/operations/projections/eck2.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert II]
  * (https://proj.org/operations/projections/eck2.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck2.html">
  * Eckert II</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1734,6 +2356,19 @@ ConversionNNPtr Conversion::createEckertI(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Eckert II]
  * (https://proj.org/operations/projections/eck2.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert II]
+ * (https://proj.org/operations/projections/eck2.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1767,16 +2402,31 @@ ConversionNNPtr Conversion::createEckertII(
 /** \brief Instantiate a conversion based on the [Eckert III]
  * (https://proj.org/operations/projections/eck3.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert III]
  * (https://proj.org/operations/projections/eck3.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck3.html">
  * Eckert III</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1784,6 +2434,19 @@ ConversionNNPtr Conversion::createEckertII(
 /** \brief Instantiate a conversion based on the [Eckert III]
  * (https://proj.org/operations/projections/eck3.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert III]
+ * (https://proj.org/operations/projections/eck3.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1817,16 +2480,31 @@ ConversionNNPtr Conversion::createEckertIII(
 /** \brief Instantiate a conversion based on the [Eckert IV]
  * (https://proj.org/operations/projections/eck4.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert IV]
  * (https://proj.org/operations/projections/eck4.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck4.html">
  * Eckert IV</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1834,6 +2512,19 @@ ConversionNNPtr Conversion::createEckertIII(
 /** \brief Instantiate a conversion based on the [Eckert IV]
  * (https://proj.org/operations/projections/eck4.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert IV]
+ * (https://proj.org/operations/projections/eck4.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1867,16 +2558,31 @@ ConversionNNPtr Conversion::createEckertIV(
 /** \brief Instantiate a conversion based on the [Eckert V]
  * (https://proj.org/operations/projections/eck5.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert V]
  * (https://proj.org/operations/projections/eck5.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck5.html">
  * Eckert V</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1884,6 +2590,19 @@ ConversionNNPtr Conversion::createEckertIV(
 /** \brief Instantiate a conversion based on the [Eckert V]
  * (https://proj.org/operations/projections/eck5.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert V]
+ * (https://proj.org/operations/projections/eck5.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1918,16 +2637,31 @@ ConversionNNPtr Conversion::createEckertV(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Eckert VI]
  * (https://proj.org/operations/projections/eck6.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Eckert VI]
  * (https://proj.org/operations/projections/eck6.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eck6.html">
  * Eckert VI</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1935,6 +2669,19 @@ ConversionNNPtr Conversion::createEckertV(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Eckert VI]
  * (https://proj.org/operations/projections/eck6.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Eckert VI]
+ * (https://proj.org/operations/projections/eck6.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -1968,16 +2715,31 @@ ConversionNNPtr Conversion::createEckertVI(
 /** \brief Instantiate a conversion based on the [Equidistant Cylindrical]
  *(https://proj.org/operations/projections/eqc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Equidistant Cylindrical]
  *(https://proj.org/operations/projections/eqc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqc.html">
  * Equidistant Cylindrical</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1985,6 +2747,19 @@ ConversionNNPtr Conversion::createEckertVI(
 /** \brief Instantiate a conversion based on the [Equidistant Cylindrical]
  *(https://proj.org/operations/projections/eqc.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Equidistant Cylindrical]
+ *(https://proj.org/operations/projections/eqc.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is also known as the Equirectangular method, and in the particular case
  * where the latitude of first parallel is 0.
@@ -2003,16 +2778,31 @@ ConversionNNPtr Conversion::createEckertVI(
  * This method is defined as [EPSG:1028]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1028)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1028]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1028)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1028/index.html">
  * EPSG:1028</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2020,6 +2810,19 @@ ConversionNNPtr Conversion::createEckertVI(
  * This method is defined as [EPSG:1028]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1028)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1028]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1028)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @note This is the equivalent OGRSpatialReference::SetEquirectangular2(
  * 0.0, latitudeFirstParallel, falseEasting, falseNorthing ) of GDAL &lt;= 2.3,
@@ -2060,25 +2863,53 @@ ConversionNNPtr Conversion::createEquidistantCylindrical(
  *(Spherical)]
  *(https://proj.org/operations/projections/eqc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Equidistant Cylindrical
  *(Spherical)]
  *(https://proj.org/operations/projections/eqc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqc.html">
  * Equidistant Cylindrical (Spherical)</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Equidistant Cylindrical
  *(Spherical)]
  *(https://proj.org/operations/projections/eqc.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is also known as the Equirectangular method, and in the particular case
  * where the latitude of first parallel is 0.
@@ -2097,16 +2928,31 @@ ConversionNNPtr Conversion::createEquidistantCylindrical(
  * This method is defined as [EPSG:1029]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1029)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1029]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1029)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1029/index.html">
  * EPSG:1029</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2114,6 +2960,19 @@ ConversionNNPtr Conversion::createEquidistantCylindrical(
  * This method is defined as [EPSG:1029]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1029)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1029]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1029)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @note This is the equivalent OGRSpatialReference::SetEquirectangular2(
  * 0.0, latitudeFirstParallel, falseEasting, falseNorthing ) of GDAL &lt;= 2.3,
@@ -2154,16 +3013,31 @@ ConversionNNPtr Conversion::createEquidistantCylindricalSpherical(
 /** \brief Instantiate a conversion based on the [Gall (Stereographic)]
  * (https://proj.org/operations/projections/gall.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Gall (Stereographic)]
  * (https://proj.org/operations/projections/gall.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gall.html">
  * Gall (Stereographic)</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2171,6 +3045,19 @@ ConversionNNPtr Conversion::createEquidistantCylindricalSpherical(
 /** \brief Instantiate a conversion based on the [Gall (Stereographic)]
  * (https://proj.org/operations/projections/gall.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Gall (Stereographic)]
+ * (https://proj.org/operations/projections/gall.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2205,16 +3092,31 @@ ConversionNNPtr Conversion::createGall(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Goode Homolosine]
  * (https://proj.org/operations/projections/goode.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Goode Homolosine]
  * (https://proj.org/operations/projections/goode.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/goode.html">
  * Goode Homolosine</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2222,6 +3124,19 @@ ConversionNNPtr Conversion::createGall(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Goode Homolosine]
  * (https://proj.org/operations/projections/goode.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Goode Homolosine]
+ * (https://proj.org/operations/projections/goode.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2255,16 +3170,31 @@ ConversionNNPtr Conversion::createGoodeHomolosine(
 /** \brief Instantiate a conversion based on the [Interrupted Goode Homolosine]
  * (https://proj.org/operations/projections/igh.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Interrupted Goode Homolosine]
  * (https://proj.org/operations/projections/igh.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/igh.html">
  * Interrupted Goode Homolosine</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2272,6 +3202,19 @@ ConversionNNPtr Conversion::createGoodeHomolosine(
 /** \brief Instantiate a conversion based on the [Interrupted Goode Homolosine]
  * (https://proj.org/operations/projections/igh.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Interrupted Goode Homolosine]
+ * (https://proj.org/operations/projections/igh.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2310,16 +3253,31 @@ ConversionNNPtr Conversion::createInterruptedGoodeHomolosine(
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/geos.html">
  * Geostationary Satellite View</a> projection method,
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2327,6 +3285,19 @@ ConversionNNPtr Conversion::createInterruptedGoodeHomolosine(
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Geostationary Satellite View]
+ * (https://proj.org/operations/projections/geos.html) projection method,
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * with the sweep angle axis of the viewing instrument being x
  *
  * There is no equivalent in EPSG.
@@ -2364,16 +3335,31 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepX(
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/geos.html">
  * Geostationary Satellite View</a> projection method,
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2381,6 +3367,19 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepX(
 /** \brief Instantiate a conversion based on the [Geostationary Satellite View]
  * (https://proj.org/operations/projections/geos.html) projection method,
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Geostationary Satellite View]
+ * (https://proj.org/operations/projections/geos.html) projection method,
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * with the sweep angle axis of the viewing instrument being y.
  *
  * There is no equivalent in EPSG.
@@ -2418,16 +3417,31 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepY(
 /** \brief Instantiate a conversion based on the [Gnomonic]
  *(https://proj.org/operations/projections/gnom.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Gnomonic]
  *(https://proj.org/operations/projections/gnom.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/gnom.html">
  * Gnomonic</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2435,6 +3449,19 @@ ConversionNNPtr Conversion::createGeostationarySatelliteSweepY(
 /** \brief Instantiate a conversion based on the [Gnomonic]
  *(https://proj.org/operations/projections/gnom.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Gnomonic]
+ *(https://proj.org/operations/projections/gnom.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2472,25 +3499,53 @@ ConversionNNPtr Conversion::createGnomonic(
  *(Variant A)]
  *(https://proj.org/operations/projections/omerc.html) projection method
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
  *(Variant A)]
  *(https://proj.org/operations/projections/omerc.html) projection method
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator (Variant A)</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
  *(Variant A)]
  *(https://proj.org/operations/projections/omerc.html) projection method
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is the variant with the no_uoff parameter, which corresponds to
  * GDAL &gt;=2.3 Hotine_Oblique_Mercator projection.
@@ -2521,7 +3576,11 @@ ConversionNNPtr Conversion::createGnomonic(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9812]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9812)
  *
@@ -2532,9 +3591,23 @@ ConversionNNPtr Conversion::createGnomonic(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9812/index.html">
@@ -2545,11 +3618,23 @@ ConversionNNPtr Conversion::createGnomonic(
  * <a href="../../../operations/projections/somerc.html">
  * Swiss Oblique Mercator</a> formulas.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2595,25 +3680,53 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
  *(Variant B)]
  *(https://proj.org/operations/projections/omerc.html) projection method
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
  *(Variant B)]
  *(https://proj.org/operations/projections/omerc.html) projection method
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator (Variant B)</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator
  *(Variant B)]
  *(https://proj.org/operations/projections/omerc.html) projection method
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is the variant without the no_uoff parameter, which corresponds to
  * GDAL &gt;=2.3 Hotine_Oblique_Mercator_Azimuth_Center projection.
@@ -2642,7 +3755,11 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9815]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9815)
  *
@@ -2653,9 +3770,23 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9815/index.html">
@@ -2666,11 +3797,23 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantA(
  * <a href="../../../operations/projections/somerc.html">
  * Swiss Oblique Mercator</a> formulas.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2716,25 +3859,53 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorVariantB(
  *Point Natural Origin]
  *(https://proj.org/operations/projections/omerc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator Two
  *Point Natural Origin]
  *(https://proj.org/operations/projections/omerc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/omerc.html">
  * Hotine Oblique Mercator Two Point Natural Origin</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Hotine Oblique Mercator Two
  *Point Natural Origin]
  *(https://proj.org/operations/projections/omerc.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2795,7 +3966,11 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorTwoPointNaturalOrigin(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Laborde Oblique Mercator]
  *(https://proj.org/operations/projections/labrd.html) projection method.
  *
@@ -2804,9 +3979,23 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorTwoPointNaturalOrigin(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/labrd.html">
@@ -2816,11 +4005,23 @@ ConversionNNPtr Conversion::createHotineObliqueMercatorTwoPointNaturalOrigin(
  * <a href="https://epsg.org/coord-operation-method_9813/index.html">
  * EPSG:9813</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -2861,25 +4062,53 @@ ConversionNNPtr Conversion::createLabordeObliqueMercator(
  *Polyconic]
  *(https://proj.org/operations/projections/imw_p.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [International Map of the World
  *Polyconic]
  *(https://proj.org/operations/projections/imw_p.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/imw_p.html">
  * International Map of the World Polyconic</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [International Map of the World
  *Polyconic]
  *(https://proj.org/operations/projections/imw_p.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -2930,7 +4159,11 @@ ConversionNNPtr Conversion::createInternationalMapWorldPolyconic(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Krovak (north oriented)]
  *(https://proj.org/operations/projections/krovak.html) projection method.
  *
@@ -2939,9 +4172,23 @@ ConversionNNPtr Conversion::createInternationalMapWorldPolyconic(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/krovak.html">
@@ -2951,11 +4198,23 @@ ConversionNNPtr Conversion::createInternationalMapWorldPolyconic(
  * <a href="https://epsg.org/coord-operation-method_1041/index.html">
  * EPSG:1041</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * The coordinates are returned in the "GIS friendly" order: easting, northing.
  * This method is similar to createKrovak(), except that the later returns
@@ -3022,7 +4281,11 @@ ConversionNNPtr Conversion::createKrovakNorthOriented(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Krovak]
  *(https://proj.org/operations/projections/krovak.html) projection method.
  *
@@ -3031,9 +4294,23 @@ ConversionNNPtr Conversion::createKrovakNorthOriented(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/krovak.html">
@@ -3043,11 +4320,23 @@ ConversionNNPtr Conversion::createKrovakNorthOriented(
  * <a href="https://epsg.org/coord-operation-method_9819/index.html">
  * EPSG:9819</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * The coordinates are returned in the historical order: southing, westing
  * This method is similar to createKrovakNorthOriented(), except that the later
@@ -3116,7 +4405,11 @@ Conversion::createKrovak(const util::PropertyMap &properties,
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Lambert Azimuthal Equal Area]
  *(https://proj.org/operations/projections/laea.html) projection method.
  *
@@ -3125,9 +4418,23 @@ Conversion::createKrovak(const util::PropertyMap &properties,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/laea.html">
@@ -3137,11 +4444,23 @@ Conversion::createKrovak(const util::PropertyMap &properties,
  * <a href="https://epsg.org/coord-operation-method_9820/index.html">
  * EPSG:9820</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3176,16 +4495,31 @@ ConversionNNPtr Conversion::createLambertAzimuthalEqualArea(
 /** \brief Instantiate a conversion based on the [Miller Cylindrical]
  *(https://proj.org/operations/projections/mill.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Miller Cylindrical]
  *(https://proj.org/operations/projections/mill.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/mill.html">
  * Miller Cylindrical</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3193,6 +4527,19 @@ ConversionNNPtr Conversion::createLambertAzimuthalEqualArea(
 /** \brief Instantiate a conversion based on the [Miller Cylindrical]
  *(https://proj.org/operations/projections/mill.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Miller Cylindrical]
+ *(https://proj.org/operations/projections/mill.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -3250,17 +4597,38 @@ ConversionNNPtr Conversion::createMillerCylindrical(
  * This method is defined as [EPSG:9804]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9804)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9804/index.html">
  * EPSG:9804</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Mercator]
  *(https://proj.org/operations/projections/merc.html) projection method.
  *
@@ -3273,8 +4641,14 @@ ConversionNNPtr Conversion::createMillerCylindrical(
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3336,17 +4710,38 @@ ConversionNNPtr Conversion::createMercatorVariantA(
  * This method is defined as [EPSG:9805]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9805)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9805/index.html">
  * EPSG:9805</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Mercator]
  *(https://proj.org/operations/projections/merc.html) projection method.
  *
@@ -3359,8 +4754,14 @@ ConversionNNPtr Conversion::createMercatorVariantA(
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3396,25 +4797,53 @@ ConversionNNPtr Conversion::createMercatorVariantB(
  *Mercator]
  *(https://proj.org/operations/projections/webmerc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Popular Visualisation Pseudo
  *Mercator]
  *(https://proj.org/operations/projections/webmerc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/webmerc.html">
  * Popular Visualisation Pseudo Mercator</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Popular Visualisation Pseudo
  *Mercator]
  *(https://proj.org/operations/projections/webmerc.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * Also known as WebMercator. Mostly/only used for Projected CRS EPSG:3857
  * (WGS 84 / Pseudo-Mercator)
@@ -3433,16 +4862,31 @@ ConversionNNPtr Conversion::createMercatorVariantB(
  * This method is defined as [EPSG:1024]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1024)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1024]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1024)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1024/index.html">
  * EPSG:1024</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3450,6 +4894,19 @@ ConversionNNPtr Conversion::createMercatorVariantB(
  * This method is defined as [EPSG:1024]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1024)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1024]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1024)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3484,16 +4941,31 @@ ConversionNNPtr Conversion::createPopularVisualisationPseudoMercator(
 /** \brief Instantiate a conversion based on the [Mollweide]
  * (https://proj.org/operations/projections/moll.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Mollweide]
  * (https://proj.org/operations/projections/moll.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/moll.html">
  * Mollweide</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3501,6 +4973,19 @@ ConversionNNPtr Conversion::createPopularVisualisationPseudoMercator(
 /** \brief Instantiate a conversion based on the [Mollweide]
  * (https://proj.org/operations/projections/moll.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Mollweide]
+ * (https://proj.org/operations/projections/moll.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -3541,7 +5026,11 @@ ConversionNNPtr Conversion::createMollweide(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [New Zealand Map Grid]
  * (https://proj.org/operations/projections/nzmg.html) projection method.
  *
@@ -3550,9 +5039,23 @@ ConversionNNPtr Conversion::createMollweide(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/nzmg.html">
@@ -3562,11 +5065,23 @@ ConversionNNPtr Conversion::createMollweide(
  * <a href="https://epsg.org/coord-operation-method_9811/index.html">
  * EPSG:9811</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3608,7 +5123,11 @@ ConversionNNPtr Conversion::createNewZealandMappingGrid(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Oblique Stereographic
  *(Alternative)]
  *(https://proj.org/operations/projections/sterea.html) projection method.
@@ -3618,9 +5137,23 @@ ConversionNNPtr Conversion::createNewZealandMappingGrid(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sterea.html">
@@ -3630,11 +5163,23 @@ ConversionNNPtr Conversion::createNewZealandMappingGrid(
  * <a href="https://epsg.org/coord-operation-method_9809/index.html">
  * EPSG:9809</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3677,7 +5222,11 @@ ConversionNNPtr Conversion::createObliqueStereographic(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Orthographic]
  *(https://proj.org/operations/projections/ortho.html) projection method.
  *
@@ -3686,9 +5235,23 @@ ConversionNNPtr Conversion::createObliqueStereographic(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/ortho.html">
@@ -3698,11 +5261,23 @@ ConversionNNPtr Conversion::createObliqueStereographic(
  * <a href="https://epsg.org/coord-operation-method_9840/index.html">
  * EPSG:9840</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * \note Before PROJ 7.2, only the spherical formulation was implemented.
  *
@@ -3746,7 +5321,11 @@ ConversionNNPtr Conversion::createOrthographic(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [American Polyconic]
  *(https://proj.org/operations/projections/poly.html) projection method.
  *
@@ -3755,9 +5334,23 @@ ConversionNNPtr Conversion::createOrthographic(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/poly.html">
@@ -3767,11 +5360,23 @@ ConversionNNPtr Conversion::createOrthographic(
  * <a href="https://epsg.org/coord-operation-method_9818/index.html">
  * EPSG:9818</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -3813,7 +5418,11 @@ ConversionNNPtr Conversion::createAmericanPolyconic(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Polar Stereographic (Variant
  *A)]
  *(https://proj.org/operations/projections/stere.html) projection method.
@@ -3823,9 +5432,23 @@ ConversionNNPtr Conversion::createAmericanPolyconic(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
@@ -3835,11 +5458,23 @@ ConversionNNPtr Conversion::createAmericanPolyconic(
  * <a href="https://epsg.org/coord-operation-method_9810/index.html">
  * EPSG:9810</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is the variant of polar stereographic defined with a scale factor.
  *
@@ -3884,7 +5519,11 @@ ConversionNNPtr Conversion::createPolarStereographicVariantA(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Polar Stereographic (Variant
  *B)]
  *(https://proj.org/operations/projections/stere.html) projection method.
@@ -3894,9 +5533,23 @@ ConversionNNPtr Conversion::createPolarStereographicVariantA(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
@@ -3906,11 +5559,23 @@ ConversionNNPtr Conversion::createPolarStereographicVariantA(
  * <a href="https://epsg.org/coord-operation-method_9829/index.html">
  * EPSG:9829</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * This is the variant of polar stereographic defined with a latitude of
  * standard parallel.
@@ -3949,16 +5614,31 @@ ConversionNNPtr Conversion::createPolarStereographicVariantB(
 /** \brief Instantiate a conversion based on the [Robinson]
  * (https://proj.org/operations/projections/robin.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Robinson]
  * (https://proj.org/operations/projections/robin.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/robin.html">
  * Robinson</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3966,6 +5646,19 @@ ConversionNNPtr Conversion::createPolarStereographicVariantB(
 /** \brief Instantiate a conversion based on the [Robinson]
  * (https://proj.org/operations/projections/robin.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Robinson]
+ * (https://proj.org/operations/projections/robin.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -3999,16 +5692,31 @@ ConversionNNPtr Conversion::createRobinson(
 /** \brief Instantiate a conversion based on the [Sinusoidal]
  * (https://proj.org/operations/projections/sinu.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Sinusoidal]
  * (https://proj.org/operations/projections/sinu.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sinu.html">
  * Sinusoidal</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4016,6 +5724,19 @@ ConversionNNPtr Conversion::createRobinson(
 /** \brief Instantiate a conversion based on the [Sinusoidal]
  * (https://proj.org/operations/projections/sinu.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Sinusoidal]
+ * (https://proj.org/operations/projections/sinu.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4049,16 +5770,31 @@ ConversionNNPtr Conversion::createSinusoidal(
 /** \brief Instantiate a conversion based on the [Stereographic]
  *(https://proj.org/operations/projections/stere.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Stereographic]
  *(https://proj.org/operations/projections/stere.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/stere.html">
  * Stereographic</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4066,6 +5802,19 @@ ConversionNNPtr Conversion::createSinusoidal(
 /** \brief Instantiate a conversion based on the [Stereographic]
  *(https://proj.org/operations/projections/stere.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Stereographic]
+ *(https://proj.org/operations/projections/stere.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG. This method implements the original "Oblique
  * Stereographic" method described in "Snyder's Map Projections - A Working
@@ -4078,22 +5827,47 @@ ConversionNNPtr Conversion::createSinusoidal(
  * which is different from the "Oblique Stereographic (alternative)" method
 =======
  * which is different from the "Oblique Stereographic (alternative") method
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * which is different from the "Oblique Stereographic (alternative") method
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * which is different from the "Oblique Stereographic (alternative)" method
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+ * which is different from the "Oblique Stereographic (alternative)" method
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
  * which is different from the "Oblique Stereographic (alternative)" method
 =======
  * which is different from the "Oblique Stereographic (alternative") method
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
  * which is different from the "Oblique Stereographic (alternative") method
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * which is different from the "Oblique Stereographic (alternative") method
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * implemented in createObliqueStereographic().
  *
  * @param properties See \ref general_properties of the conversion. If the name
@@ -4130,16 +5904,31 @@ ConversionNNPtr Conversion::createStereographic(
 /** \brief Instantiate a conversion based on the [Van der Grinten]
  * (https://proj.org/operations/projections/vandg.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Van der Grinten]
  * (https://proj.org/operations/projections/vandg.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/vandg.html">
  * Van der Grinten</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4147,6 +5936,19 @@ ConversionNNPtr Conversion::createStereographic(
 /** \brief Instantiate a conversion based on the [Van der Grinten]
  * (https://proj.org/operations/projections/vandg.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Van der Grinten]
+ * (https://proj.org/operations/projections/vandg.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4180,16 +5982,31 @@ ConversionNNPtr Conversion::createVanDerGrinten(
 /** \brief Instantiate a conversion based on the [Wagner I]
  * (https://proj.org/operations/projections/wag1.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner I]
  * (https://proj.org/operations/projections/wag1.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag1.html">
  * Wagner I</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4197,6 +6014,19 @@ ConversionNNPtr Conversion::createVanDerGrinten(
 /** \brief Instantiate a conversion based on the [Wagner I]
  * (https://proj.org/operations/projections/wag1.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner I]
+ * (https://proj.org/operations/projections/wag1.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4231,16 +6061,31 @@ ConversionNNPtr Conversion::createWagnerI(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Wagner II]
  * (https://proj.org/operations/projections/wag2.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner II]
  * (https://proj.org/operations/projections/wag2.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag2.html">
  * Wagner II</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4248,6 +6093,19 @@ ConversionNNPtr Conversion::createWagnerI(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Wagner II]
  * (https://proj.org/operations/projections/wag2.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner II]
+ * (https://proj.org/operations/projections/wag2.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4281,16 +6139,31 @@ ConversionNNPtr Conversion::createWagnerII(
 /** \brief Instantiate a conversion based on the [Wagner III]
  * (https://proj.org/operations/projections/wag3.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner III]
  * (https://proj.org/operations/projections/wag3.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag3.html">
  * Wagner III</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4298,6 +6171,19 @@ ConversionNNPtr Conversion::createWagnerII(
 /** \brief Instantiate a conversion based on the [Wagner III]
  * (https://proj.org/operations/projections/wag3.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner III]
+ * (https://proj.org/operations/projections/wag3.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4334,16 +6220,31 @@ ConversionNNPtr Conversion::createWagnerIII(
 /** \brief Instantiate a conversion based on the [Wagner IV]
  * (https://proj.org/operations/projections/wag4.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner IV]
  * (https://proj.org/operations/projections/wag4.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag4.html">
  * Wagner IV</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4351,6 +6252,19 @@ ConversionNNPtr Conversion::createWagnerIII(
 /** \brief Instantiate a conversion based on the [Wagner IV]
  * (https://proj.org/operations/projections/wag4.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner IV]
+ * (https://proj.org/operations/projections/wag4.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4384,16 +6298,31 @@ ConversionNNPtr Conversion::createWagnerIV(
 /** \brief Instantiate a conversion based on the [Wagner V]
  * (https://proj.org/operations/projections/wag5.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner V]
  * (https://proj.org/operations/projections/wag5.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag5.html">
  * Wagner V</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4401,6 +6330,19 @@ ConversionNNPtr Conversion::createWagnerIV(
 /** \brief Instantiate a conversion based on the [Wagner V]
  * (https://proj.org/operations/projections/wag5.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner V]
+ * (https://proj.org/operations/projections/wag5.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4435,16 +6377,31 @@ ConversionNNPtr Conversion::createWagnerV(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Wagner VI]
  * (https://proj.org/operations/projections/wag6.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner VI]
  * (https://proj.org/operations/projections/wag6.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag6.html">
  * Wagner VI</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4452,6 +6409,19 @@ ConversionNNPtr Conversion::createWagnerV(const util::PropertyMap &properties,
 /** \brief Instantiate a conversion based on the [Wagner VI]
  * (https://proj.org/operations/projections/wag6.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner VI]
+ * (https://proj.org/operations/projections/wag6.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4485,16 +6455,31 @@ ConversionNNPtr Conversion::createWagnerVI(
 /** \brief Instantiate a conversion based on the [Wagner VII]
  * (https://proj.org/operations/projections/wag7.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Wagner VII]
  * (https://proj.org/operations/projections/wag7.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/wag7.html">
  * Wagner VII</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4502,6 +6487,19 @@ ConversionNNPtr Conversion::createWagnerVI(
 /** \brief Instantiate a conversion based on the [Wagner VII]
  * (https://proj.org/operations/projections/wag7.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Wagner VII]
+ * (https://proj.org/operations/projections/wag7.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4536,25 +6534,53 @@ ConversionNNPtr Conversion::createWagnerVII(
  *Cube]
  *(https://proj.org/operations/projections/qsc.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Quadrilateralized Spherical
  *Cube]
  *(https://proj.org/operations/projections/qsc.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/qsc.html">
  * Quadrilateralized Spherical Cube</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
 /** \brief Instantiate a conversion based on the [Quadrilateralized Spherical
  *Cube]
  *(https://proj.org/operations/projections/qsc.html) projection method.
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4591,16 +6617,31 @@ ConversionNNPtr Conversion::createQuadrilateralizedSphericalCube(
 /** \brief Instantiate a conversion based on the [Spherical Cross-Track Height]
  *(https://proj.org/operations/projections/sch.html) projection method.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Instantiate a conversion based on the [Spherical Cross-Track Height]
  *(https://proj.org/operations/projections/sch.html) projection method.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/sch.html">
  * Spherical Cross-Track Height</a> projection method.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4608,6 +6649,19 @@ ConversionNNPtr Conversion::createQuadrilateralizedSphericalCube(
 /** \brief Instantiate a conversion based on the [Spherical Cross-Track Height]
  *(https://proj.org/operations/projections/sch.html) projection method.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Instantiate a conversion based on the [Spherical Cross-Track Height]
+ *(https://proj.org/operations/projections/sch.html) projection method.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * There is no equivalent in EPSG.
  *
@@ -4652,7 +6706,11 @@ ConversionNNPtr Conversion::createSphericalCrossTrackHeight(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Equal Earth]
  * (https://proj.org/operations/projections/eqearth.html) projection method.
  *
@@ -4661,9 +6719,23 @@ ConversionNNPtr Conversion::createSphericalCrossTrackHeight(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/eqearth.html">
@@ -4673,11 +6745,23 @@ ConversionNNPtr Conversion::createSphericalCrossTrackHeight(
  * <a href="https://epsg.org/coord-operation-method_1078/Equal-Earth.html">
  * EPSG:1078</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -4716,7 +6800,11 @@ ConversionNNPtr Conversion::createEqualEarth(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 /** \brief Instantiate a conversion based on the [Vertical Perspective]
  * (https://proj.org/operations/projections/nsper.html) projection method.
  *
@@ -4725,9 +6813,23 @@ ConversionNNPtr Conversion::createEqualEarth(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Instantiate a conversion based on the
  * <a href="../../../operations/projections/nsper.html">
@@ -4737,11 +6839,23 @@ ConversionNNPtr Conversion::createEqualEarth(
  * <a href="https://epsg.org/coord-operation-method_9838/index.html">
  * EPSG:9838</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * The PROJ implementation of the EPSG Vertical Perspective has the current
  * limitations with respect to the method described in EPSG:
@@ -4897,16 +7011,31 @@ ConversionNNPtr Conversion::createPoleRotationNetCDFCFConvention(
  * This method is defined as [EPSG:1069]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1069]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1069/index.html">
  * EPSG:1069</a> [DEPRECATED].
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4914,6 +7043,19 @@ ConversionNNPtr Conversion::createPoleRotationNetCDFCFConvention(
  * This method is defined as [EPSG:1069]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1069]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1069)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -4954,16 +7096,31 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties,
  * This method is defined as [EPSG:1104]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1104)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1104]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1104)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1104/index.html">
  * EPSG:1104</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4971,6 +7128,19 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties,
  * This method is defined as [EPSG:1104]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1104)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1104]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1104)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -5003,16 +7173,31 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties) {
  * This method is defined as [EPSG:1068]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1068)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:1068]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1068)
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_1068/index.html">
  * EPSG:1068</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5020,6 +7205,19 @@ Conversion::createChangeVerticalUnit(const util::PropertyMap &properties) {
  * This method is defined as [EPSG:1068]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1068)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:1068]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::1068)
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -5063,11 +7261,16 @@ Conversion::createHeightDepthReversal(const util::PropertyMap &properties) {
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9843]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9843),
  * or for 3D as [EPSG:9844]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9844)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5081,6 +7284,30 @@ Conversion::createHeightDepthReversal(const util::PropertyMap &properties) {
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param is3D Whether this should apply on 3D geographicCRS
  * @return a new Conversion.
@@ -5116,16 +7343,31 @@ ConversionNNPtr Conversion::createAxisOrderReversal(bool is3D) {
  * This method is defined as [EPSG:9602]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9602),
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:9602]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9602),
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * This method is defined as
  * <a href="https://epsg.org/coord-operation-method_9602/index.html">
  * EPSG:9602</a>.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5133,6 +7375,19 @@ ConversionNNPtr Conversion::createAxisOrderReversal(bool is3D) {
  * This method is defined as [EPSG:9602]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9602),
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+ * This method is defined as [EPSG:9602]
+ * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9602),
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param properties See \ref general_properties of the conversion. If the name
  * is not provided, it is automatically set.
@@ -6552,22 +8807,47 @@ void Conversion::_exportToPROJString(
         double southPoleLong = parameterValueNumeric(
 =======
         double southPoleLon = parameterValueNumeric(
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         double southPoleLon = parameterValueNumeric(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         double southPoleLong = parameterValueNumeric(
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        double southPoleLong = parameterValueNumeric(
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         double southPoleLong = parameterValueNumeric(
 =======
         double southPoleLon = parameterValueNumeric(
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         double southPoleLon = parameterValueNumeric(
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        double southPoleLon = parameterValueNumeric(
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
             PROJ_WKT2_NAME_PARAMETER_SOUTH_POLE_LONGITUDE_GRIB_CONVENTION,
             common::UnitOfMeasure::DEGREE);
         double rotation = parameterValueNumeric(
@@ -6585,22 +8865,47 @@ void Conversion::_exportToPROJString(
         formatter->addParam("lon_0", southPoleLong);
 =======
         formatter->addParam("lon_0", southPoleLon);
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         formatter->addParam("lon_0", southPoleLon);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         formatter->addParam("lon_0", southPoleLong);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        formatter->addParam("lon_0", southPoleLong);
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         formatter->addParam("lon_0", southPoleLong);
 =======
         formatter->addParam("lon_0", southPoleLon);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         formatter->addParam("lon_0", southPoleLon);
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        formatter->addParam("lon_0", southPoleLon);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
         bConversionDone = true;
     } else if (ci_equal(
                    methodName,
@@ -6757,22 +9062,47 @@ void Conversion::_exportToPROJString(
         const auto longOrigin = parameterValueNumeric(
 =======
         const auto lonOrigin = parameterValueNumeric(
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         const auto lonOrigin = parameterValueNumeric(
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         const auto longOrigin = parameterValueNumeric(
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        const auto longOrigin = parameterValueNumeric(
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         const auto longOrigin = parameterValueNumeric(
 =======
         const auto lonOrigin = parameterValueNumeric(
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         const auto lonOrigin = parameterValueNumeric(
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        const auto lonOrigin = parameterValueNumeric(
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
             EPSG_CODE_PARAMETER_LONGITUDE_TOPOGRAPHIC_ORIGIN,
             common::UnitOfMeasure::DEGREE);
         const auto heightOrigin = parameterValueNumeric(
@@ -6787,22 +9117,47 @@ void Conversion::_exportToPROJString(
         formatter->addParam("lon_0", longOrigin);
 =======
         formatter->addParam("lon_0", lonOrigin);
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         formatter->addParam("lon_0", lonOrigin);
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         formatter->addParam("lon_0", longOrigin);
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        formatter->addParam("lon_0", longOrigin);
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         formatter->addParam("lon_0", longOrigin);
 =======
         formatter->addParam("lon_0", lonOrigin);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         formatter->addParam("lon_0", lonOrigin);
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        formatter->addParam("lon_0", lonOrigin);
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
         formatter->addParam("h_0", heightOrigin);
         bConversionDone = true;
     }
@@ -6841,12 +9196,39 @@ void Conversion::_exportToPROJString(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
                 // No need to add explicit f=0 or R_A if the ellipsoid is a
                 // sphere
                 if (strcmp(mapping->proj_name_aux, "f=0") == 0 ||
@@ -6854,20 +9236,61 @@ void Conversion::_exportToPROJString(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+                // No need to add explicit f=0 if the ellipsoid is a sphere
+                if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
+>>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 13395ba739 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                // No need to add explicit f=0 if the ellipsoid is a sphere
+                if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> eee860d65b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+=======
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
 =======
                 // No need to add explicit f=0 if the ellipsoid is a sphere
                 if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> 13395ba73 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> location-main
 =======
 =======
                 // No need to add explicit f=0 if the ellipsoid is a sphere
@@ -6875,12 +9298,28 @@ void Conversion::_exportToPROJString(
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+                // No need to add explicit f=0 if the ellipsoid is a sphere
+                if (strcmp(mapping->proj_name_aux, "f=0") == 0) {
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> location-main
                     crs::CRS *horiz = l_sourceCRS.get();
                     const auto compound =
                         dynamic_cast<const crs::CompoundCRS *>(horiz);
@@ -7056,16 +9495,31 @@ void Conversion::_exportToPROJString(
 /** \brief Return whether a conversion is a [Universal Transverse Mercator]
  * (https://proj.org/operations/projections/utm.html) conversion.
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
 /** \brief Return whether a conversion is a [Universal Transverse Mercator]
  * (https://proj.org/operations/projections/utm.html) conversion.
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
 /** \brief Return whether a conversion is a
  * <a href="../../../operations/projections/utm.html">
  * Universal Transverse Mercator</a> conversion.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7073,6 +9527,19 @@ void Conversion::_exportToPROJString(
 /** \brief Return whether a conversion is a [Universal Transverse Mercator]
  * (https://proj.org/operations/projections/utm.html) conversion.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+/** \brief Return whether a conversion is a [Universal Transverse Mercator]
+ * (https://proj.org/operations/projections/utm.html) conversion.
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  *
  * @param[out] zone UTM zone number between 1 and 60.
  * @param[out] north true for UTM northern hemisphere, false for UTM southern
@@ -7210,7 +9677,11 @@ ConversionNNPtr Conversion::identify() const {
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9619]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9619)
  * *
@@ -7221,20 +9692,46 @@ ConversionNNPtr Conversion::identify() const {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * @param properties See \ref general_properties of the conversion.
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * @return new conversion.
  */
 ConversionNNPtr
@@ -7248,22 +9745,47 @@ Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
                                       const common::Angle &offsetLong) {
 =======
                                       const common::Angle &offsetLon) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
                                       const common::Angle &offsetLon) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
                                       const common::Angle &offsetLong) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+                                      const common::Angle &offsetLong) {
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
                                       const common::Angle &offsetLong) {
 =======
                                       const common::Angle &offsetLon) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
                                       const common::Angle &offsetLon) {
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                                      const common::Angle &offsetLon) {
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     return create(
         properties,
         createMethodMapNameEPSGCode(EPSG_CODE_METHOD_GEOGRAPHIC2D_OFFSETS),
@@ -7278,22 +9800,47 @@ Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
         VectorOfValues{offsetLat, offsetLong});
 =======
         VectorOfValues{offsetLat, offsetLon});
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         VectorOfValues{offsetLat, offsetLon});
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong});
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        VectorOfValues{offsetLat, offsetLong});
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         VectorOfValues{offsetLat, offsetLong});
 =======
         VectorOfValues{offsetLat, offsetLon});
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLon});
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLon});
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 }
 
 // ---------------------------------------------------------------------------
@@ -7325,7 +9872,11 @@ Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9660]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9660)
  * *
@@ -7336,20 +9887,46 @@ Conversion::createGeographic2DOffsets(const util::PropertyMap &properties,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * @param properties See \ref general_properties of the Conversion.
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * @param offsetHeight Height offset to add.
  * @return new Conversion.
  */
@@ -7363,22 +9940,47 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    const common::Angle &offsetLong, const common::Length &offsetHeight) {
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const common::Angle &offsetLon, const common::Length &offsetHeight) {
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     return create(
         properties,
         createMethodMapNameEPSGCode(EPSG_CODE_METHOD_GEOGRAPHIC3D_OFFSETS),
@@ -7394,22 +9996,47 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        VectorOfValues{offsetLat, offsetLong, offsetHeight});
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLon, offsetHeight});
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 }
 
 // ---------------------------------------------------------------------------
@@ -7443,7 +10070,11 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * This method is defined as [EPSG:9618]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9618)
  * *
@@ -7454,20 +10085,46 @@ ConversionNNPtr Conversion::createGeographic3DOffsets(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 =======
  * @param properties See \ref general_properties of the Conversion.
  * At minimum the name should be defined.
  * @param offsetLat Latitude offset to add.
  * @param offsetLong Longitude offset to add.
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * @param offsetHeight Geoid undulation to add.
  * @return new Conversion.
  */
@@ -7481,22 +10138,47 @@ ConversionNNPtr Conversion::createGeographic2DWithHeightOffsets(
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    const common::Angle &offsetLong, const common::Length &offsetHeight) {
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     const common::Angle &offsetLong, const common::Length &offsetHeight) {
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     const common::Angle &offsetLon, const common::Length &offsetHeight) {
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const common::Angle &offsetLon, const common::Length &offsetHeight) {
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     return create(
         properties,
         createMethodMapNameEPSGCode(
@@ -7513,22 +10195,47 @@ ConversionNNPtr Conversion::createGeographic2DWithHeightOffsets(
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+        VectorOfValues{offsetLat, offsetLong, offsetHeight});
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
         VectorOfValues{offsetLat, offsetLong, offsetHeight});
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
         VectorOfValues{offsetLat, offsetLon, offsetHeight});
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        VectorOfValues{offsetLat, offsetLon, offsetHeight});
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 }
 
 // ---------------------------------------------------------------------------
@@ -7557,22 +10264,49 @@ ConversionNNPtr Conversion::createGeographic2DWithHeightOffsets(
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
  * *
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
  * This method is defined as [EPSG:9616]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
  * *
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+=======
+>>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
+=======
  * This method is defined as [EPSG:9616]
  * (https://www.epsg-registry.org/export.htm?gml=urn:ogc:def:method:EPSG::9616)
  * *
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
  * @param properties See \ref general_properties of the Conversion.
  * At minimum the name should be defined.
  * @param offsetHeight Geoid undulation to add.

@@ -227,6 +227,31 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       }
     }
 
+    "support logical date types" in {
+      val topic = newTopic()
+      val id = "1"
+      val record = new GenericData.Record(logicalDateTypeSchema)
+      val expectedGeom = generatePoint(-12.2d, 120.7d)
+      record.put("geom", WKTUtils.write(expectedGeom))
+      record.put("dtg", 1639145281285L)
+
+      producer.send(new ProducerRecord[String, GenericRecord](topic, id, record)).get
+
+      WithClose(getStore()) { kds =>
+        val fs = kds.getFeatureSource(topic)
+
+        eventually(20, 100.millis) {
+          val features = SelfClosingIterator(fs.getFeatures.features).toList
+          features must haveLength(1)
+          val feature = features.head
+          SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSftLogicalDate
+          feature.getID mustEqual id
+          feature.getAttribute("geom") mustEqual expectedGeom
+          feature.getAttribute("dtg") mustEqual new Date(1639145281285L)
+        }
+      }
+    }
+
     "support the GeoMessage control operation for update" in {
       val topic = newTopic()
       val id = "1"
@@ -378,7 +403,11 @@ object ConfluentKafkaDataStoreTest {
        |  ]
        |}""".stripMargin
   val schema1: Schema = new Schema.Parser().parse(schemaJson1)
+<<<<<<< HEAD
+  val encodedSft1: String = s"id:String:cardinality=high,*position:Point:srid=4326,speed:Double,date:Date:geomesa.date.format='iso-datetime'"
+=======
   val encodedSft1: String = s"id:String:cardinality=high,*position:Point:srid=4326,speed:Double,date:Date"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   val schemaJson2: String =
     s"""{
@@ -400,7 +429,11 @@ object ConfluentKafkaDataStoreTest {
        |  ]
        |}""".stripMargin
   val schema2: Schema = new Schema.Parser().parse(schemaJson2)
+<<<<<<< HEAD
+  val encodedSft2: String = "*shape:Geometry:srid=4326,date:Date:geomesa.date.format='epoch-millis'"
+=======
   val encodedSft2: String = s"*shape:Geometry:srid=4326,date:Date"
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   val schemaJson2_NoGeoMesa: String =
     s"""{
@@ -433,4 +466,24 @@ object ConfluentKafkaDataStoreTest {
        |  ]
        |}""".stripMargin
   val badSchema: Schema = new Schema.Parser().parse(badSchemaJson)
+
+  val logicalDateTypeSchemaJson: String =
+    s"""{
+       |  "type":"record",
+       |  "name":"schema3",
+       |  "fields":[
+       |    {
+       |      "name":"geom",
+       |      "type":"string",
+       |      "${GeoMesaAvroGeomFormat.KEY}":"wkt",
+       |      "${GeoMesaAvroGeomType.KEY}":"point"
+       |    },
+       |    {
+       |      "name":"dtg",
+       |      "type": { "type": "long", "logicalType": "timestamp-millis" }
+       |    }
+       |  ]
+       |}""".stripMargin
+  val logicalDateTypeSchema: Schema = new Schema.Parser().parse(logicalDateTypeSchemaJson)
+  val encodedSftLogicalDate: String = "*geom:Point:srid=4326,dtg:Date"
 }

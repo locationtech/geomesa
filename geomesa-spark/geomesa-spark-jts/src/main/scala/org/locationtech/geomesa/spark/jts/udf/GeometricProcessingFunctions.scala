@@ -61,9 +61,15 @@ object GeometricProcessingFunctions {
     fastCircleToGeom(new JtsPoint(p, spatialContext).getBuffered(degrees, spatialContext))
   }
 
+  val ST_MakeValid: Geometry => Geometry = nullableUDF(geom => {
+    val fix = new util.GeometryFixer(geom)
+    fix.getResult
+  })
+
   private[geomesa] val processingNames = Map(
     ST_antimeridianSafeGeom -> "st_antimeridianSafeGeom",
-    ST_BufferPoint -> "st_bufferPoint"
+    ST_BufferPoint -> "st_bufferPoint",
+    ST_MakeValid -> "st_makeValid"
   )
 
 
@@ -71,6 +77,7 @@ object GeometricProcessingFunctions {
     sqlContext.udf.register(processingNames(ST_antimeridianSafeGeom), ST_antimeridianSafeGeom)
     sqlContext.udf.register("st_idlSafeGeom", ST_antimeridianSafeGeom)
     sqlContext.udf.register(processingNames(ST_BufferPoint), ST_BufferPoint)
+    sqlContext.udf.register(processingNames(ST_MakeValid), ST_MakeValid)
   }
 
 }

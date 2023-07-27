@@ -32,6 +32,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 
 <<<<<<< HEAD
 .. tabs::
+<<<<<<< HEAD
 
     .. code-tab:: scala
 
@@ -90,6 +91,93 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
         Topology topology = builder.build();
         // construct the streams app as normal
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+.. code-block:: scala
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+
+    .. code-tab:: scala
+
+        import org.apache.kafka.streams.scala.ImplicitConversions._
+        import org.apache.kafka.streams.scala.serialization.Serdes._
+        import org.locationtech.geomesa.kafka.streams.GeoMesaStreamsBuilder
+
+        // these are the parameters normally passed to DataStoreFinder
+        val params = Map[String, String](
+          "kafka.brokers"    -> "localhost:9092",
+          "kafka.zookeepers" -> "localhost:2181"
+        )
+
+        val builder = GeoMesaStreamsBuilder(params)
+
+        // read in the feature type and turn the attributes into a space-separated string
+        val textLines: KStream[String, String] =
+          builder.stream("my-feature-type")
+              .map((k, v) => (k, v.attributes.map(_.toString.replaceAll(" ", "_")).mkString(" ")))
+
+        val wordCounts: KTable[String, Long] =
+          textLines
+              .flatMapValues(textLine => textLine.split(" +"))
+              .groupBy((_, word) => word)
+              .count()(Materialized.as("counts-store"))
+
+        wordCounts.toStream.to("word-count")
+
+        val topology = builder.build()
+        // construct the streams app as normal
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.kafka.jstreams.GeoMesaStreamsBuilder;
+
+        // these are the parameters normally passed to DataStoreFinder
+        Map<String, String> params = new HashMap<>();
+        params.put("kafka.brokers", "localhost:9092");
+        params.put("kafka.zookeepers", "localhost:2181");
+
+        GeoMesaStreamsBuilder builder = GeoMesaStreamsBuilder.create(params)
+
+        // read in the feature type and turn the attributes into a space-separated string
+        KStream<String, String> textLines =
+              builder.stream("my-feature-type")
+                     .mapValues(v -> v.asJava().stream().map(Object::toString).collect(Collectors.joining(" ")));
+
+        KTable<String, Long> wordCounts =
+              textLines
+                    .flatMapValues(textLine -> Arrays.asList(textLine.split(" +")))
+                    .groupBy((k, word) -> word)
+                    .count(Materialized.as("counts-store"));
+
+        wordCounts.toStream().to("word-count", Produced.with(Serdes.String(), Serdes.Long()));
+
+        Topology topology = builder.build();
+        // construct the streams app as normal
+
+<<<<<<< HEAD
+    val topology = builder.build()
+    // construct the streams app as normal
+<<<<<<< HEAD
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 =======
 .. code-block:: scala
 
@@ -121,6 +209,18 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 
 Write Example
 -------------
@@ -129,6 +229,7 @@ The following shows how to persist data back to a GeoMesa topic:
 
 <<<<<<< HEAD
 .. tabs::
+<<<<<<< HEAD
 
     .. code-tab:: scala
 
@@ -184,6 +285,90 @@ The following shows how to persist data back to a GeoMesa topic:
 
         Topology topology = builder.build();
         // construct the streams app as normal
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+.. code-block:: scala
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+
+    .. code-tab:: scala
+
+        import org.apache.kafka.streams.scala.ImplicitConversions._
+        import org.apache.kafka.streams.scala.serialization.Serdes._
+        import org.locationtech.geomesa.kafka.streams.GeoMesaMessage
+        import org.locationtech.geomesa.kafka.streams.GeoMesaStreamsBuilder
+
+        // these are the parameters normally passed to DataStoreFinder
+        val params = Map[String, String](
+          "kafka.brokers"    -> "localhost:9092",
+          "kafka.zookeepers" -> "localhost:2181"
+        )
+
+        val builder = GeoMesaStreamsBuilder(params)
+
+        // use the wrapped native streams builder to create an input based on csv records
+        val input: KStream[String, String] =
+          builder.wrapped.stream[String, String]("input-csv-topic")
+
+        // the columns in the csv need to map to the attributes in the feature type
+        val output: KStream[String, GeoMesaMessage] =
+          input.mapValues(lines => GeoMesaMessage.upsert(lines.split(",")))
+
+<<<<<<< HEAD
+    val topology = builder.build()
+    // construct the streams app as normal
+<<<<<<< HEAD
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+        // write the output to GeoMesa - the feature type must already exist
+        builder.to("my-feature-type", output)
+
+        val topology = builder.build()
+        // construct the streams app as normal
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.kafka.jstreams.GeoMesaStreamsBuilder;
+        import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
+
+        // these are the parameters normally passed to DataStoreFinder
+        Map<String, String> params = new HashMap<>();
+        params.put("kafka.brokers", "localhost:9092");
+        params.put("kafka.zookeepers", "localhost:2181");
+
+        GeoMesaStreamsBuilder builder = GeoMesaStreamsBuilder.create(params)
+
+        // use the wrapped native streams builder to create an input based on csv records
+        KStream<String, String> input =
+            builder.wrapped().stream("input-topic",
+                Consumed.with(Serdes.String(), Serdes.String()).withTimestampExtractor(new WallclockTimestampExtractor()));
+        // the columns in the csv need to map to the attributes in the feature type
+        KStream<String, GeoMesaMessage> output =
+            input.mapValues(lines -> GeoMesaMessage.upsert(Arrays.asList(lines.split(","))));
+
+        // write the output to GeoMesa - the feature type must already exist
+        builder.to(sft.getTypeName(), output);
+
+        Topology topology = builder.build();
+        // construct the streams app as normal
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 =======
 .. code-block:: scala
 
@@ -214,6 +399,18 @@ The following shows how to persist data back to a GeoMesa topic:
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 
 Joins and Topic Partitioning
 ----------------------------

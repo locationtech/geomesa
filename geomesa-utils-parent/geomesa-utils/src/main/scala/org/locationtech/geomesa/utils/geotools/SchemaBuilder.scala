@@ -388,7 +388,9 @@ object SchemaBuilder {
       * @param value option value
       * @return attribute builder for chaining calls
       */
-    def withOption(key: String, value: String): A = { specification.append(s":$key=$value"); this }
+    def withOption(key: String, value: String): A = {
+      specification.append(SimpleFeatureSpec.encodeAttributeOption(key, value)); this
+    }
 
     /**
       * Add multiple attribute-level options at once

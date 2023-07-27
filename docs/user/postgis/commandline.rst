@@ -10,6 +10,7 @@ Commands
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 .. _postgis_partition_upgrade:
 
 =======
@@ -18,6 +19,23 @@ Commands
 .. _postgis_partition_upgrade:
 
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+.. _postgis_partition_upgrade:
+
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+.. _postgis_partition_upgrade:
+
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+.. _postgis_partition_upgrade:
+
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 ``partition-upgrade``
 ^^^^^^^^^^^^^^^^^^^^^
 

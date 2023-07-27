@@ -283,6 +283,10 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumn(ST_BufferPoint, processingNames, geom, buffer)
     def st_bufferPoint(geom: Column, buffer: Double): TypedColumn[Any, Geometry] =
       st_bufferPoint(geom, lit(buffer))
+
+    def st_makeValid(geom: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_MakeValid, processingNames, geom)
+
   }
 
   /**

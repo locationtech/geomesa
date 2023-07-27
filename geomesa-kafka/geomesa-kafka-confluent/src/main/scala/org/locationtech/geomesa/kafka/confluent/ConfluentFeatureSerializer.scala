@@ -19,11 +19,14 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSeria
 import org.locationtech.geomesa.kafka.confluent.ConfluentFeatureSerializer.ConfluentFeatureMapper
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{InputStream, OutputStream}
 import java.net.URL
+import java.nio.ByteBuffer
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.JavaConverters._
@@ -96,7 +99,11 @@ class ConfluentFeatureSerializer(
 
 object ConfluentFeatureSerializer {
 
+<<<<<<< HEAD
+  import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroVisibilityField}
+=======
   import SchemaParser.{GeoMesaAvroDateFormat, GeoMesaAvroDeserializableEnumProperty, GeoMesaAvroGeomFormat, GeoMesaAvroVisibilityField}
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 
   def builder(sft: SimpleFeatureType, schemaRegistryUrl: URL, schemaOverride: Option[Schema] = None): Builder =
     new Builder(sft, schemaRegistryUrl, schemaOverride)
@@ -118,15 +125,13 @@ object ConfluentFeatureSerializer {
    * @param sftIndex index of the field in the sft
    * @param schemaIndex index of the field in the avro schema
    * @param default default value defined in the avro schema
-   * @param conversionToFeature convert from an avro value to a simple feature type attribute
-   * @param conversionToAvro convert from a simple feature type attribute to an avro value
+   * @param conversion convert from an avro value to a simple feature type attribute, and vice-versa
    */
   private case class FieldMapping(
       sftIndex: Int,
       schemaIndex: Int,
       default: Option[AnyRef],
-      conversionToFeature: Option[AnyRef => AnyRef],
-      conversionToAvro: Option[AnyRef => AnyRef]
+      conversion: Option[FieldConverter]
     )
 
   /**
@@ -141,24 +146,157 @@ object ConfluentFeatureSerializer {
     private val topic = KafkaDataStore.topic(sft)
     private val kafkaSerializer = new KafkaAvroSerializer(registry)
     private val kafkaDeserializer = new KafkaAvroDeserializer(registry)
+=======
+class ConfluentFeatureSerializer(
+    sft: SimpleFeatureType,
+    schemaRegistryClient: SchemaRegistryClient,
+    schemaOverride: Option[Schema] = None,
+    val options: Set[SerializationOption] = Set.empty
+  ) extends SimpleFeatureSerializer with LazyLogging {
+
+  private val kafkaAvroDeserializers = new ThreadLocal[KafkaAvroDeserializer]() {
+    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
+  }
+
+  private val featureReaders = new ThreadLocal[ConfluentFeatureReader]() {
+    override def initialValue(): ConfluentFeatureReader = {
+      val schema = schemaOverride.getOrElse {
+        val schemaId = Option(sft.getUserData.get(ConfluentMetadata.SchemaIdKey))
+          .map(_.asInstanceOf[String].toInt).getOrElse {
+          throw new IllegalStateException(s"Cannot create ConfluentFeatureSerializer because SimpleFeatureType " +
+            s"'${sft.getTypeName}' does not have schema id at key '${ConfluentMetadata.SchemaIdKey}'")
+        }
+        schemaRegistryClient.getById(schemaId)
+      }
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 
     // feature type field index, schema field index and default value, any conversions necessary
     private val fieldMappings = sft.getAttributeDescriptors.asScala.map { d =>
+      val field = schema.getField(d.getLocalName)
+
+<<<<<<< HEAD
       val conversion =
         if (classOf[Geometry].isAssignableFrom(d.getType.getBinding)) {
-          Some(GeoMesaAvroGeomFormat.asInstanceOf[GeoMesaAvroDeserializableEnumProperty[AnyRef, AnyRef]])
+          lazy val union = field.schema.getTypes.asScala.map(_.getType).filter(_ != Schema.Type.NULL).toSet
+          field.schema.getType match {
+            case Schema.Type.STRING => Some(WktConverter)
+            case Schema.Type.BYTES  => Some(WkbConverter)
+            case Schema.Type.UNION if union == Set(Schema.Type.STRING) => Some(WktConverter)
+            case Schema.Type.UNION if union == Set(Schema.Type.BYTES)  => Some(WkbConverter)
+            case _ => throw new IllegalStateException(s"Found a geometry field with an invalid schema: $field")
+=======
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
+    val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
+
+    val feature = featureReaders.get.read(id, record)
+
+    // set the feature visibility if it exists
+    sft.getUserData.get(GeoMesaAvroVisibilityField.KEY) match {
+      case null => // no-op
+      case fieldName =>
+        record.get(fieldName.toString) match {
+          case null => // no-op
+          case vis => SecurityUtils.setFeatureVisibility(feature, vis.toString)
+        }
+
+    }
+
+    feature
+  }
+
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize("", bytes)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    deserialize("", bytes, offset, length)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
+    val buf = if (offset == 0 && length == bytes.length) { bytes } else {
+      val buf = Array.ofDim[Byte](length)
+      System.arraycopy(bytes, offset, buf, 0, length)
+      buf
+    }
+    deserialize(id, buf)
+  }
+
+  // implement the following if we need them
+
+  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
+
+  override def deserialize(id: String, in: InputStream): SimpleFeature =
+    throw new NotImplementedError()
+
+  override def serialize(feature: SimpleFeature): Array[Byte] =
+    throw new NotImplementedError("ConfluentSerializer is read-only")
+
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
+    throw new NotImplementedError("ConfluentSerializer is read-only")
+
+  // precompute the deserializer for each field in the SFT to simplify the actual deserialization
+  private class ConfluentFeatureReader(sft: SimpleFeatureType, schema: Schema) {
+
+    def read(id: String, record: GenericRecord): SimpleFeature = {
+      val attributes = fieldReaders.map { fieldReader =>
+        try {
+          Option(record.get(fieldReader.fieldName)).map(fieldReader.reader.apply).orNull
+        } catch {
+          case NonFatal(ex) =>
+            throw ConfluentFeatureReader.DeserializationException(fieldReader.fieldName, fieldReader.clazz, ex)
+        }
+      }
+
+      ScalaSimpleFeature.create(sft, id, attributes: _*)
+    }
+
+    private val fieldReaders: Seq[ConfluentFeatureReader.FieldReader[_]] = {
+      sft.getAttributeDescriptors.asScala.map { descriptor =>
+        val fieldName = descriptor.getLocalName
+
+        val reader =
+          if (classOf[Geometry].isAssignableFrom(descriptor.getType.getBinding)) {
+            GeoMesaAvroGeomFormat.getFieldReader(schema, fieldName)
+          } else if (classOf[Date].isAssignableFrom(descriptor.getType.getBinding)) {
+            GeoMesaAvroDateFormat.getFieldReader(schema, fieldName)
+          } else {
+            value: AnyRef => value
+>>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
+          }
         } else if (classOf[Date].isAssignableFrom(d.getType.getBinding)) {
-          Some(GeoMesaAvroDateFormat.asInstanceOf[GeoMesaAvroDeserializableEnumProperty[AnyRef, AnyRef]])
+          d.getUserData.get(GeoMesaAvroDateFormat.KEY) match {
+            case GeoMesaAvroDateFormat.ISO_DATE     => Some(IsoDateConverter)
+            case GeoMesaAvroDateFormat.ISO_DATETIME => Some(IsoDateTimeConverter)
+            case GeoMesaAvroDateFormat.EPOCH_MILLIS => Some(EpochMillisConverter)
+            case null /* avro logical date type */  => Some(EpochMillisConverter)
+            case _ =>
+              throw new IllegalStateException(s"Found a date field with no format defined:" +
+                s" ${d.getLocalName} ${d.getUserData.asScala.mkString(", ")}")
+          }
         } else {
           None
         }
 
+<<<<<<< HEAD
+      FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversion)
+=======
       val field = schema.getField(d.getLocalName)
       val conversionToFeature = conversion.map(_.getFieldReader(schema, field.name()))
       val conversionToAvro = conversion.map(_.getFieldWriter(schema, field.name()))
 
 <<<<<<< HEAD
       FieldMapping(sft.indexOf(d.getLocalName), field.pos(), defaultValue(field), conversionToFeature, conversionToAvro)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 =======
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val record = kafkaAvroDeserializers.get.deserialize("", bytes).asInstanceOf[GenericRecord]
@@ -175,6 +313,23 @@ object ConfluentFeatureSerializer {
         }
 
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
     }
 
     // visibility field index in the avro schema
@@ -239,7 +394,15 @@ object ConfluentFeatureSerializer {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> location-main
 >>>>>>> e8cc4971c6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -260,8 +423,12 @@ object ConfluentFeatureSerializer {
 =======
 >>>>>>> eef10da74 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 60bcd014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
 <<<<<<< HEAD
 =======
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
@@ -329,7 +496,14 @@ object ConfluentFeatureSerializer {
 >>>>>>> eef10da74 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 769842a4bf (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 60bcd014c8 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> location-main
   override def deserialize(id: String, in: InputStream): SimpleFeature =
     throw new NotImplementedError()
 
@@ -352,6 +526,10 @@ object ConfluentFeatureSerializer {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> location-main
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 =======
@@ -397,13 +575,21 @@ object ConfluentFeatureSerializer {
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locationtech-main
+=======
+>>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+>>>>>>> location-main
         try {
           feature.getAttribute(m.sftIndex) match {
             case null => m.default.foreach(d => record.put(m.schemaIndex, d))
-            case v => record.put(m.schemaIndex, m.conversionToAvro.fold(v)(_.apply(v)))
+            case v => record.put(m.schemaIndex, m.conversion.fold(v)(_.featureToRecord(v)))
           }
         } catch {
           case NonFatal(e) =>
@@ -429,10 +615,10 @@ object ConfluentFeatureSerializer {
       val record = kafkaDeserializer.deserialize(topic, bytes).asInstanceOf[GenericRecord]
       val attributes = fieldMappings.map { m =>
         try {
-          val value = record.get(m.schemaIndex)
-          m.conversionToFeature match {
-            case Some(c) if value != null => c.apply(value)
-            case _ => value
+          val v = record.get(m.schemaIndex)
+          m.conversion match {
+            case None => v
+            case Some(c) => c.recordToFeature(v)
           }
         } catch {
           case NonFatal(e) =>
@@ -469,4 +655,94 @@ object ConfluentFeatureSerializer {
       }
     }
   }
+
+  /**
+   * Converts between avro and feature attribute values
+   */
+  private sealed trait FieldConverter {
+    def recordToFeature(value: AnyRef): AnyRef
+    def featureToRecord(value: AnyRef): AnyRef
+  }
+
+  /**
+   * Converts WKT text fields
+   */
+  private case object WktConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      // note: value is an org.apache.avro.util.Utf8
+      if (value == null) { null } else { WKTUtils.read(value.toString) }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { WKTUtils.write(value.asInstanceOf[Geometry]) }
+  }
+
+  /**
+   * Converts WKB bytes fields
+   */
+  private case object WkbConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef =
+      if (value == null) { null } else { WKBUtils.read(unwrap(value.asInstanceOf[ByteBuffer])) }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { ByteBuffer.wrap(WKBUtils.write(value.asInstanceOf[Geometry])) }
+
+    private def unwrap(buf: ByteBuffer): Array[Byte] = {
+      if (buf.hasArray && buf.arrayOffset() == 0 && buf.limit() == buf.array().length) {
+        buf.array()
+      } else {
+        val array = Array.ofDim[Byte](buf.limit())
+        buf.get(array)
+        array
+      }
+    }
+  }
+
+  /**
+   * Converts ISO_DATE formatted string fields
+   */
+  private case object IsoDateConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        // note: value is an org.apache.avro.util.Utf8
+        DateParsing.parseDate(value.toString, DateTimeFormatter.ISO_DATE)
+      }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        DateParsing.formatDate(value.asInstanceOf[Date], DateTimeFormatter.ISO_DATE)
+      }
+    }
+  }
+
+  /**
+   * Converts ISO_DATE_TIME formatted string fields
+   */
+  private case object IsoDateTimeConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        // note: value is an org.apache.avro.util.Utf8
+        DateParsing.parseDate(value.toString, DateTimeFormatter.ISO_DATE_TIME)
+      }
+    }
+
+    override def featureToRecord(value: AnyRef): AnyRef = {
+      if (value == null) { null } else {
+        DateParsing.formatDate(value.asInstanceOf[Date], DateTimeFormatter.ISO_DATE_TIME)
+      }
+    }
+  }
+
+  /**
+   * Converts milliseconds since epoch long fields
+   */
+  private case object EpochMillisConverter extends FieldConverter {
+    override def recordToFeature(value: AnyRef): AnyRef =
+      if (value == null) { null } else { new Date(value.asInstanceOf[java.lang.Long]) }
+
+    override def featureToRecord(value: AnyRef): AnyRef =
+      if (value == null) { null } else { Long.box(value.asInstanceOf[Date].getTime) }
+  }
+
 }

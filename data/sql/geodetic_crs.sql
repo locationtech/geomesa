@@ -2188,21 +2188,45 @@ INSERT INTO "usage" VALUES('EPSG','17901','geodetic_crs','EPSG','9990','EPSG','1
 INSERT INTO "geodetic_crs" VALUES('EPSG','10175','DoPw22-IRF',NULL,'geographic 2D','EPSG','6422','EPSG','1334',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18657','geodetic_crs','EPSG','10175','EPSG','4686','EPSG','1141');
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
+=======
 INSERT INTO "geodetic_crs" VALUES('EPSG','10175','DoPw22-IRF',NULL,'geographic 2D','EPSG','6422','EPSG','1334',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18657','geodetic_crs','EPSG','10175','EPSG','4686','EPSG','1141');
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
 INSERT INTO "geodetic_crs" VALUES('EPSG','10175','DoPw22-IRF',NULL,'geographic 2D','EPSG','6422','EPSG','1334',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18657','geodetic_crs','EPSG','10175','EPSG','4686','EPSG','1141');
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 INSERT INTO "geodetic_crs" VALUES('EPSG','10176','IGS20',NULL,'geocentric','EPSG','6500','EPSG','1333',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18627','geodetic_crs','EPSG','10176','EPSG','2830','EPSG','1027');
 INSERT INTO "geodetic_crs" VALUES('EPSG','10177','IGS20',NULL,'geographic 3D','EPSG','6423','EPSG','1333',NULL,0);
@@ -2245,17 +2269,40 @@ INSERT INTO "usage" VALUES('EPSG','19181','geodetic_crs','EPSG','10277','EPSG','
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
+=======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
 INSERT INTO "geodetic_crs" VALUES('EPSG','20033','MWC18-IRF',NULL,'geographic 2D','EPSG','6422','EPSG','1324',NULL,0);
 INSERT INTO "usage" VALUES('EPSG','18335','geodetic_crs','EPSG','20033','EPSG','4666','EPSG','1141');
 INSERT INTO "geodetic_crs" VALUES('EPSG','20039','SIRGAS-Chile 2021',NULL,'geocentric','EPSG','6500','EPSG','1327',NULL,0);

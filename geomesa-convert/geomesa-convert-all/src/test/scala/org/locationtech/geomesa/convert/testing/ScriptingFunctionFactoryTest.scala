@@ -59,6 +59,38 @@ class ScriptingFunctionFactoryTest extends Specification {
         gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
         val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+        val gbye = sff.functions.find(_.names.contains("js:gbye")).head
+        gbye.apply(Array("geomesa")) mustEqual "goodbye: geomesa"
+        val whatsup = sff.functions.find(_.names.contains("js:whatsup")).head
+        whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
+        whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
+<<<<<<< HEAD
+>>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> 74661c3147 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> location-main
 =======
         hello.eval(Array("geomesa")) mustEqual "hello: geomesa"
         val gbye = sff.functions.find(_.names.contains("js:gbye")).head
@@ -68,6 +100,18 @@ class ScriptingFunctionFactoryTest extends Specification {
         whatsup.apply(Array("geomesa")) mustEqual "whatsup: geomesa"
         whatsup.eval(Array("geomesa")) mustEqual "whatsup: geomesa"
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> location-main
       } finally {
         ScriptingFunctionFactory.ConvertScriptsPath.threadLocalValue.remove()
       }

@@ -62,22 +62,47 @@ static PJ_XYZ forward_3d(PJ_LPZ lpz, PJ *P) {
     // We need to add lam0 (+lon_0) since it is subtracted in fwd_prepare(),
 =======
     // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> location-main
 >>>>>>> locationtech-main
 =======
     // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     // We need to add lam0 (+lon_0) since it is subtracted in fwd_prepare(),
 >>>>>>> e4a6fd6d75 (typo fixes)
+=======
+<<<<<<< HEAD
+>>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+    // We need to add lam0 (+lon_0) since it is subtracted in fwd_prepare(),
+>>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
+>>>>>>> aa21c6fa76 (typo fixes)
+=======
+>>>>>>> location-main
 =======
     // We need to add lam0 (+lon_0) since it is subtracted in fwd_prepare(),
 =======
     // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 =======
     // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
 >>>>>>> locationtech-main
+=======
+>>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // We need to add lam0 (+lon_0) since it is substracted in fwd_prepare(),
+>>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> location-main
     // which is desirable for map projections, but not
     // for that method which modifies only the Z component.
     xyz.x = lpz.lam + P->lam0;

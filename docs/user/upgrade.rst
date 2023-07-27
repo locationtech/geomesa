@@ -91,6 +91,42 @@ Compatibility Matrix
 +--------------+-------+-------+-------+
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+Version 4.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* Spring security ``5.8.0`` -> ``5.8.3``
+
+Deprecated Classes and Methods
+------------------------------
+
+The following classes have been deprecated and will be removed in a future version:
+
+* org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
+
+=======
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+>>>>>>> location-main
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -105,7 +141,18 @@ but keep NiFi at 3.5.1. Please note that previously deprecated functionality (se
 any part of the environment is upgraded to 4.0.0.
 
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+Version 4.0.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 Scala Versions
 --------------
 
@@ -117,6 +164,7 @@ GeoTools/GeoServer Versions
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 =======
 GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
@@ -124,6 +172,22 @@ GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade
 =======
 GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
+=======
+GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
+>>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+GeoTools has been upgraded from ``23.3`` to ``28.2``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.2``.
+=======
+GeoTools has been upgraded from ``23.3`` to ``28.0``. GeoServer has been upgrade from ``2.17.3`` to ``2.22.0``.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 JTS has been upgraded from ``1.17.0`` to ``1.19.0``.
 
 As part of this upgrade, various GeoTools methods have changed in incompatible ways. Several classes, in
@@ -139,7 +203,15 @@ The following high-level dependencies have been upgraded:
 =======
 The following high-level dependencies have been upgraded. For a full changelist of all the dependency changes,
 see TODO commit hash link on github
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 
 * Apache Hadoop ``2.8.5`` -> ``2.10.2``
 * Apache Spark ``2.4.7`` -> ``3.3.1``
@@ -156,12 +228,32 @@ see TODO commit hash link on github
 * Apache HBase ``1.4.12`` -> ``1.4.13``, ``2.2.3`` -> ``2.4.4``
 * Apache Kafka ``2.1.1`` -> ``2.8.2``
 * Apache Arrow ``0.16.0`` -> ``10.0.1``
+<<<<<<< HEAD
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a928f2f739 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+* Apache Avro ``1.8.2`` -> ``1.11.1``
+* Apache Parquet ``1.9.0`` -> ``1.12.3``
+* Apache Orc ``1.5.4`` -> ``1.8.1``
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> location-main
 * Apache Avro ``1.8.2`` -> ``1.11.1``
 * Apache Parquet ``1.9.0`` -> ``1.12.3``
 * Apache Orc ``1.5.4`` -> ``1.8.1``
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 * Jedis ``3.0.1`` -> ``4.3.1``
 * Confluent ``5.1.0`` -> ``6.2.7``
 * Kryo ``3.0.3`` -> ``4.0.2``
@@ -171,6 +263,8 @@ see TODO commit hash link on github
 * Saxon ``9.7.0-20`` -> ``11.4``
 
 For a full changelist of all dependencies, see the diff
+<<<<<<< HEAD
+<<<<<<< HEAD
 `here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
 
 Minimum Library Versions
@@ -182,10 +276,28 @@ Support for older versions of some libraries has been dropped. The following min
 * Apache Spark ``3.0`` (dropped support for ``2.4``)
 * Apache Kafka ``2.0`` (dropped support for ``0.10``, ``0.11``, ``1.0``, and ``1.1``)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+`here <https://gist.github.com/elahrvivaz/dd76a6c03154f9c65ce596e965a9c084/revisions?diff=split>`__.
+>>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+`here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
+>>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> f813a10b55 (Add min library version to upgrade guide)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 
 Removal of Deprecated Modules
 -----------------------------
@@ -205,6 +317,7 @@ The following deprecated modules were removed:
 In addition, various other deprecated classes and methods were removed. To identify any code that requires changes,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 =======
 build your project against GeoMesa 3.5.0 and note any deprecation warnings generated by the compiler.
@@ -212,6 +325,22 @@ build your project against GeoMesa 3.5.0 and note any deprecation warnings gener
 =======
 build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
+=======
+build your project against GeoMesa 3.5.0 and note any deprecation warnings generated by the compiler.
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
+>>>>>>> fa3c19722d (GEOMESA-3253 Include full dependency change list for 4.0.0)
+=======
+build your project against GeoMesa 3.5.1 and note any deprecation warnings generated by the compiler.
+=======
+build your project against GeoMesa 3.5.0 and note any deprecation warnings generated by the compiler.
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 
 Package Changes
 ---------------
@@ -238,7 +367,15 @@ The ``geomesa-accumulo2-nar`` has been replaced with ``geomesa-accumulo20-nar``,
 ``geomesa-accumulo21-nar`` for Accumulo 2.1 support.
 
 =======
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 Scan Range Changes
 ------------------
 
@@ -248,8 +385,16 @@ large value. Setting ``geomesa.scan.ranges.recurse`` to ``7`` will restore the o
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 Partitioned PostGIS Query Changes
 ---------------------------------
 
@@ -257,10 +402,22 @@ GeoMesa will now ignore queries that encompass the entire world in the partition
 information, refer to :ref:`postgis_filter_world`.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7d4ed7605c (GEOMESA-3262 Postgis - add config to skip whole world filters)
+=======
+=======
+>>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> location-main
 Version 3.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -293,8 +450,36 @@ Dependency Updates
 * org.slf4j:slf4j-api: ``1.7.25`` -> ``1.7.36``
 * com.google.code.gson:gson: ``2.8.1`` -> ``2.8.9``
 
+<<<<<<< HEAD
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e6dd9b5b1d (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 2dd5db0392 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+>>>>>>> location-main
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
