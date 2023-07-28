@@ -15,6 +15,9 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%geotools.guava.version%%"
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -52,7 +55,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

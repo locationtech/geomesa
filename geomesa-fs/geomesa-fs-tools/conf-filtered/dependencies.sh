@@ -16,6 +16,9 @@ aws_sdk_install_version="1.12.385" # latest version as of 2023/01
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -79,7 +82,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

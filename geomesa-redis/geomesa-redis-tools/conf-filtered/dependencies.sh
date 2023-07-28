@@ -11,12 +11,16 @@
 # Usually these dependencies will be provided by the environment (e.g. HADOOP_HOME).
 # Update the versions as required to match the target environment.
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
-  # local classpath="$1"
   echo ""
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }
