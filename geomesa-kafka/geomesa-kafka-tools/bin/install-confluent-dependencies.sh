@@ -10,4 +10,4 @@
 cd "$(dirname "$0")" || exit
 export GEOMESA_DEPENDENCIES="confluent-dependencies.sh"
 export GEOMESA_MAVEN_URL="${GEOMESA_MAVEN_URL:-https://packages.confluent.io/maven/}"
-./install-dependencies.sh
+./install-dependencies.sh "$@"

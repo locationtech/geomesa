@@ -20,7 +20,7 @@
 set -e
 
 VALID_VERSIONS=("2.12" "2.13")
-FULL_VERSIONS=("2.12.13" "2.13.10")
+FULL_VERSIONS=("2.12.17" "2.13.10")
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>

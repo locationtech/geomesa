@@ -33,9 +33,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.images.builder.ImageFromDockerfile
 
 import java.sql.Connection
-import java.util.{Collections, Locale}
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
+import java.util.{Collections, Locale}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -401,6 +401,45 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
               selects.head.toLowerCase(Locale.US) must contain("where")
             }
           }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "support idle_in_transaction_session_timeout" in {
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "timeout")
+
+      val ds = DataStoreFinder.getDataStore((params ++ Map("idle_in_transaction_session_timeout" -> "100ms", "fetch size" -> 1)).asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify that statements will timeout and return an error
+        WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+          reader.hasNext must beTrue
+          reader.next must not(beNull)
+          Thread.sleep(120)
+          reader.hasNext must throwAn[Exception]
         }
       } finally {
         ds.dispose()

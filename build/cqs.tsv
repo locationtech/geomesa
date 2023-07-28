@@ -35,7 +35,7 @@ com.google.re2j:re2j	1.6	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
 com.googlecode.cqengine:cqengine	3.0.0	compile
 com.googlecode.json-simple:json-simple	1.1.1	compile
-com.h2database:h2	2.1.214	compile
+com.h2database:h2	2.2.220	compile
 com.jayway.jsonpath:json-path	2.7.0	compile
 com.lmax:disruptor	3.3.0	compile
 com.sun.jersey:jersey-core	1.9	compile
@@ -75,7 +75,9 @@ io.dropwizard.metrics:metrics-ganglia	3.2.6	compile
 io.dropwizard.metrics:metrics-graphite	3.2.6	compile
 io.dropwizard.metrics:metrics-jvm	3.2.6	compile
 io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
-io.micrometer:micrometer-core	1.9.5	compile
+io.micrometer:micrometer-commons	1.10.6	compile
+io.micrometer:micrometer-core	1.10.6	compile
+io.micrometer:micrometer-observation	1.10.6	compile
 io.netty:netty-all	4.1.85.Final	compile
 io.netty:netty-buffer	4.1.85.Final	compile
 io.netty:netty-codec	4.1.85.Final	compile
@@ -105,11 +107,11 @@ io.netty:netty-transport-rxtx	4.1.85.Final	compile
 io.netty:netty-transport-sctp	4.1.85.Final	compile
 io.netty:netty-transport-udt	4.1.85.Final	compile
 io.opentelemetry:opentelemetry-api	1.15.0	compile
-io.opentelemetry:opentelemetry-api	1.19.0	compile
+io.opentelemetry:opentelemetry-api	1.25.0	compile
 io.opentelemetry:opentelemetry-context	1.15.0	compile
-io.opentelemetry:opentelemetry-context	1.19.0	compile
+io.opentelemetry:opentelemetry-context	1.25.0	compile
 io.opentelemetry:opentelemetry-semconv	1.15.0-alpha	compile
-io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
+io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
 io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
@@ -160,9 +162,9 @@ net.sf.saxon:Saxon-HE	11.4	compile
 net.sf.trove4j:trove4j	3.0.3	compile
 org.antlr:antlr4-runtime	4.7.1	compile
 org.apache.accumulo:accumulo-core	2.0.1	compile
-org.apache.accumulo:accumulo-core	2.1.0	compile
+org.apache.accumulo:accumulo-core	2.1.1	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
-org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.0	compile
+org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.1	compile
 org.apache.arrow:arrow-format	11.0.0	compile
 org.apache.arrow:arrow-memory-core	11.0.0	compile
 org.apache.arrow:arrow-memory-netty	11.0.0	compile
@@ -228,7 +230,7 @@ org.apache.yetus:audience-annotations	0.13.0	compile
 org.apache.yetus:audience-annotations	0.5.0	compile
 org.apache.zookeeper:zookeeper	3.5.10	compile
 org.apache.zookeeper:zookeeper-jute	3.5.10	compile
-org.apache.zookeeper:zookeeper-jute	3.8.0	compile
+org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.19.0	compile
 org.checkerframework:checker-qual	3.5.0	compile
@@ -270,7 +272,6 @@ org.geotools:gt-render	28.2	compile
 org.geotools:gt-shapefile	28.2	compile
 org.geotools:gt-transform	28.2	compile
 org.geotools:gt-xml	28.2	compile
-org.hdrhistogram:HdrHistogram	2.1.12	compile
 org.hsqldb:hsqldb	jdk8:2.7.1	compile
 org.huldra.math:bigint	0.7.1	compile
 org.jamon:jamon-runtime	2.4.1	compile
@@ -294,8 +295,8 @@ org.parboiled:parboiled-scala_2.12	1.3.1	compile
 org.postgresql:postgresql	42.5.1	compile
 org.scala-lang.modules:scala-parser-combinators_2.12	2.1.1	compile
 org.scala-lang.modules:scala-xml_2.12	2.1.0	compile
-org.scala-lang:scala-library	2.12.13	compile
-org.scala-lang:scala-reflect	2.12.13	compile
+org.scala-lang:scala-library	2.12.17	compile
+org.scala-lang:scala-reflect	2.12.17	compile
 org.slf4j:slf4j-api	1.7.36	compile
 org.threeten:threeten-extra	1.5.0	compile
 org.threeten:threeten-extra	1.7.1	compile
@@ -339,9 +340,9 @@ org.apache.sedona:sedona-sql-3.0_2.12	1.3.1-incubating	provided
 org.apache.spark:spark-catalyst_2.12	3.3.1	provided
 org.apache.spark:spark-core_2.12	3.3.1	provided
 org.apache.spark:spark-sql_2.12	3.3.1	provided
-org.scala-lang:scala-compiler	2.12.13	provided
+org.scala-lang:scala-compiler	2.12.17	provided
 org.slf4j:slf4j-reload4j	1.7.36	provided
-org.springframework.security:spring-security-core	5.8.0	provided
+org.springframework.security:spring-security-core	5.8.3	provided
 
 com.kjetland:mbknor-jackson-jsonschema_2.12	1.0.39	test
 com.sun.xml.bind:jaxb-impl	2.2.3	test

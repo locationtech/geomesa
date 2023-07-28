@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.1.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -52,7 +52,7 @@
 
         <!-- *** main dependency versions *** -->
 
-        <scala.version>2.12.13</scala.version>
+        <scala.version>2.12.17</scala.version>
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
 
         <scala.xml.version>2.1.0</scala.xml.version>
@@ -77,11 +77,11 @@
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
         <hsql.version>2.4.1</hsql.version> <!-- newer versions (at least 2.7+) require java 11 -->
-        <h2.version>2.1.214</h2.version>
+        <h2.version>2.2.220</h2.version>
         <curator.version>4.3.0</curator.version> <!-- last version that supports zk 3.4 -->
         <json.smart.version>2.4.8</json.smart.version> <!-- used by json-path (2.2.1) and hadoop-auth (2.3)-->
         <json.path.version>2.7.0</json.path.version>
-        <spring.security.version>5.8.0</spring.security.version> <!-- geoserver ships with 5.1.13.RELEASE but that has several CVEs against it -->
+        <spring.security.version>5.8.3</spring.security.version> <!-- geoserver ships with 5.1.13.RELEASE but that has several CVEs against it -->
         <gson.version>2.10</gson.version>
         <caffeine.version>2.9.3</caffeine.version> <!-- version 3+ requires java 11 -->
         <mango.version>3.0.0</mango.version>
@@ -104,7 +104,7 @@
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
         <accumulo.version>2.0.1</accumulo.version>
-        <accumulo-21.version>2.1.0</accumulo-21.version>
+        <accumulo-21.version>2.1.1</accumulo-21.version>
         <zookeeper.version>3.5.10</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
         <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
@@ -155,12 +155,12 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>3.5.1</geomesa.release.version>
-        <geomesa.devel.version>4.0.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>4.0.2</geomesa.release.version>
+        <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2023</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>2.1.0</accumulo.version.recommended>
+        <accumulo.version.recommended>2.1.1</accumulo.version.recommended>
         <hbase.version.recommended>2.5.2</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>4.1.3</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
@@ -3460,32 +3460,32 @@
         <developer>
             <name>Anthony Fox</name>
             <email>anthony@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>James Hughes</name>
-            <email>jhughes@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <email>jhughes@confluent.io</email>
+            <organization>Confluent</organization>
+            <organizationUrl>https://www.confluent.io</organizationUrl>
         </developer>
         <developer>
             <name>Emilio Lahr-Vivaz</name>
             <email>elahrvivaz@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>Andrew Hulbert</name>
             <email>ahulbert@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
         <developer>
             <name>Austin Heyne</name>
             <email>aheyne@ccri.com</email>
-            <organization>CCRi</organization>
-            <organizationUrl>http://www.ccri.com</organizationUrl>
+            <organization>GA-CCRi</organization>
+            <organizationUrl>https://www.ga-ccri.com</organizationUrl>
         </developer>
     </developers>
 

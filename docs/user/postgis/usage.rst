@@ -28,5 +28,13 @@ that ``dbtype`` **must** be set to ``postgis-partitioned``. See the
 `JDBCDataStore <https://docs.geotools.org/stable/userguide/library/jdbc/datastore.html>`__ and
 `PostGIS Plugin <https://docs.geotools.org/stable/userguide/library/jdbc/postgis.html>`__ for other parameters.
 
-Note that once a schema has been created, the regular PostGIS data store may be used for query, insert, update
-and delete operations.
+The following additional parameters are also supported:
+
+======================================= ======== ===================================================================================================================================
+Parameter                               Type     Description
+======================================= ======== ===================================================================================================================================
+``idle_in_transaction_session_timeout`` Duration Transaction idle timeout (e.g. ``2 minutes``). See the
+                                                 `Postgres documentation <https://www.postgresql.org/docs/15/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT>`__
+                                                 for more information. Setting this timeout may help prevent
+                                                 abandoned queries from slowing down database operations.
+======================================= ======== ===================================================================================================================================

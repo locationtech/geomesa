@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.tools.`export`.formats
 
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream

@@ -12,6 +12,7 @@ import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -64,11 +65,11 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     }
 
     val q = new Query
-    // Only ask to reproject if the Shapefile has a CRS
-    if (ds.getSchema.getCoordinateReferenceSystem != null) {
-      q.setCoordinateSystemReproject(CRS_EPSG_4326)
-    } else {
+    // Only ask to reproject if the Shapefile has a non-4326 CRS
+    if (ds.getSchema.getCoordinateReferenceSystem == null) {
       logger.warn(s"Shapefile does not have CRS info")
+    } else if (!CRS.equalsIgnoreMetadata(ds.getSchema.getCoordinateReferenceSystem, CRS_EPSG_4326)) {
+      q.setCoordinateSystemReproject(CRS_EPSG_4326)
     }
 
     val reader = CloseableIterator(ds.getFeatureSource.getReader(q)).map { f => ec.line += 1; f }

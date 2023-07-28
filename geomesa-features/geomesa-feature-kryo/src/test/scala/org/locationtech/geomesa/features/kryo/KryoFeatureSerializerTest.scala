@@ -24,6 +24,7 @@ import org.specs2.runner.JUnitRunner
 import java.nio.charset.StandardCharsets
 import java.util
 import java.util.{Collections, Date, UUID}
+import scala.util.{Failure, Try}
 
 @RunWith(classOf[JUnitRunner])
 class KryoFeatureSerializerTest extends Specification with LazyLogging {
@@ -423,6 +424,24 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val serialized = serializer.serialize(sf)
       val deserialized = serializer.deserialize(serialized)
       deserialized.getAttribute("name") mustEqual name
+      deserialized.getAttributes mustEqual sf.getAttributes
+      deserialized.getUserData.asScala must beEmpty
+    }
+
+    "correctly expand the buffer for large feature types" in {
+      val spec = "*geom:Point:srid=4326,dtg:Date," + Seq.tabulate(1000)(i => f"a$i%02d:Int").mkString(",")
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      val sf = ScalaSimpleFeature.create(sft, "fid-0", "POINT(45.0 49.0)", "2013-01-02T00:00:00.000Z")
+      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      var serialized: Try[Array[Byte]] = Failure(new IllegalArgumentException("thread not invoked?"))
+      // we run the serialize in a new thread to avoid any buffer caching that can cause this test to not be reproducible
+      // buffers are cached in thread-locals, so a new thread should ensure a fresh buffer
+      val thread = new Thread(new Runnable() { override def run(): Unit = serialized = Try(serializer.serialize(sf)) })
+      thread.start()
+      thread.join()
+
+      serialized must beASuccessfulTry
+      val deserialized = serializer.deserialize(serialized.get)
       deserialized.getAttributes mustEqual sf.getAttributes
       deserialized.getUserData.asScala must beEmpty
     }

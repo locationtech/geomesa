@@ -90,6 +90,23 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 4.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* Spring security ``5.8.0`` -> ``5.8.3``
+
+Deprecated Classes and Methods
+------------------------------
+
+The following classes have been deprecated and will be removed in a future version:
+
+* org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
+
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -141,7 +158,16 @@ The following high-level dependencies have been upgraded:
 * Saxon ``9.7.0-20`` -> ``11.4``
 
 For a full changelist of all dependencies, see the diff
-`here <https://gist.github.com/elahrvivaz/dd76a6c03154f9c65ce596e965a9c084/revisions?diff=split>`__.
+`here <https://gist.github.com/elahrvivaz/f86d31f78b57bf92113c16661a886c12/revisions?diff=split>`__.
+
+Minimum Library Versions
+------------------------
+
+Support for older versions of some libraries has been dropped. The following minimum versions are now required:
+
+* Apache Accumulo ``2.0.0`` (dropped support for ``1.7``, ``1.8``, ``1.9``, and ``1.10``)
+* Apache Spark ``3.0`` (dropped support for ``2.4``)
+* Apache Kafka ``2.0`` (dropped support for ``0.10``, ``0.11``, ``1.0``, and ``1.1``)
 
 Removal of Deprecated Modules
 -----------------------------

@@ -9,7 +9,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
-  MAVEN_TEST_OPTS: -o -Dtest.fork.count=1
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 jobs:
   build-scala:
@@ -30,20 +30,20 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
         id: hbase-test
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
         continue-on-error: true
       - name: HBase 1.4 unit tests (retry)
         id: hbase-test-retry
         if: steps.hbase-test.outcome=='failure'
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
