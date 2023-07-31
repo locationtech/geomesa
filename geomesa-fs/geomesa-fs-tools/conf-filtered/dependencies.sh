@@ -16,6 +16,9 @@ aws_sdk_install_version="1.12.385" # latest version as of 2023/01
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -24,9 +27,9 @@ function dependencies() {
   local snappy_version="$snappy_install_version"
 
   if [[ -n "$classpath" ]]; then
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
-    aws_sdk_version="$(get_classpath_version aws-java-sdk-core $classpath $aws_sdk_version)"
-    snappy_version="$(get_classpath_version snappy-java $classpath $snappy_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
+    aws_sdk_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_version")"
+    snappy_version="$(get_classpath_version snappy-java "$classpath" "$snappy_version")"
   fi
 
   declare -a gavs=(
@@ -62,7 +65,8 @@ function dependencies() {
   )
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+  local hadoop_maj_ver
+  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
   if [[ "$hadoop_maj_ver" -ge 3 ]]; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
@@ -78,7 +82,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

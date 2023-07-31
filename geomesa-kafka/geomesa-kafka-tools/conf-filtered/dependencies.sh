@@ -18,6 +18,9 @@ jopt_install_version="%%kafka.jopt.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -26,9 +29,9 @@ function dependencies() {
   local zk_version="$zookeeper_install_version"
 
   if [[ -n "$classpath" ]]; then
-    kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
-    zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
+    kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
+    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
+    zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
   fi
 
   declare -a gavs=(
@@ -42,7 +45,7 @@ function dependencies() {
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
   JUTE_FROM_VERSION="3.5.5"
-  if version_ge ${zk_version} $JUTE_FROM_VERSION; then
+  if version_ge "$zk_version" $JUTE_FROM_VERSION; then
     gavs+=(
       "org.apache.zookeeper:zookeeper-jute:${zk_version}:jar"
     )
@@ -51,7 +54,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

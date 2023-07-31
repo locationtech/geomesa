@@ -14,7 +14,6 @@
 accumulo_install_version="%%accumulo.version.recommended%%"
 hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
-thrift_install_version="%%thrift.version%%"
 kafka_install_version="%%kafka.version%%"
 zkclient_install_version="%%zkclient.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
@@ -22,6 +21,9 @@ guava_install_version="%%accumulo.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -32,22 +34,25 @@ function dependencies() {
   local zkclient_version="$zkclient_install_version"
 
   if [[ -n "$classpath" ]]; then
-    accumulo_version="$(get_classpath_version accumulo-core $classpath $accumulo_version)"
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
-    zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
-    kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
+    accumulo_version="$(get_classpath_version accumulo-core "$classpath" $accumulo_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" $hadoop_version)"
+    zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
+    kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
+    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
   fi
 
   declare -a gavs=(
     "org.apache.accumulo:accumulo-core:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-server-base:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-start:${accumulo_version}:jar"
-    "org.apache.thrift:libthrift:${thrift_install_version}:jar"
+    "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
-    "commons-configuration:commons-configuration:1.6:jar"
-    "org.apache.commons:commons-configuration2:2.5:jar"
-    "org.apache.commons:commons-text:1.6:jar"
+    "org.apache.commons:commons-configuration2:2.8.0:jar"
+    "org.apache.commons:commons-text:1.10.0:jar"
+    "org.apache.commons:commons-collections4:4.4:jar"
+    "org.apache.commons:commons-vfs2:2.9.0:jar"
+    "commons-collections:commons-collections:3.2.2:jar"
+    "commons-logging:commons-logging:1.2:jar"
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
@@ -55,38 +60,46 @@ function dependencies() {
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
     "com.101tec:zkclient:${zkclient_version}:jar"
     "commons-logging:commons-logging:1.1.3:jar"
-    "org.apache.commons:commons-vfs2:2.3:jar"
-    # htrace 3 required for hadoop before 2.8, accumulo up to 1.9.2
-    # htrace 4 required for hadoop 2.8 and later
-    # since they have separate package names, should be safe to install both
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     "com.yammer.metrics:metrics-core:2.2.0:jar"
+    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
+    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
     "net.sf.jopt-simple:jopt-simple:%%kafka.jopt.version%%:jar"
   )
 
-  # add accumulo 1.x jars if needed
-  local accumulo_maj_ver="$(expr match "$accumulo_version" '\([0-9][0-9]*\)\.')"
-  if [[ "$accumulo_maj_ver" -lt 2 ]]; then
+  # add accumulo 2.1 jars if needed
+  if version_ge "${accumulo_version}" 2.1.0; then
     gavs+=(
-      "org.apache.accumulo:accumulo-fate:${accumulo_version}:jar"
-      "org.apache.accumulo:accumulo-trace:${accumulo_version}:jar"
+      "org.apache.thrift:libthrift:%%thrift-accumulo-21.version%%:jar"
+      "io.opentelemetry:opentelemetry-api:1.19.0:jar"
+      "io.opentelemetry:opentelemetry-context:1.19.0:jar"
+      "io.micrometer:micrometer-core:1.9.6:jar"
+    )
+  else
+    gavs+=(
+      "org.apache.thrift:libthrift:%%thrift.version%%:jar"
     )
   fi
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+  local hadoop_maj_ver
+  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
   if [[ "$hadoop_maj_ver" -ge 3 ]]; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
       "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
     )
+  else
+    gavs+=(
+      "commons-configuration:commons-configuration:1.6:jar"
+    )
   fi
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
   JUTE_FROM_VERSION="3.5.5"
-  if version_ge ${zk_version} $JUTE_FROM_VERSION; then
+  if version_ge "${zk_version}" $JUTE_FROM_VERSION; then
     gavs+=(
       "org.apache.zookeeper:zookeeper-jute:${zk_version}:jar"
     )
@@ -95,7 +108,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo "commons-text-1.4.jar"
 }

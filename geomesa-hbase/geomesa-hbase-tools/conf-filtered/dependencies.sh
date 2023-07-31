@@ -20,6 +20,9 @@ guava_install_version="%%hbase.guava.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -29,10 +32,10 @@ function dependencies() {
   local zk_version="$zookeeper_install_version"
 
   if [[ -n "$classpath" ]]; then
-    hbase_version="$(get_classpath_version hbase-client $classpath $hbase_version)"
-    hbase_thirdparty_version="$(get_classpath_version hbase-shaded-protobuf $classpath $hbase_thirdparty_version)"
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
-    zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
+    hbase_version="$(get_classpath_version hbase-client "$classpath" "$hbase_version")"
+    hbase_thirdparty_version="$(get_classpath_version hbase-shaded-protobuf "$classpath" "$hbase_thirdparty_version")"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
+    zk_version="$(get_classpath_version zookeeper "$classpath" "$zk_version")"
   fi
 
   declare -a gavs=(
@@ -75,7 +78,8 @@ function dependencies() {
     "com.google.guava:guava:${guava_install_version}:jar"
   )
 
-  local hbase_maj_ver="$(expr match "$hbase_version" '\([0-9][0-9]*\)\.')"
+  local hbase_maj_ver
+  hbase_maj_ver="$([[ "$hbase_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
 
   # additional dependencies that depend on the major version
   if [[ "$hbase_maj_ver" -ge 2 ]]; then
@@ -97,7 +101,8 @@ function dependencies() {
   fi
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+  local hadoop_maj_ver
+  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
   if [[ "$hadoop_maj_ver" -ge 3 ]]; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
@@ -107,7 +112,7 @@ function dependencies() {
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
   JUTE_FROM_VERSION="3.5.5"
-  if version_ge ${zk_version} $JUTE_FROM_VERSION; then
+  if version_ge "${zk_version}" $JUTE_FROM_VERSION; then
     gavs+=(
       "org.apache.zookeeper:zookeeper-jute:${zk_version}:jar"
     )
@@ -116,7 +121,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

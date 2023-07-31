@@ -54,13 +54,15 @@ function get_classpath() {
   if [[ -n "$GEOMESA_CLASSPATH" ]]; then
     echo "$GEOMESA_CLASSPATH"
   else
-    local classpath="$(get_base_classpath)"
-    for file in $(ls ${GEOMESA_CONF_DIR}/*-env.sh | grep -v geomesa-env.sh); do
-      local env_cp="$(. "$file")"
-      classpath="$classpath:$(remove_slf4j_from_classpath $env_cp)"
+    local classpath
+    classpath="$(get_base_classpath)"
+    for file in $(ls "${GEOMESA_CONF_DIR}"/*-env.sh | grep -v geomesa-env.sh); do
+      local env_cp
+      env_cp="$(. "$file")"
+      classpath="$classpath:$(remove_slf4j_from_classpath "$env_cp")"
     done
-    classpath="$(remove_log4j1_from_classpath $classpath)"
-    classpath="$(fix_classpath_format $classpath)"
+    classpath="$(remove_log4j1_from_classpath "$classpath")"
+    classpath="$(fix_classpath_format "$classpath")"
     echo "$classpath"
   fi
 }

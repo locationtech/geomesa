@@ -19,20 +19,20 @@
 /* Add overrides of theme.css rules below */
 body {
  color: #565656;
- font-family: 'Roboto',"Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+ font-family: Roboto,Lato,proxima-nova,"Helvetica Neue",Arial,sans-serif;
 }
 
 input:focus:invalid,textarea:focus:invalid,select:focus:invalid {
-   color: #e6a160;
-   border: 1px solid #e6a160
+  border: 1px solid #e6a160;
+  color: #e6a160;
 }
 
 input:focus:invalid:focus,textarea:focus:invalid:focus,select:focus:invalid:focus {
-   border-color: #e6a160
+  border-color: #e6a160
 }
 
 input[type="file"]:focus:invalid:focus,input[type="radio"]:focus:invalid:focus,input[type="checkbox"]:focus:invalid:focus {
-   outline-color: #e6a160
+  outline-color: #e6a160
 }
 
 code,.rst-content tt,.rst-content code {
@@ -45,9 +45,42 @@ code,.rst-content tt,.rst-content code {
 .rst-content pre.literal-block {
   background: #e5e5e5;
   border-radius: 3px;
-  padding: 12px 12px;
   display: block;
   overflow: auto;
+  padding: 12px;
+}
+
+a {
+  color: #2a6ebb;
+}
+
+a:visited {
+  color: #2a6ebb;
+}
+
+a:hover {
+  color: #6f91b8;
+}
+
+.rst-content tt.literal,.rst-content code.literal {
+  color: #2a6ebb
+}
+
+.wy-nav-top {
+  background: #beddf4;
+  color: #2a6ebb !important;
+}
+
+.wy-nav-top img {
+  background-color: #beddf4;
+}
+
+.wy-nav-top a {
+  color: #2a6ebb;
+}
+
+.wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
+  color: #2a6ebb;
 }
 
 .wy-menu-vertical {
@@ -64,15 +97,13 @@ code,.rst-content tt,.rst-content code {
 .wy-menu-vertical li.current {
   background-color: #beddf4;
 }
+
 .wy-menu-vertical li.current a {
   border-right: 1px solid #c9c9c9;
 }
+
 .wy-menu-vertical li.current > a {
-    border-top: none;
-}
-.wy-menu-vertical li.current a:hover {
-  background-color: #2a6ebb;
-  color: #fcfcfc;
+  border-top: none;
 }
 
 /* first level headers */
@@ -80,10 +111,16 @@ code,.rst-content tt,.rst-content code {
   color: #2a6ebb;
 }
 
+.wy-menu-vertical li.current a:hover {
+  background-color: #2a6ebb;
+  color: #fcfcfc;
+}
+
 /* first level header - selected */
 .wy-menu-vertical li.toctree-l1.current {
   margin-right: -1px;
 }
+
 .wy-menu-vertical li.toctree-l1.current > a {
   border-right: 1px solid #fcfcfc;
   border-top: 1px solid #c9c9c9;
@@ -95,17 +132,13 @@ code,.rst-content tt,.rst-content code {
   color: #fcfcfc;
 }
 
-/* selected first level header - hover */
-.wy-menu-vertical li.toctree-l1.current > a {
-  border-right: 1px solid #fcfcfc;
-}
-
 /* second level headers - selected */
 .wy-menu-vertical li.toctree-l2.current > a {
   background-color: #e7f3fc;
 }
+
 .wy-menu-vertical li.toctree-l2.current > a:hover {
-    background-color: #2a6ebb;
+  background-color: #2a6ebb;
 }
 
 /* for handling collapsed but selected nodes */
@@ -125,23 +158,27 @@ code,.rst-content tt,.rst-content code {
   background-color: #e7f3fc;
   color: #565656;
 }
-.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a:hover {
-  background-color: #2a6ebb;
-  color: #fcfcfc;
-}
 
 /* fourth-tier links that aren't selected */
 .wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a {
   background-color: #e7f3fc;
   color: #565656;
 }
+
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3 > a:hover {
+  background-color: #2a6ebb;
+  color: #fcfcfc;
+}
+
 .wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a:hover {
   background-color: #2a6ebb;
   color: #fcfcfc;
 }
+
 .wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a:hover code.literal {
   color: #565656;
 }
+
 .wy-nav-side {
   background-color: #beddf4;
   padding-bottom: 0;
@@ -154,70 +191,38 @@ code,.rst-content tt,.rst-content code {
   padding-bottom: 1.618em;
 }
 
-.wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
-  color: #2a6ebb;
-}
-
 .wy-side-nav-search>div.version {
   color: #565656;
 }
 
-.wy-side-nav-search input[type=text] {
+.wy-side-nav-search input[type="text"] {
   background-color: #fcfcfc;
 }
 
 .wy-body-for-nav {
-   background: left repeat-y #565656;
-}
-
-.wy-nav-top {
-   background: #beddf4;
-   color: #2a6ebb !important;
-}
-
-.wy-nav-top img {
-   background-color: #beddf4;
-}
-
-.wy-nav-top a {
-  color: #2a6ebb;
+  background: left repeat-y #565656;
 }
 
 .wy-nav-content {
-   background: #fcfcfc;
+  background: #fcfcfc;
 }
 
 .wy-nav-content-wrap {
-   background: #fcfcfc;
+  background: #fcfcfc;
 }
 
 @media screen and (max-width: 768px) {
   .wy-body-for-nav {
-    background: #fcfcfc;
+  background: #fcfcfc;
   }
+
   .wy-nav-content {
-    background: #fcfcfc;
+  background: #fcfcfc;
   }
-}
-
-.rst-content tt.literal,.rst-content tt.literal,.rst-content code.literal {
-   color: #2a6ebb
-}
-
-a {
-   color: #2a6ebb;
-}
-
-a:visited {
-   color: #2a6ebb;
-}
-
-a:hover {
-   color: #6f91b8;
 }
 
 .pre {
-   background: #e5e5e5;
+  background: #e5e5e5;
 }
 
 div[class^='highlight'] {
@@ -232,7 +237,7 @@ div.highlight pre {
 }
 
 code.docutils.literal {
-   background: #e5e5e5;
+  background: #e5e5e5;
 }
 
 .rst-content .admonition-title {
@@ -254,47 +259,40 @@ code.docutils.literal {
 }
 
 div.admonition.warning, div.admonition.note {
- background: #fcfcfc;
- border-bottom: 2px solid #c9c9c9;
- border-left: 2px solid #c9c9c9;
- border-right: 2px solid #c9c9c9;
- border-radius: 3px;
+  background: #fcfcfc;
+  border-bottom: 2px solid #c9c9c9;
+  border-left: 2px solid #c9c9c9;
+  border-radius: 3px;
+  border-right: 2px solid #c9c9c9;
 }
 
 .wy-table-responsive th.head {
-   background-color: #c9c9c9 !important;
-}
-
-.wy-table-responsive tr.row-even td {
-   background-color: #e7f3fc !important;
-}
-
-.wy-table-responsive tr.row-odd td {
-   background-color: #fcfcfc !important;
+  background-color: #c9c9c9 !important;
 }
 
 .wy-table-responsive table td, .wy-table-responsive table th {
-   white-space: normal;
+  white-space: normal;
 }
 
 .wy-table-responsive table td div.highlight {
-   overflow: auto;
-}
-
-.wy-table-responsive table td div.highlight {
-  margin: 1px 0 1px 0;
+  margin: 1px 0;
+  overflow: auto;
 }
 
 .wy-table-responsive table td p {
   margin-bottom: 12px;
 }
 
-.rst-content .section .wy-table-responsive table td ul {
-  margin-bottom: 12px;
+.wy-table-responsive tr.row-even td {
+  background-color: #e7f3fc !important;
 }
 
-.rst-content .section .wy-table-responsive table td ul.last {
-  margin-bottom: 0 !important;
+.wy-table-responsive tr.row-odd td {
+  background-color: #fcfcfc !important;
+}
+
+.sphinx-tabs .sphinx-tabs-panel div {
+  margin: 1px 0;
 }
 
 .rst-content .toc-backref {
@@ -305,12 +303,19 @@ div.admonition.warning, div.admonition.note {
   margin-bottom: 24px !important;
 }
 
+.rst-content .section .wy-table-responsive table td ul {
+  margin-bottom: 12px;
+}
+
+.rst-content .section .wy-table-responsive table td ul.last {
+  margin-bottom: 0 !important;
+}
+
 .rst-content .section .admonition ul:last-child {
-    margin-bottom: 0px !important;
+  margin-bottom: 0 !important;
 }
 
 .rst-content .highlighted {
-  background: #;
   display:inline-block;
   font-weight:bold;
   padding:0 2px !important;
@@ -326,20 +331,20 @@ div.admonition.warning, div.admonition.note {
 }
 
 .rst-content blockquote.pull-quote div p:last-child {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .sphinx-tabs div.sphinx-menu {
-  border-bottom-width: 2px !important;
   border-bottom-color: #c9c9c9 !important;
+  border-bottom-width: 2px !important;
 }
 
 /* these are very specific (a.item.docutils) to override !importants in the tabs CSS */
 .sphinx-tabs .sphinx-menu a.item.docutils {
   background-color: #e5e5e5 !important;
-  border-top: 1px solid #c9c9c9;
+  border-radius: .2857rem .2857rem 0 0 !important;
   border-right: 1px solid #c9c9c9;
-  border-radius: .28571429rem .28571429rem 0 0 !important;
+  border-top: 1px solid #c9c9c9;
   color: #565656 !important;
   font-weight: bold !important;
 }
@@ -347,24 +352,22 @@ div.admonition.warning, div.admonition.note {
 .sphinx-tabs .sphinx-menu a.item.docutils:first-child {
   border-left: 1px solid #c9c9c9;
 }
+
 .sphinx-tabs .sphinx-menu a.item.docutils.active {
   background-color: #fcfcfc !important;
-  color: #565656 !important;
   border-color: #c9c9c9 !important;
-  border-width: 2px 2px 0 2px !important;
+  border-width: 2px 2px 0 !important;
+  color: #565656 !important;
   margin-bottom: -2px;
 }
 
 .sphinx-tabs .sphinx-tab {
   background-color: #fcfcfc !important;
   border-color: #c9c9c9 !important;
-  border-width: 0 2px 2px 2px !important;
+  border-width: 0 2px 2px !important;
 }
+
 .sphinx-tabs .sphinx-tab.ui.attached.segment {
   margin: 0;
   width: 100%;
-}
-
-.sphinx-tabs .sphinx-tabs-panel div {
-  margin: 1px 0 1px;
 }

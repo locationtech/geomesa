@@ -47,26 +47,26 @@ function get_hadoop_classpath() {
     if [[ "$hadoopCDH" == "1" ]]; then
       # Hadoop CDH configuration
       hadoopDirs=(
-        $HADOOP_HOME
-        $HADOOP_CONF_DIR
-        $HADOOP_COMMON_HOME
-        $HADOOP_HDFS_HOME
-        $YARN_HOME
-        $HADOOP_MAPRED_HOME
-        $HADOOP_CUSTOM_CP
+        "$HADOOP_HOME"
+        "$HADOOP_CONF_DIR"
+        "$HADOOP_COMMON_HOME"
+        "$HADOOP_HDFS_HOME"
+        "$YARN_HOME"
+        "$HADOOP_MAPRED_HOME"
+        "$HADOOP_CUSTOM_CP"
       )
     else
       hadoopDirs=(
         # Hadoop 2 requirements
-        $HADOOP_HOME/share/hadoop/common/
-        $HADOOP_HOME/share/hadoop/hdfs/
-        $HADOOP_HOME/share/hadoop/mapreduce/
-        $HADOOP_HOME/share/hadoop/tools/lib/
-        $HADOOP_HOME/share/hadoop/yarn/
+        "$HADOOP_HOME/share/hadoop/common/"
+        "$HADOOP_HOME/share/hadoop/hdfs/"
+        "$HADOOP_HOME/share/hadoop/mapreduce/"
+        "$HADOOP_HOME/share/hadoop/tools/lib/"
+        "$HADOOP_HOME/share/hadoop/yarn/"
         # Hadoop 3 requirements
-        $HADOOP_HOME/share/hadoop/client/
-        $HADOOP_HOME/share/hadoop/common/lib/
-        $HADOOP_HOME/share/hadoop/yarn/lib/
+        "$HADOOP_HOME/share/hadoop/client/"
+        "$HADOOP_HOME/share/hadoop/common/lib/"
+        "$HADOOP_HOME/share/hadoop/yarn/lib/"
         # HDP 2.0 requirements
         /usr/lib/hadoop/
         /usr/lib/hadoop-hdfs/
@@ -88,7 +88,7 @@ function get_hadoop_classpath() {
     local HADOOP_CP=""
 
     for home in ${hadoopDirs[*]}; do
-      tmp="$(find_jars $home true)"
+      tmp="$(find_jars "$home" true)"
       if [[ -n "$tmp" ]]; then
         HADOOP_CP="$HADOOP_CP:$tmp"
       fi
@@ -101,7 +101,7 @@ function get_hadoop_classpath() {
     # if didn't find anything, attempt to cheat by stealing the classpath from the hadoop command
     if [[ -z "${HADOOP_CP}" && -n "$(command -v hadoop)" ]]; then
       HADOOP_CP="$(hadoop classpath)"
-      HADOOP_CP="$(expand_classpath $HADOOP_CP)"
+      HADOOP_CP="$(expand_classpath "$HADOOP_CP")"
     fi
     echo "$HADOOP_CP"
   fi

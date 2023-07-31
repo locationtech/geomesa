@@ -7,7 +7,7 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit
 export GEOMESA_DEPENDENCIES="confluent-dependencies.sh"
 export GEOMESA_MAVEN_URL="${GEOMESA_MAVEN_URL:-https://packages.confluent.io/maven/}"
 ./install-dependencies.sh "$@"

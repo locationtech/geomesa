@@ -30,7 +30,7 @@ function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)"
 
 # Load common functions and setup
 if [ -z "${%%tools.dist.name%%_HOME}" ]; then
-  export %%tools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+  export %%tools.dist.name%%_HOME="$(cd "$(dirname "$0")"/.. || exit; pwd)"
 fi
 . $%%tools.dist.name%%_HOME/bin/common-functions.sh
 
@@ -52,12 +52,12 @@ declare -a urls=(
 
 # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
 JUTE_FROM_VERSION="3.5.5"
-if version_ge ${zk_version} $JUTE_FROM_VERSION; then
+if version_ge ${zookeeper_version} $JUTE_FROM_VERSION; then
     urls+=("${base_url}org/apache/zookeeper/zookeeper-jute/${zookeeper_version}/zookeeper-jute-${zookeeper_version}.jar")
 fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
-if [ -z "$(find -L $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
+if [ -z "$(find -L "$install_dir" -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
   urls+=("${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar")
 fi
 

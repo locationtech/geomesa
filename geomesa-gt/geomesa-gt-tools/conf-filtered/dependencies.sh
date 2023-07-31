@@ -15,13 +15,16 @@ hadoop_install_version="%%hadoop.version.recommended%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%geotools.guava.version%%"
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
   local hadoop_version="$hadoop_install_version"
 
   if [[ -n "$classpath" ]]; then
-    hadoop_version="$(get_classpath_version hadoop-common $classpath $hadoop_version)"
+    hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
   fi
 
   declare -a gavs=(
@@ -40,7 +43,8 @@ function dependencies() {
   )
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+  local hadoop_maj_ver
+  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
   if [[ "$hadoop_maj_ver" -ge 3 ]]; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
@@ -51,7 +55,9 @@ function dependencies() {
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

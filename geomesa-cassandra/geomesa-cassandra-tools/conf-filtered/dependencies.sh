@@ -14,6 +14,9 @@
 cassandra_install_version="%%cassandra.server.version.recommended%%"
 driver_install_version="%%cassandra.driver.version.recommended%%"
 
+# gets the dependencies for this module
+# args:
+#   $1 - current classpath
 function dependencies() {
   local classpath="$1"
 
@@ -22,9 +25,9 @@ function dependencies() {
 
   if [[ -n "$classpath" ]]; then
     # check for both cassandra-all and apache-cassandra
-    cassandra_version="$(get_classpath_version cassandra-all $classpath $cassandra_version)"
-    cassandra_version="$(get_classpath_version apache-cassandra $classpath $cassandra_version)"
-    driver_version="$(get_classpath_version cassandra-driver-core $classpath $driver_version)"
+    cassandra_version="$(get_classpath_version cassandra-all "$classpath" "$cassandra_version")"
+    cassandra_version="$(get_classpath_version apache-cassandra "$classpath" "$cassandra_version")"
+    driver_version="$(get_classpath_version cassandra-driver-core "$classpath" "$driver_version")"
   fi
 
   declare -a gavs=(
@@ -44,14 +47,16 @@ function dependencies() {
   )
 
   # the cassandra install bundles the cassandra-all.jar as apache-cassandra.jar
-  if [[ -z "$(expr match "$classpath" ".*apache-cassandra-\([^:/][^:/]*\)\.jar.*")" ]]; then
+  if [[ -z "$([[ "$classpath" =~ .*apache-cassandra-([^:/][^:/]*)\.jar.* ]] && echo "${BASH_REMATCH[1]}")" ]]; then
     gavs+=("org.apache.cassandra:cassandra-all:${cassandra_version}:jar")
   fi
 
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }
 
+# gets any dependencies that should be removed from the classpath for this module
+# args:
+#   $1 - current classpath
 function exclude_dependencies() {
-  # local classpath="$1"
   echo ""
 }

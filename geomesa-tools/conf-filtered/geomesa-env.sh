@@ -93,7 +93,8 @@ function get_options() {
   fi
 
   # set java opts
-  local GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
+  local GEOMESA_OPTS
+  GEOMESA_OPTS="-Duser.timezone=UTC -DEPSG-HSQL.directory=/tmp/$(whoami)"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.awt.headless=true"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dlog4j.configuration=file://${GEOMESA_CONF_DIR}/log4j.properties"
   GEOMESA_OPTS="${GEOMESA_OPTS} -Dgeomesa.home=${%%tools.dist.name%%_HOME}"
@@ -140,7 +141,8 @@ function get_nailgun_options() {
 function get_base_classpath() {
   # start constructing GEOMESA_CP (classpath)
   # include geomesa first so that the correct log4j.properties is picked up
-  local GEOMESA_CP="${GEOMESA_CONF_DIR}:$(find_jars $GEOMESA_LIB)"
+  local GEOMESA_CP
+  GEOMESA_CP="${GEOMESA_CONF_DIR}:$(find_jars "$GEOMESA_LIB")"
   # prepend user defined directories to the classpath using java classpath syntax
   # we prepend so that they take precedence when explicitly defined by the user
   if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
@@ -152,7 +154,8 @@ function get_base_classpath() {
 # extract the version of a jar from a classpath string
 # args: jar base name, classpath, default version if not found
 function get_classpath_version() {
-  local version="$(expr match "$2" ".*$1-\([^:/][^:/]*\)\.jar.*")"
+  local version
+  version="$([[ "$2" =~ .*$1-([^:/][^:/]*)\.jar.* ]] && echo "${BASH_REMATCH[1]}")"
   if [[ -z "$version" ]]; then
     version="$3"
   fi
@@ -164,15 +167,13 @@ function find_jars() {
   local home="$1"
   local jars=()
   if [[ -d "${home}" ]]; then
-    local depth=""
+    local find_args
+    find_args=("-type" "f" "-iname" "*.jar" "-not" "-iname" "*-sources.jar" "-not" "-iname" "*-tests.jar" "-print0")
     if [[ "$2" == "true" ]]; then
-      depth="-maxdepth 1"
+      find_args+=("-maxdepth" "1")
     fi
-    for jar in $(find -L ${home} ${depth} -iname "*.jar" -type f); do
-      if [[ "$jar" != *-sources.jar && "$jar" != *-tests.jar ]]; then
-        jars+=(${jar})
-      fi
-    done
+    # read results of find into jars array
+    mapfile -d '' jars < <(find "-L" "$home" "${find_args[@]}")
     if [[ -d "${home}/native" ]]; then
       # TODO this doesn't export back to the parent shell... fix it
       if [[ -z "${JAVA_LIBRARY_PATH}" ]]; then
@@ -216,9 +217,9 @@ function check_classpath() {
     echo >&2 "" # get the newline
     if [[ "${noprompt}" = "--no-prompt" ]]; then
       echo >&2 "Detected missing classpath entries:"
-      download_maven $dest missing[@] "--no-prompt"
+      download_maven "$dest" missing[@] "--no-prompt"
     else
-      download_maven $dest missing[@] "Detected missing classpath entries:"
+      download_maven "$dest" missing[@] "Detected missing classpath entries:"
     fi
     error=$?
     if [[ $error -eq 0 ]]; then
@@ -240,10 +241,11 @@ function check_classpath() {
 }
 
 function disable_classpath_checks() {
-  if [[ -n "$(grep '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh")" ]]; then
-    local tmpfile="$(mktemp)"
+  if grep -q '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh"; then
+    local tmpfile
+    tmpfile="$(mktemp)"
     sed 's/^export GEOMESA_CHECK_DEPENDENCIES.*/export GEOMESA_CHECK_DEPENDENCIES="false"/' \
-      "${GEOMESA_CONF_DIR}/geomesa-env.sh" >> $tmpfile && mv $tmpfile "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
+      "${GEOMESA_CONF_DIR}/geomesa-env.sh" >> "$tmpfile" && mv "$tmpfile" "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
       && echo >&2 "You may re-enable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=true in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
   else
     echo >&2 "You may disable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=false in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
@@ -272,9 +274,10 @@ function download_maven() {
     names+="$newline  $gav"
   done
 
-  local repo="$(expr match "$GEOMESA_MAVEN_URL" 'https*://\([^/]*\)/.*')"
+  local repo
+  repo="$([[ "$GEOMESA_MAVEN_URL" =~ https*://([^/]*)/.* ]] && echo "${BASH_REMATCH[1]}")"
   if [[ -z "$repo" || "$repo" = "0" ]]; then
-    repo = "$GEOMESA_MAVEN_URL"
+    repo="$GEOMESA_MAVEN_URL"
   fi
 
   local confirm="yes"
@@ -351,23 +354,23 @@ function fix_classpath_format() {
 
 # remove slf4j jars from a classpath string
 function remove_slf4j_from_classpath() {
-  echo "$1" | sed 's/[^:]*slf4j[^:]*jar//g'
+  echo "$1" | sed -E 's/[^:]*slf4j[^:]*jar//g'
 }
 
 # remove log4j1 jars from a classpath string
 function remove_log4j1_from_classpath() {
-  echo "$1" | sed 's/[^:]*log4j-1[^:]*jar//g'
+  echo "$1" | sed -E 's/[^:]*log4j-1[^:]*jar//g'
 }
 
 function geomesa_scala_console() {
   classpath=${1}
   shift 1
-  OPTS=${@}
+  OPTS=("$@")
 
   # Check if we already downloaded scala
   if [[ -d "${%%tools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
     scalaCMD="${%%tools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
-  elif [[ -n $(which scala 2>/dev/null) && -n "$(scala -version 2>&1 | grep %%scala.binary.version%%)" ]]; then
+  elif which scala >/dev/null 2>&1 && scala -version 2>&1 | grep -q %%scala.binary.version%%; then
     scalaCMD="scala"
   else
     read -r -p "Download scala %%scala.binary.version%% (y/n)? " confirm
@@ -376,11 +379,10 @@ function geomesa_scala_console() {
       sourceURL=("https://downloads.lightbend.com/scala/%%scala.version%%/scala-%%scala.version%%.tgz")
       outputDir="${%%tools.dist.name%%_HOME}/dist/"
       outputFile="${outputDir}/scala-%%scala.version%%.tgz"
-      download_urls ${outputDir} sourceURL[@]
-      if [[ $? -ne 0 ]]; then
+      if ! download_urls "$outputDir" sourceURL[@]; then
         exit 1
       fi
-      tar xf $outputFile -C "${%%tools.dist.name%%_HOME}/dist/"
+      tar xf "$outputFile" -C "${%%tools.dist.name%%_HOME}/dist/"
       scalaCMD="${%%tools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
     else
       echo >&2 "Please install Scala version %%scala.binary.version%% and re-run this script"
@@ -388,7 +390,7 @@ function geomesa_scala_console() {
     fi
   fi
 
-  exec $scalaCMD ${OPTS} -classpath ${classpath} -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
+  exec "$scalaCMD" "${OPTS[@]}" -classpath "$classpath" -i "${GEOMESA_CONF_DIR}/.scala_repl_init"
 }
 
 function geomesa_configure() {
@@ -407,9 +409,9 @@ function geomesa_configure() {
     if [[ $newLib = "" ]]; then
       newLib="$newHome/lib"
     fi
-    read -r -p "Enter new value for GEOMESA_LOG_DIR (default $newHome/logs): " $newLog
+    read -r -p "Enter new value for GEOMESA_LOG_DIR (default $newHome/logs): " newLog
     if [[ $newLog = "" ]]; then
-      $newLog="$newHome/logs"
+      newLog="$newHome/logs"
     fi
     %%tools.dist.name%%_HOME="${newHome}"
     GEOMESA_LIB="${newLib}"
@@ -417,17 +419,19 @@ function geomesa_configure() {
   fi
 
   confirm="no"
-  if [[ -f "~/.bashrc" ]]; then
+  if [[ -f "$HOME/.bashrc" ]]; then
     read -r -p "Persist environment to ~/.bashrc (y/n)? " confirm
     confirm=${confirm,,} # lower-casing
   fi
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-    echo "export %%tools.dist.name%%_HOME=\"$%%tools.dist.name%%_HOME\"" >> ~/.bashrc
-    echo "export GEOMESA_LIB=\"${GEOMESA_LIB}\"" >> ~/.bashrc
-    echo "export GEOMESA_LOG_DIR=\"${GEOMESA_LOG_DIR}\"" >> ~/.bashrc
-    echo "export PATH=\${%%tools.dist.name%%_HOME}/bin:\$PATH" >> ~/.bashrc
+    {
+    echo "export %%tools.dist.name%%_HOME=\"$%%tools.dist.name%%_HOME\""
+    echo "export GEOMESA_LIB=\"${GEOMESA_LIB}\""
+    echo "export GEOMESA_LOG_DIR=\"${GEOMESA_LOG_DIR}\""
+    echo "export PATH=\${%%tools.dist.name%%_HOME}/bin:\$PATH"
+    } >> ~/.bashrc
   else
-    echo >&2 "To put $(basename $0) on the executable path, add the following line to your environment:"
+    echo >&2 "To put $(basename "$0") on the executable path, add the following line to your environment:"
     echo >&2 "export %%tools.dist.name%%_HOME=\"$%%tools.dist.name%%_HOME\""
     echo >&2 "export GEOMESA_LIB=\"${GEOMESA_LIB}\""
     echo >&2 "export GEOMESA_LOG_DIR=\"${GEOMESA_LOG_DIR}\""
@@ -440,20 +444,19 @@ function geomesa_configure() {
     confirm="yes"
     read -r -p "Enter path to .bash_completion (deault ~/.bash_completion): " comp
     if [[ -z "$comp" ]]; then
-      comp="~/.bash_completion"
+      comp="$HOME/.bash_completion"
     fi
     if [[ -f "$comp" ]]; then
       # search .bash_completion for this entry so we don't add it twice
-      head="$(head -n 1 ${GEOMESA_CONF_DIR}/autocomplete.sh)"
-      res="$(grep -F $head ${comp})"
-      if [[ -n "${res}" ]]; then
+      head="$(head -n 1 "${GEOMESA_CONF_DIR}"/autocomplete.sh)"
+      if grep -qF "$head" "$comp"; then
         echo >&2 "Auto-complete function already installed"
         confirm="no"
       fi
     fi
     if [[ "$confirm" = "yes" ]]; then
-      [[ -f ${comp} ]] || touch ${comp}
-      cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${comp}
+      [[ -f ${comp} ]] || touch "${comp}"
+      cat "${GEOMESA_CONF_DIR}"/autocomplete.sh >> "${comp}"
       echo >&2 "Auto-complete installed, to use now run:"
       echo >&2 ". ${comp}"
     fi

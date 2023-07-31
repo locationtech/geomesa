@@ -23,7 +23,7 @@ VALID_VERSIONS=("2.12" "2.13")
 FULL_VERSIONS=("2.12.17" "2.13.10")
 
 usage() {
-  echo "Usage: $(basename $0) [-h|--help] <version>
+  echo "Usage: $(basename "$0") [-h|--help] <version>
 where :
   -h| --help Display this help text
   valid version values : ${VALID_VERSIONS[*]}
@@ -35,12 +35,12 @@ if [[ ($# -ne 1) || ( $1 == "--help") ||  $1 == "-h" ]]; then
   usage
 fi
 
-BASEDIR=$(dirname $0)/..
+BASEDIR=$(dirname "$0")/..
 TO_VERSION=$1
 FULL_VERSION=""
 
 for i in "${!VALID_VERSIONS[@]}"; do
-  if [[ $TO_VERSION == ${VALID_VERSIONS[$i]} ]]; then
+  if [[ $TO_VERSION == "${VALID_VERSIONS[$i]}" ]]; then
     FULL_VERSION="${FULL_VERSIONS[$i]}"
   fi
 done
@@ -51,27 +51,21 @@ if [[ -z "$FULL_VERSION" ]]; then
 fi
 
 # pull out the scala version from the main artifactId
-FROM_VERSION="$(sed -n '/geomesa_/ s| *<artifactId>geomesa_\([0-9]\.[0-9][0-9]*\)</artifactId>|\1|p' $BASEDIR/pom.xml)"
-
-sed_i() {
-  sed -e "$1" "$2" > "$2.tmp" && mv "$2.tmp" "$2"
-}
-
-export -f sed_i
+FROM_VERSION="$(sed -n '/geomesa_/ s| *<artifactId>geomesa_\([0-9]\.[0-9][0-9]*\)</artifactId>|\1|p' "$BASEDIR"/pom.xml)"
 
 find "$BASEDIR" -name 'pom.xml' -not -path '*target*' -print \
-  -exec bash -c "sed_i 's/\(artifactId.*\)_'$FROM_VERSION'/\1_'$TO_VERSION'/g' {}" \;
+  -exec sed -i "s/\(artifactId.*\)_$FROM_VERSION/\1_$TO_VERSION/g" {} \;
 
 # update <scala.binary.version> in parent POM
 # match any scala binary version to ensure idempotency
-sed_i '1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>'$TO_VERSION'</' \
+sed -i "1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>$TO_VERSION</" \
   "$BASEDIR/pom.xml"
 
 # update <scala.version> in parent POM
-sed_i '1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>'$FULL_VERSION'</' \
+sed -i "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>$FULL_VERSION</" \
   "$BASEDIR/pom.xml"
 
 # Update enforcer rules
-sed_i 's|<exclude>\*:\*_'$TO_VERSION'</exclude>|<exclude>*:*_'$FROM_VERSION'</exclude>|' "$BASEDIR/pom.xml"
-sed_i 's|<regex>'$FROM_VERSION'\.\*</regex>|<regex>'$TO_VERSION'.*</regex>|' "$BASEDIR/pom.xml"
-sed_i 's|<regex>'$FROM_VERSION'</regex>|<regex>'$TO_VERSION'</regex>|' "$BASEDIR/pom.xml"
+sed -i "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
+sed -i "s|<regex>$FROM_VERSION\.\*</regex>|<regex>$TO_VERSION.*</regex>|" "$BASEDIR/pom.xml"
+sed -i "s|<regex>$FROM_VERSION</regex>|<regex>$TO_VERSION</regex>|" "$BASEDIR/pom.xml"
