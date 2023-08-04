@@ -37,7 +37,7 @@ function get_kafka_classpath() {
   else
     local kafka_cp=""
     if [[ -d "$KAFKA_LIB" ]]; then
-      kafka_cp="$(find_jars $KAFKA_LIB true)"
+      kafka_cp="$(find_jars "$KAFKA_LIB" true)"
     fi
     echo "$kafka_cp"
   fi

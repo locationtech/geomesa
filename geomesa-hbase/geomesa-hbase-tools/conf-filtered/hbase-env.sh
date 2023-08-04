@@ -49,7 +49,7 @@ function get_hbase_classpath() {
       hbase_cp="$HBASE_CONF_DIR"
     fi
     if [[ -d "$HBASE_LIB" ]]; then
-      hbase_find_jars="$(find_jars $HBASE_LIB true)"
+      hbase_find_jars="$(find_jars "$HBASE_LIB" true)"
       if [[ -n "$hbase_find_jars" ]]; then
         hbase_cp="$hbase_cp:$hbase_find_jars"
       fi
@@ -60,12 +60,12 @@ function get_hbase_classpath() {
     fi
     # for zookeeper only include the single root jar
     if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-      ZOOKEEPER_JAR="$(find -L $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar | head -n 1)"
+      ZOOKEEPER_JAR="$(find -L "$ZOOKEEPER_HOME" -maxdepth 1 -type f -name "*zookeeper*jar" | head -n 1)"
       hbase_cp="$hbase_cp:${ZOOKEEPER_JAR}"
     fi
 
     # if there's a geomesa runtime jar in hbase, exclude it from the classpath
-    echo "$hbase_cp" | sed 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//'
+    echo "$hbase_cp" | sed -E 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//'
   fi
 }
 

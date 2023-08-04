@@ -47,12 +47,12 @@ EOF
 
 ## Make sure 'hbase' is up first!
 
-ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
+ROOTDIR=$(cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//')
 while [[ -z "$ROOTDIR" ]]
 do
       sleep 2
       echo Waiting for HBase to be configured.
-      ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
+      ROOTDIR=$(cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//')
 done
 ROOTDIR="${ROOTDIR%/}" # standardize to remove trailing slash
 
@@ -71,7 +71,7 @@ if [[ "$ROOTDIR" = s3* ]]; then
   aws --region ${availabilityZone::-1} s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME ${ROOTDIR}/lib/ && \
   echo "Installed GeoMesa distributed runtime to ${ROOTDIR}/lib/"
 elif [[ "$ROOTDIR" = hdfs* ]]; then
-  local libdir="${ROOTDIR}/lib"
+  libdir="${ROOTDIR}/lib"
   (sudo -u $GMUSER hadoop fs -test -d $libdir || sudo -u $GMUSER hadoop fs -mkdir $libdir) && \
   sudo -u $GMUSER hadoop fs -put -f ${GEOMESA_HBASE_HOME}/dist/hbase/$DISTRIBUTED_JAR_NAME $libdir/$DISTRIBUTED_JAR_NAME && \
   sudo -u $GMUSER hadoop fs -chown -R hbase:hbase $ROOTDIR/lib && \

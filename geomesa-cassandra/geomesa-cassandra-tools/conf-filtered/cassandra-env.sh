@@ -27,8 +27,8 @@ function get_cassandra_classpath() {
   else
     local classpath=""
     if [[ -d "$CASSANDRA_HOME/lib" ]]; then
-      classpath="$(find_jars $CASSANDRA_HOME/lib true)"
-      classpath="$(remove_slf4j_from_classpath $classpath)"
+      classpath="$(find_jars "$CASSANDRA_HOME"/lib true)"
+      classpath="$(remove_slf4j_from_classpath "$classpath")"
     fi
     echo "$classpath"
   fi

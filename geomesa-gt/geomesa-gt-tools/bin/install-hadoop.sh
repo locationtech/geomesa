@@ -26,8 +26,6 @@ htrace4_core_version="4.1.0-incubating"
 guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 
-function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
-
 # Load common functions and setup
 if [ -z "${%%tools.dist.name%%_HOME}" ]; then
   export %%tools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
@@ -50,10 +48,13 @@ declare -a urls=(
   "${base_url}org/apache/zookeeper/zookeeper/${zookeeper_version}/zookeeper-${zookeeper_version}.jar"
 )
 
+zk_maj_ver="$(expr match "$zookeeper_version" '\([0-9][0-9]*\)\.')"
+zk_min_ver="$(expr match "$zookeeper_version" '[0-9][0-9]*\.\([0-9][0-9]*\)')"
+zk_bug_ver="$(expr match "$zookeeper_version" '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)')"
+
 # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
-JUTE_FROM_VERSION="3.5.5"
-if version_ge ${zk_version} $JUTE_FROM_VERSION; then
-    urls+=("${base_url}org/apache/zookeeper/zookeeper-jute/${zookeeper_version}/zookeeper-jute-${zookeeper_version}.jar")
+if [[ "$zk_maj_ver" -ge 3 && "$zk_min_ver" -ge 5 && "$zk_bug_ver" -ge 5 ]]; then
+  urls+=("${base_url}org/apache/zookeeper/zookeeper-jute/$zookeeper_version/zookeeper-jute-$zookeeper_version.jar")
 fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
