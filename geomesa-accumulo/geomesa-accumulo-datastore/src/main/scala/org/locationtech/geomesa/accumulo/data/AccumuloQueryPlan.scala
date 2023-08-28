@@ -131,7 +131,7 @@ object AccumuloQueryPlan extends LazyLogging {
         timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
       if (partitionParallelScans) {
         // kick off all the scans at once
-        tables.map(scanner(connector, _, auths, timeout)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
+        tables.map(scanner(connector, _, auths, timeout)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(tables.iterator).flatMap(scanner(connector, _, auths, timeout))
@@ -189,7 +189,7 @@ object AccumuloQueryPlan extends LazyLogging {
       if (ds.config.queries.parallelPartitionScans) {
         // kick off all the scans at once
         tables.map(scanner(ds.connector, _, joinTables.next, auths, partitionParallelScans = true, timeout))
-            .foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
+            .foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(tables.iterator)

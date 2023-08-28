@@ -46,7 +46,7 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
     if (ds.config.queries.parallelPartitionScans) {
       // kick off all the scans at once
-      iter.foldLeft(CloseableIterator.empty[Results])(_ ++ _)
+      iter.foldLeft(CloseableIterator.empty[Results])(_ concat _)
     } else {
       // kick off the scans sequentially as they finish
       SelfClosingIterator(iter).flatMap(s => s)
