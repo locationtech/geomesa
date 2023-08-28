@@ -109,7 +109,7 @@ object RedisQueryPlan {
       val scans = iter.map(singleTableScan(ds, _))
       if (ds.config.queries.parallelPartitionScans) {
         // kick off all the scans at once
-        scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ ++ _)
+        scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(scans).flatMap(s => s)
