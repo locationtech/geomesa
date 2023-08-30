@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.FeatureReader
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.collection.DelegateFeatureIterator
@@ -22,11 +23,25 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-package object geotools {
+package object geotools extends LazyLogging {
 
   // use the epsg jar if it's available (e.g. in geoserver), otherwise use the less-rich constant
-  val CRS_EPSG_4326: CoordinateReferenceSystem =
-    try { CRS.decode("EPSG:4326", true) } catch { case _: Throwable => DefaultGeographicCRS.WGS84 }
+  val CRS_EPSG_4326: CoordinateReferenceSystem = {
+    // work-around for classloading bug in indriya: https://github.com/unitsofmeasurement/indriya/issues/383
+    // by default, SPI use the context classloader, which can be incorrect if there are multiple classloaders
+    // TODO should be able to remove this when geotools upgrades to indriya 2.2+
+    val ccl = Thread.currentThread().getContextClassLoader
+    try {
+      val cl = getClass.getClassLoader
+      logger.debug(s"Setting context classloader for CRS loading to: $cl")
+      Thread.currentThread().setContextClassLoader(cl)
+      CRS.decode("EPSG:4326", true)
+    } catch {
+      case _: Throwable => DefaultGeographicCRS.WGS84
+    } finally {
+      Thread.currentThread().setContextClassLoader(ccl)
+    }
+  }
 
   val CrsEpsg4326: CoordinateReferenceSystem = CRS_EPSG_4326
 
