@@ -39,6 +39,11 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
   override val spec: String =
     s"name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;${Configs.TablePartitioning}=${TimePartition.Name}"
 
+  lazy val parallelDs = {
+    val params = dsParams + (AccumuloDataStoreParams.PartitionParallelScansParam.key -> "true")
+    DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+  }
+
   val features = (0 until 10).map { i =>
     val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
@@ -92,22 +97,25 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
   }
 
   def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): Unit = {
-    val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
-    val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-    val features = SelfClosingIterator(fr).toList
-    if (features.length != results.length) {
-      ds.getQueryPlan(query, explainer = new ExplainPrintln)
-    }
-    val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
-    features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
-    forall(features) { feature =>
-      feature.getAttributes must haveLength(attributes.length)
-      forall(attributes.zipWithIndex) { case (attribute, i) =>
-        feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
-        feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
+    foreach(Seq(ds, parallelDs)) { ds =>
+      val query = new Query(sftName, ECQL.toFilter(filter), transforms: _*)
+      val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+      val features = SelfClosingIterator(fr).toList
+      if (features.length != results.length) {
+        ds.getQueryPlan(query, explainer = new ExplainPrintln)
       }
+      val attributes = Option(transforms).getOrElse(ds.getSchema(sftName).getAttributeDescriptors.asScala.map(_
+          .getLocalName).toArray)
+      features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+      forall(features) { feature =>
+        feature.getAttributes must haveLength(attributes.length)
+        forall(attributes.zipWithIndex) { case (attribute, i) => feature.getAttribute(attribute) mustEqual
+            feature.getAttribute(i)
+          feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
+        }
+      }
+      query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+      ds.getFeatureSource(sftName).getFeatures(query).size() mustEqual results.length
     }
-    query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
-    ds.getFeatureSource(sftName).getFeatures(query).size() mustEqual results.length
   }
 }

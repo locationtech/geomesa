@@ -122,11 +122,6 @@ object CloseableIterator {
       queue.foreach(_.apply().close())
       queue.clear()
     }
-
-    override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] = {
-      lazy val applied = CloseableIterator.wrap(that)
-      new ConcatCloseableIterator[B](queue.+:(() => current).:+(() => applied))
-    }
   }
 
   private final class FlatMapCloseableIterator[A, B](source: CloseableIterator[A], f: A => GenTraversableOnce[B])
@@ -177,7 +172,7 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
     new ConcatCloseableIterator[B](queue)
   }
 
-  // in scala 2.13 this metho is final, and can cause resource leaks due to not returning a closeable iterator
+  // in scala 2.13 this method is final, and can cause resource leaks due to not returning a closeable iterator
   override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] =
     throw new NotImplementedError("Not safe for cross-scala usage")
 
