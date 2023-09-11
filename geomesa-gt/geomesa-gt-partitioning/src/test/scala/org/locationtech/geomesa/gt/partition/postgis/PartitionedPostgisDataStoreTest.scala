@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -404,6 +404,29 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
       } finally {
         ds.dispose()
+      }
+    }
+
+    "default to using prepared statements" in {
+      foreach(Seq(params, params + ("preparedStatements" -> "true"), params - "preparedStatements")) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisPsDialect]
+        } finally {
+          ds.dispose()
+        }
+      }
+      foreach(Seq(params + ("preparedStatements" -> "false"))) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisDialect] // not partitioned
+        } finally {
+          ds.dispose()
+        }
       }
     }
 
