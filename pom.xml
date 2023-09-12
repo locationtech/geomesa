@@ -50780,13 +50780,19 @@
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 44c281ca20 (Exclude jetty jsp-api due to license issues)
                     <!-- excluded due to license issues: https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues/10246 -->
                     <exclusion>
                         <groupId>org.mortbay.jetty</groupId>
                         <artifactId>jsp-api-2.1</artifactId>
                     </exclusion>
+<<<<<<< HEAD
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 44c281ca20 (Exclude jetty jsp-api due to license issues)
                 </exclusions>
             </dependency>
             <dependency>
