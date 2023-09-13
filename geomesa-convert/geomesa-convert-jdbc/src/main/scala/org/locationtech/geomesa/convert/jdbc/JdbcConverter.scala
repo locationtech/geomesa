@@ -83,7 +83,7 @@ object JdbcConverter {
         false
       } else {
         val sql = statements.next.trim()
-        statement = connection.prepareCall(if (sql.endsWith(";")) { sql } else { s"$sql;" })
+        statement = connection.prepareStatement(if (sql.endsWith(";")) { sql } else { s"$sql;" })
         results = statement.executeQuery()
         true
       }
