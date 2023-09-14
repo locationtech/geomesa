@@ -15,8 +15,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.geotools.data.Query;
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.simple.SimpleFeature;
 
 import java.io.IOException;
 import java.util.List;

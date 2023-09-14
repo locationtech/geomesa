@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
 import org.locationtech.geomesa.utils.text.Suffixes.Memory$;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 import java.util.List;
 import java.util.Map;

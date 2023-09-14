@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert2.interop;
 import com.typesafe.config.Config;
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter;
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter$;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 public class SimpleFeatureConverterLoader {
     public static SimpleFeatureConverter load(SimpleFeatureType sft, Config config) {

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.memory.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeature;
 
 public class SimpleFeatureFidAttribute extends SimpleAttribute<SimpleFeature, String> {
     public SimpleFeatureFidAttribute() {
