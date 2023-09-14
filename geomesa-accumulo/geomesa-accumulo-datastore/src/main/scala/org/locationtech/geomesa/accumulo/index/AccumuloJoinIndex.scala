@@ -31,8 +31,8 @@ import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.Stat
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.util.Map.Entry
 import scala.util.Try

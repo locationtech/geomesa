@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.conf.splitter
 import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{TableSplitterClass, TableSplitterOpts}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.{PartitionSplitterClass, PartitionSplitterOpts}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * Companion object for TableSplitter java interface

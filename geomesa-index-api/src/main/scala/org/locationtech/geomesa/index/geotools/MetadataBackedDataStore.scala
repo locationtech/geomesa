@@ -10,7 +10,9 @@ package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
+import org.geotools.data.api._
+import org.geotools.api.data.SimpleFeatureReader
+import org.geotools.data.{SimpleFeatureSource}
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -27,9 +29,9 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.io.IOException
 import java.time.{Instant, ZoneOffset}
@@ -92,10 +94,10 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     */
   protected def onSchemaDeleted(sft: SimpleFeatureType): Unit
 
-  // methods from org.geotools.data.DataStore
+  // methods from org.geotools.api.data.DataStore
 
   /**
-    * @see org.geotools.data.DataStore#getTypeNames()
+    * @see org.geotools.api.data.DataStore#getTypeNames()
     * @return existing simple feature type names
     */
   override def getTypeNames: Array[String] = metadata.getFeatureTypes
@@ -119,7 +121,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     *
     * This method uses distributed locking to ensure a schema is only created once.
     *
-    * @see org.geotools.data.DataAccess#createSchema(org.opengis.feature.type.FeatureType)
+    * @see org.geotools.data.DataAccess#createSchema(org.geotools.api.feature.type.FeatureType)
     * @param schema type to create
     */
   override def createSchema(schema: SimpleFeatureType): Unit = {
@@ -177,14 +179,14 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   }
 
   /**
-    * @see org.geotools.data.DataAccess#getSchema(org.opengis.feature.type.Name)
+    * @see org.geotools.data.DataAccess#getSchema(org.geotools.api.feature.type.Name)
     * @param name feature type name
     * @return feature type, or null if it does not exist
     */
   override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
 
   /**
-   * @see org.geotools.data.DataStore#getSchema(java.lang.String)
+   * @see org.geotools.api.data.DataStore#getSchema(java.lang.String)
    * @param typeName feature type name
    * @return feature type, or null if it does not exist
    */
@@ -205,7 +207,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     *
     * Other modifications are not supported.
     *
-    * @see org.geotools.data.DataStore#updateSchema(java.lang.String, org.opengis.feature.simple.SimpleFeatureType)
+    * @see org.geotools.api.data.DataStore#updateSchema(java.lang.String, org.geotools.api.feature.simple.SimpleFeatureType)
     * @param typeName simple feature type name
     * @param sft new simple feature type
     */
@@ -222,7 +224,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     *
     * Other modifications are not supported.
     *
-    * @see org.geotools.data.DataAccess#updateSchema(org.opengis.feature.type.Name, org.opengis.feature.type.FeatureType)
+    * @see org.geotools.data.DataAccess#updateSchema(org.geotools.api.feature.type.Name, org.geotools.api.feature.type.FeatureType)
     * @param typeName simple feature type name
     * @param schema new simple feature type
     */
@@ -275,7 +277,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   /**
     * Deletes the schema metadata
     *
-    * @see org.geotools.data.DataStore#removeSchema(java.lang.String)
+    * @see org.geotools.api.data.DataStore#removeSchema(java.lang.String)
     * @param typeName simple feature type name
     */
   override def removeSchema(typeName: String): Unit = {
@@ -291,20 +293,20 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   }
 
   /**
-    * @see org.geotools.data.DataAccess#removeSchema(org.opengis.feature.type.Name)
+    * @see org.geotools.data.DataAccess#removeSchema(org.geotools.api.feature.type.Name)
     * @param typeName simple feature type name
     */
   override def removeSchema(typeName: Name): Unit = removeSchema(typeName.getLocalPart)
 
   /**
-    * @see org.geotools.data.DataStore#getFeatureSource(java.lang.String)
+    * @see org.geotools.api.data.DataStore#getFeatureSource(java.lang.String)
     * @param typeName simple feature type name
     * @return featureStore, suitable for reading and writing
     */
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
 
   /**
-   * @see org.geotools.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
+   * @see org.geotools.api.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
    * @param query query to execute
    * @param transaction transaction to use (currently ignored)
    * @return feature reader
@@ -322,7 +324,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Create a general purpose writer that is capable of updates and deletes.
     * Does <b>not</b> allow inserts. Will return all existing features.
     *
-    * @see org.geotools.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.data.Transaction)
+    * @see org.geotools.api.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.data.Transaction)
     * @param typeName feature type name
     * @param transaction transaction (currently ignored)
     * @return feature writer
@@ -334,7 +336,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Create a general purpose writer that is capable of updates and deletes.
     * Does <b>not</b> allow inserts.
     *
-    * @see org.geotools.data.DataStore#getFeatureWriter(java.lang.String, org.opengis.filter.Filter,
+    * @see org.geotools.api.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.api.filter.Filter,
     *        org.geotools.data.Transaction)
     * @param typeName feature type name
     * @param filter cql filter to select features for update/delete
@@ -352,7 +354,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   /**
     * Creates a feature writer only for writing - does not allow updates or deletes.
     *
-    * @see org.geotools.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.data.Transaction)
+    * @see org.geotools.api.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.data.Transaction)
     * @param typeName feature type name
     * @param transaction transaction (currently ignored)
     * @return feature writer
@@ -393,7 +395,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   /**
     * We always return null, which indicates that we are handling transactions ourselves.
     *
-    * @see org.geotools.data.DataStore#getLockingManager()
+    * @see org.geotools.api.data.DataStore#getLockingManager()
     * @return locking manager - null
     */
   override def getLockingManager: LockingManager = null
@@ -408,7 +410,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     CloseWithLogging(interceptors)
   }
 
-  // end methods from org.geotools.data.DataStore
+  // end methods from org.geotools.api.data.DataStore
 
   /**
    * Validate a call to updateSchema, throwing errors on failed validation

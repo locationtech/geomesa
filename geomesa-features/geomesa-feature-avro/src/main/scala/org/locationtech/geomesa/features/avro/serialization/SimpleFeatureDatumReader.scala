@@ -13,7 +13,7 @@ import org.apache.avro.Schema
 import org.apache.avro.io.{DatumReader, Decoder}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumReader.VersionedFields
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Avro reader for simple features. Due to avro lifecycles, the following methods must be

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
 

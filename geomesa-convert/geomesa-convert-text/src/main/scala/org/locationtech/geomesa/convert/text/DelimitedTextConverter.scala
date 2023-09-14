@@ -22,7 +22,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.StringCollectionConverterFactory
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io._
 import java.nio.charset.{Charset, StandardCharsets}

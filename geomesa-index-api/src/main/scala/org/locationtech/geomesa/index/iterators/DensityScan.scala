@@ -22,9 +22,9 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, RenderingGrid}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.locationtech.jts.geom._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.Expression
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.Expression
 
 trait DensityScan extends AggregatingScan[DensityScanResult] {
 

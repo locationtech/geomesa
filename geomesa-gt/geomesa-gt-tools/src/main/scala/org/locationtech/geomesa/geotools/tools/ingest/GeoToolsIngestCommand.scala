@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.geotools.tools.ingest
 
 import com.beust.jcommander.Parameters
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.{GeoToolsDataStoreParams, GeoToolsDistributedCommand}
 import org.locationtech.geomesa.geotools.tools.ingest.GeoToolsIngestCommand.GeoToolsIngestParams
 import org.locationtech.geomesa.tools.ingest.IngestCommand

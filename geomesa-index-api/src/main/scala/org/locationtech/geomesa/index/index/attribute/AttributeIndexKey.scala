@@ -13,7 +13,7 @@ import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder, TypeRegistry}
 import org.locationtech.geomesa.utils.geotools.AttributeOrdering
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.AttributeDescriptor
 
 import java.sql.Timestamp
 import java.util.Locale

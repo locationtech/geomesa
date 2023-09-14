@@ -23,7 +23,7 @@ import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWr
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import redis.clients.jedis.JedisPool
 
 import java.nio.charset.StandardCharsets

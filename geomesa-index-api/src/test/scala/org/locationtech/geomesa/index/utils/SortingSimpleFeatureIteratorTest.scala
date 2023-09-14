@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

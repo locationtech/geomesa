@@ -19,11 +19,11 @@ import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.{GeometryAttribute, Property}
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.api.geometry.BoundingBox
 
 import java.io.OutputStream
 import java.nio._

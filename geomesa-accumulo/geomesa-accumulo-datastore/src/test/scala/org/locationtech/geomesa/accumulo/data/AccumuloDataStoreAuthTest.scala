@@ -10,8 +10,9 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -19,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
 
 import java.util

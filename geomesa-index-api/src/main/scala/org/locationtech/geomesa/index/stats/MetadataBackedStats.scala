@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime
@@ -20,8 +20,8 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetad
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, _}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter._
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date

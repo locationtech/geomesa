@@ -13,7 +13,7 @@ import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStr
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BinExporter(stream: ExportStream, hints: Hints) extends ByteCounterExporter(stream) {
 

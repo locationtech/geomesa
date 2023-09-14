@@ -18,11 +18,11 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.memory.cqengine.query.{GeoToolsFilterQuery, Intersects => CQIntersects}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
-import org.opengis.filter.expression.Literal
-import org.opengis.filter.spatial._
-import org.opengis.filter.temporal._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.Literal
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.temporal._
 
 import java.util.Date
 import java.util.regex.Pattern

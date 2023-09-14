@@ -17,7 +17,7 @@ import org.apache.hadoop.io.compress.{CodecPool, CompressionCodecFactory, Decomp
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, InputStream}
 import scala.util.control.NonFatal

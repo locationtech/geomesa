@@ -11,8 +11,9 @@ package org.locationtech.geomesa.accumulo.iterators
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.DataStore
-import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.{SimpleFeatureStore}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
@@ -22,7 +23,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, GeometryFactory}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date

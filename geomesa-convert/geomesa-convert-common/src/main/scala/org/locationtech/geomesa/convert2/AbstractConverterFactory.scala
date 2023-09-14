@@ -18,7 +18,7 @@ import org.locationtech.geomesa.convert2.validators.{HasDtgValidatorFactory, Has
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 

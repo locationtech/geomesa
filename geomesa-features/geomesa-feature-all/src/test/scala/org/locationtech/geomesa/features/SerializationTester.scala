@@ -15,7 +15,7 @@ import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Point, Polygon}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.text.SimpleDateFormat

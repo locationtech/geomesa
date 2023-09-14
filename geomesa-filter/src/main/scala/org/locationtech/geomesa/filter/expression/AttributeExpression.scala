@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import org.opengis.filter.expression.{Function, Literal}
+import org.geotools.api.filter.expression.{Function, Literal}
 
 /**
   * Expressions operating on attributes

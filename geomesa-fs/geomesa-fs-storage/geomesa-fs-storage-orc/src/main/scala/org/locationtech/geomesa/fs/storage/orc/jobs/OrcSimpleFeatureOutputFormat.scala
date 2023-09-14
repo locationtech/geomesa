@@ -19,7 +19,7 @@ import org.apache.orc.{OrcConf, OrcFile, TypeDescription}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureOutputFormat.OrcRecordWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcOutputFormatWriter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class OrcSimpleFeatureOutputFormat extends FileOutputFormat[Void, SimpleFeature] {
 

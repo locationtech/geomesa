@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.util
 
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

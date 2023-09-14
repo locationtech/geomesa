@@ -19,7 +19,7 @@ import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Point, Polygon}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.{File, FileInputStream}
 import java.nio.charset.StandardCharsets

@@ -21,8 +21,8 @@ import org.locationtech.geomesa.index.conf.FilterCompatibility
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.util.{Collection => jCollection, Map => jMap}
 

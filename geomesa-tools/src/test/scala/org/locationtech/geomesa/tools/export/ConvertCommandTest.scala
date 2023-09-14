@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.utils.io.PathUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.File
 

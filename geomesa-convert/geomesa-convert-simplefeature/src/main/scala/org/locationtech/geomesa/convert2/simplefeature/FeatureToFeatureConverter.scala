@@ -14,7 +14,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOpt
 import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.FeatureToFeatureConfig
 import org.locationtech.geomesa.convert2.{AbstractConverter, SimpleFeatureConverter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.InputStream
 

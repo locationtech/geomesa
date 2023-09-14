@@ -15,7 +15,7 @@ import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets

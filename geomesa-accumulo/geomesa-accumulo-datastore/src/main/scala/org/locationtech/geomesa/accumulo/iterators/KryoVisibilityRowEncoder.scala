@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util.Collections
 

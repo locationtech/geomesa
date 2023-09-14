@@ -25,7 +25,7 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalE
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ListBuffer
 

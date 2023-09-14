@@ -24,7 +24,7 @@ import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInferenc
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.PathUtils
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import scala.util.control.NonFatal

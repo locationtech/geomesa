@@ -11,7 +11,9 @@ package org.locationtech.geomesa.accumulo.iterators
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

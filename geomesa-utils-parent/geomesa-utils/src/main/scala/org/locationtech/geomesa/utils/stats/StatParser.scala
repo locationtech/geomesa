@@ -12,7 +12,7 @@ import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.curve.TimePeriod._
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.text.BasicParser
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala._
 import org.parboiled.scala.rules.Rule1

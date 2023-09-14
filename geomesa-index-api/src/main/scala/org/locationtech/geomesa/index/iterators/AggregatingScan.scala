@@ -17,8 +17,8 @@ import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.AggregatingScan.{AggregateCallback, CqlSampleValidator, CqlValidator, RowValidator, RowValue, SampleValidator, ValidateAll}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import scala.util.Try
 import scala.util.control.NonFatal

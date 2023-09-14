@@ -12,7 +12,7 @@ package serialization
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.AvroField.VersionField
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
  * Config used for serializing simple features

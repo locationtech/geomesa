@@ -14,8 +14,8 @@ import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.expression.PropertyAccessor
 import org.locationtech.geomesa.utils.geotools.filter.FilterFunctions
 import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.expression.{PropertyName, VolatileFunction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.expression.{PropertyName, VolatileFunction}
 
 import java.util.concurrent.ConcurrentHashMap
 

@@ -13,8 +13,8 @@ import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractSchemaBuil
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.reflect.{ClassTag, classTag}
 

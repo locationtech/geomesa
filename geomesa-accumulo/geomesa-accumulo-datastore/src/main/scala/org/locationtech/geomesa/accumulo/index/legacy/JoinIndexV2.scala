@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV2
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV2.AttributeIndexKeySpaceV2
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndexKey, AttributeIndexKeySpace}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 class JoinIndexV2(ds: GeoMesaDataStore[_],
                   sft: SimpleFeatureType,

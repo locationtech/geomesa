@@ -10,14 +10,15 @@ package org.locationtech.geomesa.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureWriter
+import org.geotools.data.api._
+import org.geotools.api.data.SimpleFeatureWriter
 import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
-import org.opengis.feature.`type`.{GeometryDescriptor, Name}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.{GeometryDescriptor, Name}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.io.IOException
 import java.time.ZonedDateTime

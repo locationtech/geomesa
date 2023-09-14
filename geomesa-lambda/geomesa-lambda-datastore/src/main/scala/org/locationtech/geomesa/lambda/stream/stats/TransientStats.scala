@@ -15,8 +15,8 @@ import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import scala.reflect.ClassTag
 

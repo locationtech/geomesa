@@ -22,7 +22,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression.Column
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CopyingInputStream
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.{ByteArrayOutputStream, InputStream}
 

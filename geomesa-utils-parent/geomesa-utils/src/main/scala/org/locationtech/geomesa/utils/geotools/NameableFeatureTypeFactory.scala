@@ -12,10 +12,10 @@ import org.geotools.feature.NameImpl
 import org.geotools.feature.`type`.FeatureTypeFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureTypeImpl
 import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.{MutableName, NameableSimpleFeatureType}
-import org.opengis.feature.`type`.{AttributeDescriptor, AttributeType, GeometryDescriptor, Name}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-import org.opengis.util.InternationalString
+import org.geotools.api.feature.`type`.{AttributeDescriptor, AttributeType, GeometryDescriptor, Name}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.geotools.api.util.InternationalString
 
 /**
   * Feature type factory that allows for changing type name

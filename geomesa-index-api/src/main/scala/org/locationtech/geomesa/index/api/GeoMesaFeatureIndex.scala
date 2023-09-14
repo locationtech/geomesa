@@ -27,8 +27,8 @@ import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.{ExcludeFilter, Filter}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.{ExcludeFilter, Filter}
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID

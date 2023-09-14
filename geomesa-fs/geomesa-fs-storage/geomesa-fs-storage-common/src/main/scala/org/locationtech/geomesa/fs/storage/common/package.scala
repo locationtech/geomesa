@@ -12,7 +12,7 @@ import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig.{ConfigConvert, ConfigSource}
 import pureconfig.generic.semiauto.deriveConvert
 

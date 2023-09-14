@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * Attribute index with configurable secondary index tiering. Each attribute has its own table

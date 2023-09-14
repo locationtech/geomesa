@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.{UserDataListType, UserDataMapKeyType, UserDataMapValueType}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.jts.geom._
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.AttributeDescriptor
 
 import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
 

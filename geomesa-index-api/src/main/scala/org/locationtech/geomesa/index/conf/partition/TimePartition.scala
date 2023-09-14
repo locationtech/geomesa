@@ -16,8 +16,8 @@ import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartiti
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, TableBasedMetadata}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date

@@ -15,7 +15,7 @@ import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations

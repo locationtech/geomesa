@@ -15,8 +15,8 @@ import org.locationtech.geomesa.memory.cqengine.query.Intersects
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments

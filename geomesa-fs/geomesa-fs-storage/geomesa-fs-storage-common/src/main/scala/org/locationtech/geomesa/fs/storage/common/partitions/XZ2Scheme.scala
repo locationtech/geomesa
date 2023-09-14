@@ -12,8 +12,8 @@ import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 
 case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
 

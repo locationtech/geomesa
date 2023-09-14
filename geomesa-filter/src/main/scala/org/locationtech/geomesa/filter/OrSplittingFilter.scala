@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.filter
 
 import org.geotools.filter.visitor.DefaultFilterVisitor
-import org.opengis.filter._
+import org.geotools.api.filter._
 
 import scala.collection.JavaConverters._
 

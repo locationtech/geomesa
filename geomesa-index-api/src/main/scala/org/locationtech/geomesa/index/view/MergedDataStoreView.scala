@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.view
 
 import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
+import org.geotools.data.api._
+import org.geotools.api.data.SimpleFeatureReader
+import org.geotools.data.{SimpleFeatureSource}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
@@ -22,9 +24,9 @@ import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.util.concurrent.CopyOnWriteArrayList
 

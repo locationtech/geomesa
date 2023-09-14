@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.filter.FilterHelper
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 

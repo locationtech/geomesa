@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats.BinnedArray.Binning
 import org.locationtech.jts.geom.{Coordinate, Geometry}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.Date
 import scala.collection.immutable.ListMap

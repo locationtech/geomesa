@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.security
 
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

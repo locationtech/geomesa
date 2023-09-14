@@ -18,7 +18,7 @@ import org.geotools.xsd.Encoder
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.tools.export.formats.GmlExporter.AsyncFeatureCollection
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean

@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteArray}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.nio.charset.StandardCharsets
 import java.util.Collections

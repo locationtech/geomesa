@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index
 
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 

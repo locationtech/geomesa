@@ -13,7 +13,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerVie
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class KafkaFeatureCacheWithMetrics(
     sft: SimpleFeatureType,

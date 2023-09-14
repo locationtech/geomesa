@@ -29,7 +29,7 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.File
 

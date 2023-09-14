@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIn
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.utils.conf.IndexId
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * Feature index factory that provides attribute join indices

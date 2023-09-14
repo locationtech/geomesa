@@ -16,7 +16,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicFi
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import scala.util.control.NonFatal

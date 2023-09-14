@@ -25,7 +25,7 @@ import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
 import org.locationtech.geomesa.features.avro.{FieldNameEncoder, SerializationVersions}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{ConfigReaderFailures, FailureReason}
 

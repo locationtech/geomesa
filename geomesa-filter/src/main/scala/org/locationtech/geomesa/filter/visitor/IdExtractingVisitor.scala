@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.opengis.filter.spatial.{DWithin, _}
-import org.opengis.filter.temporal.{Before, Ends, Meets, TOverlaps, _}
-import org.opengis.filter.{ExcludeFilter, Or, _}
+import org.geotools.api.filter.spatial.{DWithin, _}
+import org.geotools.api.filter.temporal.{Before, Ends, Meets, TOverlaps, _}
+import org.geotools.api.filter.{ExcludeFilter, Or, _}
 
 import scala.collection.JavaConverters._
 

@@ -52,13 +52,14 @@
 
         <!-- *** main dependency versions *** -->
 
+        <jdk.version>11</jdk.version>
         <scala.version>2.12.17</scala.version>
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
 
         <scala.xml.version>2.1.0</scala.xml.version>
         <scala.parsers.version>2.1.1</scala.parsers.version>
 
-        <gt.version>28.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <gt.version>30-SNAPSHOT</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
         <geoserver.version>2.22.2</geoserver.version>
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
@@ -2862,8 +2863,8 @@
                              detects changes and re-compiles the Java files unless this
                              option is turned off.  -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${jdk.version}</source>
+                        <target>${jdk.version}</target>
                     </configuration>
                 </plugin>
                 <plugin>

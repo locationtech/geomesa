@@ -12,8 +12,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.MemoryDataStore
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -25,7 +26,7 @@ import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

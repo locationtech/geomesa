@@ -17,7 +17,7 @@ import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.AttributeDescriptor
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

@@ -17,8 +17,8 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration.SimpleFeatureAction
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat.{OrcSimpleFeatureInputFormatBase, OrcSimpleFeatureRecordReaderBase}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 /**
   * Input format for orc files that tracks the action and timestamp associated with each feature

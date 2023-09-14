@@ -15,7 +15,7 @@ import org.geotools.filter.capability.FunctionNameImpl._
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.opengis.temporal.Instant
+import org.geotools.api.temporal.Instant
 
 import java.time.temporal.{ChronoField, Temporal}
 import java.util.{Base64, Date}

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object NullExporter extends FeatureExporter {
 

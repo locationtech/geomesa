@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.confluent.ConfluentGeoMessageSerializer.ConfluentGeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.net.URL
 

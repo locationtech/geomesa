@@ -13,7 +13,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.{SimpleFeatureDatumReader, SimpleFeatureDatumWriter}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 

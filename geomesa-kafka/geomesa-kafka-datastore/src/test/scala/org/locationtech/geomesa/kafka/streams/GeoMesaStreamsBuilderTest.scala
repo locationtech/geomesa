@@ -16,7 +16,9 @@ import org.apache.kafka.streams.kstream.{Transformer, TransformerSupplier}
 import org.apache.kafka.streams.processor.{ProcessorContext, WallclockTimestampExtractor}
 import org.apache.kafka.streams.test.TestRecord
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.KafkaContainerTest

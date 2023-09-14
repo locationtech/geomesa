@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
@@ -21,7 +22,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

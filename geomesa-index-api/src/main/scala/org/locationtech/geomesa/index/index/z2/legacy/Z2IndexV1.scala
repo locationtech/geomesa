@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.index.z2.Z2IndexKeySpace
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV1.Z2IndexKeySpaceV1
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV3.Z2IndexKeySpaceV3
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 // initial implementation - supports points and non-points  (note that non-point support has been removed)
 class Z2IndexV1(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode)

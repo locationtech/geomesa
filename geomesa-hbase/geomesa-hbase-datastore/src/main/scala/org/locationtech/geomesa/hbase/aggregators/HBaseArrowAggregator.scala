@@ -14,8 +14,8 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.ArrowScan
 import org.locationtech.geomesa.index.iterators.ArrowScan.{ArrowResultsToFeatures, ArrowScanConfig}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 object HBaseArrowAggregator {
 

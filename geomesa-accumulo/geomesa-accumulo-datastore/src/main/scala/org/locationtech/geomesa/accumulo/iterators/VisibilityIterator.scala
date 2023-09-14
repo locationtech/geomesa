@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.user.ReqVisFilter
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 object VisibilityIterator {
 

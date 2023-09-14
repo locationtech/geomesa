@@ -21,7 +21,7 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 

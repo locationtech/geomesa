@@ -18,7 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOpti
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecConfig
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

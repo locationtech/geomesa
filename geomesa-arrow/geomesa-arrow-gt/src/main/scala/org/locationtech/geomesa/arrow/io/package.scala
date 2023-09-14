@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.ByteArrayOutputStream
 import java.nio.channels.Channels

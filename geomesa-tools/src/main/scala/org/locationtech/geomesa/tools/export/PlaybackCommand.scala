@@ -12,7 +12,8 @@ import com.beust.jcommander.{Parameter, ParameterException}
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.DataFeatureCollection
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
@@ -24,8 +25,8 @@ import org.locationtech.geomesa.tools.utils.ParameterConverters.{DurationConvert
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.PlaybackIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.io.Closeable
 import java.util.Date

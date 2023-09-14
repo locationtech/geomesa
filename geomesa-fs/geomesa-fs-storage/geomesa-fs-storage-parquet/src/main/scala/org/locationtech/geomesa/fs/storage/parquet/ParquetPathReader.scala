@@ -18,7 +18,7 @@ import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.File
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
@@ -27,7 +27,7 @@ class ParquetPathReader(
     conf: Configuration,
     readSft: SimpleFeatureType,
     parquetFilter: FilterCompat.Filter,
-    gtFilter: Option[org.opengis.filter.Filter],
+    gtFilter: Option[org.geotools.api.filter.Filter],
     transform: Option[(String, SimpleFeatureType)]
   ) extends FileSystemPathReader with LazyLogging {
 

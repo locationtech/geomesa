@@ -22,8 +22,8 @@ import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.jts.geom._
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}

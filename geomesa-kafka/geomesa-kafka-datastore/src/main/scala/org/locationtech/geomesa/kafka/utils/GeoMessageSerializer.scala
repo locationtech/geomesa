@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{SerializationOption, SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random

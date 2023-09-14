@@ -16,7 +16,7 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTra
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.convert2.{AbstractConverter, AbstractConverterFactory, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 

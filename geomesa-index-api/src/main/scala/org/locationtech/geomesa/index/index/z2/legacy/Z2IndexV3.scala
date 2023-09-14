@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV3.Z2IndexKeySpaceV
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV4.Z2IndexKeySpaceV4
 import org.locationtech.geomesa.index.index.z2.{Z2IndexKeySpace, Z2IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 // legacy z curve - no delete checks for old col qualifiers
 class Z2IndexV3 protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)

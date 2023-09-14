@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import org.geotools.data.FeatureReader
+import org.geotools.api.data.FeatureReader
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
-import org.opengis.feature.Feature
-import org.opengis.feature.`type`.FeatureType
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.`type`.FeatureType
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.Closeable
 import scala.collection.Iterator

@@ -16,7 +16,7 @@ import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureWriteSupport
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 object SimpleFeatureParquetWriter extends LazyLogging {
 

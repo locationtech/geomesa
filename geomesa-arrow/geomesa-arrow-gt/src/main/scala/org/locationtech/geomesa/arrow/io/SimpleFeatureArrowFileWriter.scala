@@ -15,7 +15,7 @@ import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.nio.channels.Channels

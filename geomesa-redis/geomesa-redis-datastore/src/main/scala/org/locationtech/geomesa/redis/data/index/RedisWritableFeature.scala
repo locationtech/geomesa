@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, KeyValue, Writab
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Writable feature values cache for Redis

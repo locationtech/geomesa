@@ -14,7 +14,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.getInput
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.InputStream
 import scala.util.control.NonFatal

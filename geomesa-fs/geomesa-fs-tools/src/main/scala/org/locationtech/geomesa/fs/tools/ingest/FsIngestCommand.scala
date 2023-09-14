@@ -28,7 +28,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {
 

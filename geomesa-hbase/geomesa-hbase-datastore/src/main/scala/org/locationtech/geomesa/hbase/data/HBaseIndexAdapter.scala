@@ -55,7 +55,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionary
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.TimeUnit
 import scala.util.Random

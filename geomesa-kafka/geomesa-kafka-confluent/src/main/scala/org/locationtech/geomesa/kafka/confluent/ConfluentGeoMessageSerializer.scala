@@ -12,7 +12,7 @@ import org.apache.avro.Schema
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.net.URL
 

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, PathUtils, WithClose}
 import org.locationtech.jts.geom.Coordinate
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import java.nio.file.Files

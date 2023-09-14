@@ -16,7 +16,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.AttributeDescriptor
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger

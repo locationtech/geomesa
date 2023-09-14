@@ -14,7 +14,7 @@ import org.locationtech.geomesa.fs.storage.common.StorageSerialization
 import org.locationtech.geomesa.fs.storage.common.utils.PartitionSchemeArgResolver.SchemeArgs
 import org.locationtech.geomesa.utils.conf.ArgResolver
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal

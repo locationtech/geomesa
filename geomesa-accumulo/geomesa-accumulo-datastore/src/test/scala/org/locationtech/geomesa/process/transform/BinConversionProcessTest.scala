@@ -15,7 +15,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.jts.geom.Point
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 import java.util.Date

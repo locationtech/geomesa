@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.filters.AgeOffFilter
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.IngestTimeExpiration
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration

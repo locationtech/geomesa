@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.gt.partition.postgis
 
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.Parameter
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.Parameter
 
 import java.util.Collections
 import scala.concurrent.duration.Duration

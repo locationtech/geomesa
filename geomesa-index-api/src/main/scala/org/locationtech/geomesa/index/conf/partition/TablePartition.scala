@@ -11,8 +11,8 @@ package org.locationtech.geomesa.index.conf.partition
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.util.ServiceLoader
 

@@ -9,14 +9,16 @@
 package org.locationtech.geomesa.arrow.data
 
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query}
+import org.geotools.api.data.FeatureReader
+import org.geotools.api.data.FeatureWriter
+import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.atomic.AtomicLong
 

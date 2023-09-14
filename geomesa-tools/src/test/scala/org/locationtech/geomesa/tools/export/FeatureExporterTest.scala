@@ -17,7 +17,7 @@ import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExpor
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

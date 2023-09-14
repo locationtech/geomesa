@@ -12,7 +12,7 @@ import com.googlecode.cqengine.attribute.Attribute
 import org.locationtech.geomesa.memory.cqengine.index._
 import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams, STRtreeIndexParam}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object GeoIndexFactory{
 

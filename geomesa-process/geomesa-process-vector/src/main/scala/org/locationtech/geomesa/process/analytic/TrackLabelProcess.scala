@@ -15,7 +15,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.util.ProgressListener
+import org.geotools.api.util.ProgressListener
 
 import java.util.Date
 

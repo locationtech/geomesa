@@ -16,9 +16,9 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.stats._
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.io.{Closeable, Flushable}
 import java.util.Date

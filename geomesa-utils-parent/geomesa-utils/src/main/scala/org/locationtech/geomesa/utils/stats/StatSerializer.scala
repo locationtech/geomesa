@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.stats.Stat.ImmutableStat
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date

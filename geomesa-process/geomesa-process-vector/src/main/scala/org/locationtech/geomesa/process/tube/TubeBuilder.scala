@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureType
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.impl.CoordinateArraySequence
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.Date
 import java.util.concurrent.atomic.AtomicInteger

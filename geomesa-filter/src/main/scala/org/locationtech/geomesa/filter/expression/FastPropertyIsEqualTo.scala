@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import org.opengis.filter.MultiValuedFilter.MatchAction
-import org.opengis.filter.expression.{Expression, Literal}
-import org.opengis.filter.{FilterVisitor, PropertyIsEqualTo}
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
+import org.geotools.api.filter.expression.{Expression, Literal}
+import org.geotools.api.filter.{FilterVisitor, PropertyIsEqualTo}
 
 abstract class FastPropertyIsEqualTo(exp1: Expression, exp2: Literal) extends PropertyIsEqualTo {
 

@@ -14,7 +14,7 @@ import org.apache.spark.util.RpcUtils
 import org.apache.spark.{SparkContext, SparkEnv}
 import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.Serializable
 import scala.reflect.ClassTag

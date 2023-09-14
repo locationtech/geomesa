@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
@@ -23,8 +24,8 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

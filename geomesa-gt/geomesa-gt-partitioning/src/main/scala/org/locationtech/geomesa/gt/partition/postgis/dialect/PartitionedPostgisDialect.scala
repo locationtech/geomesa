@@ -22,9 +22,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTri
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom._
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 import scala.util.Try

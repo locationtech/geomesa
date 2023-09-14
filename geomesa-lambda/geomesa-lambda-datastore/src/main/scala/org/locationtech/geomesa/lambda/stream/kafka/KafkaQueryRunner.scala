@@ -14,8 +14,8 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ReadableFeatureCache
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.{Filter, Id}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.{Filter, Id}
 
 class KafkaQueryRunner(features: ReadableFeatureCache,
                        stats: GeoMesaStats,

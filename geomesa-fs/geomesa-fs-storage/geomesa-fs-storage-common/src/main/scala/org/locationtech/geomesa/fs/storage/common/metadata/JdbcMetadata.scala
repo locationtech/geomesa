@@ -15,7 +15,7 @@ import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, Parti
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets

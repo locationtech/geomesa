@@ -12,7 +12,7 @@ import com.amazonaws.services.s3.AmazonS3
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.security.VisibilityEvaluator.VisibilityAnd
 import org.locationtech.geomesa.security.{SecurityUtils, VisibilityEvaluator}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64

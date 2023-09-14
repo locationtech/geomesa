@@ -10,7 +10,7 @@ package org.locationtech.geomesa.filter.function
 
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 class FastProperty extends FunctionExpressionImpl(FastProperty.Name) {
 

@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.{Parameter, ParameterException}
-import org.geotools.data.{DataStore, FileDataStore}
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.FileDataStore
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 import org.locationtech.geomesa.tools.utils.Prompt
@@ -17,8 +18,8 @@ import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNa
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import scala.reflect.ClassTag
 import scala.util.Try

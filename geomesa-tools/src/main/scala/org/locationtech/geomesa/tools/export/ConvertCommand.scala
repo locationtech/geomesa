@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.export
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -27,8 +27,8 @@ import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Stat}
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 class ConvertCommand extends Command with MethodProfiling with LazyLogging {
 

@@ -21,8 +21,8 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * A paired simple feature type and parquet schema

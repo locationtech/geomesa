@@ -22,7 +22,7 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.concurrent.duration.Duration
 

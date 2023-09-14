@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.filter
 
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 
 object TestFilters {
 

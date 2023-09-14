@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.compact
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
@@ -19,8 +19,8 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import java.io.{DataInput, DataOutput}
 

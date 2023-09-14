@@ -10,8 +10,9 @@ package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -30,7 +31,7 @@ import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

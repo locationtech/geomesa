@@ -29,7 +29,7 @@ import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType, S
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
 import java.nio.channels.Channels

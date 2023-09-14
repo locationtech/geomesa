@@ -20,7 +20,7 @@ import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOut
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
 import org.locationtech.geomesa.tools.utils.JobRunner
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.File
 

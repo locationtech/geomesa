@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

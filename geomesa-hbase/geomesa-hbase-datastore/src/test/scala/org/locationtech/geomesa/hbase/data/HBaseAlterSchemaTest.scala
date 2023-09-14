@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

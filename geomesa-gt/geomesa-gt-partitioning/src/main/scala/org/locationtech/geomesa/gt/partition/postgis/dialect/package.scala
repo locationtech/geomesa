@@ -14,8 +14,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.TemporalIndexCheck
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.sql.{Connection, PreparedStatement}

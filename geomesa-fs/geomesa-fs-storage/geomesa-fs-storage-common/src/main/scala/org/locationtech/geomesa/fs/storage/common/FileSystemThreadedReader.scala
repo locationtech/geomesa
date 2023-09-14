@@ -16,7 +16,7 @@ import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.File
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.util.concurrent._
 import scala.util.control.NonFatal

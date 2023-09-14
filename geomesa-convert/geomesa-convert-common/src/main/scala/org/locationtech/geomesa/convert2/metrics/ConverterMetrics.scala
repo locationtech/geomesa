@@ -13,7 +13,7 @@ import com.typesafe.config.Config
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * Provides namespaced access to reporting metrics

@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.{AttributeLevelWritabl
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, KeyValue, WritableFeature}
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Writable feature with support for 'index-values' used in attribute join indices

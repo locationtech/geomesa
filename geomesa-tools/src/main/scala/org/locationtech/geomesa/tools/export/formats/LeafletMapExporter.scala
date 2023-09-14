@@ -19,7 +19,7 @@ import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounter
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.{Coordinate, Geometry}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io._
 import java.nio.charset.StandardCharsets

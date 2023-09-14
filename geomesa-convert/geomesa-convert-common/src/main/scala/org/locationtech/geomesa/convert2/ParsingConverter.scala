@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert2
 
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 /**
   * Converter that parses out intermediate values from an input stream

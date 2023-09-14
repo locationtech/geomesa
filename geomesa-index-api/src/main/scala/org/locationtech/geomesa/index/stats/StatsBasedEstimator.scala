@@ -15,9 +15,9 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
-import org.opengis.filter.expression.PropertyName
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.PropertyName
 
 import java.time.ZonedDateTime
 import java.util.Date

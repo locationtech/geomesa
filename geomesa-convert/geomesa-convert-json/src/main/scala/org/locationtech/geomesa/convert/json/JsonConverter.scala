@@ -18,7 +18,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io._
 import java.nio.charset.Charset

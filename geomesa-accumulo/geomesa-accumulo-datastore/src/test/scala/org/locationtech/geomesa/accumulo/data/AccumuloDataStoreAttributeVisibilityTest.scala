@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.simple._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -21,7 +22,7 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])

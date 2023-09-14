@@ -16,7 +16,7 @@ import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.math.Ordering
 

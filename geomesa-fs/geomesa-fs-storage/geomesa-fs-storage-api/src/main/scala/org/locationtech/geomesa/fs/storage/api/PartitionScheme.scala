@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.fs.storage.api
 
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 
 /**
   * Scheme for partitioning features into various named partitions (e.g. file paths) on disk, for

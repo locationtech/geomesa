@@ -17,7 +17,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, IndexRes
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.mockito.ArgumentMatchers
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

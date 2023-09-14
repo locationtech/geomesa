@@ -16,7 +16,7 @@ import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.DurationParsing
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 
 import java.util.Date
 import scala.concurrent.duration.Duration

@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert.xml.XmlConverterFactory.XmlConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.ConverterConfigConvert
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.w3c.dom.Element
 import pureconfig.{ConfigConvert, ConfigSource}
 

@@ -10,14 +10,16 @@ package org.locationtech.geomesa.index.view
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.awt.RenderingHints.Key
 import java.util.Collections

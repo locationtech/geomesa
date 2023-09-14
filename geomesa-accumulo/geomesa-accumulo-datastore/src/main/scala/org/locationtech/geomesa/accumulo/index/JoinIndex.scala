@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, Attribute
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 class JoinIndex(ds: GeoMesaDataStore[_],
                 sft: SimpleFeatureType,

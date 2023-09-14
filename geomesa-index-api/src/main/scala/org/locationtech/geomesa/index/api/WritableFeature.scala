@@ -12,7 +12,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSeria
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import scala.util.hashing.MurmurHash3

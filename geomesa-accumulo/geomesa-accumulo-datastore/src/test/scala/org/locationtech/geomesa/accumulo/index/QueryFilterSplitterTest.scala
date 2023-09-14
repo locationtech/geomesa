@@ -20,8 +20,8 @@ import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.filter._
-import org.opengis.filter.temporal.During
+import org.geotools.api.filter._
+import org.geotools.api.filter.temporal.During
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

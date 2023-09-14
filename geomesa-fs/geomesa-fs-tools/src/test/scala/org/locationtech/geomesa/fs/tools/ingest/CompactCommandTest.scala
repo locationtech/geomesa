@@ -10,7 +10,9 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
@@ -20,7 +22,7 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

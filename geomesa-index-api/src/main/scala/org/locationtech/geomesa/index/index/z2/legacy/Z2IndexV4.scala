@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexKeySpace}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.Point
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 

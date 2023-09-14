@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.index.id.legacy.IdIndexV3.IdIndexKeySpaceV
 import org.locationtech.geomesa.index.index.id.{IdIndex, IdIndexKeySpace}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 // supports table sharing
 class IdIndexV3 protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, mode: IndexMode)

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features
 
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.{InputStream, OutputStream}
 

@@ -22,7 +22,7 @@ import org.locationtech.geomesa.arrow.vector.ArrowDictionary.ArrowDictionaryBuil
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, OutputStream}
 import java.nio.channels.Channels

@@ -31,7 +31,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, InputStream}
 import java.util.Locale

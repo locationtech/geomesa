@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.process.analytic
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -22,8 +23,8 @@ import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.stats.Stat
-import org.opengis.feature.Feature
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.SimpleFeature
 
 @DescribeProcess(
   title = "Stats Process",

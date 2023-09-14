@@ -15,8 +15,8 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.{DensityResultsToFeatures, DensityScanResult}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.util.Map.Entry
 

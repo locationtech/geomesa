@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.geoserver
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

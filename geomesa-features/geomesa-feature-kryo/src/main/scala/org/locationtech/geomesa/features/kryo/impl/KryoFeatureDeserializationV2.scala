@@ -17,8 +17,8 @@ import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerializ
 import org.locationtech.geomesa.utils.cache.ThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util
 import java.util.{Date, UUID}

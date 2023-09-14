@@ -16,7 +16,7 @@ import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
 

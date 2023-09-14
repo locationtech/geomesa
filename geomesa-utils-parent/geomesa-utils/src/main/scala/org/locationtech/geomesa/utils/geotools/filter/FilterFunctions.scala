@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools.filter
 
-import org.opengis.parameter.Parameter
+import org.geotools.api.parameter.Parameter
 
 import scala.reflect.ClassTag
 

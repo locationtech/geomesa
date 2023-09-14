@@ -21,8 +21,8 @@ import org.locationtech.geomesa.arrow.io.reader.CachingSimpleFeatureArrowFileRea
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.io.{Closeable, InputStream}
 import java.nio.channels.{Channels, ReadableByteChannel}

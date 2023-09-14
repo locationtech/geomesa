@@ -18,7 +18,7 @@ import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStr
 import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io._
 

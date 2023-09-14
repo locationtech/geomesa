@@ -19,8 +19,8 @@ import org.locationtech.geomesa.fs.storage.orc.utils.{OrcAttributeReader, OrcSea
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 
 import scala.collection.mutable.ArrayBuffer
 

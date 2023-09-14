@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute
 import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.{pathConfig, pathFor}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.lang.ref.SoftReference
 import scala.util.control.NonFatal

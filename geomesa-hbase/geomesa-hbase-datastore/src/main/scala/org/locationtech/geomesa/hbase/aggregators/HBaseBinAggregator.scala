@@ -13,8 +13,8 @@ import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.BinResultsToFeatures
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 object HBaseBinAggregator {
 

@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.time.temporal.ChronoUnit

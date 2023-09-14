@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 
 sealed trait CassandraQueryPlan extends QueryPlan[CassandraDataStore] {
 

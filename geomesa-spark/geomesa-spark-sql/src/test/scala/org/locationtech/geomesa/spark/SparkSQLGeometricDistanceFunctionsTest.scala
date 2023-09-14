@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.DataStoreFinder
+import org.geotools.api.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point

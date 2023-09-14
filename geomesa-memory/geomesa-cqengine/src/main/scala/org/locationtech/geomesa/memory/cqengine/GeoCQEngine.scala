@@ -25,8 +25,8 @@ import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
 import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter._
 
 import java.util.UUID
 import scala.collection.JavaConverters._

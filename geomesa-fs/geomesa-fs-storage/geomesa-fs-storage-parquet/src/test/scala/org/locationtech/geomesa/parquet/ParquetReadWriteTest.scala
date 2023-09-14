@@ -25,7 +25,7 @@ import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.fs.storage.parquet.{FilterConverter, SimpleFeatureParquetWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
@@ -78,7 +78,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
     result.toSeq
   }
 
-  def readFile(geoFilter: org.opengis.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
+  def readFile(geoFilter: org.geotools.api.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
     val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse {
       ko(s"Couldn't extract a filter from ${ECQL.toCQL(geoFilter)}")
       FilterCompat.NOOP

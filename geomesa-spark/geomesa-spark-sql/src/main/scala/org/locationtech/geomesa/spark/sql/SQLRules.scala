@@ -26,15 +26,15 @@ import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.sql.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
-import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
-import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
+import org.geotools.api.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
+import org.geotools.api.filter.{FilterFactory, Filter => GTFilter}
 
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 object SQLRules extends LazyLogging {
   @transient
-  private val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
+  private val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
     udf match {

@@ -15,7 +15,7 @@ import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, 
 import org.locationtech.geomesa.hbase.tools.data.HBaseCreateSchemaCommand.HBaseCreateSchemaParams
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 class HBaseCreateSchemaCommand extends CreateSchemaCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseCreateSchemaParams()

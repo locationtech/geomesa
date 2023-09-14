@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.net.URL
 import java.util.Collections

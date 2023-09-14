@@ -14,8 +14,8 @@ object L {
   import org.apache.spark.sql._
   import org.locationtech.geomesa.spark.sql.SparkUtils
   import org.locationtech.jts.geom._
-  import org.opengis.feature.`type`.AttributeDescriptor
-  import org.opengis.feature.simple.SimpleFeature
+  import org.geotools.api.feature.`type`.AttributeDescriptor
+  import org.geotools.api.feature.simple.SimpleFeature
 
   trait GeoRenderable {
     def render: String

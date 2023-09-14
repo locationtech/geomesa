@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.iterators.AggregatingScan._
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util.Date
 import scala.util.control.NonFatal

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.wps
 import org.geotools.process.factory.AnnotatedBeanProcessFactory
 import org.geotools.text.Text
 import org.locationtech.geomesa.process.GeoMesaProcess
-import org.opengis.util.InternationalString
+import org.geotools.api.util.InternationalString
 
 import java.util.ServiceLoader
 

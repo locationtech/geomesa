@@ -13,7 +13,7 @@ import org.apache.avro.Schema
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.nio.ByteBuffer
 import java.time.format.DateTimeFormatter

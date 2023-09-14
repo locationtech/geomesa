@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * If the stats parser receives a string with multiple stats, a SeqStat will be used.

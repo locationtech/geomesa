@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV4.Z3IndexKeySpaceV
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV5.Z3IndexKeySpaceV5
 import org.locationtech.geomesa.index.index.z3.{Z3IndexKey, Z3IndexKeySpace, Z3IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 // legacy z curve - normal table sharing
 class Z3IndexV4 protected (ds: GeoMesaDataStore[_],

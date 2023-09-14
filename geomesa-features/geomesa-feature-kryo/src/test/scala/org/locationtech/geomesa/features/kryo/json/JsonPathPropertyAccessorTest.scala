@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -24,7 +24,7 @@ class JsonPathPropertyAccessorTest extends Specification {
 
   sequential
 
-  private val filterFactory = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory
   val sft = SimpleFeatureTypes.createType("json", "json:String:json=true,s:String,dtg:Date,*geom:Point:srid=4326")
 
   "JsonPathPropertyAccessor" should {

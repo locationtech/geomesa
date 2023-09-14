@@ -18,8 +18,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 import java.io.Closeable
 import java.time.Duration

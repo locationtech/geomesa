@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.io
 
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.utils.io.IsCloseableImplicits._
 
 import java.util.concurrent.ExecutorService

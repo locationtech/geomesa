@@ -17,7 +17,7 @@ import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicFi
 import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io._
 

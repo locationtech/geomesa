@@ -17,8 +17,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{Defau
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.GeomAttributeSpec
 import org.locationtech.geomesa.utils.geotools.sft._
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
 
 import java.util.Date

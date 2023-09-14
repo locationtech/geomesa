@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSe
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.text.{DateParsing, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{InputStream, OutputStream}
 import java.net.URL

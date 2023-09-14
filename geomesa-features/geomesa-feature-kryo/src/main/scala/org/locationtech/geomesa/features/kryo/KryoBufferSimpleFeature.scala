@@ -21,11 +21,11 @@ import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, Ren
 import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, Transform}
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.{GeometryAttribute, Property}
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.api.geometry.BoundingBox
 
 class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature {
 

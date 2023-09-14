@@ -14,7 +14,7 @@ import org.locationtech.geomesa.convert.xml.XmlConverter.DocParser
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractCompositeConverter, ParsingConverter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.w3c.dom.Element
 
 import java.io.InputStream

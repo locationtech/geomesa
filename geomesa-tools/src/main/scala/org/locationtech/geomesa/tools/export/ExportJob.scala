@@ -30,7 +30,7 @@ import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Expor
 import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExporter}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.File
 import java.text.NumberFormat

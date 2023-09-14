@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.tools.export
 
 import com.beust.jcommander.Parameters
 import org.apache.hadoop.mapreduce.Job
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.jobs.{GeoMesaHBaseInputFormat, HBaseJobUtils}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}

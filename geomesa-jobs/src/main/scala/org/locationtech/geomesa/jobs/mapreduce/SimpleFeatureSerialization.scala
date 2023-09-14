@@ -16,7 +16,7 @@ import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization._
 import org.locationtech.geomesa.utils.cache.ThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{InputStream, OutputStream}
 

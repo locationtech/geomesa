@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.geotools.data.{FeatureListener, Transaction}
+import org.geotools.api.data.FeatureListener
+import org.geotools.api.data.Transaction
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureStore
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.AppendKafkaFeatureWriter
 import org.locationtech.geomesa.kafka.index.KafkaListeners
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 
 class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: KafkaListeners)
     extends GeoMesaFeatureStore(ds, sft) {

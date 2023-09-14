@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{ErrorModeConverter, FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.filter.Filter
+import org.geotools.api.filter.Filter
 
 import java.util
 import java.util.regex.Pattern

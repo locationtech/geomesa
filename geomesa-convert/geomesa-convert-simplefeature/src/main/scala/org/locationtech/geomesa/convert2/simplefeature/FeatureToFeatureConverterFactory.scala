@@ -16,7 +16,7 @@ import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import pureconfig.{ConfigObjectCursor, ConfigSource}
 import pureconfig.error.ConfigReaderFailures
 

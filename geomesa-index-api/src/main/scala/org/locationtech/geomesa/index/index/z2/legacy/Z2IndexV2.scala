@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.index.z2.Z2IndexKeySpace
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV2.Z2IndexKeySpaceV2
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV3.Z2IndexKeySpaceV3
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 

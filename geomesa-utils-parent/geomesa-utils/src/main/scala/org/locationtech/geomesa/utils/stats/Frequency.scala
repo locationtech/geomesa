@@ -14,7 +14,7 @@ import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.{Date, Locale}
 import scala.collection.immutable.ListMap

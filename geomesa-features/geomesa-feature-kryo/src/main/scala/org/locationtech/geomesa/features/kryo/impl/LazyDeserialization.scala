@@ -17,7 +17,7 @@ import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerializ
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.io.Sizable
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.io.InputStream
 

@@ -9,7 +9,10 @@
 package org.locationtech.geomesa.redis.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
+import org.geotools.data.{DataUtilities}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
@@ -19,7 +22,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.testcontainers.containers.GenericContainer
