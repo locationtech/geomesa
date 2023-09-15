@@ -10,7 +10,8 @@ package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.{SimpleFeatureCollection, SimpleFeatureStore}
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.data.simple.{SimpleFeatureCollection}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.util.NullProgressListener
 import org.geotools.api.data.FeatureReader

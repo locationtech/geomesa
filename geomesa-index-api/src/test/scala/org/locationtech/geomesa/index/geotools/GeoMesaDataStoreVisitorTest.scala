@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.{SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.util.NullProgressListener
 import org.geotools.api.data.DataStore

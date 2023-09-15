@@ -14,7 +14,8 @@ import org.cassandraunit.dataset.cql.ClassPathCQLDataSet
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.api.data.SimpleFeatureStore
-import org.geotools.data.{DataStoreFinder, Query, _}
+import org.geotools.data._
+import org.geotools.api.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

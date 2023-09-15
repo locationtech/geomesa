@@ -14,7 +14,8 @@ import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data._
 import org.geotools.api.data._
 import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.data.{SimpleFeatureSource, SimpleFeatureWriter}
+import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.api.data.SimpleFeatureWriter
 import org.geotools.feature.FeatureTypes
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureReader, GeoMesaFeatureStore}

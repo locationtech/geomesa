@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.transform
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
 import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.{SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.index.conf.QueryHints

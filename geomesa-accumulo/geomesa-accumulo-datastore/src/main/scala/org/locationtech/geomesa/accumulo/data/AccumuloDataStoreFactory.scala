@@ -20,8 +20,8 @@ import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
 import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStoreFactorySpi
 import org.geotools.api.data.Parameter
+import org.geotools.api.data.DataStoreFactorySpi
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore

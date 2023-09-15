@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.api.data.Query
 import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.{SimpleFeatureCollection}
+import org.geotools.data.simple.{SimpleFeatureCollection}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.arrow.ArrowProperties

@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator

@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.api.data._
 import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.data.{SimpleFeatureSource}
+import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.FlushableFeatureWriter
