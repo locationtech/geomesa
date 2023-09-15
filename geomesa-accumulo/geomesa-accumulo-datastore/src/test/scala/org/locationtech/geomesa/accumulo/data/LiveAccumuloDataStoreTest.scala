@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.data.api._
+import org.geotools.api.data._
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator

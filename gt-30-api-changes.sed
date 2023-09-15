@@ -1,5 +1,5 @@
-/import org.geotools.data.api._/d
-s/import org\.geotools\.data\._/\0\nimport org.geotools.data.api._/
+/import org.geotools.api.data._/d
+s/import org\.geotools\.data\._/\0\nimport org.geotools.api.data._/
 s/org\.opengis\.geometry\.BoundingBox/org.geotools.api.geometry.BoundingBox/g
 s/org\.opengis\.geometry\.Geometry/org.locationtech.jts.geom.Geometry/g
 s/FilterFactory2/FilterFactory/g

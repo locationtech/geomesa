@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.arrow.data
 
 import org.geotools.data._
-import org.geotools.data.api._
+import org.geotools.api.data._
 import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl

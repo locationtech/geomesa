@@ -12,7 +12,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data._
-import org.geotools.data.api._
+import org.geotools.api.data._
 import org.geotools.api.data.SimpleFeatureReader
 import org.geotools.data.{SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.feature.FeatureTypes

@@ -12,7 +12,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
-import org.geotools.data.api._
+import org.geotools.api.data._
 import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.ingest
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.geotools.data.api._
+import org.geotools.api.data._
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
