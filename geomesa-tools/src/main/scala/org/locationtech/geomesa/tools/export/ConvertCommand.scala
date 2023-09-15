@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.export
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter

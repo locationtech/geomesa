@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}

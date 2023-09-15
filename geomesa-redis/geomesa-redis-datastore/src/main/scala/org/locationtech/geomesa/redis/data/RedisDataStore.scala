@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.redis.data
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.GeoMesaStats

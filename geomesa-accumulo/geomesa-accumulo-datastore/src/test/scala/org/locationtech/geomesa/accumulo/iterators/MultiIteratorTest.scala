@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

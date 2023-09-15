@@ -15,10 +15,10 @@ import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureStore
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.SimpleFeatureStore
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS

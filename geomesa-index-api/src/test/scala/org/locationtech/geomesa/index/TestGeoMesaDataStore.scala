@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}

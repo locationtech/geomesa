@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.jobs
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.conf.Configuration
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.index._

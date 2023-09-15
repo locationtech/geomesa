@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

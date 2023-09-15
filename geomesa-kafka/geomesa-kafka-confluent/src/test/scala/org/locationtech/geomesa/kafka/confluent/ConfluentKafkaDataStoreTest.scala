@@ -17,8 +17,8 @@ import org.apache.avro.util.Utf8
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._

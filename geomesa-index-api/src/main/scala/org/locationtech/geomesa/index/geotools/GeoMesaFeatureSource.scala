@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.geotools
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.api._
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.api.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
@@ -39,7 +39,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
 
   /**
     * The default behavior for getCount is to use estimated statistics if available, or -1 to indicate
-    * that the operation would be expensive (@see org.geotools.api.data.FeatureSource#getCount(org.geotools.api.data.Query)).
+    * that the operation would be expensive (@see org.geotools.data.api.FeatureSource#getCount(org.geotools.data.api.Query)).
     *
     * Since users may want <b>exact</b> counts, there are two ways to force exact counts:
     *   1. use the system property "geomesa.force.count"

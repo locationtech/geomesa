@@ -12,9 +12,9 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints

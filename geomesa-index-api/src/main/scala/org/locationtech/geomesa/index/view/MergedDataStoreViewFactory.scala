@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config._
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFactorySpi
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.DataStoreFactorySpi
+import org.geotools.data.api.DataStoreFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader

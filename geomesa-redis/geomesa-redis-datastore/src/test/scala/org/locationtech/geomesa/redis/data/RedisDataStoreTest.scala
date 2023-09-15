@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.redis.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.data.{DataUtilities}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope

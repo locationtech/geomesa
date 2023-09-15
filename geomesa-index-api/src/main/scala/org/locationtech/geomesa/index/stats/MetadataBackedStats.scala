@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataStore
+import org.geotools.data.api.DataStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime

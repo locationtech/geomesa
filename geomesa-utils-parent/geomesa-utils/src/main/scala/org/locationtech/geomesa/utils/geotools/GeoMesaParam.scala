@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.Parameter
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.Parameter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, ReadWriteFlag, SystemPropertyParam}
 import org.locationtech.geomesa.utils.text.DurationParsing

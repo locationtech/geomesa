@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.apache.kafka.common.TopicPartition
-import org.geotools.api.data.Transaction
-import org.geotools.api.data.SimpleFeatureWriter
+import org.geotools.data.api.Transaction
+import org.geotools.data.api.SimpleFeatureWriter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter

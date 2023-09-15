@@ -10,9 +10,9 @@ package org.locationtech.geomesa.geotools.spark
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}

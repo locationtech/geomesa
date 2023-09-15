@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.iterators
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureStore}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints

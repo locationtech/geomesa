@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.ParameterException
-import org.geotools.api.data.DataStore
+import org.geotools.data.api.DataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}

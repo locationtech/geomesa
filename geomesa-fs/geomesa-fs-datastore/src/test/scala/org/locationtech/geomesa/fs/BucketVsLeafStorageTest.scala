@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.fs
 
 import org.apache.commons.io.FileUtils
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.api.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.data.api.SimpleFeatureStore
 import org.geotools.data.{SimpleFeatureIterator}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature

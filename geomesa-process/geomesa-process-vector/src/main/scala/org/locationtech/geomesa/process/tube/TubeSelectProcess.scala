@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.process.tube
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.api.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.feature.visitor._

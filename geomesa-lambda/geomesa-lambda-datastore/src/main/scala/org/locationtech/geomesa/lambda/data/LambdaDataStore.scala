@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data._
 import org.geotools.data.api._
-import org.geotools.api.data.SimpleFeatureReader
+import org.geotools.data.api.SimpleFeatureReader
 import org.geotools.data.{SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.feature.FeatureTypes
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader

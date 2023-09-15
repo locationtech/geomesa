@@ -13,7 +13,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
-import org.geotools.api.data.DataStore
+import org.geotools.data.api.DataStore
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.spark.GeoMesaSpark
 import org.locationtech.geomesa.spark.sql.GeoMesaSparkSQL._

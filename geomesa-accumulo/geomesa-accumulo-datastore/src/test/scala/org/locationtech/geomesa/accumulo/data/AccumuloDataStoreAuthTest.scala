@@ -12,7 +12,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.data.api.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType

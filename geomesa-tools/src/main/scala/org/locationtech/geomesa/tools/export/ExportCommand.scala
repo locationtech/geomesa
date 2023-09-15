@@ -14,9 +14,9 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapreduce.Job
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FileDataStore
-import org.geotools.api.data.Query
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.FileDataStore
+import org.geotools.data.api.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption

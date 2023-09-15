@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.query
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.referencing.GeodeticCalculator

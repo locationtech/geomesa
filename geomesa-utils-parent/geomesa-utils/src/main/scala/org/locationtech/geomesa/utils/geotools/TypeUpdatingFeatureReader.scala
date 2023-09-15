@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.api.data.DelegatingFeatureReader
-import org.geotools.api.data.FeatureReader
+import org.geotools.data.api.DelegatingFeatureReader
+import org.geotools.data.api.FeatureReader
 import org.geotools.data.{ReTypeFeatureReader}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 

@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.FeatureListener
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.api.FeatureListener
+import org.geotools.data.api.SimpleFeatureSource
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore

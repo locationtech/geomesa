@@ -18,7 +18,7 @@ import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.{MemoryDataStore, MemoryEntry}
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.data.api.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.URLs
 import org.geotools.util.factory.Hints

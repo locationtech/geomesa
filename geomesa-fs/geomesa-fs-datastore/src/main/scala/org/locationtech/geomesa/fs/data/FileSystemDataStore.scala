@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.data
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys

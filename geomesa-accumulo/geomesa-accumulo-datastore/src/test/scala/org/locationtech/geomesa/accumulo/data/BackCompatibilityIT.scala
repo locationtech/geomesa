@@ -14,10 +14,10 @@ import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.apache.hadoop.io.Text
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.data.{DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL

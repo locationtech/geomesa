@@ -11,8 +11,8 @@ package org.locationtech.geomesa.spark
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.Query
 import org.locationtech.geomesa.utils.io.WithStore
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 

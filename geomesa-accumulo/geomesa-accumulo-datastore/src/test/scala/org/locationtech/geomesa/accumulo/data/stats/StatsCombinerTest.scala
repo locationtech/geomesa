@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.api.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore

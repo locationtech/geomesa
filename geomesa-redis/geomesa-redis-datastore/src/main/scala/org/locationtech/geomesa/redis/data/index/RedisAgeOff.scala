@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.redis.data.index
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.Transaction
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.{AgeOffExecutor, AgeOffWriter}
 import org.locationtech.geomesa.redis.data.util.RedisLocking

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.utils
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.feature.FeatureTypes
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer
 import org.geotools.referencing.CRS

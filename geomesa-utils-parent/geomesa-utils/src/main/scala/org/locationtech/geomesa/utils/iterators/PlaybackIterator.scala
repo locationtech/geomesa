@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.utils.iterators
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}

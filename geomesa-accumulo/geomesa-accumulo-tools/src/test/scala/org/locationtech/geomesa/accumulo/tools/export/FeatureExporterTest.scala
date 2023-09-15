@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature

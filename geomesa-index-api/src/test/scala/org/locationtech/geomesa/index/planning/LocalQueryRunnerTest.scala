@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.planning
 
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator

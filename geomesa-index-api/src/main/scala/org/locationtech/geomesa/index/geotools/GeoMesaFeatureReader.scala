@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.SimpleFeatureReader
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.audit.QueryEvent

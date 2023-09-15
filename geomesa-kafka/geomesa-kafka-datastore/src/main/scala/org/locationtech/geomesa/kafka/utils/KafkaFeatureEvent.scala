@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import org.geotools.api.data.FeatureEvent
-import org.geotools.api.data.FeatureEvent.Type
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.data.api.FeatureEvent
+import org.geotools.data.api.FeatureEvent.Type
+import org.geotools.data.api.SimpleFeatureSource
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools._

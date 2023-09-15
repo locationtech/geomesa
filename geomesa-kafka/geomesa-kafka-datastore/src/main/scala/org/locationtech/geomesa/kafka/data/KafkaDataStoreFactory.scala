@@ -11,8 +11,8 @@ package org.locationtech.geomesa.kafka.data
 import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang3.StringUtils
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.DataStoreFactorySpi
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo

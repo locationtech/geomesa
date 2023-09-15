@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.Transaction
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.{ExpiredFeatures, ExpiringFeatureCache, OffsetFeature}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty

@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.arrow.data
 
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FileDataStore
-import org.geotools.api.data.FileDataStoreFactorySpi
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.FileDataStore
+import org.geotools.data.api.FileDataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag

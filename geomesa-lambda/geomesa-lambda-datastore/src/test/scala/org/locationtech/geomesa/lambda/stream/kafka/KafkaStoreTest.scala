@@ -10,8 +10,8 @@ package org.locationtech.geomesa.lambda.stream.kafka
 
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.data.memory.MemoryDataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.data.{DataUtilities}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

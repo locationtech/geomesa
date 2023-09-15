@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FeatureReader
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.SimpleFeatureReader
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.FeatureReader
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.conf.QueryHints

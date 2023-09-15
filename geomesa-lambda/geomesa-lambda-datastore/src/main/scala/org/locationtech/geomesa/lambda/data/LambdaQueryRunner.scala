@@ -10,11 +10,11 @@ package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FeatureReader
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.SimpleFeatureReader
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.FeatureReader
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.geoserver.ViewParams

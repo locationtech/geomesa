@@ -11,10 +11,10 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFactorySpi
-import org.geotools.api.data.Parameter
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.DataStoreFactorySpi
+import org.geotools.data.api.Parameter
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.{CassandraDataStoreConfig, CassandraQueryConfig}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider}

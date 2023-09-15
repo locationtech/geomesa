@@ -11,8 +11,8 @@ package org.locationtech.geomesa.convert.shp
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
+import org.geotools.data.api.DataStoreFinder
+import org.geotools.data.api.Query
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter

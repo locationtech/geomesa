@@ -12,8 +12,8 @@ import com.beust.jcommander.{Parameter, ParameterException}
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.DataFeatureCollection
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection

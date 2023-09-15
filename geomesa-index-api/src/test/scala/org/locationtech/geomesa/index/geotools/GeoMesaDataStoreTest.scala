@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.Query
+import org.geotools.data.api.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.CRS

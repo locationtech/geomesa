@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.api.data.FeatureEvent
-import org.geotools.api.data.FeatureListener
+import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.data.api.FeatureEvent
+import org.geotools.data.api.FeatureListener
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent
 import org.geotools.api.feature.simple.SimpleFeature
 

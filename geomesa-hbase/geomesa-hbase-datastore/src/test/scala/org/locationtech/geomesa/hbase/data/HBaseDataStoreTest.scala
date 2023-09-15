@@ -13,7 +13,7 @@ import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.data.api.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

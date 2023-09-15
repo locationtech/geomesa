@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.geotools.api.data.FeatureListener
-import org.geotools.api.data.Transaction
+import org.geotools.data.api.FeatureListener
+import org.geotools.data.api.Transaction
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureStore
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.AppendKafkaFeatureWriter
 import org.locationtech.geomesa.kafka.index.KafkaListeners

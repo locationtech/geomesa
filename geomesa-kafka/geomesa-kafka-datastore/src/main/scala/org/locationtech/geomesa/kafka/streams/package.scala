@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.streams.processor.StreamPartitioner
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.api.DataStoreFinder
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.streams.MessageAction.MessageAction

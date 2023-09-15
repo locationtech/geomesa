@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils
 
-import org.geotools.api.data.FeatureReader
+import org.geotools.data.api.FeatureReader
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope

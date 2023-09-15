@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.arrow.data
 
 import org.geotools.data.store.{ContentEntry, ContentFeatureSource, ContentFeatureStore}
-import org.geotools.api.data.FeatureReader
-import org.geotools.api.data.FeatureWriter
-import org.geotools.api.data.Query
+import org.geotools.data.api.FeatureReader
+import org.geotools.data.api.FeatureWriter
+import org.geotools.data.api.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}

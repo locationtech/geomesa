@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.api.data.FeatureWriter
+import org.geotools.data.api.FeatureWriter
 import org.geotools.data.{DataUtilities}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl

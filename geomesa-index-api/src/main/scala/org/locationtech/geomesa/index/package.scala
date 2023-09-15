@@ -9,7 +9,7 @@
 package org.locationtech.geomesa
 
 
-import org.geotools.api.data.SimpleFeatureWriter
+import org.geotools.data.api.SimpleFeatureWriter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import java.io.Flushable

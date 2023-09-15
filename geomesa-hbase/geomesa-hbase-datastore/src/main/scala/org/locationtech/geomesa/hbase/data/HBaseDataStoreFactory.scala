@@ -14,9 +14,9 @@ import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.security.UserGroupInformation
-import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.data.api.DataAccessFactory.Param
+import org.geotools.data.api.DataStore
+import org.geotools.data.api.DataStoreFactorySpi
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}

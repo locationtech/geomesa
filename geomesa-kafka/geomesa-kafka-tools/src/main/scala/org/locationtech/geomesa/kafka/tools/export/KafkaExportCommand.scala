@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.kafka.tools.export
 
 import com.beust.jcommander.{ParameterException, Parameters}
-import org.geotools.api.data.FeatureEvent
-import org.geotools.api.data.FeatureListener
-import org.geotools.api.data.Query
+import org.geotools.data.api.FeatureEvent
+import org.geotools.data.api.FeatureListener
+import org.geotools.data.api.Query
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.ConsumerDataStoreParams

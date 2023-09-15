@@ -11,7 +11,7 @@ package org.locationtech.geomesa.spark.converter
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
-import org.geotools.api.data.Query
+import org.geotools.data.api.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
