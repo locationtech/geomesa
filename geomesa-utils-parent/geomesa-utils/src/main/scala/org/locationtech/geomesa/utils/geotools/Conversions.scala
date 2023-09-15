@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.geometry.DirectPosition2D
+import org.geotools.geometry.Position2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId, SemanticVersion}
@@ -32,7 +32,7 @@ import scala.util.Try
 object Conversions extends Conversions {
 
   implicit class RichCoord(val c: Coordinate) extends AnyVal {
-    def toPoint2D = new DirectPosition2D(c.x, c.y)
+    def toPoint2D = new Position2D(c.x, c.y)
   }
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {

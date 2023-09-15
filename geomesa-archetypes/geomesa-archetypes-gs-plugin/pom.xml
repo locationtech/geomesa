@@ -139,7 +139,7 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-opengis</artifactId>
+                <artifactId>gt-api</artifactId>
                 <version>${gt.version}</version>
                 <scope>provided</scope>
             </dependency>

@@ -4,6 +4,7 @@ s/org\.opengis\.geometry\.Geometry/org.locationtech.jts.geom.Geometry/g
 s/FilterFactory2/FilterFactory/g
 s/ReferencedEnvelope\.create/ReferencedEnvelope.envelope/g
 s/org\.geotools\.data\.DataAccessFactory\.Param/org.geotools.api.data.DataAccessFactory.Param/g
+s/DirectPosition/Position/g
 
 s/org\.geotools\.data\.DataStore/org.geotools.api.data.DataStore/g
 s/import org\.geotools\.data\.DataStore/import org.geotools.api.data.DataStore/

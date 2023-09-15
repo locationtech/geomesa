@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
+            <artifactId>gt-api</artifactId>
         </dependency>
         <dependency>
             <!-- 'works with' due to license issues -->
