@@ -93,6 +93,18 @@ class DefaultSplitterTest extends Specification {
           (0 to 9).map(_.toString) ++ (0 to 9).map(i => s"8$i")
     }
 
+    "produce correct string tiered date splits" in {
+      val opts =
+        "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+        "attr.myString.date-range:2023-09-15/2023-09-16/4"
+      val splits = splitter.getSplits(sft, attrString, opts)
+      splits.foreach(s => println(new String(s, StandardCharsets.UTF_8)))
+      splits.length must be equalTo 29
+      // TODO validate partitions, remove println
+//      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual (0 to 9).map(_.toString) ++
+//          (0 to 9).map(i => s"8$i")
+    }
+
     "produce correct int splits" in {
       val opts = "attr.myInt.pattern:[0-9]"
       val splits = splitter.getSplits(sft, attrInt, opts)

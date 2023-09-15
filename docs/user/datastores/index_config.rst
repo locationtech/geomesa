@@ -498,21 +498,23 @@ For the default splitter, ``table.splitter.options`` should consist of comma-sep
 ``key1:value1,key2:value2``. Entries related to a given index should start with the index identifier, e.g. one
 of ``id``, ``z3``, ``z2`` or ``attr`` (``xz3`` and ``xz2`` indices use ``z3`` and ``z2``, respectively).
 
-+------------+-------------------------------+----------------------------------------+
-| Index      | Option                        | Description                            |
-+============+===============================+========================================+
-| Z3/XZ3     | ``z3.min``                    | The minimum date for the data          |
-+            +-------------------------------+----------------------------------------+
-|            | ``z3.max``                    | The maximum date for the data          |
-+            +-------------------------------+----------------------------------------+
-|            | ``z3.bits``                   | The number of leading bits to split on |
-+------------+-------------------------------+----------------------------------------+
-| Z2/XZ2     | ``z2.bits``                   | The number of leading bits to split on |
-+------------+-------------------------------+----------------------------------------+
-| ID         | ``id.pattern``                | Split pattern                          |
-+------------+-------------------------------+----------------------------------------+
-| Attribute  |  ``attr.<attribute>.pattern`` | Split pattern for a given attribute    |
-+------------+-------------------------------+----------------------------------------+
++------------+---------------------------------+----------------------------------------+
+| Index      | Option                          | Description                            |
++============+=================================+========================================+
+| Z3/XZ3     | ``z3.min``                      | The minimum date for the data          |
++            +---------------------------------+----------------------------------------+
+|            | ``z3.max``                      | The maximum date for the data          |
++            +---------------------------------+----------------------------------------+
+|            | ``z3.bits``                     | The number of leading bits to split on |
++------------+---------------------------------+----------------------------------------+
+| Z2/XZ2     | ``z2.bits``                     | The number of leading bits to split on |
++------------+---------------------------------+----------------------------------------+
+| ID         | ``id.pattern``                  | Split pattern                          |
++------------+---------------------------------+----------------------------------------+
+| Attribute  | ``attr.<attribute>.pattern``    | Split pattern for a given attribute    |
++            +---------------------------------+----------------------------------------+
+|            | ``attr.<attribute>.date-range`` | Date range for a given attribute       |
++------------+---------------------------------+----------------------------------------+
 
 Z3/XZ3 Splits
 +++++++++++++
@@ -555,6 +557,16 @@ For number-type attributes, only numbers are considered valid characters. Due to
 prefixing will not work correctly. E.g., if the data has numbers in the range 8000-9000, specifying
 ``[8-9][0-9]`` will not split the data properly. Instead, trailing zeros should be added to reach the appropriate
 length, e.g. ``[8-9][0-9][0][0]``.
+
+For attribute indices with secondary date indexing, each attribute pattern can be further refined with a date
+pattern, using the suffix ``date-range``. For the example above, you could have any or all of ``attr.name.date-range``,
+``attr.name.date-range2`` and ``attr.name.date-range3``. The date range is expected to take the form of
+``begin-date/end-date/number of splits``, and dates are specified in the form ``yyyy-MM-dd``, e.g.
+``2020-01-01/2023-01-01/8``. Note that this is mainly useful with low-cardinality attributes, as due to the way
+secondary indexing works, date suffixes are only useful after full keys. Continuing the example,
+``attr.name.pattern:[a][l][i][c][e],attr.name.date-range:2020-01-01/2023-01-01/8`` would effectively partition an
+index where everyone is named Alice, but ``attr.name.pattern:[a-z],attr.name.date-range:2020-01-01/2023-01-01/8``
+would not be effective unless everyone had a single-letter name.
 
 Full Example
 ++++++++++++
