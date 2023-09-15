@@ -192,6 +192,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
+    import PartitionedPostgisDialect.Config.GeometryAttributeConversions
     att match {
       case gd: GeometryDescriptor =>
         val nullable = gd.getMinOccurs <= 0 || gd.isNillable
@@ -200,21 +201,16 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
         if (i == -1 || (nullable && i != sql.length() - 8) || (!nullable && i != sql.length() - 17)) {
           logger.warn(s"Found geometry-type attribute but no geometry column binding: $sql")
         } else {
-          val srid =
-            Option(gd.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID).asInstanceOf[Integer])
-                .orElse(Option(gd.getCoordinateReferenceSystem).flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption))
-                .map(_.intValue())
-                .getOrElse(-1)
+          val srid = gd.getSrid.getOrElse(-1)
           val geomType = PartitionedPostgisDialect.GeometryMappings.getOrElse(gd.getType.getBinding, "GEOMETRY")
-          val geomTypeWithDims =
-            Option(gd.getUserData.get(Hints.COORDINATE_DIMENSION).asInstanceOf[Integer]).map(_.intValue) match {
-              case None | Some(2) => geomType
-              case Some(3) => s"${geomType}Z"
-              case Some(4) => s"${geomType}ZM"
-              case Some(d) =>
-                throw new IllegalArgumentException(
-                  s"PostGIS only supports geometries with 2, 3 and 4 dimensions, but found: $d")
-            }
+          val geomTypeWithDims = gd.getCoordinateDimensions match {
+            case None | Some(2) => geomType
+            case Some(3) => s"${geomType}Z"
+            case Some(4) => s"${geomType}ZM"
+            case Some(d) =>
+              throw new IllegalArgumentException(
+                s"PostGIS only supports geometries with 2, 3 and 4 dimensions, but found: $d")
+          }
           sql.insert(i + 8, s" ($geomTypeWithDims, $srid)")
         }
 
@@ -344,6 +340,16 @@ object PartitionedPostgisDialect {
       def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
       def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
       def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
+    }
+
+    implicit class GeometryAttributeConversions(val d: GeometryDescriptor) extends AnyVal {
+      def getSrid: Option[Int] =
+        Option(d.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID)).map(int)
+            .orElse(
+              Option(d.getCoordinateReferenceSystem)
+                  .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
+      def getCoordinateDimensions: Option[Int] =
+        Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
     }
   }
 }
