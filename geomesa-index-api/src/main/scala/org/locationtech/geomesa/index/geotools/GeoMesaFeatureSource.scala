@@ -39,7 +39,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
 
   /**
     * The default behavior for getCount is to use estimated statistics if available, or -1 to indicate
-    * that the operation would be expensive (@see org.geotools.data.FeatureSource#getCount(org.geotools.data.Query)).
+    * that the operation would be expensive (@see org.geotools.api.data.FeatureSource#getCount(org.geotools.api.data.Query)).
     *
     * Since users may want <b>exact</b> counts, there are two ways to force exact counts:
     *   1. use the system property "geomesa.force.count"

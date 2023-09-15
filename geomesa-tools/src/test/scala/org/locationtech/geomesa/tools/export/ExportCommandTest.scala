@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.data._
 import org.geotools.data.api._
-import org.geotools.data.api._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.{MemoryDataStore, MemoryEntry}
 import org.geotools.data.shapefile.ShapefileDataStore

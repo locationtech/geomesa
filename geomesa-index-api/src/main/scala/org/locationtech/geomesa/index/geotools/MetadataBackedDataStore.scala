@@ -306,7 +306,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
 
   /**
-   * @see org.geotools.api.data.DataStore#getFeatureReader(org.geotools.data.Query, org.geotools.data.Transaction)
+   * @see org.geotools.api.data.DataStore#getFeatureReader(org.geotools.api.data.Query, org.geotools.api.data.Transaction)
    * @param query query to execute
    * @param transaction transaction to use (currently ignored)
    * @return feature reader
@@ -324,7 +324,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Create a general purpose writer that is capable of updates and deletes.
     * Does <b>not</b> allow inserts. Will return all existing features.
     *
-    * @see org.geotools.api.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.data.Transaction)
+    * @see org.geotools.api.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.api.data.Transaction)
     * @param typeName feature type name
     * @param transaction transaction (currently ignored)
     * @return feature writer
@@ -337,7 +337,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Does <b>not</b> allow inserts.
     *
     * @see org.geotools.api.data.DataStore#getFeatureWriter(java.lang.String, org.geotools.api.filter.Filter,
-    *        org.geotools.data.Transaction)
+    *        org.geotools.api.data.Transaction)
     * @param typeName feature type name
     * @param filter cql filter to select features for update/delete
     * @param transaction transaction (currently ignored)
@@ -354,7 +354,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   /**
     * Creates a feature writer only for writing - does not allow updates or deletes.
     *
-    * @see org.geotools.api.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.data.Transaction)
+    * @see org.geotools.api.data.DataStore#getFeatureWriterAppend(java.lang.String, org.geotools.api.data.Transaction)
     * @param typeName feature type name
     * @param transaction transaction (currently ignored)
     * @return feature writer
