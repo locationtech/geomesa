@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import org.geotools.data._
 import org.geotools.api.data._
-import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.identity.FeatureId
 import org.geotools.feature._
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
-import org.geotools.api.filter.identity.FeatureId
 
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer

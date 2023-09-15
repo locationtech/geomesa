@@ -10,13 +10,13 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.ParameterException
 import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.api.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
 

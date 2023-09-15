@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
+import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.data.DataUtilities
 import org.geotools.data.memory.MemoryDataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
-import org.geotools.data.{DataUtilities}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -22,7 +22,6 @@ import org.locationtech.geomesa.lambda.{InMemoryOffsetManager, LambdaContainerTe
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.specs2.runner.JUnitRunner
 
 import java.util.concurrent.atomic.AtomicInteger

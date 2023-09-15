@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.osm
 import com.typesafe.config.Config
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.impl.Node
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.osm.OsmFormat.OsmFormat
@@ -21,7 +22,6 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, PathUtils, WithClose}
 import org.locationtech.jts.geom.Coordinate
-import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import java.nio.file.Files

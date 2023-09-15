@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.locationtech.geomesa.utils.io.WithClose
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{File, FileWriter, Writer}
 

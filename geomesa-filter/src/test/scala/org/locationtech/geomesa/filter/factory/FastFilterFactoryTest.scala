@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.filter.factory
 
+import org.geotools.api.filter.expression.Literal
+import org.geotools.api.filter.spatial.BBOX
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -16,8 +18,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.{FastPropertyIsEqualTo, FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.api.filter.expression.Literal
-import org.geotools.api.filter.spatial.BBOX
 import org.specs2.execute.Result
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

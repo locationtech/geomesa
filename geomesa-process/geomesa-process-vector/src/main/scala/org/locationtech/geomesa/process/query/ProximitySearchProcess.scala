@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.process.query
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.simple.{SimpleFeatureCollection}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
@@ -20,8 +21,6 @@ import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
-import org.geotools.api.feature.Feature
-import org.geotools.api.feature.simple.SimpleFeature
 
 @DescribeProcess(
   title = "Geomesa-enabled Proximity Search",

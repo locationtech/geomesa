@@ -10,8 +10,7 @@ package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.sql.SQLTypes

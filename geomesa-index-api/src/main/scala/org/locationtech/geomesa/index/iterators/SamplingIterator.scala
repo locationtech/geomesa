@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import org.locationtech.geomesa.index.utils.FeatureSampler
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.index.utils.FeatureSampler
 
 import java.util.{Map => jMap}
 

@@ -9,12 +9,11 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander._
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FileDataStore
+import org.geotools.api.data.{DataStore, FileDataStore}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam, TypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.util
 import java.util.Collections

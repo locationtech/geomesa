@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
 import org.geotools.api.data._
-import org.geotools.api.data.SimpleFeatureReader
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.geotools.data._
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -29,9 +30,6 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.geotools.api.feature.`type`.Name
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 
 import java.io.IOException
 import java.time.{Instant, ZoneOffset}

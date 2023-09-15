@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.arrow.features
 
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
-import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
-import org.locationtech.jts.geom.Geometry
 import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.feature.{GeometryAttribute, Property}
 import org.geotools.api.filter.identity.FeatureId
 import org.geotools.api.geometry.BoundingBox
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
+import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.jts.geom.Geometry
 
 import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
 

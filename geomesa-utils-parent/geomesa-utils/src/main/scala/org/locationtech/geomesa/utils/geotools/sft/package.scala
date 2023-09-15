@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.feature.`type`._
-import org.geotools.feature.simple.SimpleFeatureTypeImpl
 import org.geotools.api.feature.`type`._
 import org.geotools.api.filter.Filter
 import org.geotools.api.util.InternationalString
+import org.geotools.feature.`type`._
+import org.geotools.feature.simple.SimpleFeatureTypeImpl
 
 import java.util.Collections
 

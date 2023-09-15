@@ -14,9 +14,10 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapreduce.Job
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FileDataStore
-import org.geotools.api.data.Query
+import org.geotools.api.data.{DataStore, FileDataStore, Query}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption
@@ -38,9 +39,6 @@ import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, P
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
-import org.geotools.api.filter.sort.SortOrder
 
 import java.io._
 import java.util.Collections

@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.index.planning.guard
 
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore

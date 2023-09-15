@@ -8,10 +8,9 @@
 
 package org.locationtech.geomesa.index.process
 
-import org.geotools.api.data.Query
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.feature.visitor.{FeatureAttributeVisitor, FeatureCalc}
+import org.geotools.api.data.{Query, SimpleFeatureSource}
 import org.geotools.api.filter.expression.Expression
+import org.geotools.feature.visitor.{FeatureAttributeVisitor, FeatureCalc}
 
 import java.util.Collections
 

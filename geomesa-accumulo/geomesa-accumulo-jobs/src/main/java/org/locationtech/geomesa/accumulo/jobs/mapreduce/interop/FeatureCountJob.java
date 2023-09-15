@@ -16,8 +16,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.geotools.api.data.Query;
-import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.filter.text.ecql.ECQL;
 
 import java.io.IOException;
 import java.util.HashMap;

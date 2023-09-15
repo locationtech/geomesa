@@ -8,6 +8,13 @@
 
 package org.locationtech.geomesa.filter.factory
 
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.spatial.DWithin
+import org.geotools.api.filter.temporal.{After, Before, During}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
@@ -21,13 +28,6 @@ import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequent
 import org.locationtech.geomesa.filter.expression._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
-import org.geotools.api.feature.`type`.Name
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.MultiValuedFilter.MatchAction
-import org.geotools.api.filter._
-import org.geotools.api.filter.expression.{Expression, PropertyName}
-import org.geotools.api.filter.spatial.DWithin
-import org.geotools.api.filter.temporal.{After, Before, During}
 import org.locationtech.jts.geom.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 

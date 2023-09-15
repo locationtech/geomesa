@@ -12,16 +12,15 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.apache.kafka.common.TopicPartition
-import org.geotools.api.data.Transaction
-import org.geotools.api.data.SimpleFeatureWriter
+import org.geotools.api.data.{SimpleFeatureWriter, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.{Filter, Id}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.locationtech.geomesa.kafka.versions.RecordVersions
 import org.locationtech.geomesa.security.VisibilityChecker
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.{Filter, Id}
 
 import java.io.Flushable
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}

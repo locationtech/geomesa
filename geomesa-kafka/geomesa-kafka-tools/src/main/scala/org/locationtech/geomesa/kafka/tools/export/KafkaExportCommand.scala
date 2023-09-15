@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.kafka.tools.export
 
 import com.beust.jcommander.{ParameterException, Parameters}
-import org.geotools.api.data.FeatureEvent
-import org.geotools.api.data.FeatureListener
-import org.geotools.api.data.Query
+import org.geotools.api.data.{FeatureEvent, FeatureListener, Query}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.ConsumerDataStoreParams
@@ -23,8 +23,6 @@ import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 
 import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal

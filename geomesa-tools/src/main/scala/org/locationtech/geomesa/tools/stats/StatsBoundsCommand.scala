@@ -9,14 +9,13 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.ParameterException
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.FileDataStore
+import org.geotools.api.data.{DataStore, FileDataStore}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.locationtech.jts.geom.Geometry
-import org.geotools.api.filter.Filter
 
 trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 

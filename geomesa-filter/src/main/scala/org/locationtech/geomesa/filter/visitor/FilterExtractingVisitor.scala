@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.locationtech.geomesa.filter.FilterHelper
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.spatial.{DWithin, _}
-import org.geotools.api.filter.temporal.{Before, Ends, Meets, TOverlaps, _}
-import org.geotools.api.filter.{ExcludeFilter, Or, _}
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.temporal._
+import org.geotools.api.filter._
+import org.locationtech.geomesa.filter.FilterHelper
 
 import scala.collection.JavaConverters._
 

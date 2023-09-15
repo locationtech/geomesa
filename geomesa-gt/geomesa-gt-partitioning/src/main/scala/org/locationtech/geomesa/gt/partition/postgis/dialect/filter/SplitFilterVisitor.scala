@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect.filter
 
+import org.geotools.api.filter.expression.Function
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.{And, Filter, Or}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FilterAttributeExtractor
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
-import org.geotools.api.filter.{And, Filter, Or}
-import org.geotools.api.filter.expression.Function
-import org.geotools.api.filter.spatial._
 
 /**
  * Filter visitor we use for processing filters in the dialect's `splitFilter`method.

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.geotools.filter.visitor.DefaultFilterVisitor
 import org.geotools.api.filter.Id
+import org.geotools.filter.visitor.DefaultFilterVisitor
 
 /**
   * Returns true if filter contains an ID filter

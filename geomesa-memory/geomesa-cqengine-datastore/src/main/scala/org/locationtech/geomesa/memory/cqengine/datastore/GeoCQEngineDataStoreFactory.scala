@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 
 import java.awt.RenderingHints.Key
 import java.util

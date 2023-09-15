@@ -8,11 +8,9 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.locationtech.geomesa.utils.collection.TieredOrdering
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.sort.{SortBy, SortOrder}
-
-import scala.math.Ordering
+import org.locationtech.geomesa.utils.collection.TieredOrdering
 
 /**
   * Ordering for simple features

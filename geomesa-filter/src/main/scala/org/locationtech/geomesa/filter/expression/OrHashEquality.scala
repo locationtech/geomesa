@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.geotools.api.filter.expression.PropertyName
 import org.geotools.api.filter.{Filter, FilterVisitor, Or}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import java.util.Collections
 import scala.collection.immutable.HashSet

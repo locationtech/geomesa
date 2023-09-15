@@ -13,12 +13,11 @@ import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.geotools.data._
 import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.memory.{MemoryDataStore, MemoryEntry}
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.URLs
 import org.geotools.util.factory.Hints
@@ -40,7 +39,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

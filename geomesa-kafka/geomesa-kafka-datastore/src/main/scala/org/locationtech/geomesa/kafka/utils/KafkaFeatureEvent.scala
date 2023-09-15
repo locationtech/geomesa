@@ -8,15 +8,14 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import org.geotools.api.data.FeatureEvent
 import org.geotools.api.data.FeatureEvent.Type
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.api.data.{FeatureEvent, SimpleFeatureSource}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.jts.geom.Geometry
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.Filter
 
 import scala.util.control.NonFatal
 

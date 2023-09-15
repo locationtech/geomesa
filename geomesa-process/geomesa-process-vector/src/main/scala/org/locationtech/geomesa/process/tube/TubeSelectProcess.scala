@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.process.tube
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.simple.{SimpleFeatureCollection}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
@@ -24,8 +25,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
 import org.locationtech.jts.geom._
-import org.geotools.api.feature.Feature
-import org.geotools.api.filter.Filter
 
 import java.util.Date
 import scala.collection.JavaConverters._

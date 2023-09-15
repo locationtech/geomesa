@@ -14,7 +14,6 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import info.ganglia.gmetric4j.gmetric.GMetric
 import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 import org.locationtech.geomesa.metrics.core.ReporterFactory
-import org.locationtech.geomesa.metrics.core.Slf4jReporterFactory.{Slf4jConfig, Slf4jDefaults}
 import pureconfig.{ConfigReader, ConfigSource}
 
 import java.util.Locale

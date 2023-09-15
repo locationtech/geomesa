@@ -10,6 +10,8 @@ package org.locationtech.geomesa.accumulo.filter
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter._
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
@@ -22,8 +24,6 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Coordinate
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

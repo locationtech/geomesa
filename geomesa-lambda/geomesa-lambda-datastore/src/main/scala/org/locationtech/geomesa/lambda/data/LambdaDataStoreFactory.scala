@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import org.geotools.api.data.DataAccessFactory.Param
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.security.SecurityParams

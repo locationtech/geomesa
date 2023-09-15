@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.security.filter
 
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.capability.FunctionName
+import org.geotools.api.filter.expression.Expression
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
 import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils, VisibilityEvaluator}
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.capability.FunctionName
-import org.geotools.api.filter.expression.Expression
 
 import java.nio.charset.StandardCharsets
 import java.util.Collections

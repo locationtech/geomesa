@@ -12,9 +12,8 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{DataStore, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.jobs.{GeoMesaHBaseInputFormat, HBaseJobUtils, Security}
@@ -22,7 +21,6 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
-import org.geotools.api.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
 

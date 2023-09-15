@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
 import java.util.concurrent.atomic.AtomicInteger
 

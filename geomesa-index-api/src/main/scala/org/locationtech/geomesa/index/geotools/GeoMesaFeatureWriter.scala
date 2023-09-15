@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.SimpleFeatureWriter
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
-import org.geotools.data.{DataUtilities}
+import org.geotools.api.data.{Query, SimpleFeatureWriter, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -23,8 +23,6 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 
 import java.io.Flushable
 import java.util.concurrent.atomic.AtomicLong

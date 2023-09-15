@@ -9,14 +9,13 @@
 package org.locationtech.geomesa.utils.collection
 
 import org.geotools.api.data.FeatureReader
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
-import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
 import org.geotools.api.feature.Feature
 import org.geotools.api.feature.`type`.FeatureType
 import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
 
 import java.io.Closeable
-import scala.collection.Iterator
 
 // By 'self-closing', we mean that the iterator will automatically call close once it is completely exhausted.
 trait SelfClosingIterator[+A] extends CloseableIterator[A] {

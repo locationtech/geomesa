@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -9,20 +9,18 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
 import org.geotools.api.data._
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.simple.{SimpleFeatureCollection}
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortBy
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem
+import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import java.awt.RenderingHints.Key
 import java.net.URI

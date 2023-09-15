@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.{Filter, FilterFactory}
 import org.geotools.filter.spatial.BBOXImpl
 import org.locationtech.geomesa.filter.FilterHelper.trimToWorld
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils.distanceDegrees
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.{Geometry, GeometryCollection}
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.spatial._
-import org.geotools.api.filter.{Filter, FilterFactory}
 
 import java.util.Locale
 import scala.util.{Failure, Success}

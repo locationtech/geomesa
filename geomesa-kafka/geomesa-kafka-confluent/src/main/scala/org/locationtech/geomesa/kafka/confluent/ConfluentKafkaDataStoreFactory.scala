@@ -13,10 +13,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.Schema
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory, KafkaDataStoreParams}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.awt.RenderingHints
 import java.net.URL

@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.config.ConfigFactory
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -22,7 +22,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

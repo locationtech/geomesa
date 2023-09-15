@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, Function, Literal, PropertyName}
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.temporal._
 import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.expression.AttributeExpression
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter._
-import org.geotools.api.filter.expression.{Expression, Function, Literal, PropertyName}
-import org.geotools.api.filter.spatial._
-import org.geotools.api.filter.temporal._
 
 import scala.collection.JavaConverters._
 import scala.util.Try

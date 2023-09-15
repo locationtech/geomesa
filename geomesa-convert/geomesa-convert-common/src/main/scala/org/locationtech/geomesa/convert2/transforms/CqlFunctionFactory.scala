@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.filter.expression.PropertyName
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, arrayIndexProperty}
 import org.locationtech.geomesa.convert2.transforms.Expression.Literal
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
-import org.geotools.api.filter.expression.PropertyName
 
 class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 

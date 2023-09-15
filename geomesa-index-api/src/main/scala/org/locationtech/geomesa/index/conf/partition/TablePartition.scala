@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.index.conf.partition
 
 import com.typesafe.scalalogging.StrictLogging
-import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 
 import java.util.ServiceLoader
 

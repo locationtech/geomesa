@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
+import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**

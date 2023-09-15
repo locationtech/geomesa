@@ -16,9 +16,8 @@ import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.storage.StorageLevel
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
@@ -29,10 +28,8 @@ import org.locationtech.geomesa.spark.{GeoMesaSpark, SpatialRDD}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.{Collections, Locale}
-import scala.collection.Iterator
 import scala.util.control.NonFatal
 
 /**

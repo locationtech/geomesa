@@ -16,12 +16,12 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.geotools.api.data.DataStore;
 import org.geotools.api.data.DataStoreFinder;
 import org.geotools.api.data.Query;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
 import org.locationtech.geomesa.jobs.interop.mapreduce.GeoMesaOutputFormat;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes$;
-import org.geotools.api.feature.simple.SimpleFeature;
-import org.geotools.api.feature.simple.SimpleFeatureType;
 
 import java.io.IOException;
 import java.util.HashMap;

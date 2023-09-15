@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.FeatureListener
-import org.geotools.api.data.SimpleFeatureSource
+import org.geotools.api.data.{FeatureListener, SimpleFeatureSource}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.Expression
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
@@ -18,9 +20,6 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
-import org.geotools.api.filter.expression.Expression
 
 import java.io.Closeable
 import java.util.concurrent._

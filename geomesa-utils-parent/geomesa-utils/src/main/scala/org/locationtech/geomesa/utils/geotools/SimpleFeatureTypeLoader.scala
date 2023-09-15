@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.config.ConfigFactory
-import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 
 import java.net.URL
 import java.util.Collections

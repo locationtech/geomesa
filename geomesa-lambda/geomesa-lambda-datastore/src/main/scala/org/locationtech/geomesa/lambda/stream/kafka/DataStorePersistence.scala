@@ -9,15 +9,14 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{DataStore, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.{ExpiredFeatures, ExpiringFeatureCache, OffsetFeature}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
-import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.time.Clock

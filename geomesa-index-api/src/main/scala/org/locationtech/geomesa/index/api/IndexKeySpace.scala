@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index.api
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.utils.Explainer
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 
 /**
   * Conversions to/from index keys

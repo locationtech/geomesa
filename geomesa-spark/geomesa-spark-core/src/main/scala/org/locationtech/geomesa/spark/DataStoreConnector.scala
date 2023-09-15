@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.spark
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.{DataStore, DataStoreFinder}
 
 /**
   * Caches accessing of DataStores.

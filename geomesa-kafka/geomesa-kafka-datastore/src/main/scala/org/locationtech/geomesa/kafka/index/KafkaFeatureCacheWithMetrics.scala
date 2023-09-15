@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.codahale.metrics.Gauge
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class KafkaFeatureCacheWithMetrics(
     sft: SimpleFeatureType,

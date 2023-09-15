@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.tools.export
 
+import org.geotools.api.data.{DataStore, Query, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data.DataUtilities
 import org.geotools.data.memory.MemoryDataStore
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.Query
-import org.geotools.api.data.Transaction
-import org.geotools.data.{DataUtilities}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.DataStoreRegistration
@@ -23,7 +22,6 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

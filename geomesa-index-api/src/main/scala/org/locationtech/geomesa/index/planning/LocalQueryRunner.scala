@@ -10,6 +10,8 @@ package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, FormatVersion}
@@ -32,8 +34,6 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, Si
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.Stat
 import org.locationtech.jts.geom.Envelope
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets

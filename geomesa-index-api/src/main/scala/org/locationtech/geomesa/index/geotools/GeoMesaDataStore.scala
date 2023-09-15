@@ -10,10 +10,12 @@ package org.locationtech.geomesa.index.geotools
 
 import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, AsyncLoadingCache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
 import org.geotools.api.data._
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
-import org.locationtech.geomesa.index.api.{IndexManager, _}
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibility, VersionKey}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -31,9 +33,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOpti
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.geotools.api.feature.`type`.AttributeDescriptor
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 
 import java.io.IOException
 import java.util.Collections

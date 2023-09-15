@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.serializer.KryoRegistrator
 import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.locationtech.geomesa.features.ScalaSimpleFeature.{ImmutableSimpleFeature, LazyImmutableSimpleFeature, LazyMutableSimpleFeature}
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
@@ -22,7 +23,6 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._

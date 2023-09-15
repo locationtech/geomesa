@@ -9,6 +9,12 @@
 package org.locationtech.geomesa.arrow.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.PropertyName
+import org.geotools.api.filter.spatial.BBOX
+import org.geotools.api.filter.temporal.During
+import org.geotools.api.temporal.Period
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.jts.GeometryVector
@@ -19,12 +25,6 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.{Coordinate, Polygon}
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter._
-import org.geotools.api.filter.expression.PropertyName
-import org.geotools.api.filter.spatial.BBOX
-import org.geotools.api.filter.temporal.During
-import org.geotools.api.temporal.Period
 
 import java.util.Date
 import scala.util.control.NonFatal

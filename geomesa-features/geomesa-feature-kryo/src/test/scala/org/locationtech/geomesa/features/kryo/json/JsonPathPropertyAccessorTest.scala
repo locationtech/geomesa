@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.PropertyAccessors
 import org.geotools.filter.text.ecql.ECQL
@@ -15,7 +16,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

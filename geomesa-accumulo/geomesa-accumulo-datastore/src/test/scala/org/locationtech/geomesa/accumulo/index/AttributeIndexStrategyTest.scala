@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.data._
 import org.geotools.api.data._
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
@@ -32,8 +33,6 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureType
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.Filter
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

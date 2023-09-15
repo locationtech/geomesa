@@ -14,11 +14,11 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
+import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob
+import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob.WriteIndexArgs
 import org.locationtech.geomesa.accumulo.tools.data.AddIndexCommand.AddIndexParameters
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
-import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob
-import org.locationtech.geomesa.accumulo.jobs.index.WriteIndexJob.WriteIndexArgs
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.conf.IndexId

@@ -8,11 +8,6 @@
 
 package org.locationtech.geomesa.filter.visitor
 
-import org.geotools.filter.LikeToRegexConverter
-import org.geotools.filter.function.InArrayFunction
-import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
-import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter._
@@ -20,6 +15,11 @@ import org.geotools.api.filter.expression._
 import org.geotools.api.filter.spatial._
 import org.geotools.api.filter.temporal._
 import org.geotools.api.temporal.Period
+import org.geotools.filter.LikeToRegexConverter
+import org.geotools.filter.function.InArrayFunction
+import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
+import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.util
 import java.util.regex.Pattern

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 
 import java.io.{InputStream, OutputStream}
 

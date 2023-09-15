@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.features
 
+import org.geotools.api.feature.Property
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
-import org.geotools.api.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

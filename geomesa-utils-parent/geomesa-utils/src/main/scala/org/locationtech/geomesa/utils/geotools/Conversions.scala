@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.Position2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.jts.geom._
-import org.geotools.api.feature.`type`.AttributeDescriptor
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}

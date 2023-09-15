@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.convert2.validators
 
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
 trait SimpleFeatureValidatorFactory {
 

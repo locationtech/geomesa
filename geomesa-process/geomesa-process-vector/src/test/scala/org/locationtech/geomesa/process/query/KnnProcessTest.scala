@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.process.query
 
 import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.spatial.BBOX
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.referencing.GeodeticCalculator
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.spatial.BBOX
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

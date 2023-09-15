@@ -9,17 +9,15 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
 import org.geotools.api.data._
-import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.api.data.SimpleFeatureSource
-import org.geotools.data.simple.{SimpleFeatureCollection}
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
-import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
+import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
 
 import java.awt.RenderingHints.Key
 import java.util.Collections

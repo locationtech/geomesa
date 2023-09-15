@@ -10,12 +10,12 @@ package org.locationtech.geomesa.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rdd.RDD
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.FilterFactory
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry}
 import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
-import org.geotools.api.feature.simple.SimpleFeature
-import org.geotools.api.filter.FilterFactory
 
 import scala.collection.mutable.ListBuffer
 

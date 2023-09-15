@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.iterators
 
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 /**
  * Simple utility that removes duplicates from the list of IDs passed through.

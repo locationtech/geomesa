@@ -12,9 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types.{ArrayType, DataTypes, MapType}
 import org.apache.spark.sql.{SQLContext, SparkSession}
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.data.Transaction
+import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.sql.SQLTypes
