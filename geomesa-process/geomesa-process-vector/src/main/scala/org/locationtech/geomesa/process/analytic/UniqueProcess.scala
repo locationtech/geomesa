@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.process.analytic
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}

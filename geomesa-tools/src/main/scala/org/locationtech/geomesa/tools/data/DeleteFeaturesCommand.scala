@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.SimpleFeatureStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams

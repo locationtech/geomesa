@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine

@@ -10,8 +10,8 @@ package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.Query
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.index.{SpatialIndexValues, SpatioTemporalIndex, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor

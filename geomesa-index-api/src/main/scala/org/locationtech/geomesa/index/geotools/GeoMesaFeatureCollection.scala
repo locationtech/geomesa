@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureCollection, SimpleFeatureStore}
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.util.NullProgressListener
-import org.geotools.data.api.FeatureReader
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.FeatureReader
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor.GroupByVisitor.GroupByRawResult

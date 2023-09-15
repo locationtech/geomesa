@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.data.{SimpleFeatureCollection}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.util.NullProgressListener
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.Query
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor._

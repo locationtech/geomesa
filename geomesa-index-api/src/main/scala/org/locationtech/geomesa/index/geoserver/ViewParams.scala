@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.geoserver
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints

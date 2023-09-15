@@ -14,9 +14,9 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, K
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.common.{Cluster, TopicPartition}
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}

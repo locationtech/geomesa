@@ -18,9 +18,9 @@ import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONE
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.api.SimpleFeatureStore
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -268,7 +268,7 @@ class KafkaDataStore(
   }
 
   /**
-    * @see org.geotools.data.api.DataStore#getFeatureSource(org.geotools.api.feature.type.Name)
+    * @see org.geotools.api.data.DataStore#getFeatureSource(org.geotools.api.feature.type.Name)
     * @param typeName simple feature type name
     * @return featureStore, suitable for reading and writing
     */

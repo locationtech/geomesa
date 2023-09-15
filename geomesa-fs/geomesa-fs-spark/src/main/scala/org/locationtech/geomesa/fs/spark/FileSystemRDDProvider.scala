@@ -14,8 +14,8 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}

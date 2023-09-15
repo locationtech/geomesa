@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import org.geotools.data.api.FeatureReader
+import org.geotools.api.data.FeatureReader
 import org.geotools.feature.FeatureIterator
 import org.locationtech.geomesa.utils.collection.CloseableIterator.{CloseableIteratorImpl, ConcatCloseableIterator, FlatMapCloseableIterator}
 import org.locationtech.geomesa.utils.io.CloseQuietly

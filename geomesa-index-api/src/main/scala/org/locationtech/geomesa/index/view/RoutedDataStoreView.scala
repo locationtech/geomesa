@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.view
 
 import org.geotools.data._
 import org.geotools.data.api._
-import org.geotools.data.api.SimpleFeatureSource
+import org.geotools.api.data.SimpleFeatureSource
 import org.geotools.data.{EmptySimpleFeatureReader}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod

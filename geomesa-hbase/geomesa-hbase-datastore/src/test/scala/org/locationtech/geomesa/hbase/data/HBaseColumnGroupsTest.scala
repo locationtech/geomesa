@@ -12,9 +12,9 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.util.Bytes
-import org.geotools.data.api.DataStoreFinder
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope

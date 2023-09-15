@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.collection
 
-import org.geotools.data.api.FeatureReader
+import org.geotools.api.data.FeatureReader
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
 import org.geotools.api.feature.Feature

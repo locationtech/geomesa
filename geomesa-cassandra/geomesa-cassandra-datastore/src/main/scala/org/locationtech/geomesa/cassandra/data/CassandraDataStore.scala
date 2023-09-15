@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core._
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex

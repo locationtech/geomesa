@@ -10,8 +10,8 @@ package org.locationtech.geomesa.spark
 
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
-import org.geotools.data.api.DataStoreFinder
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}

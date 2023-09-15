@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.Logger
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory

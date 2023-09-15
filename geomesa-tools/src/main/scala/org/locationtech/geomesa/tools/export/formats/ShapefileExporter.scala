@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.Transaction
 import org.geotools.data.shapefile.files.ShpFiles
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.util.URLs

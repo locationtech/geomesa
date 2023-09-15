@@ -14,9 +14,9 @@ import org.apache.spark.sql.catalyst.plans.logical.Project
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.functions.{broadcast, expr}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.geotools.data.api.SimpleFeatureStore
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.DataStoreFinder
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.DataStoreFinder
 import org.geotools.data.{DataUtilities}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.index.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.filterToString

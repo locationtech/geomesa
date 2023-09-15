@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.Query
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

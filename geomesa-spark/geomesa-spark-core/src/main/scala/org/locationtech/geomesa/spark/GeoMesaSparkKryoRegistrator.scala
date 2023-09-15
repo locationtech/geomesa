@@ -13,7 +13,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.serializer.KryoRegistrator
-import org.geotools.data.api.DataStore
+import org.geotools.api.data.DataStore
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.locationtech.geomesa.features.ScalaSimpleFeature.{ImmutableSimpleFeature, LazyImmutableSimpleFeature, LazyMutableSimpleFeature}
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature

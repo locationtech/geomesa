@@ -10,9 +10,9 @@ package org.locationtech.geomesa.hbase.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.data.api.DataStoreFinder
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreFactory}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._

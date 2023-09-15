@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.lambda
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.geotools.data.api.DataStoreFinder
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.data.{DataUtilities}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

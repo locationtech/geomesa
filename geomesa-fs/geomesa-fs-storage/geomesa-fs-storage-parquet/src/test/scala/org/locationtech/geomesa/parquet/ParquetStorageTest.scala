@@ -12,7 +12,7 @@ package org.locationtech.geomesa.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith

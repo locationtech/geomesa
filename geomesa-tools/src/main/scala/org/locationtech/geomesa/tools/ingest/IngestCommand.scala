@@ -14,8 +14,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.DataStoreFinder
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.DataStoreFinder
 import org.geotools.data.{DataUtilities}
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference

@@ -19,7 +19,7 @@ import org.apache.accumulo.hadoopImpl.mapreduce.RangeInputSplit
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloClientConfig, AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils

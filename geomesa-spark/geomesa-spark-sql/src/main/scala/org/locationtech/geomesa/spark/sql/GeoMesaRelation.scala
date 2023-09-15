@@ -16,9 +16,9 @@ import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.storage.StorageLevel
-import org.geotools.data.api.DataStoreFinder
-import org.geotools.data.api.Query
-import org.geotools.data.api.Transaction
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.data.Query
+import org.geotools.api.data.Transaction
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore

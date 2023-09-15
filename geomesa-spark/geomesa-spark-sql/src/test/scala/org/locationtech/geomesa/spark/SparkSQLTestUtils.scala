@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.spark
 
 import org.apache.spark.sql.SparkSession
-import org.geotools.data.api.SimpleFeatureStore
-import org.geotools.data.api.DataStore
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.data.DataStore
 import org.geotools.data.{DataUtilities}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints

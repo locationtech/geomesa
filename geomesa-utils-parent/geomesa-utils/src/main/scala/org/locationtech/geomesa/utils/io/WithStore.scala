@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.io
 
-import org.geotools.data.api.DataStore
-import org.geotools.data.api.DataStoreFinder
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.DataStoreFinder
 
 /**
   * Look up a data store and safely dispose of it when done.

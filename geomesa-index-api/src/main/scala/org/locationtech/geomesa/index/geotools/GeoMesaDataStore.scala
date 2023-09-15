@@ -282,10 +282,10 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
   }
 
-  // methods from org.geotools.data.api.DataStore
+  // methods from org.geotools.api.data.DataStore
 
   /**
-   * @see org.geotools.data.api.DataStore#getSchema(java.lang.String)
+   * @see org.geotools.api.data.DataStore#getSchema(java.lang.String)
    * @param typeName feature type name
    * @return feature type, or null if it does not exist
    */
@@ -340,7 +340,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   }
 
   /**
-   * @see org.geotools.data.api.DataStore#getFeatureSource(java.lang.String)
+   * @see org.geotools.api.data.DataStore#getFeatureSource(java.lang.String)
    * @param typeName simple feature type name
    * @return featureStore, suitable for reading and writing
    */
@@ -407,7 +407,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     super.dispose()
   }
 
-  // end methods from org.geotools.data.api.DataStore
+  // end methods from org.geotools.api.data.DataStore
 
   // other public methods
 

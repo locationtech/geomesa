@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import org.geotools.data.api.SimpleFeatureWriter
+import org.geotools.api.data.SimpleFeatureWriter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.security.VisibilityChecker

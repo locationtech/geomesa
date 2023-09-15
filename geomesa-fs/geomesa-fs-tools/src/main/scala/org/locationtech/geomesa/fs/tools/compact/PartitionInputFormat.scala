@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.compact
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage

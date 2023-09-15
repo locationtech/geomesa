@@ -10,10 +10,10 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.api.FeatureReader
-import org.geotools.data.api.FeatureWriter
-import org.geotools.data.api.Query
-import org.geotools.data.api.QueryCapabilities
+import org.geotools.api.data.FeatureReader
+import org.geotools.api.data.FeatureWriter
+import org.geotools.api.data.Query
+import org.geotools.api.data.QueryCapabilities
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints

@@ -12,10 +12,10 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, RemovalCause, 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.api.FeatureReader
-import org.geotools.data.api.FeatureWriter
-import org.geotools.data.api.Query
-import org.geotools.data.api.QueryCapabilities
+import org.geotools.api.data.FeatureReader
+import org.geotools.api.data.FeatureWriter
+import org.geotools.api.data.Query
+import org.geotools.api.data.QueryCapabilities
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature

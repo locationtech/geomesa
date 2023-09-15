@@ -10,7 +10,7 @@ package org.locationtech.geomesa.process.analytic
 
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException

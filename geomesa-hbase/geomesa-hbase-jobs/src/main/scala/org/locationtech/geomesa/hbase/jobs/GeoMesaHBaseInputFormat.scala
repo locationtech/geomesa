@@ -17,7 +17,7 @@ import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputForma
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.api.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore}
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat.GeoMesaHBaseRecordReader

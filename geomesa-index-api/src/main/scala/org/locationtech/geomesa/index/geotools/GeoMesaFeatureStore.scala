@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data._
 import org.geotools.data.api._
-import org.geotools.data.api.SimpleFeatureStore
+import org.geotools.api.data.SimpleFeatureStore
 import org.geotools.feature._
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
