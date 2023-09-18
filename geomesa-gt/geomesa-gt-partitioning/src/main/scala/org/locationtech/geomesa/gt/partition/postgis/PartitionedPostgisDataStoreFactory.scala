@@ -44,8 +44,15 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
     source
   }
 
-  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
-
+  override protected def createDataStoreInternal(store: JDBCDataStore, baseParams: java.util.Map[String, _]): JDBCDataStore = {
+    val params = new java.util.HashMap[String, Any](baseParams)
+    // set default schema, if not specified - postgis store doesn't actually use its own default
+    if (!params.containsKey(PostgisNGDataStoreFactory.SCHEMA.key)) {
+      // need to set it in the store, as the key has already been processed
+      store.setDatabaseSchema("public")
+      // also set in the params for consistency, although it's not used anywhere
+      params.put(PostgisNGDataStoreFactory.SCHEMA.key, "public")
+    }
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 

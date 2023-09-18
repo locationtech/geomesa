@@ -77,7 +77,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "dbtype" -> PartitionedPostgisDataStoreParams.DbType.sample,
     "host" -> host,
     "port" -> port,
-    "schema" -> schema,
     "database" -> "postgres",
     "user" -> "postgres",
     "passwd" -> "postgres",
