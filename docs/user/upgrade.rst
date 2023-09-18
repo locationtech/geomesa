@@ -107,6 +107,13 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+Partitioned PostGIS Prepared Statements
+---------------------------------------
+
+If not specified, prepared statements now default to ``true``  in the partitioned PostGIS data store. Prepared
+statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
+supported through prepared statements.
+
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

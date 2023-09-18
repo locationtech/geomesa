@@ -16,7 +16,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 
-  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout}
+  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, PreparedStatements}
 
   override def getDisplayName: String = "PostGIS (partitioned)"
 
@@ -26,7 +26,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
 
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
-    Seq(DbType, IdleInTransactionTimeout)
+    Seq(DbType, IdleInTransactionTimeout, PreparedStatements)
         .foreach(p => parameters.put(p.key, p))
   }
 
@@ -44,8 +44,12 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
     source
   }
 
-  override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
-
+  override protected def createDataStoreInternal(store: JDBCDataStore, baseParams: java.util.Map[String, _]): JDBCDataStore = {
+    val params = new java.util.HashMap[String, Any](baseParams)
+    // default to using prepared statements, if not specified
+    if (!params.containsKey(PreparedStatements.key)) {
+      params.put(PreparedStatements.key, java.lang.Boolean.TRUE)
+    }
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 
