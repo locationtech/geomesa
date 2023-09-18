@@ -305,8 +305,8 @@ class ExpressionTest extends Specification {
     }
     "transform a date to a string" >> {
       val d = LocalDateTime.now()
-      val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
-      val exp = Expression("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+      val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")
+      val exp = Expression("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSS', $1)")
       exp.apply(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
     }
     "transform a date to milliseconds" >> {
