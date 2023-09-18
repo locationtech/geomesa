@@ -1544,8 +1544,21 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
     if (!params.containsKey(PreparedStatements.key)) {
       params.put(PreparedStatements.key, java.lang.Boolean.TRUE)
     }
+<<<<<<< HEAD
 >>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+<<<<<<< HEAD
 >>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+=======
+=======
+    // set default schema, if not specified - postgis store doesn't actually use its own default
+    if (!params.containsKey(PostgisNGDataStoreFactory.SCHEMA.key)) {
+      // need to set it in the store, as the key has already been processed
+      store.setDatabaseSchema("public")
+      // also set in the params for consistency, although it's not used anywhere
+      params.put(PostgisNGDataStoreFactory.SCHEMA.key, "public")
+    }
+>>>>>>> ed6355ceb8 (GEOMESA-3294 Partitioned PostGIS - use default database schema if not specified)
+>>>>>>> 42fc564606 (GEOMESA-3294 Partitioned PostGIS - use default database schema if not specified)
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 
