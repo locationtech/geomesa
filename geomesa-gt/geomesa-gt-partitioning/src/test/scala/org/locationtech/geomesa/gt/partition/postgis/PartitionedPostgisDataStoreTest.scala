@@ -1545,6 +1545,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> locationtech-main
     "host" -> host,
     "port" -> port,
+<<<<<<< HEAD
 =======
     "host" -> container.getHost,
     "port" -> container.getFirstMappedPort.toString,
@@ -1591,6 +1592,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locationtech-main
     "schema" -> schema,
+=======
+>>>>>>> ed6355ceb8 (GEOMESA-3294 Partitioned PostGIS - use default database schema if not specified)
     "database" -> "postgres",
     "user" -> "postgres",
     "passwd" -> "postgres",
