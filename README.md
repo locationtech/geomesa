@@ -727,6 +727,7 @@ The PROJ mailing list can be found at:
 =======
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
@@ -6296,6 +6297,18 @@ The following command line utilities are included in the PROJ package:
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 30bf8d4d94 ([maven-release-plugin] prepare for next development iteration)
+=======
+**Current release: [4.0.3](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.3)**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-hbase_2.12-4.0.3-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-accumulo_2.12-4.0.3-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-cassandra_2.12-4.0.3-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-kafka_2.12-4.0.3-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-redis_2.12-4.0.3-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-fs_2.12-4.0.3-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-gt_2.12-4.0.3-bin.tar.gz)
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
 
 ### Verifying Downloads
 
@@ -6312,6 +6325,7 @@ Then verify the file:
 <<<<<<< HEAD
 <<<<<<< HEAD
 ```bash
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6388,6 +6402,9 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12
 =======
 >>>>>>> 61d746ac26 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> e91404e741 ([maven-release-plugin] prepare for next development iteration)
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-4.0.3-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.3-bin.tar.gz
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
 ```
 =======
 ## Distribution files and format
@@ -7743,6 +7760,25 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  <version>3.5.1</version>
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+<<<<<<< HEAD
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7828,6 +7864,16 @@ CDN.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+>>>>>>> location-main
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
+=======
+  <version>4.0.3</version>
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 </dependency>
 ```
 =======
@@ -8137,6 +8183,25 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  <version>3.5.1</version>
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+<<<<<<< HEAD
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8222,6 +8287,16 @@ DataStore implementations:
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+>>>>>>> location-main
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
+=======
+  <version>4.0.3</version>
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -8250,6 +8325,25 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+  "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.1"
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+<<<<<<< HEAD
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8336,6 +8430,16 @@ libraryDependencies ++= Seq(
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+>>>>>>> location-main
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.3"
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 )
 ```
 
