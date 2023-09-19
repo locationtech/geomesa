@@ -11447,6 +11447,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12199,6 +12200,9 @@
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> locationtech-main
+=======
+        <geomesa.release.version>4.0.3</geomesa.release.version>
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 =======
 =======
