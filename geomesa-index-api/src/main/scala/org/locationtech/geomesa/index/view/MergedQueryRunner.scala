@@ -120,6 +120,7 @@ class MergedQueryRunner(
     val query = new Query(original)
 
     // set the thread-local hints once, so that we have them for each data store that is being queried
+    // noinspection ScalaDeprecation
     QueryPlanner.getPerThreadQueryHints.foreach { hints =>
       hints.foreach { case (k, v) => query.getHints.put(k, v) }
       // clear any configured hints so we don't process them again
