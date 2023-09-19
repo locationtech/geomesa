@@ -21,6 +21,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.1</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.1</text>
+=======
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -131,10 +138,13 @@
 >>>>>>> 7fd730a88a (Set release version)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 84fa24f897b (Set release version)
 =======
 =======
 >>>>>>> 7cb8fbadb12 (Set release version)
+=======
+>>>>>>> e40ee43cf4a (Set latest release to 4.0.3)
 =======
 >>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
 <<<<<<< HEAD
@@ -154,6 +164,16 @@
 =======
 =======
 >>>>>>> e098e61b2b (Set release version)
+<<<<<<< HEAD
 >>>>>>> 7cb8fbadb12 (Set release version)
+=======
+=======
+>>>>>>> locationtech-main
+=======
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.3</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.3</text>
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+>>>>>>> e40ee43cf4a (Set latest release to 4.0.3)
   </g>
 </svg>
