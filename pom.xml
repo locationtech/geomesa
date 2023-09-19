@@ -28909,6 +28909,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32720,6 +32725,13 @@
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
         <geomesa.release.version>4.0.1</geomesa.release.version>
 >>>>>>> 59a1fbb96e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
+=======
+>>>>>>> locationtech-main
+=======
+        <geomesa.release.version>4.0.3</geomesa.release.version>
+>>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 =======
 <<<<<<< HEAD
