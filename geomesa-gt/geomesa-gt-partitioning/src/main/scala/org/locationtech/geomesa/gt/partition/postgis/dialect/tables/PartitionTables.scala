@@ -24,12 +24,16 @@ object PartitionTables extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
 <<<<<<< HEAD
+<<<<<<< HEAD
     tablesAndTypes(info).flatMap { case (table, indexType) => statements(info, table, indexType) }
 =======
     statements(info, info.tables.writeAheadPartitions, "gist") ++
         statements(info, info.tables.mainPartitions, "brin") ++
         statements(info, info.tables.spillPartitions, "gist")
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+    tablesAndTypes(info).flatMap { case (table, indexType) => statements(info, table, indexType) }
+>>>>>>> dae7fc245d (GEOMESA-3300 Partitioned PostGIS - delete _spill table on removeSchema)
 
   private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables
