@@ -327,6 +327,7 @@ import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 <<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
@@ -619,6 +620,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeI
 =======
 >>>>>>> locationtech-main
 =======
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
+>>>>>>> f1a535f4fb (GEOMESA-3300 Partitioned PostGIS - delete _spill table on removeSchema)
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 >>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 >>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
@@ -894,6 +898,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> dae7fc245d (GEOMESA-3300 Partitioned PostGIS - delete _spill table on removeSchema)
+<<<<<<< HEAD
 <<<<<<< HEAD
 import scala.collection.mutable.ArrayBuffer
 =======
@@ -1056,7 +1065,14 @@ import java.util.Collections
 >>>>>>> fae2cdacf2 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> locationtech-main
+=======
+import scala.collection.mutable.ArrayBuffer
+>>>>>>> f1a535f4fb (GEOMESA-3300 Partitioned PostGIS - delete _spill table on removeSchema)
+>>>>>>> dae7fc245d (GEOMESA-3300 Partitioned PostGIS - delete _spill table on removeSchema)
 import scala.util.Try
 import scala.util.control.NonFatal
 
