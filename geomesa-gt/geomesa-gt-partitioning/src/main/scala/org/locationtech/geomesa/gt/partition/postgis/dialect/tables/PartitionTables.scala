@@ -14,10 +14,16 @@ package tables
  */
 object PartitionTables extends SqlStatements {
 
+  private def tablesAndTypes(info: TypeInfo): Seq[(TableConfig, String)] = {
+    Seq(
+      info.tables.writeAheadPartitions -> "gist",
+      info.tables.mainPartitions       -> "brin",
+      info.tables.spillPartitions      -> "gist"
+    )
+  }
+
   override protected def createStatements(info: TypeInfo): Seq[String] =
-    statements(info, info.tables.writeAheadPartitions, "gist") ++
-        statements(info, info.tables.mainPartitions, "brin") ++
-        statements(info, info.tables.spillPartitions, "gist")
+    tablesAndTypes(info).flatMap { case (table, indexType) => statements(info, table, indexType) }
 
   private def statements(info: TypeInfo, table: TableConfig, indexType: String): Seq[String] = {
     // note: don't include storage opts since these are parent partition tables
@@ -48,6 +54,5 @@ object PartitionTables extends SqlStatements {
   }
 
   override protected def dropStatements(info: TypeInfo): Seq[String] =
-    Seq(info.tables.writeAheadPartitions, info.tables.mainPartitions)
-        .map(table => s"DROP TABLE IF EXISTS ${table.name.qualified};")
+    tablesAndTypes(info).map { case (table, _) => s"DROP TABLE IF EXISTS ${table.name.qualified};" }
 }
