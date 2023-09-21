@@ -97,6 +97,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   override def encodeTableName(raw: String, sql: StringBuffer): Unit = delegate.encodeTableName(raw, sql)
   override def encodePostCreateTable(tableName: String, sql: StringBuffer): Unit =
     delegate.encodePostCreateTable(tableName, sql)
+  override def postCreateAttribute(att: AttributeDescriptor, tableName: String, schemaName: String, cx: Connection): Unit =
+    delegate.postCreateAttribute(att, tableName, schemaName, cx)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,
