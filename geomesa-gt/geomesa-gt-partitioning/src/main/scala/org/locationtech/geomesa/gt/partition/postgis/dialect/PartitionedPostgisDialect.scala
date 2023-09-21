@@ -663,6 +663,43 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     }
   }
 
+  override def postCreateAttribute(
+      att: AttributeDescriptor,
+      tableName: String,
+      schemaName: String,
+      cx: Connection): Unit = {
+
+    def withCol(fn: ResultSet => Unit): Unit = {
+      val meta = cx.getMetaData
+      def escape(name: String): String = store.escapeNamePattern(meta, name)
+      WithClose(meta.getColumns(cx.getCatalog, escape(schemaName), escape(tableName), escape(att.getLocalName))) { cols =>
+        if (cols.next()) {
+          fn(cols)
+        } else {
+          logger.warn(s"Could not retrieve column metadata for attribute ${att.getLocalName}")
+        }
+      }
+    }
+
+    if (classOf[String].isAssignableFrom(att.getType.getBinding)) {
+      withCol { cols =>
+        val typeName = cols.getString("TYPE_NAME")
+        if ("json".equalsIgnoreCase(typeName) || "jsonb".equalsIgnoreCase(typeName)) {
+          att.getUserData.put(SimpleFeatureTypes.AttributeOptions.OptJson, "true")
+        }
+      }
+    } else if (classOf[java.util.List[_]].isAssignableFrom(att.getType.getBinding)) {
+      withCol { cols =>
+        val arrayType = super.getMapping(cols, cx)
+        if (arrayType.isArray) {
+          att.getUserData.put(SimpleFeatureTypes.AttributeConfigs.UserDataListType, arrayType.getComponentType.getName)
+        } else {
+          logger.warn(s"Found a list-type attribute but database type was not an array for ${att.getLocalName}")
+        }
+      }
+    }
+  }
+
   override def postCreateFeatureType(
       sft: SimpleFeatureType,
       metadata: DatabaseMetaData,
