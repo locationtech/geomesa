@@ -6017,8 +6017,11 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   override def postCreateAttribute(att: AttributeDescriptor, tableName: String, schemaName: String, cx: Connection): Unit =
     delegate.postCreateAttribute(att, tableName, schemaName, cx)
+=======
+>>>>>>> 6c2babb799 (GEOMESA-3301 Partitioned PostGIS - fix Avro export)
 =======
 =======
 >>>>>>> 42af7673bd (GEOMESA-3215 Postgis - support List-type attributes)
@@ -6263,6 +6266,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 <<<<<<< HEAD
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -6332,6 +6336,13 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 =======
 >>>>>>> 7e990c0c62 (GEOMESA-3215 Postgis - support List-type attributes)
 >>>>>>> cdf5a8b797 (GEOMESA-3215 Postgis - support List-type attributes)
+=======
+>>>>>>> locationtech-main
+=======
+  override def postCreateAttribute(att: AttributeDescriptor, tableName: String, schemaName: String, cx: Connection): Unit =
+    delegate.postCreateAttribute(att, tableName, schemaName, cx)
+>>>>>>> b9e2900546 (GEOMESA-3301 Partitioned PostGIS - fix Avro export)
+>>>>>>> 6c2babb799 (GEOMESA-3301 Partitioned PostGIS - fix Avro export)
   override def postCreateFeatureType(
       featureType: SimpleFeatureType,
       metadata: DatabaseMetaData,
