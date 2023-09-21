@@ -613,7 +613,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 >>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 <<<<<<< HEAD
@@ -5446,6 +5446,31 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         } finally {
           ds.dispose()
         }
+      }
+    }
+
+    "set appropriate user data for list and json attributes" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "attrtest")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        ObjectType.selectType(schema.getDescriptor("name")) mustEqual Seq(ObjectType.LIST, ObjectType.STRING)
+        ObjectType.selectType(schema.getDescriptor("props")) mustEqual Seq(ObjectType.STRING, ObjectType.JSON)
+        ObjectType.selectType(schema.getDescriptor("dtg")) mustEqual Seq(ObjectType.DATE)
+        ObjectType.selectType(schema.getDescriptor("geom")) mustEqual Seq(ObjectType.GEOMETRY, ObjectType.POINT)
+      } finally {
+        ds.dispose()
       }
     }
 
