@@ -1272,6 +1272,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
           logger.warn(s"Found a list-type attribute but database type was not an array for ${att.getLocalName}")
         }
       }
+<<<<<<< HEAD
 =======
     }
   }
@@ -1286,6 +1287,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     } finally {
       ex.close()
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6c2babb799 (GEOMESA-3301 Partitioned PostGIS - fix Avro export)
     }
   }
 
