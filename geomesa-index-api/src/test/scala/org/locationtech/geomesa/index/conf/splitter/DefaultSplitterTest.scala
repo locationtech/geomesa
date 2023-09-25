@@ -15,10 +15,12 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class DefaultSplitterTest extends Specification {
@@ -98,11 +100,15 @@ class DefaultSplitterTest extends Specification {
         "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
         "attr.myString.date-range:2023-09-15/2023-09-16/4"
       val splits = splitter.getSplits(sft, attrString, opts)
-      splits.foreach(s => println(new String(s, StandardCharsets.UTF_8)))
       splits.length must be equalTo 29
-      // TODO validate partitions, remove println
-//      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual (0 to 9).map(_.toString) ++
-//          (0 to 9).map(i => s"8$i")
+      splits.toSeq must containAllOf(Seq.tabulate(25)(i => Array(('B' + i).toChar.toByte)))
+      val dates =
+        Seq("2023-09-15T00:00:00Z", "2023-09-15T06:00:00Z", "2023-09-15T12:00:00Z", "2023-09-15T18:00:00Z").map { d =>
+          "ABC".getBytes(StandardCharsets.UTF_8) ++
+              ByteArrays.ZeroByteArray ++
+              AttributeIndexKey.encodeForQuery(DateParsing.parseDate(d), classOf[Date]).getBytes(StandardCharsets.UTF_8)
+        }
+      splits.toSeq must containAllOf(dates)
     }
 
     "produce correct int splits" in {
