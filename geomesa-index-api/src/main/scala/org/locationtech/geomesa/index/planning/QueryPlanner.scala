@@ -162,15 +162,19 @@ object QueryPlanner extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private [planning] val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
+  private[planning] val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
 
   object CostEvaluation extends Enumeration {
     type CostEvaluation = Value
     val Stats, Index = Value
   }
 
+  // threaded hints were used as a work-around with wfs output formats, but now we use GetFeatureCallback instead
+  @deprecated("Deprecated with no replacement")
   def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
+  @deprecated("Deprecated with no replacement")
   def getPerThreadQueryHints: Option[Map[AnyRef, AnyRef]] = threadedHints.get
+  @deprecated("Deprecated with no replacement")
   def clearPerThreadQueryHints(): Unit = threadedHints.clear()
 
   /**
