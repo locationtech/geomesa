@@ -151,7 +151,13 @@ private class SplitPatternParser extends BasicParser {
 
   private def year: Rule0 = rule { nTimes(4, "0" - "9")  }
 
+<<<<<<< HEAD
   private def month: Rule0 = rule { ("0" ~ ("1" - "9")) | ("1" ~ ("0" - "2")) }
 
   private def day: Rule0 = rule { (("0" - "2") ~ ("0" - "9")) | ("3" ~ ("0" - "1")) }
+=======
+  private def month: Rule0 = rule { ("0" - "1") ~ ("1" - "9") }
+
+  private def day: Rule0 = rule { ("0" - "3") ~ ("0" - "9") }
+>>>>>>> bc50eb4be1 (GEOMESA-3297 Support for tiered date index pre-splits (#2996))
 }
