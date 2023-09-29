@@ -1,4 +1,4 @@
-# run with: find . -name "*.scala" -exec sed -E -i -f gt-30-api-changes.sed {} \;
+# run with: find . -name "*.scala" -not -exec grep -q "import org.geotools.api.data._" {} \; -exec sed -E -i -f gt-30-api-changes.sed {} \;
 
 s/org\.geotools\.data\.DataStore/org.geotools.api.data.DataStore/g
 s/(import org\.geotools\.data\.)\{DataStore, ([a-zA-Z0-9, _]*)\}/import org.geotools.api.data.DataStore\n\1{\2}/
@@ -175,9 +175,8 @@ s/(import org\.geotools\.data\.simple\.)\{SimpleFeatureSource\}/import org.geoto
 s/(import org\.geotools\.data\.simple\.)\{SimpleFeatureStore\}/import org.geotools.api.data.SimpleFeatureStore/
 s/(import org\.geotools\.data\.simple\.)\{SimpleFeatureWriter\}/import org.geotools.api.data.SimpleFeatureWriter/
 
-# to make the script idempotent, we delete the import we add on the next line
-/import org.geotools.api.data._/d
-s/import org\.geotools\.data\.(_|\{_\})/\0\nimport org.geotools.api.data._/
+s/import org\.geotools\.data\.\{_\}/import org.geotools.data._/
+s/import org\.geotools\.data\._/\0\nimport org.geotools.api.data._/
 
 s/org\.opengis\.geometry\.BoundingBox/org.geotools.api.geometry.BoundingBox/g
 s/org\.opengis\.geometry\.Geometry/org.locationtech.jts.geom.Geometry/g
