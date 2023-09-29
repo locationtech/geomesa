@@ -9,9 +9,12 @@
 package org.locationtech.geomesa.index.conf.splitter
 
 import org.locationtech.geomesa.index.conf.splitter.SplitPatternParser._
-import org.locationtech.geomesa.utils.text.BasicParser
+import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.utils.text.{BasicParser, DateParsing}
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
+
+import java.util.Date
 
 /**
   * Parses patterns into splits
@@ -66,6 +69,15 @@ object SplitPatternParser {
     override def range: Seq[String] =
       tiers.map(_.reverse).foldLeft(Seq("-")) { (left, right) => for (a <- left; b <- right) yield { a + b } }
   }
+
+  case class DatePattern(from: Date, to: Date, ranges: Int) extends SplitPattern {
+    override def range: Seq[String] = {
+      val interval = (to.getTime - from.getTime) / ranges
+      Seq.tabulate(ranges) { i =>
+        AttributeIndexKey.encodeForQuery(new Date(from.getTime + interval * i), classOf[Date])
+      }
+    }
+  }
 }
 
 private class SplitPatternParser extends BasicParser {
@@ -79,7 +91,7 @@ private class SplitPatternParser extends BasicParser {
   import org.parboiled.scala._
 
   def patterns: Rule1[SplitPattern] = rule {
-    (mixedPatterns | negativePatterns) ~ EOI
+    (mixedPatterns | negativePatterns | dateRange) ~ EOI
   }
 
   private def mixedPatterns: Rule1[SplitPattern] = rule {
@@ -99,6 +111,10 @@ private class SplitPatternParser extends BasicParser {
 
   private def numericTier: Rule1[SplitPattern] = rule {
     "[" ~ { oneOrMore(numeric) ~~> { p => if (p.length == 1) { p.head } else { CompositePattern(p) } } } ~ "]"
+  }
+
+  private def dateRange: Rule1[SplitPattern] = rule {
+    (date ~ "/" ~ date ~ "/" ~ int) ~~> { (from, to, splits) => DatePattern(from, to, splits) }
   }
 
   private def alpha: Rule1[AlphaPattern] = rule {
@@ -128,4 +144,14 @@ private class SplitPatternParser extends BasicParser {
   private def alphaEndpoint: Rule1[Char] = rule { ("a" - "z" | "A" - "Z") ~> { c => c.charAt(0) } }
 
   private def numericEndpoint: Rule1[Byte] = rule { ("0" - "9") ~> { c => c.toByte } }
+
+  private def date: Rule1[Date] = rule {
+    group(year ~ "-" ~ month ~ "-" ~ day) ~> { date => DateParsing.parseDate(date) }
+  }
+
+  private def year: Rule0 = rule { nTimes(4, "0" - "9")  }
+
+  private def month: Rule0 = rule { ("0" - "1") ~ ("1" - "9") }
+
+  private def day: Rule0 = rule { ("0" - "3") ~ ("0" - "9") }
 }

@@ -20,10 +20,10 @@ import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -37,6 +37,7 @@ import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -78,7 +79,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "dbtype" -> PartitionedPostgisDataStoreParams.DbType.sample,
     "host" -> host,
     "port" -> port,
-    "schema" -> schema,
     "database" -> "postgres",
     "user" -> "postgres",
     "passwd" -> "postgres",
@@ -328,6 +328,107 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
     }
 
+    "drop all associated tables on removeSchema" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        foreach(Seq("dropme-test", "dropmetest")) { name =>
+          val sft = SimpleFeatureTypes.renameSft(this.sft, name)
+
+          ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+          ds.createSchema(sft)
+
+          val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+          schema must not(beNull)
+          schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+          logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+          // write some data
+          WithClose(new DefaultTransaction()) { tx =>
+            WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+              features.foreach { feature =>
+                FeatureUtils.write(writer, feature, useProvidedFid = true)
+              }
+            }
+            tx.commit()
+          }
+
+          // get all the tables associated with the schema
+          def getTablesAndIndices: Seq[String] = {
+            val tables = ArrayBuffer.empty[String]
+            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              WithClose(cx.getMetaData.getTables(null, null, "dropme%", null)) { rs =>
+                while (rs.next()) {
+                  tables += rs.getString(3)
+                }
+              }
+            }
+            tables.toSeq
+          }
+
+          // get all the procedures and functions associated with the schema
+          def getFunctions: Seq[String] = {
+            val fns = ArrayBuffer.empty[String]
+            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              WithClose(cx.getMetaData.getProcedures(null, null, "%dropme%")) { rs =>
+                while (rs.next()) {
+                  fns += rs.getString(3)
+                }
+              }
+              WithClose(cx.getMetaData.getFunctions(null, null, "%dropme%")) { rs =>
+                while (rs.next()) {
+                  fns += rs.getString(3)
+                }
+              }
+            }
+            fns.toSeq
+          }
+
+          // get all the user data and other associated metadata
+          def getMeta: Seq[String] = {
+            val meta = ArrayBuffer.empty[String]
+            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              Seq(
+                (UserDataTable.Name, "type_name", "key"),
+                (SequenceTable.Name, "type_name", "value"),
+                (PrimaryKeyTable.Name, "table_name", "pk_column"),
+                (PartitionTablespacesTable.Name, "type_name", "table_type")
+              ).foreach { case (table, where, select) =>
+                WithClose(cx.prepareStatement(s"SELECT $select FROM ${table.quoted} WHERE $where like 'dropme%';")) { st =>
+                  WithClose(st.executeQuery()) { rs =>
+                    while (rs.next()) {
+                      meta += rs.getString(1)
+                    }
+                  }
+                }
+              }
+            }
+            meta.toSeq
+          }
+
+          // _wa, _wa_partition, _partition, _spill tables + dtg, pk, geom indices for each
+          // _analyze_queue, _sort_queue, _wa_000, main view
+          getTablesAndIndices must haveLength(20)
+          // delete/insert/update/wa triggers
+          // analyze_partitions, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
+          getFunctions must haveLength(11)
+          // 3 tablespaces, 4 user data, 1 seq count, 1 primary key
+          getMeta must haveLength(9)
+
+          ds.removeSchema(sft.getTypeName)
+
+          getTablesAndIndices must beEmpty
+          getFunctions must beEmpty
+          getMeta must beEmpty
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "remove whole-world filters" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
@@ -403,6 +504,54 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             }
           }
         }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "default to using prepared statements" in {
+      foreach(Seq(params, params + ("preparedStatements" -> "true"), params - "preparedStatements")) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisPsDialect]
+        } finally {
+          ds.dispose()
+        }
+      }
+      foreach(Seq(params + ("preparedStatements" -> "false"))) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisDialect] // not partitioned
+        } finally {
+          ds.dispose()
+        }
+      }
+    }
+
+    "set appropriate user data for list and json attributes" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "attrtest")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        ObjectType.selectType(schema.getDescriptor("name")) mustEqual Seq(ObjectType.LIST, ObjectType.STRING)
+        ObjectType.selectType(schema.getDescriptor("props")) mustEqual Seq(ObjectType.STRING, ObjectType.JSON)
+        ObjectType.selectType(schema.getDescriptor("dtg")) mustEqual Seq(ObjectType.DATE)
+        ObjectType.selectType(schema.getDescriptor("geom")) mustEqual Seq(ObjectType.GEOMETRY, ObjectType.POINT)
       } finally {
         ds.dispose()
       }

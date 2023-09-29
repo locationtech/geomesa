@@ -41,7 +41,7 @@ private class KVPairParser(pairSep: String = ",", kvSep: String = ":") extends B
   }
 
   private def value: Rule1[String] = rule {
-    quotedString | singleQuotedString | oneOrMore(char | anyOf(".-[]%")) ~> { (k) => k }
+    quotedString | singleQuotedString | oneOrMore(char | anyOf(".-[]%/")) ~> { (k) => k }
   }
 
   private def keyValue: Rule1[(String, String)] = rule {

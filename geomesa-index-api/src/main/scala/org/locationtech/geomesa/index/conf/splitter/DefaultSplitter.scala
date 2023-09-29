@@ -65,6 +65,8 @@ object DefaultSplitter {
     val Z3MinDateOption = s"${Z3Index.name}.min"
     val Z3MaxDateOption = s"${Z3Index.name}.max"
 
+    private val ZeroByteString = new String(ByteArrays.ZeroByteArray, StandardCharsets.UTF_8)
+
     /**
       * Creates splits suitable for a feature ID index. If nothing is specified, will assume a hex distribution.
       *
@@ -80,7 +82,7 @@ object DefaultSplitter {
     def idSplits(options: Map[String, String]): Seq[String] = {
       val patterns = {
         val configured = DefaultSplitter.patterns(s"${IdIndex.name}.pattern", options)
-        if (configured.hasNext) { configured } else {
+        if (configured.nonEmpty) { configured } else {
           Iterator("[0]", "[4]", "[8]", "[c]") // 4 splits assuming hex layout
         }
       }
@@ -102,19 +104,28 @@ object DefaultSplitter {
       * @return
       */
     def attributeSplits(name: String, binding: Class[_], options: Map[String, String]): Seq[String] = {
-      val patterns = DefaultSplitter.patterns(s"${AttributeIndex.name}.$name.pattern", options)
-      val ranges = patterns.toSeq.map(SplitPatternParser.parse)
-      if (classOf[Number].isAssignableFrom(binding)) {
-        try {
-          ranges.flatMap(numberPatternSplits(_, binding))
-        } catch {
-          case e: NumberFormatException =>
-            throw new IllegalArgumentException(s"Trying to create splits for attribute '$name' " +
-                s"of type ${binding.getName}, but splits could not be parsed as a number: " +
-                patterns.mkString(" "), e)
+      val patterns = DefaultSplitter.patternPairs(s"${AttributeIndex.name}.$name.", "pattern", "date-range", options)
+      val ranges = patterns.map { case (pattern, datePattern) =>
+        (SplitPatternParser.parse(pattern), datePattern.map(SplitPatternParser.parse))
+      }
+      val getSplits: SplitPattern => Seq[String] =
+        if (classOf[Number].isAssignableFrom(binding)) {
+          pattern =>
+            try { numberPatternSplits(pattern, binding) } catch {
+              case e: NumberFormatException =>
+                throw new IllegalArgumentException(s"Trying to create splits for attribute '$name' " +
+                    s"of type ${binding.getName}, but splits could not be parsed as a number: " +
+                    patterns.mkString(" "), e)
+            }
+        } else {
+          pattern => pattern.range
         }
-      } else {
-        ranges.flatMap(_.range)
+      ranges.flatMap { case (primary, secondary) =>
+        val splits = getSplits(primary)
+        secondary match {
+          case None => splits
+          case Some(s) => for { a <- splits; b <- s.range } yield { a + ZeroByteString + b }
+        }
       }
     }
 
@@ -233,9 +244,27 @@ object DefaultSplitter {
   private def z2Bytes(options: Map[String, String]): Array[Array[Byte]] =
     Parser.z2Splits(options).map(ByteArrays.toBytes).toArray
 
-  private def patterns(base: String, options: Map[String, String]): Iterator[String] = {
+  private def patterns(base: String, options: Map[String, String]): Seq[String] = {
     val keys = Iterator.single(base) ++ Iterator.range(2, Int.MaxValue).map(i => s"$base$i")
-    keys.map(options.get(_).orNull).takeWhile(_ != null)
+    keys.map(options.get(_).orNull).takeWhile(_ != null).toSeq
+  }
+
+  private def patternPairs(
+      prefix: String,
+      primary: String,
+      secondary: String,
+      options: Map[String, String]): Seq[(String, Option[String])] = {
+    val firstKey = s"$prefix$primary"
+    val secondKey = s"$prefix$secondary"
+    val transforms: Iterator[String => String] =
+      Iterator.single[String => String](b => b) ++ Iterator.range(2, Int.MaxValue).map(i => b => s"$b$i")
+    val patterns = transforms.map { transform =>
+      options.get(transform(firstKey)) match {
+        case None => null
+        case Some(pattern) => (pattern, options.get(transform(secondKey)))
+      }
+    }
+    patterns.takeWhile(_ != null).toSeq
   }
 
   @throws(classOf[NumberFormatException])
