@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>4.0.4-SNAPSHOT</version>
+        <version>4.0.4</version>
     </parent>
 
     <artifactId>geomesa-archetypes_2.12</artifactId>

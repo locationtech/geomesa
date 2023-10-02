@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.4-SNAPSHOT</version>
+    <version>4.0.4</version>
 
     <licenses>
         <license>
@@ -3453,7 +3453,7 @@
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
-        <tag>geomesa-4.0.0</tag>
+        <tag>geomesa-4.0.4</tag>
     </scm>
 
     <developers>
