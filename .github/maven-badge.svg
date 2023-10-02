@@ -21,7 +21,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 <<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.1</text>
@@ -173,7 +176,17 @@
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.3</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.3</text>
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+<<<<<<< HEAD
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+<<<<<<< HEAD
 >>>>>>> e40ee43cf4a (Set latest release to 4.0.3)
+=======
+=======
+=======
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
+>>>>>>> eb6f6241f52 (Set latest release version to 4.0.4)
   </g>
 </svg>
