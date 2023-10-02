@@ -6,8 +6,9 @@ GeoMesa Metrics
 GeoMesa provides integration with the `DropWizard Metrics <https://metrics.dropwizard.io/>`__ library for real-time
 reporting with the ``geomesa-metrics`` module.
 
-Reporters are available for `SLF4J <https://www.slf4j.org/>`__, `CloudWatch <https://aws.amazon.com/cloudwatch/>`__,
-`Graphite <https://graphiteapp.org/>`__, and `Ganglia <https://ganglia.sourceforge.net/>`__.
+Reporters are available for `CloudWatch <https://aws.amazon.com/cloudwatch/>`__,
+`Prometheus <https://prometheus.io/>`__, `Graphite <https://graphiteapp.org/>`__,
+`Ganglia <https://ganglia.sourceforge.net/>`__, and `SLF4J <https://www.slf4j.org/>`__.
 
 Configuration
 -------------
@@ -84,6 +85,60 @@ Example configuration:
     namespace   = "mynamespace"
     raw-counts  = false
     zero-values = false
+  }
+
+Prometheus Reporter
+-------------------
+
+The Prometheus reporter can be included by adding a dependency on
+``org.locationtech.geomesa:geomesa-metrics-prometheus``.  The Prometheus reporter supports normal Prometheus scraping
+as well as the Prometheus Pushgateway. Note that the unit and interval configurations described above do not apply
+to Prometheus reporters.
+
+Prometheus Scraping
+^^^^^^^^^^^^^^^^^^^
+
+The standard Prometheus reporter will expose an HTTP endpoint to be scraped by Prometheus.
+
+====================== ===============================================================================================
+Configuration Property Description
+====================== ===============================================================================================
+``type``               Must be ``prometheus``
+``port``               The port used to expose metrics
+``suffix``             A suffix to append to all metric names
+====================== ===============================================================================================
+
+Example configuration:
+
+::
+
+  {
+    type = "prometheus"
+    port = "9090"
+  }
+
+Prometheus Pushgateway
+^^^^^^^^^^^^^^^^^^^^^^
+
+For short-lived jobs, metrics can be sent to a Prometheus Pushgateway instead of being exposed for scraping.
+
+====================== ===============================================================================================
+Configuration Property Description
+====================== ===============================================================================================
+``type``               Must be ``prometheus-pushgateway``
+``gateway``            The Pushgateway host
+``job-name``           The name of the batch job being run
+``suffix``             A suffix to append to all metric names
+====================== ===============================================================================================
+
+Example configuration:
+
+::
+
+  {
+    type     = "prometheus-pushgateway"
+    gateway  = "http://pushgateway:8080/"
+    job-name = "my-job"
   }
 
 Ganglia Reporter
