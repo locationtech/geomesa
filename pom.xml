@@ -11448,6 +11448,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12203,6 +12204,9 @@
 =======
         <geomesa.release.version>4.0.3</geomesa.release.version>
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+=======
+        <geomesa.release.version>4.0.4</geomesa.release.version>
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
 =======
 =======
