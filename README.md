@@ -728,6 +728,7 @@ The PROJ mailing list can be found at:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 https://lists.osgeo.org/mailman/listinfo/proj/
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 
@@ -5939,6 +5940,18 @@ The following command line utilities are included in the PROJ package:
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-fs_2.12-4.0.3-bin.tar.gz) |
   [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.3/geomesa-gt_2.12-4.0.3-bin.tar.gz)
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+=======
+**Current release: [4.0.4](https://github.com/locationtech/geomesa/releases/tag/geomesa-4.0.4)**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-hbase_2.12-4.0.4-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-accumulo_2.12-4.0.4-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-cassandra_2.12-4.0.4-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-kafka_2.12-4.0.4-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-redis_2.12-4.0.4-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-fs_2.12-4.0.4-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-4.0.4/geomesa-gt_2.12-4.0.4-bin.tar.gz)
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
 
 ### Verifying Downloads
 
@@ -5955,6 +5968,7 @@ Then verify the file:
 <<<<<<< HEAD
 <<<<<<< HEAD
 ```bash
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6035,6 +6049,9 @@ $ gpg2 --verify geomesa-accumulo_2.12-3.3.0-bin.tar.gz.asc geomesa-accumulo_2.12
 =======
 $ gpg2 --verify geomesa-accumulo_2.12-4.0.3-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.3-bin.tar.gz
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+=======
+$ gpg2 --verify geomesa-accumulo_2.12-4.0.4-bin.tar.gz.asc geomesa-accumulo_2.12-4.0.4-bin.tar.gz
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
 ```
 =======
 ## Distribution files and format
@@ -7390,7 +7407,10 @@ CDN.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 <<<<<<< HEAD
   <version>3.5.1</version>
 =======
@@ -7503,7 +7523,13 @@ CDN.
 =======
   <version>4.0.3</version>
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+<<<<<<< HEAD
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+=======
+=======
+  <version>4.0.4</version>
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 </dependency>
 ```
 =======
@@ -7813,7 +7839,10 @@ DataStore implementations:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 <<<<<<< HEAD
   <version>3.5.1</version>
 =======
@@ -7926,7 +7955,13 @@ DataStore implementations:
 =======
   <version>4.0.3</version>
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+<<<<<<< HEAD
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+=======
+=======
+  <version>4.0.4</version>
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -7956,7 +7991,10 @@ libraryDependencies ++= Seq(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 <<<<<<< HEAD
   "org.locationtech.geomesa" %% "geomesa-utils" % "3.5.1"
 =======
@@ -8069,7 +8107,13 @@ libraryDependencies ++= Seq(
 =======
   "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.3"
 >>>>>>> 2b0864f15c (Set latest release to 4.0.3)
+<<<<<<< HEAD
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+=======
+=======
+  "org.locationtech.geomesa" %% "geomesa-utils" % "4.0.4"
+>>>>>>> b5eea5d60a (Set latest release version to 4.0.4)
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
 )
 ```
 
