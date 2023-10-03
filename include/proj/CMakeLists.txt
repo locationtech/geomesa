@@ -6,6 +6,7 @@ install(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -125,6 +126,9 @@ install(
 =======
   FILES util.hpp metadata.hpp common.hpp crs.hpp datum.hpp
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  FILES util.hpp metadata.hpp common.hpp crs.hpp datum.hpp
+>>>>>>> locationtech-main
     coordinatesystem.hpp coordinateoperation.hpp io.hpp nn.hpp
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/proj
 )

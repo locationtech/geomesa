@@ -46,6 +46,7 @@ extensions = [
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -316,6 +317,9 @@ extensions = [
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    'program_with_link',
+>>>>>>> locationtech-main
 ]
 
 # Add any paths that contain templates here, relative to this directory.

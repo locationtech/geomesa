@@ -68,6 +68,7 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c83e8187d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -862,6 +863,15 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
     val array = Array.ofDim[Any](2)
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+=======
+    val array = Array.ofDim[Any](2)
+=======
+    val array = Array.ofDim[Any](1)
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+    val array = Array.ofDim[Any](2)
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locationtech-main
 
     helper.get.rootPath match {
       case None =>
@@ -974,6 +984,7 @@ object XmlConverter extends StrictLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     private val mutableArray = Array.ofDim[Any](1)
 
@@ -1069,6 +1080,11 @@ object XmlConverter extends StrictLogging {
     private val mutableArray = Array.ofDim[Any](1)
 
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+    private val mutableArray = Array.ofDim[Any](1)
+
+>>>>>>> locationtech-main
     private val expression = new ThreadLocal[XPathExpression]() {
       override def initialValue(): XPathExpression = helper.get.xpath.compile(path)
     }
@@ -1077,6 +1093,7 @@ object XmlConverter extends StrictLogging {
 
     override def compile(helper: ThreadLocal[XmlHelper]): Unit = this.helper = helper
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1129,11 +1146,14 @@ object XmlConverter extends StrictLogging {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
     override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = {
       mutableArray(0) = expression.get.evaluate(args(0))
       super.eval(mutableArray)
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1228,6 +1248,9 @@ object XmlConverter extends StrictLogging {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
     private def values(args: Array[AnyRef]): AnyRef = expression.get.evaluate(args(0))
   }
 

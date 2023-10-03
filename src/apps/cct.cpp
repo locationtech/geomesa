@@ -86,6 +86,7 @@ Thomas Knudsen, thokn@sdfe.dk, 2016-05-25/2017-10-26
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -356,6 +357,9 @@ Thomas Knudsen, thokn@sdfe.dk, 2016-05-25/2017-10-26
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#include <algorithm>
+>>>>>>> locationtech-main
 #include <fstream> // std::ifstream
 #include <iostream>
 
@@ -522,6 +526,7 @@ int main(int argc, char **argv) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -808,6 +813,9 @@ int main(int argc, char **argv) {
 =======
     verbose   = MIN(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    verbose   = std::min(opt_given (o, "v"), 3); /* log level can't be larger than 3 */
+>>>>>>> locationtech-main
     if( verbose > 0 ) {
         proj_log_level (PJ_DEFAULT_CTX, static_cast<PJ_LOG_LEVEL>(verbose));
     }

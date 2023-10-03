@@ -462,6 +462,7 @@ Test EPSG:32631 to EPSG:4326
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -589,6 +590,8 @@ Check we allow ellipsoids up to a 0.59% relative difference in size
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 Test EPSG:4896 to EPSG:7930
 3496737.2679    743254.4507  5264462.9620	3496737.7857	743254.0394 5264462.6437 2019.0
 3496737.2679    743254.4507  5264462.9620	3496737.9401	743253.8861 5264462.5497 2029.0
@@ -662,6 +665,7 @@ Test cs2cs -W10
 
 -W argument missing or not in range [0,8]
 program abnormally terminated
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -832,3 +836,5 @@ program abnormally terminated
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main

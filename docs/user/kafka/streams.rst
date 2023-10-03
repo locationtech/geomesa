@@ -94,6 +94,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -320,6 +321,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> locationtech-main
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -350,6 +354,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -386,6 +391,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
 
 Write Example
 -------------
@@ -453,6 +460,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -673,6 +681,9 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+=======
+>>>>>>> locationtech-main
 .. code-block:: scala
 
     import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -702,6 +713,7 @@ The following shows how to persist data back to a GeoMesa topic:
     val topology = builder.build()
     // construct the streams app as normal
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -738,6 +750,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locationtech-main
 
 Joins and Topic Partitioning
 ----------------------------

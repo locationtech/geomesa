@@ -1062,6 +1062,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1136,12 +1137,15 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     double lon = 120;
     proj_trans_generic(P, PJ_FWD, &lat, sizeof(double), 1, &lon, sizeof(double),
                        1, nullptr, 0, 0, nullptr, 0, 0);
     // Should be a no-op when the time is unknown (or equal to 2020)
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(lon, 120, 1e-9);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1259,6 +1263,8 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
     proj_destroy(P);
 }
@@ -1346,6 +1352,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 
         auto Pnormalized = proj_normalize_for_visualization(ctx, P);
         ASSERT_TRUE(Pnormalized->over);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1488,6 +1495,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         proj_destroy(Pnormalized);
 
         proj_destroy(P);
@@ -1586,6 +1595,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
         for (const auto &op : Pnormalized->alternativeCoordinateOperations) {
             ASSERT_TRUE(op.pj->over);
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1729,6 +1739,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         proj_destroy(Pnormalized);
 
         proj_destroy(P);

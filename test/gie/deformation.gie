@@ -12,6 +12,7 @@ and for testing purposes it doesn't really matter all that much...
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -134,6 +135,9 @@ The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 =======
 The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+The input coordinate is located at lon=60, lam=-160 - somewhere in Alaska.
+>>>>>>> locationtech-main
 
 ===============================================================================
 

@@ -181,6 +181,7 @@ object HBaseDataStore {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -300,5 +301,10 @@ object HBaseDataStore {
     override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+=======
+    override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+>>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locationtech-main
   }
 }

@@ -223,6 +223,7 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -517,6 +518,11 @@ static PJ_XY forward_2d(PJ_LP lp, PJ *P) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Assigning in 2 steps avoids cppcheck warning
+    // "Overlapping read/write of union is undefined behavior"
+    // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
+>>>>>>> locationtech-main
     const auto xyz = forward_3d(point.lpz, P);
     point.xyz = xyz;
 
@@ -537,6 +543,7 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -831,6 +838,11 @@ static PJ_LP reverse_2d(PJ_XY xy, PJ *P) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Assigning in 2 steps avoids cppcheck warning
+    // "Overlapping read/write of union is undefined behavior"
+    // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
+>>>>>>> locationtech-main
     const auto lpz = reverse_3d(point.xyz, P);
     point.lpz = lpz;
 
@@ -873,6 +885,7 @@ static void forward_4d(PJ_COORD& obs, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -986,11 +999,14 @@ static void forward_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto xyz = forward_3d(obs.lpz, P);
     obs.xyz = xyz;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1242,6 +1258,8 @@ static void forward_4d(PJ_COORD& obs, PJ *P) {
 =======
     obs.xyz = forward_3d(obs.lpz, P);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 }
 
 
@@ -1280,6 +1298,7 @@ static void reverse_4d(PJ_COORD& obs, PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1393,11 +1412,14 @@ static void reverse_4d(PJ_COORD& obs, PJ *P) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
     // Assigning in 2 steps avoids cppcheck warning
     // "Overlapping read/write of union is undefined behavior"
     // Cf https://github.com/OSGeo/PROJ/pull/3527#pullrequestreview-1233332710
     const auto lpz = reverse_3d(obs.xyz, P);
     obs.lpz = lpz;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1649,6 +1671,8 @@ static void reverse_4d(PJ_COORD& obs, PJ *P) {
 =======
     obs.lpz = reverse_3d(obs.xyz, P);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 }
 
 

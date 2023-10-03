@@ -939,6 +939,7 @@ TEST_F(CApi, proj_get_type) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1078,6 +1079,9 @@ TEST_F(CApi, proj_get_type) {
 =======
         ASSERT_EQ(obj, nullptr);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        ASSERT_EQ(obj, nullptr);
+>>>>>>> locationtech-main
     }
 }
 
@@ -1984,6 +1988,7 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2106,6 +2111,9 @@ TEST_F(CApi, proj_create_operations_prime_meridian_non_greenwich) {
 =======
         // lat,lon=49,-4 if using grid
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        // lat,lon=49,-4 if using grid
+>>>>>>> locationtech-main
         coord.xy.x = 136555.58288992;
         coord.xy.y = 463344.51894296;
         int idx = proj_get_suggested_operation(m_ctxt, res, PJ_FWD, coord);
@@ -2928,6 +2936,7 @@ TEST_F(CApi, proj_create_projections) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3050,6 +3059,9 @@ TEST_F(CApi, proj_create_projections) {
 =======
         auto projCRS = proj_create_conversion_tunisia_mapping_grid(
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        auto projCRS = proj_create_conversion_tunisia_mapping_grid(
+>>>>>>> locationtech-main
             m_ctxt, 0, 0, 0, 0, "Degree", 0.0174532925199433, "Metre", 1.0);
         ObjectKeeper keeper_projCRS(projCRS);
         ASSERT_NE(projCRS, nullptr);
@@ -5115,6 +5127,7 @@ TEST_F(CApi, proj_create_crs_to_crs_from_pj_ballpark_filter) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5281,6 +5294,8 @@ TEST_F(CApi, proj_create_crs_to_crs_coordinate_metadata_in_target) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 static void
 check_axis_is_latitude(PJ_CONTEXT *ctx, PJ *cs, int axis_number,
                        const char *unit_name = "degree",
@@ -5928,6 +5943,7 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6050,6 +6066,9 @@ TEST_F(CApi, proj_create_vertical_crs_ex_implied_accuracy) {
 =======
     // Check there's an asssociated area of use
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Check there's an asssociated area of use
+>>>>>>> locationtech-main
     double west_lon_degree = 0;
     double south_lat_degree = 0;
     double east_lon_degree = 0;
@@ -6817,6 +6836,7 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6930,12 +6950,15 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
     // Before the ellipsoidal version of the gnomonic projection was
     // implemented the WGS84 ellipsoid was treated as a sphere of radius
     // 6378137m and the equator was the "horizon" for the projection with the
     // south polar aspect.
     //
     // The boundary with ndiv = 21 then mapped into a line extending to ymin =
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7038,12 +7061,16 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+    // -89178007.2 which was the projection of lat = -90d/(ndiv+1), lon = 180d.
+>>>>>>> locationtech-main
     //
     // With the implementation of the ellipsoidal gnonomic projection, the
     // horizon is now at lat = +0.3035d.
     //
     // We move the north edge of the box to lat = -90+4.15*(ndiv+1) = +1.3d.
     // The northernmost point on the boundary which is within the horizon is
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7168,12 +7195,16 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locationtech-main
+=======
+    // now lat = -90+4.15*ndiv = -2.85d, lon = 180d for which y = -116576598.5.
+>>>>>>> locationtech-main
     int success =
         proj_trans_bounds(m_ctxt, P, PJ_FWD, -180.0, -90.0, 180.0, 1.3,
                           &out_left, &out_bottom, &out_right, &out_top, 21);
     EXPECT_TRUE(success == 1);
     EXPECT_NEAR(out_left, 0, 1);
     EXPECT_NEAR(out_bottom, -116576598.5, 1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7521,6 +7552,8 @@ TEST_F(CApi, proj_trans_bounds_ignore_inf) {
     EXPECT_NEAR(out_left, 0, 1);
     EXPECT_NEAR(out_bottom, -89178008, 1);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     EXPECT_NEAR(out_right, 0, 1);
     EXPECT_NEAR(out_top, 0, 1);
 }

@@ -67,6 +67,7 @@ authors:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     orcid: https://orcid.org/0000-0002-7227-9173
 =======
 <<<<<<< HEAD
@@ -171,6 +172,8 @@ authors:
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 keywords:
   - PROJ
   - geodesy

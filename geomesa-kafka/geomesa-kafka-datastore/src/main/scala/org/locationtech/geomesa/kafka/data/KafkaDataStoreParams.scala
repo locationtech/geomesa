@@ -22,6 +22,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Locale, Properties}
 =======
@@ -122,6 +123,14 @@ import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+import java.util.concurrent.ScheduledExecutorService
+import java.util.{Locale, Properties}
+=======
+import java.util.Properties
+import java.util.concurrent.ScheduledExecutorService
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
 import scala.concurrent.duration.Duration
 
 <<<<<<< HEAD
@@ -497,6 +506,7 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
@@ -609,6 +619,10 @@ trait KafkaDataStoreParamsWTF extends NamespaceParams {
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locationtech-main
   val LayerViews =
     new GeoMesaParam[String](
       "kafka.layer.views",

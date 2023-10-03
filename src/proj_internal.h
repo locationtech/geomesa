@@ -583,6 +583,7 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -734,6 +735,10 @@ struct PJconsts {
     NS_PROJ::common::IdentifiedObjectPtr iso_obj{};
     bool                                 iso_obj_is_coordinate_operation = false;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    NS_PROJ::common::IdentifiedObjectPtr iso_obj{};
+    bool                                 iso_obj_is_coordinate_operation = false;
+>>>>>>> locationtech-main
 
     // cached results
     mutable std::string lastWKT{};
@@ -757,6 +762,7 @@ struct PJconsts {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -871,6 +877,8 @@ struct PJconsts {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
     /*************************************************************************************
 
@@ -978,6 +986,7 @@ struct pj_ctx{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1092,6 +1101,8 @@ struct pj_ctx{
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     void    (*logger)(void *, int, const char *) = nullptr;
     void    *logger_app_data = nullptr;
     struct projCppContext* cpp_context = nullptr; /* internal context for C++ code */
@@ -1145,6 +1156,7 @@ struct pj_ctx{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1197,6 +1209,8 @@ struct pj_ctx{
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 /* Generate pj_list external or make list from include file */
 #ifndef PJ_DATUMS_
 C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
@@ -1204,6 +1218,7 @@ C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
 
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1306,6 +1321,8 @@ C_NAMESPACE_VAR struct PJ_DATUMS pj_datums[];
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 
 #ifdef PJ_LIB_
@@ -1387,6 +1404,7 @@ double  pj_sinhpsi2tanphi(PJ_CONTEXT *, const double, const double);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 double  pj_qsfn_(double, PJ *);
 <<<<<<< HEAD
@@ -1503,6 +1521,9 @@ double  pj_qsfn_(double, PJ *);
 =======
 double  pj_qsfn_(double, PJ *);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+double  pj_qsfn_(double, PJ *);
+>>>>>>> locationtech-main
 double *pj_authset(double);
 double  pj_authlat(double, double *);
 
@@ -1526,6 +1547,7 @@ PJ_LP     pj_inv_gauss(PJ_CONTEXT *, PJ_LP, const void *);
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1648,6 +1670,9 @@ struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 =======
 struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+struct PJ_DATUMS           PROJ_DLL *pj_get_datums_ref( void );
+>>>>>>> locationtech-main
 
 PJ *pj_new(void);
 PJ *pj_default_destructor (PJ *P, int errlev);

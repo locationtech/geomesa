@@ -28,12 +28,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -153,6 +157,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare string not equals" >> {
@@ -163,12 +169,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
       pred.eval(Array("", "1", "2")) must beTrue
       pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -288,6 +298,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
     }
     "compare int equals" >> {
       foreach(Seq("intEq($1::int, $2::int)", "$1::int == $2::int")) { s =>
@@ -298,12 +310,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -423,6 +439,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare integer equals" >> {
@@ -434,12 +452,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -559,6 +581,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare nested int equals" >> {
@@ -570,12 +594,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "3", "foo")) must beTrue
         pred.eval(Array("", "4", "foo")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -695,6 +723,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare int lteq" >> {
@@ -707,6 +737,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -860,11 +891,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1", "2")) must beTrue
         pred.eval(Array("", "1", "1")) must beTrue
         pred.eval(Array("", "1", "0")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare int lt" >> {
@@ -876,12 +912,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1", "2")) must beTrue
         pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1001,6 +1041,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare int gteq" >> {
@@ -1013,6 +1055,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1166,11 +1209,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beTrue
         pred.eval(Array("", "2", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare int gt" >> {
@@ -1183,6 +1231,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1336,11 +1385,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1", "2")) must beFalse
         pred.eval(Array("", "1", "1")) must beFalse
         pred.eval(Array("", "2", "1")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare double equals" >> {
@@ -1352,12 +1406,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1.0", "2.0")) must beFalse
         pred.eval(Array("", "1.0", "1.0")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1477,6 +1535,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare double lteq" >> {
@@ -1489,6 +1549,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1642,11 +1703,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1.0", "2.0")) must beTrue
         pred.eval(Array("", "1.0", "1.0")) must beTrue
         pred.eval(Array("", "1.0", "0.0")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare double lt" >> {
@@ -1658,12 +1724,16 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 =======
         pred.eval(Array("", "1.0", "2.0")) must beTrue
         pred.eval(Array("", "1.0", "1.0")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1783,6 +1853,8 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare double gteq" >> {
@@ -1795,6 +1867,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1948,11 +2021,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1.0", "2.0")) must beFalse
         pred.eval(Array("", "1.0", "1.0")) must beTrue
         pred.eval(Array("", "2.0", "1.0")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare double gt" >> {
@@ -1965,6 +2043,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2118,11 +2197,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "1.0", "2.0")) must beFalse
         pred.eval(Array("", "1.0", "1.0")) must beFalse
         pred.eval(Array("", "2.0", "1.0")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
     "compare not predicates" >> {
@@ -2133,6 +2217,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2252,6 +2337,11 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "1", "1")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+        pred.eval(Array("", "1", "1")) must beFalse
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
       }
     }
     "compare and predicates" >> {
@@ -2262,6 +2352,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2381,6 +2472,11 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+        pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
       }
     }
     "compare or predicates" >> {
@@ -2391,6 +2487,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2510,6 +2607,11 @@ class PredicateTest extends Specification {
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+        pred.eval(Array("", "foo", "foo", "f", "oo")) must beTrue
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
       }
     }
     "compare grouped predicates" >> {
@@ -2527,6 +2629,7 @@ class PredicateTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2680,11 +2783,16 @@ class PredicateTest extends Specification {
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
         pred.eval(Array("", "foo", "foo", "f", "foo")) must beTrue
         pred.eval(Array("", "foo", "foo", "f", "oo")) must beFalse
         pred.eval(Array("", "foo", "fo", "f", "foo")) must beFalse
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
       }
     }
   }

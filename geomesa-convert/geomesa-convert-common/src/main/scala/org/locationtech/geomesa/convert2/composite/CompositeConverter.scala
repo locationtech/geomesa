@@ -12,6 +12,7 @@ package org.locationtech.geomesa.convert2.composite
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -165,11 +166,16 @@ import java.nio.charset.StandardCharsets
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locationtech-main
+=======
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locationtech-main
 import com.codahale.metrics.Counter
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.EvaluationContext

@@ -124,6 +124,7 @@ Its default content is:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -185,6 +186,8 @@ Its default content is:
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 ::
 
     [general]
@@ -216,6 +219,7 @@ Its default content is:
     ;   to transform and will use evenden_snyder if the error in doing so is below
     ;   0.1 mm (for an ellipsoid of the size of Earth)
     tmerc_default_algo = poder_engsager
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -321,6 +325,8 @@ Its default content is:
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
 
 Transformation grids
@@ -496,6 +502,7 @@ compiler.  For Ubuntu something like the following should work.
     apt-get install gfortran
 
 To compile the program do something like the following to produce the binary
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -790,6 +797,9 @@ To compile the program do something like the following to produce the binary
 =======
 :program:`htdp` from the source code.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+``htdp`` from the source code.
+>>>>>>> locationtech-main
 
 ::
 
@@ -835,6 +845,7 @@ Usage
 The goal of :file:`crs2crs2grid.py` is to produce a grid shift file for a designated
 region.  The region is defined using the ``-griddef`` switch.  When missing a
 continental US region is used.  The script creates a set of sample points for
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -917,6 +928,8 @@ continental US region is used.  The script creates a set of sample points for
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
 the grid definition, runs ``htdp`` against it and then parses the
 resulting points and computes a point by point shift to encode into the final
 grid shift file.  By default it is assumed that ``htdp`` is in the
@@ -924,6 +937,7 @@ executable path.  If not, please provide the path to the executable using the
 ``-htdp`` switch.
 
 The ``htdp`` program supports transformations between many CRSes and for each (or
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1287,6 +1301,8 @@ executable path.  If not, please provide the path to the executable using the
 
 The :program:`htdp` program supports transformations between many CRSes and for each (or
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 most?) of them you need to provide a date at which the CRS is fixed.  The full
 set of CRS Ids available in the HTDP program are:
 

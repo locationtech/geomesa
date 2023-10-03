@@ -40,6 +40,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "proj/coordinates.hpp"
 =======
 <<<<<<< HEAD
@@ -144,6 +145,8 @@
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 #include "proj/coordinatesystem.hpp"
 #include "proj/crs.hpp"
 #include "proj/datum.hpp"
@@ -165,6 +168,7 @@ using namespace osgeo::proj::common;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using namespace osgeo::proj::coordinates;
 =======
 <<<<<<< HEAD
@@ -269,6 +273,8 @@ using namespace osgeo::proj::coordinates;
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 using namespace osgeo::proj::crs;
 using namespace osgeo::proj::cs;
 using namespace osgeo::proj::datum;
@@ -408,6 +414,7 @@ TEST(wkt_parse, datum_with_ANCHOR) {
     auto anchor = datum->anchorDefinition();
     EXPECT_TRUE(anchor.has_value());
     EXPECT_EQ(*anchor, "My anchor");
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -581,6 +588,8 @@ TEST(wkt_parse, datum_with_invalid_ANCHOREPOCH_too_many_children) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 }
 
 // ---------------------------------------------------------------------------
@@ -1399,6 +1408,7 @@ TEST(wkt_parse, wkt2_geocentric) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1538,6 +1548,9 @@ TEST(wkt_parse, wkt2_geocentric) {
 =======
                "        AXIS[\"(X)\",geocentricX,\n"
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+               "        AXIS[\"(X)\",geocentricX,\n"
+>>>>>>> locationtech-main
                "            ORDER[1],\n"
                "            LENGTHUNIT[\"metre\",1,\n"
                "                ID[\"EPSG\",9001]]],\n"
@@ -2463,6 +2476,7 @@ TEST(wkt_parse, wkt1_hotine_oblique_mercator_with_rectified_grid_angle) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2585,6 +2599,9 @@ TEST(wkt_parse, wkt1_hotine_oblique_mercator_with_rectified_grid_angle) {
 =======
     // Check that we have not overriden rectified_grid_angle
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Check that we have not overriden rectified_grid_angle
+>>>>>>> locationtech-main
     auto got_wkt = crs->exportToWKT(
         WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get());
     EXPECT_TRUE(got_wkt.find("PARAMETER[\"rectified_grid_angle\",-23]") !=
@@ -2623,6 +2640,7 @@ TEST(wkt_parse,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2745,6 +2763,9 @@ TEST(wkt_parse,
 =======
     // Check that we have not overriden rectified_grid_angle
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    // Check that we have not overriden rectified_grid_angle
+>>>>>>> locationtech-main
     auto got_wkt = crs->exportToWKT(
         WKTFormatter::create(WKTFormatter::Convention::WKT1_GDAL).get());
     EXPECT_TRUE(got_wkt.find("PARAMETER[\"rectified_grid_angle\",0]") !=
@@ -3207,6 +3228,7 @@ TEST(wkt_parse, cs_with_multiple_ID) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3545,6 +3567,8 @@ TEST(wkt_parse, cs_with_invalid_RANGEMEANING_too_many_children) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(wkt_parse, vertcrs_WKT2) {
     auto wkt = "VERTCRS[\"ODN height\",\n"
                "    VDATUM[\"Ordnance Datum Newlyn\"],\n"
@@ -3854,6 +3878,7 @@ TEST(wkt_parse, vdatum_with_ANCHOR) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3994,6 +4019,8 @@ TEST(wkt_parse, vdatum_with_ANCHOREPOCH) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 }
 
 // ---------------------------------------------------------------------------
@@ -9790,6 +9817,7 @@ TEST(wkt_parse, invalid_DerivedTemporalCRS) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9983,6 +10011,8 @@ TEST(wkt_parse, invalid_CoordinateMetadata) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(io, projstringformatter) {
 
     {
@@ -11513,6 +11543,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11626,10 +11657,13 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
     const std::string input(
         "+proj=cea +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +R=6371228 +units=m "
         "+no_defs +type=crs");
     auto obj = PROJStringParser().createFromPROJString(input);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11891,6 +11925,8 @@ TEST(io, projparse_cea_spherical) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=cea +R=6371228 +type=crs");
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
     ASSERT_TRUE(crs != nullptr);
     EXPECT_EQ(crs->derivingConversion()->method()->getEPSGCode(),
@@ -11903,6 +11939,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12016,11 +12053,14 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> 0c3226c442 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
     EXPECT_EQ(
         crs->exportToPROJString(
             PROJStringFormatter::create(PROJStringFormatter::Convention::PROJ_4)
                 .get()),
         input);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12254,6 +12294,8 @@ TEST(io, projparse_cea_spherical) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 
     auto crs2 = ProjectedCRS::create(
         PropertyMap(), crs->baseCRS(),
@@ -12279,6 +12321,7 @@ TEST(io, projparse_cea_spherical) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12529,6 +12572,10 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locationtech-main
+=======
+TEST(io, projparse_cea_spherical_on_ellipsoid) {
+    std::string input("+proj=cea +R_A +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 "
+>>>>>>> locationtech-main
                       "+ellps=WGS84 +units=m +no_defs +type=crs");
     auto obj = PROJStringParser().createFromPROJString(input);
     auto crs = nn_dynamic_pointer_cast<ProjectedCRS>(obj);
@@ -12544,6 +12591,7 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12777,6 +12825,8 @@ TEST(io, projparse_cea_spherical_on_ellipsoid) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(io, projparse_cea_ellipsoidal) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=cea +ellps=GRS80 +type=crs");
@@ -13409,6 +13459,7 @@ TEST(io, projparse_laea_ellipsoidal) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13522,6 +13573,8 @@ TEST(io, projparse_laea_ellipsoidal) {
 >>>>>>> efa88b5285 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> 57d7b62058 (Merge pull request #3523 from rouault/cleanup_aeqd_s_forward)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locationtech-main
 TEST(io, projparse_laea_spherical_on_ellipsoid) {
     std::string input("+proj=laea +R_A +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 "
                       "+ellps=WGS84 +units=m +no_defs +type=crs");
@@ -13539,6 +13592,7 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13772,6 +13826,8 @@ TEST(io, projparse_laea_spherical_on_ellipsoid) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(io, projparse_eqc_spherical) {
     auto obj = PROJStringParser().createFromPROJString(
         "+proj=eqc +R=6371228 +type=crs");
@@ -15112,6 +15168,7 @@ TEST(io, createFromUserInput) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15275,6 +15332,8 @@ TEST(io, createFromUserInput) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 }
 
 // ---------------------------------------------------------------------------
@@ -15289,6 +15348,7 @@ TEST(io, createFromUserInput_ogc_crs_url) {
         ASSERT_TRUE(crs != nullptr);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15439,6 +15499,8 @@ TEST(io, createFromUserInput_ogc_crs_url) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     EXPECT_THROW(
         createFromUserInput("http://www.opengis.net/def/crs", dbContext),
         ParsingException);
@@ -15451,6 +15513,7 @@ TEST(io, createFromUserInput_ogc_crs_url) {
                      "http://www.opengis.net/def/crs/EPSG/0/XXXX", dbContext),
                  NoSuchAuthorityCodeException);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15589,6 +15652,8 @@ TEST(io, createFromUserInput_ogc_crs_url) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     {
         auto obj = createFromUserInput(
             "http://www.opengis.net/def/crs-compound?1=http://www.opengis.net/"
@@ -16092,6 +16157,7 @@ TEST(json_import, axis_with_meridian_with_unit) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16299,6 +16365,8 @@ TEST(json_import, axis_with_invalid_range_meaning_number) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(json_import, prime_meridian) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -16386,6 +16454,7 @@ TEST(json_import, geodetic_reference_frame_with_explicit_prime_meridian) {
 
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16557,6 +16626,8 @@ TEST(json_import, geodetic_reference_frame_with_invalid_anchor_epoch) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(json_import,
      dynamic_geodetic_reference_frame_with_implicit_prime_meridian) {
     auto json = "{\n"
@@ -18900,6 +18971,7 @@ TEST(json_import, vertical_crs_with_geoid_model_and_interpolation_crs) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19043,6 +19115,8 @@ TEST(json_import, vertical_reference_frame_with_anchor_epoch) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(json_import, parametric_crs) {
     auto json = "{\n"
                 "  \"$schema\": \"foo\",\n"
@@ -19881,6 +19955,7 @@ TEST(json_export, coordinate_system_id) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20074,6 +20149,8 @@ TEST(json_import, invalid_CoordinateMetadata) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 TEST(io, EXTENSION_PROJ4) {
     // Check that the PROJ string is preserved in the remarks
     auto obj = PROJStringParser().createFromPROJString(

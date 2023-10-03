@@ -470,6 +470,7 @@ Return the properly scaled numeric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -721,6 +722,8 @@ Return the properly scaled numeric
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     double s;
     const double GRS80_DEG = 111319.4908; /* deg-to-m at equator of GRS80 */
     const char *endp = args;
@@ -749,6 +752,7 @@ Return the properly scaled numeric
     else if (0==strcmp(endp, "deg"))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -771,6 +775,8 @@ Return the properly scaled numeric
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         s = GRS80_DEG * s;
     else
         s *= default_scale;
@@ -861,6 +867,7 @@ static void finish_previous_operation (const char *args) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -983,6 +990,9 @@ static int operation (char *args) {
 =======
 static int operation (char *args) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+static int operation (char *args) {
+>>>>>>> locationtech-main
 /*****************************************************************************
 Define the operation to apply to the input data (in ISO 19100 lingo,
 an operation is the general term describing something that can be
@@ -1126,6 +1136,7 @@ Attempt to interpret args as a PJ_COORD.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1271,6 +1282,10 @@ Attempt to interpret args as a PJ_COORD.
     const char *endp;
     const char *dmsendp;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    const char *endp;
+    const char *dmsendp;
+>>>>>>> locationtech-main
     const char *prev = args;
     PJ_COORD a = proj_coord (0,0,0,0);
 
@@ -1296,6 +1311,7 @@ Attempt to interpret args as a PJ_COORD.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1368,10 +1384,13 @@ Attempt to interpret args as a PJ_COORD.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         double d = proj_strtod(prev,  (char **) &endp);
         if( *endp != '\0' && !isspace(*endp) )
         {
             double dms = PJ_TODEG(proj_dmstor (prev, (char **) &dmsendp));
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1485,6 +1504,8 @@ Attempt to interpret args as a PJ_COORD.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
             /* TODO: When projects.h is removed, call proj_dmstor() in all cases */
             if (d != dms && fabs(d) < fabs(dms) && fabs(dms) < fabs(d) + 1) {
                 d = dms;
@@ -1843,6 +1864,7 @@ static int dispatch (const char *cmnd, const char *args) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1965,6 +1987,9 @@ static int dispatch (const char *cmnd, const char *args) {
 =======
     if  (0==strcmp (cmnd, "operation")) return  operation ((char *) args);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if  (0==strcmp (cmnd, "operation")) return  operation ((char *) args);
+>>>>>>> locationtech-main
     if  (0==strcmp (cmnd, "crs_src"))   return  crs_src   (args);
     if  (0==strcmp (cmnd, "crs_dst"))   return  crs_dst   (args);
     if (T.skip_test)

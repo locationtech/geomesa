@@ -279,6 +279,7 @@ INSERT INTO "supersession" VALUES('grid_transformation','EPSG','9629','grid_tran
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -411,3 +412,5 @@ INSERT INTO "supersession" VALUES('helmert_transformation','EPSG','15891','helme
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main

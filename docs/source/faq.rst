@@ -31,6 +31,7 @@ separate column.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -317,6 +318,9 @@ separate column.
 =======
     :program:`ogr2ogr` application.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    `ogr2ogr <https://gdal.org/programs/ogr2ogr.html>`__ application.
+>>>>>>> locationtech-main
 
 Can I transform from *abc* to *xyz*?
 --------------------------------------------------------------------------------
@@ -350,6 +354,7 @@ ETRS89/UTM32N (EPSG:25832) and ETRS89/DKTM1 (EPSG:4093):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -643,6 +648,9 @@ See the :program:`projinfo` documentation for more info on how to use it.
 See the :program:`projinfo` :ref:`documentation <projinfo>` for more info on
 how to use it.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+See the :program:`projinfo` documentation for more info on how to use it.
+>>>>>>> locationtech-main
 
 Coordinate reference system *xyz* is not in the EPSG registry, what do I do?
 --------------------------------------------------------------------------------

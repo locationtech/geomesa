@@ -115,6 +115,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -305,6 +306,8 @@ struct Grid : public GridPrototype {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
     bool getLonLatOffset(int ix, int iy, double &lonOffsetRadian,
                          double &latOffsetRadian) const {
         if (!checkHorizontal(STR_DEGREE)) {
@@ -319,6 +322,7 @@ struct Grid : public GridPrototype {
         lonOffsetRadian = lonOffsetDeg * DEG_TO_RAD;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -341,6 +345,8 @@ struct Grid : public GridPrototype {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
         latOffsetRadian = latOffsetDeg * DEG_TO_RAD;
         return true;
     }
@@ -412,6 +418,7 @@ struct Grid : public GridPrototype {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -566,6 +573,11 @@ struct Grid : public GridPrototype {
                           double &latOffsetRadian, double &zOffset) const {
         return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    bool getLonLatZOffset(int ix, int iy, double &lonOffsetRadian,
+                          double &latOffsetRadian, double &zOffset) const {
+        return getLonLatOffset(ix, iy, lonOffsetRadian, latOffsetRadian) &&
+>>>>>>> locationtech-main
                getZOffset(ix, iy, zOffset);
     }
 

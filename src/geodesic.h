@@ -39,6 +39,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -325,6 +326,9 @@
 =======
 #define GEODESIC_VERSION_MINOR 0
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+#define GEODESIC_VERSION_MINOR 1
+>>>>>>> locationtech-main
 /**
  * The patch level of the geodesic library.  (This tracks the version of
  * GeographicLib.)

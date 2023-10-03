@@ -32,6 +32,7 @@ of a Deformation Model <https://github.com/linz/deformation-model-format/blob/ma
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -245,3 +246,5 @@ NOTE: This is Windows syntax - Unix users use $HEL, etc.
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main

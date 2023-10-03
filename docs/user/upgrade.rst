@@ -94,6 +94,7 @@ Compatibility Matrix
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -131,6 +132,8 @@ Compatibility Matrix
 >>>>>>> locationtech-main
 =======
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> locationtech-main
 Version 4.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -148,6 +151,7 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
@@ -189,6 +193,8 @@ The following classes have been deprecated and will be removed in a future versi
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locationtech-main
 Partitioned PostGIS Prepared Statements
 ---------------------------------------
 
@@ -197,12 +203,18 @@ statements are generally faster on insert, and some attribute types (such as lis
 supported through prepared statements.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 =======
 =======
 <<<<<<< HEAD
 >>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> 01f791d4aa (Add note on NiFi scala version to upgrade guide)
+>>>>>>> locationtech-main
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -789,6 +801,7 @@ Dependency Updates
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 =======
@@ -883,6 +896,10 @@ Dependency Updates
 =======
 >>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> a97cb0164e (Add note on NiFi scala version to upgrade guide)
+=======
+=======
+>>>>>>> e6dd9b5b1 (Add note on NiFi scala version to upgrade guide)
+>>>>>>> locationtech-main
 Version 3.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

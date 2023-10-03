@@ -31,6 +31,7 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -89,9 +90,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> d805b562c5 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
+>>>>>>> locationtech-main
+=======
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> 918f17f85 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -150,6 +154,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> locationtech-main
 =======
 >>>>>>> d805b562c5 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+=======
+>>>>>>> locationtech-main
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters

@@ -107,6 +107,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -229,6 +230,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
     char *p = (char *) str;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    char *p = (char *) str;
+>>>>>>> locationtech-main
     int n = 0;
     int num_digits_total        = 0;
     int num_digits_after_comma  = 0;
@@ -244,6 +248,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -366,6 +371,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = p;
+>>>>>>> locationtech-main
         return HUGE_VAL;
     }
 
@@ -383,6 +391,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -505,6 +514,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = (char *) str;
+>>>>>>> locationtech-main
         return 0;
     }
 
@@ -518,6 +530,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -640,6 +653,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = (char *) str;
+>>>>>>> locationtech-main
         return 0;
     }
 
@@ -664,6 +680,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -786,6 +803,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = (char *) str;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                *endptr = (char *) str;
+>>>>>>> locationtech-main
             return 0;
     }
 
@@ -799,6 +819,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -921,6 +942,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = (char *) str;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = (char *) str;
+>>>>>>> locationtech-main
         return 0;
     }
 
@@ -938,6 +962,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1060,6 +1085,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = p;
+>>>>>>> locationtech-main
         return sign==-1? -0: 0;
     }
 
@@ -1085,6 +1113,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1207,6 +1236,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = p;
+>>>>>>> locationtech-main
         if (sign==-1)
             return -number;
         return number;
@@ -1235,6 +1267,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1357,6 +1390,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                 *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                *endptr = p;
+>>>>>>> locationtech-main
             if (sign==-1)
                 return -number;
             return number;
@@ -1396,6 +1432,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1518,6 +1555,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
             *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+            *endptr = p;
+>>>>>>> locationtech-main
         return HUGE_VAL;
     }
 
@@ -1552,6 +1592,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1674,6 +1715,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
                     *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+                    *endptr = p;
+>>>>>>> locationtech-main
                 return HUGE_VAL;
             }
         }
@@ -1706,6 +1750,7 @@ double proj_strtod(const char *str, char **endptr) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1828,6 +1873,9 @@ double proj_strtod(const char *str, char **endptr) {
 =======
         *endptr = p;
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+        *endptr = p;
+>>>>>>> locationtech-main
 
     if ((exponent < DBL_MIN_EXP) || (exponent > DBL_MAX_EXP)) {
         errno = ERANGE;

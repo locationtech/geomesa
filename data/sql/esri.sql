@@ -7,6 +7,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -152,6 +153,10 @@ INSERT INTO "metadata" VALUES('ESRI.DATE', '2023-19-01');
 INSERT INTO "metadata" VALUES('ESRI.VERSION', 'ArcGIS Pro 3.0');
 INSERT INTO "metadata" VALUES('ESRI.DATE', '2022-07-09');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "metadata" VALUES('ESRI.VERSION', 'ArcGIS Pro 3.0');
+INSERT INTO "metadata" VALUES('ESRI.DATE', '2022-07-09');
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','1025','Millimeter','ESRI');
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','1033','Centimeter','ESRI');
 INSERT INTO alias_name VALUES('unit_of_measure','EPSG','9001','Meter','ESRI');
@@ -1901,6 +1906,7 @@ INSERT INTO alias_name VALUES('geodetic_crs','EPSG','9695','REDGEOMIN_(3D)','ESR
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2003,6 +2009,8 @@ INSERT INTO alias_name VALUES('geodetic_crs','EPSG','20041','SIRGAS-Chile_2021',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "geodetic_datum" VALUES('ESRI','1305','ETRF2000_Poland','ETRF2000 Poland','EPSG','7019','EPSG','8901',NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '1305_USAGE','geodetic_datum','ESRI','1305','EPSG','1192','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','9701','ETRF2000-PL_(3D)',NULL,'geographic 2D','EPSG','6422','ESRI','1305',NULL,0);
@@ -2021,6 +2029,7 @@ INSERT INTO "geodetic_datum" VALUES('ESRI','1311','EWR2_Intermediate_Reference_F
 INSERT INTO "usage" VALUES('ESRI', '1311_USAGE','geodetic_datum','ESRI','1311','EPSG','4622','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','9763','EWR2-IRF',NULL,'geographic 2D','EPSG','6422','ESRI','1311',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9763_USAGE','geodetic_crs','ESRI','9763','EPSG','4622','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2123,6 +2132,8 @@ INSERT INTO "usage" VALUES('ESRI', '9763_USAGE','geodetic_crs','ESRI','9763','EP
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "geodetic_datum" VALUES('ESRI','106001','D_WGS_1966','WGS 1966','ESRI','107001','EPSG','8901',NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '106001_USAGE','geodetic_datum','ESRI','106001','EPSG','1262','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','37001','GCS_WGS_1966',NULL,'geographic 2D','EPSG','6422','ESRI','106001',NULL,1);
@@ -2177,6 +2188,7 @@ INSERT INTO "geodetic_datum" VALUES('ESRI','106204','D_Hjorsey_1955','Hjorsey 19
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2331,6 +2343,11 @@ INSERT INTO "usage" VALUES('ESRI', '106204_USAGE','geodetic_datum','ESRI','10620
 INSERT INTO "geodetic_crs" VALUES('ESRI','37204','GCS_Hjorsey_1955',NULL,'geographic 2D','EPSG','6422','ESRI','106204',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '37204_USAGE','geodetic_crs','ESRI','37204','EPSG','4662','EPSG','1024');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', '106204_USAGE','geodetic_datum','ESRI','106204','EPSG','4662','EPSG','1024');
+INSERT INTO "geodetic_crs" VALUES('ESRI','37204','GCS_Hjorsey_1955',NULL,'geographic 2D','EPSG','6422','ESRI','106204',NULL,1);
+INSERT INTO "usage" VALUES('ESRI', '37204_USAGE','geodetic_crs','ESRI','37204','EPSG','4662','EPSG','1024');
+>>>>>>> locationtech-main
 INSERT INTO "supersession" VALUES('geodetic_crs','ESRI','37204','geodetic_crs','EPSG','4658','ESRI',1);
 INSERT INTO "geodetic_datum" VALUES('ESRI','106205','D_Hong_Kong_1963_67','Hong Kong 1963(67)','EPSG','7022','EPSG','8901',NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '106205_USAGE','geodetic_datum','ESRI','106205','EPSG','1118','EPSG','1024');
@@ -2618,6 +2635,7 @@ INSERT INTO "usage" VALUES('ESRI', '104023_USAGE','geodetic_crs','ESRI','104023'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2740,6 +2758,9 @@ INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, 
 =======
 INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.44,-113.6,0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "extent" VALUES('ESRI','1','USA - California and borders of NV, AZ, OR and MX','USA - California and borders of NV, AZ, OR and MX',32.25,42.53,-124.44,-113.6,0);
+>>>>>>> locationtech-main
 INSERT INTO "geodetic_datum" VALUES('ESRI','106012','California_SRS_Epoch_2017.50_(NAD83)','California SRS Epoch 2017.5 (NAD83)','EPSG','7019','EPSG','8901',NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '106012_USAGE','geodetic_datum','ESRI','106012','ESRI','1','EPSG','1024');
 INSERT INTO "geodetic_crs" VALUES('ESRI','104024','California_SRS_Epoch_2017.50_(NAD83)',NULL,'geographic 2D','EPSG','6422','ESRI','106012',NULL,0);
@@ -3043,6 +3064,7 @@ INSERT INTO "usage" VALUES('ESRI', '104645_USAGE','geodetic_crs','ESRI','104645'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3173,6 +3195,8 @@ INSERT INTO "usage" VALUES('ESRI', '104646_USAGE','geodetic_crs','ESRI','104646'
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "geodetic_crs" VALUES('ESRI','104647','ONGD17_3D',NULL,'geographic 2D','EPSG','6422','ESRI','106027',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', '104647_USAGE','geodetic_crs','ESRI','104647','EPSG','1183','EPSG','1024');
 INSERT INTO "supersession" VALUES('geodetic_crs','ESRI','104647','geodetic_crs','EPSG','9293','ESRI',1);
@@ -6230,6 +6254,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','5018','Lisbon_Portuguese_G
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6344,6 +6369,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','5042','WGS_1984_UPS_South_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5048','ETRS_1989_TM35FIN_NE','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5069','NAD_1927_Contiguous_USA_Albers','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','5070','NAD_1983_Contiguous_USA_Albers','ESRI');
@@ -7855,6 +7882,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_9713_USAGE','projected_crs','ESRI','971
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7919,12 +7947,15 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','9741','EOS21_Grid','ESRI')
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','9716','IGM95_UTM_Zone_34N',NULL,'EPSG','4400','EPSG','4670','EPSG','16034',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_9716_USAGE','projected_crs','ESRI','9716','EPSG','4187','EPSG','1024');
 INSERT INTO "conversion" VALUES('ESRI','9741','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',56.35,'EPSG','9102','EPSG','8802','Longitude of natural origin',-2.75,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.0,'EPSG','9201','EPSG','8806','False easting',74996.927,'EPSG','9001','EPSG','8807','False northing',133508.35,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9741_USAGE','conversion','ESRI','9741','EPSG','4620','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9741','EOS21_Grid',NULL,'EPSG','4400','ESRI','9739','ESRI','9741',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_9741_USAGE','projected_crs','ESRI','9741','EPSG','4620','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8034,6 +8065,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','9741','EOS21_Grid','ESRI')
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','9748','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',30.5,'EPSG','9102','EPSG','8802','Longitude of natural origin',-85.83333333333333,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99996,'EPSG','9201','EPSG','8806','False easting',656166.667,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9748_USAGE','conversion','ESRI','9748','EPSG','2154','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9748','NAD_1983_2011_StatePlane_Alabama_East_(ftUS)',NULL,'EPSG','4497','EPSG','6318','ESRI','9748',NULL,0);
@@ -8042,6 +8075,7 @@ INSERT INTO "conversion" VALUES('ESRI','9749','unnamed',NULL,'EPSG','9807','Tran
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9749_USAGE','conversion','ESRI','9749','EPSG','2155','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9749','NAD_1983_2011_StatePlane_Alabama_West_(ftUS)',NULL,'EPSG','4497','EPSG','6318','ESRI','9749',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_9749_USAGE','projected_crs','ESRI','9749','EPSG','2155','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8192,6 +8226,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','9977','FNL22_Grid','ESRI')
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','9761','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',55.05,'EPSG','9102','EPSG','8802','Longitude of natural origin',-1.55,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.0,'EPSG','9201','EPSG','8806','False easting',112242.8512,'EPSG','9001','EPSG','8807','False northing',402313.7432,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9761_USAGE','conversion','ESRI','9761','EPSG','4621','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9761','ECML14_NB_Grid',NULL,'EPSG','4400','ESRI','9758','ESRI','9761',NULL,0);
@@ -8200,6 +8236,7 @@ INSERT INTO "conversion" VALUES('ESRI','9766','unnamed',NULL,'EPSG','9807','Tran
 INSERT INTO "usage" VALUES('ESRI', 'CONV_9766_USAGE','conversion','ESRI','9766','EPSG','4622','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','9766','EWR2_Grid',NULL,'EPSG','4400','ESRI','9763','ESRI','9766',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_9766_USAGE','projected_crs','ESRI','9766','EPSG','4622','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8302,6 +8339,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_9766_USAGE','projected_crs','ESRI','976
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','20002','Pulkovo_1995_GK_Zone_2',NULL,'EPSG','4400','EPSG','4200','EPSG','16202',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20002_USAGE','projected_crs','ESRI','20002','EPSG','1805','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','20003','Pulkovo_1995_GK_Zone_3',NULL,'EPSG','4400','EPSG','4200','EPSG','16203',NULL,0);
@@ -8335,6 +8374,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','20029','Pulkovo_1995_GK_Zo
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20030','Pulkovo_1995_GK_Zone_30','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20031','Pulkovo_1995_GK_Zone_31','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20032','Pulkovo_1995_GK_Zone_32','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8474,6 +8514,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_20050_USAGE','projected_crs','ESRI','20
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','20062','Pulkovo_1995_GK_Zone_2N',NULL,'EPSG','4400','EPSG','4200','EPSG','16302',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20062_USAGE','projected_crs','ESRI','20062','EPSG','1805','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','20063','Pulkovo_1995_GK_Zone_3N',NULL,'EPSG','4400','EPSG','4200','EPSG','16303',NULL,0);
@@ -8546,6 +8588,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','20791','Lisbon_Lisbon_Port
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20822','Aratu_UTM_Zone_22S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20823','Aratu_UTM_Zone_23S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','20824','Aratu_UTM_Zone_24S','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8698,6 +8741,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21032','GSK-2011_Gauss-Kru
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','20904','GSK-2011_Gauss-Kruger_zone_4',NULL,'EPSG','4400','EPSG','7683','EPSG','16204',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_20904_USAGE','projected_crs','ESRI','20904','EPSG','1763','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','20905','GSK-2011_Gauss-Kruger_zone_5',NULL,'EPSG','4400','EPSG','7683','EPSG','16205',NULL,0);
@@ -8817,6 +8862,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','21031','GSK-2011_Gauss-Kruger_CM_177W
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_21031_USAGE','projected_crs','ESRI','21031','EPSG','1790','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','21032','GSK-2011_Gauss-Kruger_CM_171W',NULL,'EPSG','4400','EPSG','7683','EPSG','16332',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_21032_USAGE','projected_crs','ESRI','21032','EPSG','1791','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8967,6 +9013,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21032','GSK-2011_Gauss-Kru
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21035','Arc_1960_UTM_Zone_35S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21036','Arc_1960_UTM_Zone_36S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21037','Arc_1960_UTM_Zone_37S','ESRI');
@@ -8976,6 +9024,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21097','Arc_1960_UTM_Zone_
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21148','Batavia_UTM_Zone_48S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21149','Batavia_UTM_Zone_49S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21150','Batavia_UTM_Zone_50S','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9185,6 +9234,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21364','GSK-2011_GSK_3GK_C
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','21207','GSK-2011_GSK_3GK_zone_7',NULL,'EPSG','4400','EPSG','7683','EPSG','16907',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_21207_USAGE','projected_crs','ESRI','21207','EPSG','2747','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','21208','GSK-2011_GSK_3GK_zone_8',NULL,'EPSG','4400','EPSG','7683','EPSG','16908',NULL,0);
@@ -9425,6 +9476,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_21364_USAGE','projected_crs','ESRI','21
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9596,6 +9648,8 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','21364','GSK-2011_GSK_3GK_C
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21413','Beijing_1954_GK_Zone_13','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21414','Beijing_1954_GK_Zone_14','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','21415','Beijing_1954_GK_Zone_15','ESRI');
@@ -9668,6 +9722,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22194','Argentina_Zone_4',
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22195','Argentina_Zone_5','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22196','Argentina_Zone_6','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22197','Argentina_Zone_7','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10123,12 +10178,15 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22465','NAD83(CSRS)v4_Albe
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22234','Cape_UTM_Zone_34S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22235','Cape_UTM_Zone_35S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22236','Cape_UTM_Zone_36S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22332','Carthage_UTM_Zone_32N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22391','Nord_Tunisie','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22392','Sud_Tunisie','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10153,11 +10211,14 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22392','Sud_Tunisie','ESRI
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22521','Corrego_Alegre_UTM_Zone_21S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22522','Corrego_Alegre_UTM_Zone_22S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22523','Corrego_Alegre_UTM_Zone_23S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22524','Corrego_Alegre_UTM_Zone_24S','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22525','Corrego_Alegre_UTM_Zone_25S','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10372,6 +10433,9 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant
 =======
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant_Zone','ESRI');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO alias_name VALUES('projected_crs','EPSG','22700','Deir_ez_Zor_Levant_Zone','ESRI');
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22770','Deir_ez_Zor_Syria_Lambert','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22780','Deir_ez_Zor_Levant_Stereographic','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','22832','Douala_UTM_Zone_32N','ESRI');
@@ -11079,6 +11143,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','31469','DHDN_3_Degree_Gaus
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11255,6 +11320,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','31491','Germany_Zone_1',NULL,'EPSG','4400','EPSG','4314','EPSG','16201',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31491_USAGE','projected_crs','ESRI','31491','EPSG','3892','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','31492','Germany_Zone_2',NULL,'EPSG','4400','EPSG','4314','EPSG','16262',NULL,0);
@@ -11266,6 +11333,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_31494_USAGE','projected_crs','ESRI','31
 INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','4400','EPSG','4314','EPSG','16265',NULL,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -11288,6 +11356,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','31495','Germany_Zone_5',NULL,'EPSG','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_31495_USAGE','projected_crs','ESRI','31495','EPSG','1627','EPSG','1024');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','31528','Conakry_1905_UTM_Zone_28N','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','31529','Conakry_1905_UTM_Zone_29N','ESRI');
@@ -11485,6 +11555,7 @@ INSERT INTO alias_name VALUES('projected_crs','EPSG','32158','NAD_1983_StatePlan
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11615,6 +11686,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_32159_USAGE','projected_crs','ESRI','32
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32161','NAD_1983_StatePlane_Puerto_Rico_Virgin_Islands_FIPS_5200','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32164','NAD_1983_BLM_Zone_14N_ftUS','ESRI');
 INSERT INTO alias_name VALUES('projected_crs','EPSG','32165','NAD_1983_BLM_Zone_15N_ftUS','ESRI');
@@ -12763,6 +12836,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102211_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12917,6 +12991,11 @@ INSERT INTO "conversion" VALUES('ESRI','102212','unnamed',NULL,'EPSG','9802','La
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102212_USAGE','conversion','ESRI','102212','EPSG','1419','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102212','NAD_1983_WyLAM',NULL,'EPSG','4400','EPSG','4269','ESRI','102212',NULL,0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "conversion" VALUES('ESRI','102212','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',41.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-107.5,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',41.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',45.0,'EPSG','9102','EPSG','8826','Easting at false origin',500000.0,'EPSG','9001','EPSG','8827','Northing at false origin',200000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO "usage" VALUES('ESRI', 'CONV_102212_USAGE','conversion','ESRI','102212','EPSG','1419','EPSG','1024');
+INSERT INTO "projected_crs" VALUES('ESRI','102212','NAD_1983_WyLAM',NULL,'EPSG','4400','EPSG','4269','ESRI','102212',NULL,0);
+>>>>>>> locationtech-main
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102212_USAGE','projected_crs','ESRI','102212','EPSG','1419','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102213','NAD_1983_UTM_Zone_58N',NULL,'EPSG','4400','EPSG','4269','EPSG','16058',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102213_USAGE','projected_crs','ESRI','102213','EPSG','2116','EPSG','1024');
@@ -14700,6 +14779,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102730_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14832,6 +14912,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102732_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','102733','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',31.83333333333333,'EPSG','9102','EPSG','8822','Longitude of false origin',-81.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',32.5,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',34.83333333333334,'EPSG','9102','EPSG','8826','Easting at false origin',1999996.0,'EPSG','9003','EPSG','8827','Northing at false origin',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102733_USAGE','conversion','ESRI','102733','EPSG','1409','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102733','NAD_1983_StatePlane_South_Carolina_FIPS_3900_Feet',NULL,'EPSG','4497','EPSG','4269','ESRI','102733',NULL,0);
@@ -14969,6 +15051,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102766_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -18123,6 +18206,8 @@ INSERT INTO "extent" VALUES('ESRI','186','Bangladesh - Dinajpur','Bangladesh - D
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','64','Colombia - Leticia - Amazonas','Colombia - Leticia - Amazonas',-4.7,-3.683333333333334,-70.45,-69.43333333333334,0);
 INSERT INTO "conversion" VALUES('ESRI','102767','unnamed',NULL,'EPSG','1052','Colombia Urban','EPSG','8801','Latitude of natural origin',-4.197684047222222,'EPSG','9102','EPSG','8802','Longitude of natural origin',-69.94281105833333,'EPSG','9102','EPSG','8806','False easting',25978.217,'EPSG','9001','EPSG','8807','False northing',27501.365,'EPSG','9001','EPSG','1039','Projection plane origin height',89.7,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102767_USAGE','conversion','ESRI','102767','ESRI','64','EPSG','1024');
@@ -18876,6 +18961,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102933_USAGE','projected_crs','ESRI','1
 INSERT INTO "extent" VALUES('ESRI','184','Bangladesh - Dinajpur','Bangladesh - Dinajpur',25.2166,26.6334,88.0833,89.3,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -18898,6 +18984,8 @@ INSERT INTO "extent" VALUES('ESRI','184','Bangladesh - Dinajpur','Bangladesh - D
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "coordinate_system" VALUES('ESRI','Chain','Cartesian',2);
 INSERT INTO "axis" VALUES('ESRI','3','Easting','E','east','ESRI','Chain',1,'EPSG','9097');
 INSERT INTO "axis" VALUES('ESRI','4','Northing','N','north','ESRI','Chain',2,'EPSG','9097');
@@ -18909,6 +18997,7 @@ INSERT INTO "conversion" VALUES('ESRI','102934','unnamed',NULL,'EPSG','9806','Ca
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -19355,6 +19444,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102934_USAGE','conversion','ESRI','102934','ESRI','184','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102934','Cassini_Bangladesh_Zone_01_Dinajpur',NULL,'ESRI','Chain','EPSG','4042','ESRI','102934',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102934_USAGE','projected_crs','ESRI','102934','ESRI','184','EPSG','1024');
@@ -19432,6 +19523,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','102950','Cassini_Bangladesh_Zone_17_C
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','102950','ESRI','200','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -19454,6 +19546,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102950_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','102951','unnamed',NULL,'EPSG','9802','Lambert Conic Conformal (2SP)','EPSG','8821','Latitude of false origin',26.0,'EPSG','9102','EPSG','8822','Longitude of false origin',90.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',23.15,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',28.8,'EPSG','9102','EPSG','8826','Easting at false origin',2743183.6991,'EPSG','9001','EPSG','8827','Northing at false origin',914395.233,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102951_USAGE','conversion','ESRI','102951','EPSG','1041','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102951','LCC_Bangladesh',NULL,'EPSG','4400','EPSG','4326','ESRI','102951',NULL,0);
@@ -19473,6 +19567,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102955_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -19604,6 +19699,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','201','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)','Australia - Lord Howe Island - 158~E to 160~E (ISG 57/2)',-47.2,-28.15,158.0,160.0,0);
 INSERT INTO "conversion" VALUES('ESRI','102961','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',0.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',159.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.99994,'EPSG','9201','EPSG','8806','False easting',300000.0,'EPSG','9001','EPSG','8807','False northing',5000000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102961_USAGE','conversion','ESRI','102961','ESRI','201','EPSG','1024');
@@ -19612,6 +19709,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -19654,6 +19752,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_102961_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','102962','unnamed',NULL,'EPSG','9822','Albers Equal Area','EPSG','8821','Latitude of false origin',0.0,'EPSG','9102','EPSG','8822','Longitude of false origin',-120.0,'EPSG','9102','EPSG','8823','Latitude of 1st standard parallel',34.0,'EPSG','9102','EPSG','8824','Latitude of 2nd standard parallel',40.5,'EPSG','9102','EPSG','8826','Easting at false origin',0.0,'EPSG','9001','EPSG','8827','Northing at false origin',-4000000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_102962_USAGE','conversion','ESRI','102962','EPSG','1375','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','102962','NAD_1983_2011_California_Teale_Albers',NULL,'EPSG','4400','EPSG','6318','ESRI','102962',NULL,1);
@@ -21597,6 +21697,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103585_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -21843,6 +21944,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','202','Navajo Nation','Navajo Nation',32.8,37.75,-114.04,-106.17,0);
 INSERT INTO "conversion" VALUES('ESRI','103586','unnamed',NULL,'EPSG','9801','Lambert Conic Conformal (1SP)','EPSG','8801','Latitude of natural origin',36.0,'EPSG','9102','EPSG','8802','Longitude of natural origin',-109.5,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.00023,'EPSG','9201','EPSG','8806','False easting',300000.0,'EPSG','9001','EPSG','8807','False northing',600000.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103586_USAGE','conversion','ESRI','103586','ESRI','202','EPSG','1024');
@@ -21870,6 +21973,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','103594','NAD_1983_(2011)_Navajo_Natio
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','103594','ESRI','202','EPSG','1024');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -21892,6 +21996,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103594_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','103595','ONGD17_UTM_Zone_39N',NULL,'EPSG','4400','EPSG','9294','EPSG','16039',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103595_USAGE','projected_crs','ESRI','103595','EPSG','4322','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103596','ONGD17_UTM_Zone_40N',NULL,'EPSG','4400','EPSG','9294','EPSG','16040',NULL,1);
@@ -22235,6 +22341,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103695_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -22366,6 +22473,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','103696','NAD_1983_(CSRS)_v6_UTM_Zone_19N',NULL,'EPSG','4400','EPSG','8252','EPSG','16019',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103696_USAGE','projected_crs','ESRI','103696','EPSG','3524','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103697','NAD_1983_(CSRS)_v6_UTM_Zone_20N',NULL,'EPSG','4400','EPSG','8252','EPSG','16020',NULL,0);
@@ -22374,6 +22483,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -22416,6 +22526,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','103698','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103698_USAGE','projected_crs','ESRI','103698','EPSG','2151','EPSG','1024');
 INSERT INTO "conversion" VALUES('ESRI','103699','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',31.73439361111111,'EPSG','9102','EPSG','8802','Longitude of natural origin',35.20451694444445,'EPSG','9102','EPSG','8805','Scale factor at natural origin',1.0000067,'EPSG','9201','EPSG','8806','False easting',169529.584,'EPSG','9001','EPSG','8807','False northing',126907.39,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103699_USAGE','conversion','ESRI','103699','EPSG','2602','EPSG','1024');
@@ -23022,6 +23134,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103872_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -23190,6 +23303,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','103873','NAD_1983_(CSRS)_v6_UTM_Zone_15N',NULL,'EPSG','4400','EPSG','8252','EPSG','16015',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103873_USAGE','projected_crs','ESRI','103873','EPSG','3414','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103874','NAD_1983_(CSRS)_v6_UTM_Zone_16N',NULL,'EPSG','4400','EPSG','8252','EPSG','16016',NULL,0);
@@ -23199,6 +23314,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103875_USAGE','projected_crs','ESRI','1
 INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_18N',NULL,'EPSG','4400','EPSG','8252','EPSG','16018',NULL,0);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -23221,6 +23337,8 @@ INSERT INTO "projected_crs" VALUES('ESRI','103876','NAD_1983_(CSRS)_v6_UTM_Zone_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103876_USAGE','projected_crs','ESRI','103876','EPSG','3417','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103877','Moon_2000_North_Pole_Stereographic',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_North_Pole_Stereographic",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Stereographic"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Scale_Factor",1.0],PARAMETER["Latitude_Of_Origin",90.0],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103877_USAGE','projected_crs','ESRI','103877','EPSG','1996','EPSG','1024');
@@ -23233,6 +23351,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103878_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -23367,6 +23486,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','203','Moon - Far Side','Moon - Far Side',-90.0,90.0,90.0,-90.0,0);
 INSERT INTO "projected_crs" VALUES('ESRI','103879','Moon_2000_Far_Side_Lambert_Azimuthal_Equal_Area',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Far_Side_Lambert_Azimuthal_Equal_Area",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Azimuthal_Equal_Area"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",180.0],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103879_USAGE','projected_crs','ESRI','103879','ESRI','203','EPSG','1024');
@@ -23376,6 +23497,7 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -23418,6 +23540,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103880_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "projected_crs" VALUES('ESRI','103881','Moon_2000_Equidistant_Cylindrical',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Equidistant_Cylindrical",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Equidistant_Cylindrical_Ellipsoidal"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103881_USAGE','projected_crs','ESRI','103881','EPSG','1262','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103882','Moon_2000_Sinusoidal',NULL,NULL,NULL,'ESRI','104903',NULL,NULL,'PROJCS["Moon_2000_Sinusoidal",GEOGCS["GCS_Moon_2000",DATUM["D_Moon_2000",SPHEROID["Moon_2000_IAU_IAG",1737400.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Sinusoidal"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],UNIT["Meter",1.0]]',0);
@@ -23432,6 +23556,7 @@ INSERT INTO "projected_crs" VALUES('ESRI','103886','Mars_2000_Sinusoidal_sphere'
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103886_USAGE','projected_crs','ESRI','103886','EPSG','1262','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103887','Mars_2000_Winkel_Tripel_sphere',NULL,NULL,NULL,'ESRI','104971',NULL,NULL,'PROJCS["Mars_2000_Winkel_Tripel_sphere",GEOGCS["Mars_2000_(Sphere)",DATUM["Mars_2000_(Sphere)",SPHEROID["Mars_2000_(Sphere)",3396190.0,0.0]],PRIMEM["Reference_Meridian",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Winkel_Tripel"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",0.0],PARAMETER["Standard_Parallel_1",50.46666666666667],UNIT["Meter",1.0]]',0);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103887_USAGE','projected_crs','ESRI','103887','EPSG','1262','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23589,6 +23714,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_103896_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "conversion" VALUES('ESRI','103900','unnamed',NULL,'EPSG','9807','Transverse Mercator','EPSG','8801','Latitude of natural origin',43.36666666666667,'EPSG','9102','EPSG','8802','Longitude of natural origin',-90.0,'EPSG','9102','EPSG','8805','Scale factor at natural origin',0.999999,'EPSG','9201','EPSG','8806','False easting',483000.0,'EPSG','9003','EPSG','8807','False northing',0.0,'EPSG','9003',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103900_USAGE','conversion','ESRI','103900','EPSG','1418','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103900','NAD_1983_HARN_Adj_WI_Adams_Feet',NULL,'EPSG','4497','ESRI','104800','ESRI','103900',NULL,1);
@@ -23851,6 +23978,7 @@ INSERT INTO "conversion" VALUES('ESRI','103971','unnamed',NULL,'EPSG','9802','La
 INSERT INTO "usage" VALUES('ESRI', 'CONV_103971_USAGE','conversion','ESRI','103971','EPSG','1418','EPSG','1024');
 INSERT INTO "projected_crs" VALUES('ESRI','103971','NAD_1983_HARN_Adj_WI_Wood_Feet',NULL,'EPSG','4497','ESRI','104871','ESRI','103971',NULL,1);
 INSERT INTO "usage" VALUES('ESRI', 'PCRS_103971_USAGE','projected_crs','ESRI','103971','EPSG','1418','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24404,6 +24532,8 @@ INSERT INTO "usage" VALUES('ESRI', 'PCRS_112101_USAGE','projected_crs','ESRI','1
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2181','projected_crs','ESRI','102550','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2182','projected_crs','ESRI','102551','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2183','projected_crs','ESRI','102552','ESRI',1);
@@ -24411,6 +24541,7 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','2184','projected_crs',
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2185','projected_crs','ESRI','102554','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2186','projected_crs','ESRI','102555','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','2187','projected_crs','ESRI','102556','ESRI',1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24549,6 +24680,8 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','31495','projected_crs'
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31917','projected_crs','EPSG','31986','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31918','projected_crs','EPSG','31987','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','31919','projected_crs','EPSG','31988','ESRI',1);
@@ -24647,6 +24780,7 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','102208','projected_crs
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102209','projected_crs','EPSG','3464','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102210','projected_crs','EPSG','3077','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102211','projected_crs','EPSG','3748','ESRI',1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24758,6 +24892,8 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','102212','projected_crs
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102214','projected_crs','EPSG','4826','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102218','projected_crs','EPSG','9674','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','102229','projected_crs','EPSG','2759','ESRI',1);
@@ -25484,6 +25620,7 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103597','projected_crs
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -25611,12 +25748,15 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103698','projected_crs
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103794','projected_crs','EPSG','4484','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103795','projected_crs','EPSG','4485','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103796','projected_crs','EPSG','4486','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103797','projected_crs','EPSG','4487','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103798','projected_crs','EPSG','4488','ESRI',1);
 INSERT INTO "supersession" VALUES('projected_crs','ESRI','103799','projected_crs','EPSG','4489','ESRI',1);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25754,6 +25894,8 @@ INSERT INTO "supersession" VALUES('projected_crs','ESRI','103876','projected_crs
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1027','EGM2008_Geoid','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1028','Fao_1979','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1039','New_Zealand_Vertical_Datum_2009','ESRI');
@@ -25819,6 +25961,7 @@ INSERT INTO alias_name VALUES('vertical_datum','EPSG','1190','Landshaedarkerfi_I
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1199','Greenland_Vertical_Reference_2000','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1200','Greenland_Vertical_Reference_2016','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1202','Baltic_1957','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25930,6 +26073,8 @@ INSERT INTO alias_name VALUES('vertical_datum','EPSG','1205','EPSG_example_wellb
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1210','Macao_Height_Datum','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1213','Helsinki_1943','ESRI');
 INSERT INTO alias_name VALUES('vertical_datum','EPSG','1215','Slovenian_Vertical_System_2010','ESRI');
@@ -26316,6 +26461,7 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9471','INAGeoid2020_height'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26377,10 +26523,13 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9650','Baltic_1986_height',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "vertical_datum" VALUES('ESRI','1296','Baltic_1986',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '1296_USAGE','vertical_datum','ESRI','1296','EPSG','3293','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','9650','Baltic_1986_height',NULL,'EPSG','6499','ESRI','1296',0);
 INSERT INTO "usage" VALUES('ESRI', '9650_USAGE','vertical_crs','ESRI','9650','EPSG','3293','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26486,6 +26635,8 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9650','Baltic_1986_height',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "vertical_datum" VALUES('ESRI','1297','European_Vertical_Reference_Frame_2007_Poland',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '1297_USAGE','vertical_datum','ESRI','1297','EPSG','3293','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','9651','EVRF_2007_PL_height',NULL,'EPSG','6499','ESRI','1297',0);
@@ -26496,6 +26647,7 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','9669','BGS2005_height','ESR
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9672','CD_Norway_depth','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9675','Pago_Pago_2020_height','ESRI');
 INSERT INTO alias_name VALUES('vertical_crs','EPSG','9681','NVD_1992_height','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26595,6 +26747,8 @@ INSERT INTO alias_name VALUES('vertical_crs','EPSG','20036','INAGeoid2020_v2_hei
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "vertical_datum" VALUES('ESRI','1306','Catania_1965',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '1306_USAGE','vertical_datum','ESRI','1306','EPSG','2340','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','9721','Catania_1965_height',NULL,'EPSG','6499','ESRI','1306',0);
@@ -26603,6 +26757,7 @@ INSERT INTO "vertical_datum" VALUES('ESRI','1307','Cagliari_1956',NULL,NULL,NULL
 INSERT INTO "usage" VALUES('ESRI', '1307_USAGE','vertical_datum','ESRI','1307','EPSG','2339','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','9722','Cagliari_1956_height',NULL,'EPSG','6499','ESRI','1307',0);
 INSERT INTO "usage" VALUES('ESRI', '9722_USAGE','vertical_crs','ESRI','9722','EPSG','2339','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26705,6 +26860,8 @@ INSERT INTO "usage" VALUES('ESRI', '9722_USAGE','vertical_crs','ESRI','9722','EP
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "vertical_datum" VALUES('ESRI','105103','Red_Espanola_de_Nivelacion_de_Alta_Precision',NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '105103_USAGE','vertical_datum','ESRI','105103','EPSG','3429','EPSG','1024');
 INSERT INTO "vertical_crs" VALUES('ESRI','105603','REDNAP_height',NULL,'EPSG','6499','ESRI','105103',0);
@@ -27477,6 +27634,7 @@ INSERT INTO "usage" VALUES('ESRI', '115879_USAGE','vertical_crs','ESRI','115879'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27627,6 +27785,8 @@ INSERT INTO "usage" VALUES('ESRI', '115885_USAGE','vertical_crs','ESRI','115885'
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3901','KKJ_Finland_Uniform_Coordinate_System_and_N60_height','ESRI');
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3902','ETRS_1989_TM35FIN_and_N60_height','ESRI');
 INSERT INTO alias_name VALUES('compound_crs','EPSG','3903','ETRS_1989_TM35FIN_and_N2000_height','ESRI');
@@ -28990,6 +29150,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8550,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29149,6 +29310,10 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_N
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8555,'NAD_1927_To_NAD_1983_7','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_NAD_1983_HARN_47','ESRI');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8555,'NAD_1927_To_NAD_1983_7','ESRI');
+INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8556,'NAD_1983_To_NAD_1983_HARN_47','ESRI');
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8561,'Old_Hawaiian_To_NAD_1983_2','ESRI');
 INSERT INTO "alias_name" VALUES('concatenated_operation','EPSG',8562,'Nord_Sahara_1959_To_WGS_1984_3','ESRI');
 INSERT INTO "alias_name" VALUES('concatenated_operation','EPSG',8639,'Belge_1972_To_ETRS_1989_3','ESRI');
@@ -29161,6 +29326,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8660,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8661,'NAD_1983_HARN_To_PA11_NADCON5_3D_Hawaii_1','ESRI');
 =======
 <<<<<<< HEAD
@@ -29265,6 +29431,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8661,'NAD_1983_HARN
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8662,'American_Samoa_1962_To_NAD_1983_HARN_3','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8665,'Guam_1963_To_NAD_1983_HARN_2','ESRI');
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8668,'Puerto_Rico_To_NAD_1983_2','ESRI');
@@ -29276,6 +29444,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8669,'NAD_1983_To_N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8673,'NAD_1983_NSRS2007_To_2011_NADCON5_3D_PRVI_3','ESRI');
 =======
 <<<<<<< HEAD
@@ -29380,6 +29549,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8673,'NAD_1983_NSRS
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8674,'La_Canoa_To_PSAD56_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8680,'MGI_1901_To_ETRS_1989_7','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8681,'MGI_1901_To_WGS_1984_12','ESRI');
@@ -29412,6 +29583,7 @@ INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8850,'IGN72_Nuku
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8851,'IGN72_Nuku_Hiva_To_RGPF_3','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8852,'IGN72_Nuku_Hiva_To_WGS_1984_7','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8853,'Maupiti_1983_To_WGS_1984_2','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29553,6 +29725,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',8868,'NAD_1983_FBN_
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8882,'Camacupa_2015_To_WGS_1984_11','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8883,'Camacupa_To_RSAO13_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',8884,'Camacupa_To_RSAO13_2','ESRI');
@@ -29589,6 +29763,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9122,'NAD_1983_CSRS
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9142,'MGI_1901_To_KOSOVAREF01_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9143,'MGI_1901_To_WGS_1984_14','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9144,'KOSOVAREF01_To_WGS_1984_1','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29700,6 +29875,8 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9181,'NAD_1983_HARN
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9185,'AGD_1966_To_GDA2020_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9186,'ITRF_2008_To_IG05(2012)_Intermediate_CRS','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',9189,'WGS_1984_To_IG05(2012)_Intermediate_CRS','ESRI');
@@ -29779,6 +29956,7 @@ INSERT INTO "alias_name" VALUES('grid_transformation','EPSG',9691,'WGS_1984_To_G
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29843,10 +30021,13 @@ INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','9703','ETRF2000-PL_to_ETRS89_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','ESRI','9702','EPSG','4258',0.0,0.0,0.0,0.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI','9703','EPSG','1192','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','9740','ETRS89_to_EOS21-IRF_1',NULL,'EPSG','9615','NTv2','EPSG','4258','ESRI','9739',0.0,'EPSG','8656','Latitude and longitude difference file','uk/TN15-ETRS89-to-EOS21-IRF',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9740_USAGE','grid_transformation','ESRI','9740','EPSG','4620','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29956,12 +30137,15 @@ INSERT INTO "usage" VALUES('ESRI', '9703_USAGE','helmert_transformation','ESRI',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','9743','PN68_to_WGS_1984_1',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','9403','EPSG','4326',44.0,-307.0,-92.0,127.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9743_USAGE','helmert_transformation','ESRI','9743','EPSG','3873','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9751','CR05_to_CR-SIRGAS_1',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','5365','EPSG','8907',0.5,-0.16959,0.35312,0.51846,'EPSG','9001',-0.03385,0.16325,-0.03446,'EPSG','9104',0.03693,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9751_USAGE','helmert_transformation','ESRI','9751','EPSG','1074','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9752','CR05_To_WGS_1984_2',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','5365','EPSG','4326',1.0,-0.16959,0.35312,0.51846,'EPSG','9001',-0.03385,0.16325,-0.03446,'EPSG','9104',0.03693,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9752_USAGE','helmert_transformation','ESRI','9752','EPSG','1074','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30077,10 +30261,13 @@ INSERT INTO "usage" VALUES('ESRI', '9882_USAGE','helmert_transformation','ESRI',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "grid_transformation" VALUES('ESRI','9759','ETRS89_to_ECML14_NB-IRF_1',NULL,'EPSG','9615','NTv2','EPSG','4258','ESRI','9758',0.0,'EPSG','8656','Latitude and longitude difference file','uk/TN15-ETRS89-to-ECML14_NB-IRF',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9759_USAGE','grid_transformation','ESRI','9759','EPSG','4621','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','9764','ETRS89_to_EWR2-IRF_1',NULL,'EPSG','9615','NTv2','EPSG','4258','ESRI','9763',0.0,'EPSG','8656','Latitude and longitude difference file','uk/TN15-ETRS89-to-EWR2-IRF',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9764_USAGE','grid_transformation','ESRI','9764','EPSG','4622','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30183,10 +30370,13 @@ INSERT INTO "usage" VALUES('ESRI', '9764_USAGE','grid_transformation','ESRI','97
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','9898','LUREF_To_ETRS_1989_5',NULL,'EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4181','EPSG','4258',0.0,-265.8979,76.9761,20.2504,'EPSG','9001',0.43335,3.11447,-2.63637,'EPSG','9104',0.4752,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4103620.3891,440486.4152,4846923.4466,'EPSG','9001',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9898_USAGE','helmert_transformation','ESRI','9898','EPSG','1146','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9899','LUREF_To_ETRS_1989_6',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4181','EPSG','4258',0.0,-189.033,14.1335,-43.0901,'EPSG','9001',0.43331,3.11448,-2.63636,'EPSG','9104',0.4752,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9899_USAGE','helmert_transformation','ESRI','9899','EPSG','1146','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30330,10 +30520,13 @@ INSERT INTO "usage" VALUES('ESRI', '9936_USAGE','helmert_transformation','ESRI',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','9937','LUREF_To_ETRS_1989_7',NULL,'EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4181','EPSG','4258',0.0,-265.9196,76.9506,20.2222,'EPSG','9001',0.48171,3.09948,-2.68639,'EPSG','9104',0.46346,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,4101567.0943,440245.0881,4848681.4115,'EPSG','9001',NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9937_USAGE','helmert_transformation','ESRI','9937','EPSG','1146','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','9938','LUREF_To_ETRS_1989_8',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4181','EPSG','4258',0.0,-189.228,12.0035,-42.6303,'EPSG','9001',0.48171,3.09948,-2.68639,'EPSG','9104',0.46346,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '9938_USAGE','helmert_transformation','ESRI','9938','EPSG','1146','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30485,6 +30678,8 @@ INSERT INTO "usage" VALUES('ESRI', '9999_USAGE','helmert_transformation','ESRI',
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10085,'Trinidad_1903_To_WGS_1984_2','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10086,'Jamaica_1969_To_WGS_1972_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10089,'Aratu_To_WGS_1984_5','ESRI');
@@ -30494,6 +30689,7 @@ INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10092,'Aratu_To_
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10093,'Aratu_To_WGS_1984_9','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10098,'KKJ_To_ETRS_1989_2','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',10099,'KKJ_To_WGS_1984_2_JHS153','ESRI');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30643,6 +30839,8 @@ INSERT INTO "usage" VALUES('ESRI', '10138_USAGE','helmert_transformation','ESRI'
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15483,'Tokyo_To_JGD_2000_1','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15484,'Tokyo_To_WGS_1984_108','ESRI');
 INSERT INTO "alias_name" VALUES('helmert_transformation','EPSG',15485,'SAD_1969_To_SIRGAS_2000_1','ESRI');
@@ -30915,6 +31113,7 @@ INSERT INTO "usage" VALUES('ESRI', '108018_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -30986,11 +31185,14 @@ INSERT INTO "usage" VALUES('ESRI', '108021_USAGE','helmert_transformation','ESRI
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','205','Israel, Palestine Territory, and Jordan','Israel, Palestine Territory, and Jordan',29.19,33.53,32.99,39.3,0);
 INSERT INTO "helmert_transformation" VALUES('ESRI','108021','WGS_1984_To_Israel_CoordFrame',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4326','EPSG','4141',1.0,-24.0024,-17.1032,-17.8444,'EPSG','9001',-0.33009,-1.85269,1.66969,'EPSG','9104',5.4248,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108021_USAGE','helmert_transformation','ESRI','108021','ESRI','205','EPSG','1024');
 INSERT INTO "other_transformation" VALUES('ESRI','108022','NTF_Paris_RGF_To_NTF_2',NULL,'EPSG','9619','Geographic2D offsets','EPSG','4807','EPSG','4275',0.0,'EPSG','8601','Latitude offset',0.0,'EPSG','9104','EPSG','8602','Longitude offset',8413.095,'EPSG','9104',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108022_USAGE','other_transformation','ESRI','108022','EPSG','3694','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31102,6 +31304,8 @@ INSERT INTO "usage" VALUES('ESRI', '108021_USAGE','helmert_transformation','ESRI
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "grid_transformation" VALUES('ESRI','108023','Datum_Lisboa_Hayford_To_WGS_1984_NTv2',NULL,'EPSG','9615','NTv2','ESRI','104106','EPSG','4326',0.1,'EPSG','8656','Latitude and longitude difference file','portugal/DLX_ETRS89_geo',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108023_USAGE','grid_transformation','ESRI','108023','EPSG','1294','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108024','Datum_Lisboa_Hayford_To_ETRS_1989_NTv2',NULL,'EPSG','9615','NTv2','ESRI','104106','EPSG','4258',0.1,'EPSG','8656','Latitude and longitude difference file','portugal/DLX_ETRS89_geo',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -31155,6 +31359,7 @@ INSERT INTO "usage" VALUES('ESRI', '108047_USAGE','grid_transformation','ESRI','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31207,10 +31412,13 @@ INSERT INTO "usage" VALUES('ESRI', '108047_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "grid_transformation" VALUES('ESRI','108048','NAD_1983_NSRS2007_To_2011_GEOCON11_Alaska',NULL,'EPSG','9615','NTv2','EPSG','4759','EPSG','6318',0.05,'EPSG','8656','Latitude and longitude difference file','gc_nad83_2007_2011_alaska_shifts',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108048_USAGE','grid_transformation','ESRI','108048','EPSG','1330','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108049','NAD_1983_NSRS2007_To_2011_GEOCON11_Puerto_Rico_Virgin_Islands',NULL,'EPSG','9615','NTv2','EPSG','4759','EPSG','6318',0.05,'EPSG','8656','Latitude and longitude difference file','gc_nad83_2007_2011_prvi_shifts',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108049_USAGE','grid_transformation','ESRI','108049','EPSG','2251','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31313,6 +31521,8 @@ INSERT INTO "usage" VALUES('ESRI', '108049_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','108050','ETRS_1989_To_Xrail84_1',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4258','ESRI','104050',0.5,19.019,115.122,-97.287,'EPSG','9001',3.577824,-3.484437,-2.767646,'EPSG','9104',18.6084754,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108050_USAGE','helmert_transformation','ESRI','108050','ESRI','2','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108051','WGS_1984_To_Xrail84_1',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4326','ESRI','104050',0.5,19.019,115.122,-97.287,'EPSG','9001',3.577824,-3.484437,-2.767646,'EPSG','9104',18.6084754,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -31346,6 +31556,7 @@ INSERT INTO "usage" VALUES('ESRI', '108063_USAGE','other_transformation','ESRI',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -31418,6 +31629,8 @@ INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','206','Spain - Peninsula - NTv2 grid','Spain - Peninsula - NTv2 grid',35.5555555555556,44.4444444444444,-10.1833333333333,4.15,0);
 INSERT INTO "grid_transformation" VALUES('ESRI','108066','ED_1950_To_ETRS_1989_NTv2_PENR2009',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.1,'EPSG','8656','Latitude and longitude difference file','spain/PENR2009',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108066_USAGE','grid_transformation','ESRI','108066','ESRI','206','EPSG','1024');
@@ -31428,6 +31641,7 @@ INSERT INTO "usage" VALUES('ESRI', '108067_USAGE','grid_transformation','ESRI','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31522,10 +31736,13 @@ INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "grid_transformation" VALUES('ESRI','108068','ED_1950_To_WGS_1984_NTv2_PENR2009',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',0.9,'EPSG','8656','Latitude and longitude difference file','spain/PENR2009',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108068_USAGE','grid_transformation','ESRI','108068','ESRI','206','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108069','ED_1950_To_WGS_1984_NTv2_BALR2009',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',0.9,'EPSG','8656','Latitude and longitude difference file','spain/BALR2009',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','108069','ESRI','207','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31571,6 +31788,8 @@ INSERT INTO "usage" VALUES('ESRI', '108069_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','108070','PD/83_To_WGS_1984_7PAR',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4746','EPSG','4326',0.5,599.4,72.4,419.2,'EPSG','9001',-0.062,-0.022,-2.723,'EPSG','9104',6.46,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108070_USAGE','helmert_transformation','ESRI','108070','EPSG','2544','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108071','RD/83_To_WGS_1984_7PAR',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4745','EPSG','4326',0.5,612.4,77.0,440.2,'EPSG','9001',-0.054,0.057,-2.797,'EPSG','9104',2.55,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -31653,6 +31872,7 @@ INSERT INTO "usage" VALUES('ESRI', '108117_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31717,10 +31937,13 @@ INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "grid_transformation" VALUES('ESRI','108118','ED_1950_To_ETRS_1989_NTv2_Baleares',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.5,'EPSG','8656','Latitude and longitude difference file','spain/baleares',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108118_USAGE','grid_transformation','ESRI','108118','ESRI','207','EPSG','1024');
 INSERT INTO "grid_transformation" VALUES('ESRI','108119','ED_1950_To_WGS_1984_NTv2_Baleares',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','spain/baleares',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','108119','ESRI','207','EPSG','1024');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31830,6 +32053,8 @@ INSERT INTO "usage" VALUES('ESRI', '108119_USAGE','grid_transformation','ESRI','
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','108120','Datum_73_To_WGS_1984_2',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4274','EPSG','4326',1.0,-239.749,88.181,30.488,'EPSG','9001',-0.26,-0.08,-1.21,'EPSG','9104',2.23,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108120_USAGE','helmert_transformation','ESRI','108120','EPSG','1294','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108121','ED_1950_To_WGS_1984_PT7',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4230','EPSG','4326',NULL,-68.863,-134.888,-111.49,'EPSG','9001',0.53,0.14,-0.57,'EPSG','9104',-3.4,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -31849,6 +32074,7 @@ INSERT INTO "usage" VALUES('ESRI', '108125_USAGE','helmert_transformation','ESRI
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -31974,6 +32200,10 @@ INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','
 INSERT INTO "grid_transformation" VALUES('ESRI','108126','ED_1950_To_ETRS_1989_NTv2_Peninsula',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.5,'EPSG','8656','Latitude and longitude difference file','spain/peninsula',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','108126','ESRI','206','EPSG','1024');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "grid_transformation" VALUES('ESRI','108126','ED_1950_To_ETRS_1989_NTv2_Peninsula',NULL,'EPSG','9615','NTv2','EPSG','4230','EPSG','4258',0.5,'EPSG','8656','Latitude and longitude difference file','spain/peninsula',NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO "usage" VALUES('ESRI', '108126_USAGE','grid_transformation','ESRI','108126','ESRI','206','EPSG','1024');
+>>>>>>> locationtech-main
 INSERT INTO "helmert_transformation" VALUES('ESRI','108127','Sao_Braz_To_WGS_1984_2',NULL,'EPSG','9607','Coordinate Frame rotation (geog2D domain)','ESRI','37249','EPSG','4326',1.0,-208.719,129.685,52.092,'EPSG','9001',0.2,0.01,-0.33,'EPSG','9104',0.2,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108127_USAGE','helmert_transformation','ESRI','108127','EPSG','1345','EPSG','1024');
 INSERT INTO "helmert_transformation" VALUES('ESRI','108128','CGRS_1993_To_ETRS_1989',NULL,'EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','6311','EPSG','4258',0.5,8.846,-4.394,-1.122,'EPSG','9001',-0.00237,-0.146528,0.130428,'EPSG','9104',0.783926,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
@@ -31990,6 +32220,7 @@ INSERT INTO "grid_transformation" VALUES('ESRI','108136','ED_1950_To_WGS_1984_NT
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32112,6 +32343,9 @@ INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','
 =======
 INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','ESRI','206','EPSG','1024');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+INSERT INTO "usage" VALUES('ESRI', '108136_USAGE','grid_transformation','ESRI','108136','ESRI','206','EPSG','1024');
+>>>>>>> locationtech-main
 INSERT INTO "extent" VALUES('ESRI','209','Northern Marianas - Rota','Northern Marianas - Rota',14.0,14.75,145.0,146.0,0);
 INSERT INTO "helmert_transformation" VALUES('ESRI','108137','Guam_1963_To_HARN_Marianas_Rota',NULL,'EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4675','EPSG','4152',NULL,-96.234,-252.601,258.222,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
 INSERT INTO "usage" VALUES('ESRI', '108137_USAGE','helmert_transformation','ESRI','108137','ESRI','209','EPSG','1024');
@@ -32679,6 +32913,7 @@ VALUES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -32822,6 +33057,11 @@ VALUES
 -- 'uk/TN15-ETRS89-to-ECML14_NB-IRF': no mapping
 -- 'uk/TN15-ETRS89-to-EWR2-IRF': no mapping
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+-- 'uk/TN15-ETRS89-to-EOS21-IRF': no mapping
+-- 'uk/TN15-ETRS89-to-ECML14_NB-IRF': no mapping
+-- 'uk/TN15-ETRS89-to-EWR2-IRF': no mapping
+>>>>>>> locationtech-main
 -- 'gc_nad83_harn_2007_conus_shifts': no mapping
 -- 'gc_nad83_harn_2007_alaska_shifts': no mapping
 -- 'gc_nad83_harn_2007_prvi_shifts': no mapping
@@ -32833,6 +33073,7 @@ VALUES
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32958,6 +33199,10 @@ VALUES
 -- 'gc_nad83_2007_2011_alaska_shifts': no mapping
 -- 'gc_nad83_2007_2011_prvi_shifts': no mapping
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+-- 'gc_nad83_2007_2011_alaska_shifts': no mapping
+-- 'gc_nad83_2007_2011_prvi_shifts': no mapping
+>>>>>>> locationtech-main
 -- 'uk/osgb36_xrail84': no mapping
 -- 'japan/tky2jgd': no mapping
 -- 'icegrid2004': no mapping

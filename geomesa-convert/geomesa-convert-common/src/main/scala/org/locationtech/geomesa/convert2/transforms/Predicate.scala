@@ -17,6 +17,7 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -73,12 +74,16 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 =======
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locationtech-main
 
   def apply(args: Array[AnyRef]): Boolean
 
   @deprecated("Use `withContext` and `evaluate`")
   def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
     withContext(ctx).apply(args.asInstanceOf[Array[AnyRef]])
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -174,6 +179,9 @@ sealed trait Predicate extends ContextDependent[Predicate] {
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locationtech-main
 }
 
 object Predicate {

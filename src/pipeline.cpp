@@ -384,6 +384,7 @@ static void set_ellipsoid(PJ *P) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -696,6 +697,10 @@ static void set_ellipsoid(PJ *P) {
 
     geod_init(P->geod, P->a,  P->es / (1 + sqrt(P->one_es)));
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    if( pj_calc_ellipsoid_params (P, P->a, P->es) == 0 )
+        geod_init(P->geod, P->a,  P->f);
+>>>>>>> locationtech-main
 
     /* Re-attach the dangling list */
     /* Note: cur will always be non 0 given argv_sentinel presence, */

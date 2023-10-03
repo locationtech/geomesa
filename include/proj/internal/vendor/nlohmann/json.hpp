@@ -5149,6 +5149,7 @@ auto input_adapter(T (&array)[N]) -> decltype(input_adapter(array, array + N))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5271,6 +5272,9 @@ auto input_adapter(T (&array)[N]) -> decltype(input_adapter(array, array + N))
 =======
 // It's required so that expressions like {ptr, len} can be implicitely casted
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+// It's required so that expressions like {ptr, len} can be implicitely casted
+>>>>>>> locationtech-main
 // to the correct adapter.
 class span_input_adapter
 {
@@ -10051,6 +10055,7 @@ class binary_reader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10173,6 +10178,9 @@ class binary_reader
 =======
     @note This function needs to respect the system's endianess, because
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    @note This function needs to respect the system's endianess, because
+>>>>>>> locationtech-main
           bytes in CBOR, MessagePack, and UBJSON are stored in network order
           (big endian) and therefore need reordering on little endian systems.
     */
@@ -10351,6 +10359,7 @@ class binary_reader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10473,6 +10482,9 @@ class binary_reader
 =======
     /// whether we can assume little endianess
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /// whether we can assume little endianess
+>>>>>>> locationtech-main
     const bool is_little_endian = little_endianess();
 
     /// the SAX parser
@@ -14618,6 +14630,7 @@ class binary_writer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14740,6 +14753,9 @@ class binary_writer
 =======
     @note This function needs to respect the system's endianess, because bytes
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    @note This function needs to respect the system's endianess, because bytes
+>>>>>>> locationtech-main
           in CBOR, MessagePack, and UBJSON are stored in network order (big
           endian) and therefore need reordering on little endian systems.
     */
@@ -14829,6 +14845,7 @@ class binary_writer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14951,6 +14968,9 @@ class binary_writer
 =======
     /// whether we can assume little endianess
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+    /// whether we can assume little endianess
+>>>>>>> locationtech-main
     const bool is_little_endian = little_endianess();
 
     /// the output
@@ -18032,6 +18052,7 @@ class basic_json
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18154,6 +18175,9 @@ class basic_json
 =======
          The subtype is then added as singed 8-bit integer.
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+         The subtype is then added as singed 8-bit integer.
+>>>>>>> locationtech-main
        - If no subtype is given, the bin family (bin8, bin16, bin32) is used.
     - BSON
        - If a subtype is given, it is used and added as unsigned 8-bit integer.
@@ -22112,6 +22136,7 @@ class basic_json
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22234,6 +22259,9 @@ class basic_json
 =======
              object's lifetime exeeds the iteration. See
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+             object's lifetime exeeds the iteration. See
+>>>>>>> locationtech-main
              <https://github.com/nlohmann/json/issues/2040> for more
              information.
 

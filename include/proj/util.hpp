@@ -40,6 +40,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,6 +163,9 @@
 =======
 // windows.h can confict with Criterion::STRICT
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+// windows.h can confict with Criterion::STRICT
+>>>>>>> locationtech-main
 #ifdef STRICT
 #undef STRICT
 #endif
