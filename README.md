@@ -10839,6 +10839,7 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Current release: [3.5.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-3.5.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -47782,10 +47783,13 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
     ./build/change-scala-version.sh 2.13
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
 
     ./build/change-scala-version.sh 2.11
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -55835,4 +55839,9 @@ See [CITATION](CITATION)
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> f1074a9700 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> c5d24091d4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
