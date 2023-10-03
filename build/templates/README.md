@@ -689,7 +689,11 @@ To build for a different Scala version (e.g. 2.13), run the following script, th
 >>>>>>> 49e493163a3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD:build/templates/README.md
 >>>>>>> de5892f1e8a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
+=======
+<<<<<<< HEAD
+>>>>>>> 989aca19b2f (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762)):build/README.md
 
 ### Building on OS X
 
@@ -743,6 +747,10 @@ docker.client.strategy=org.testcontainers.dockerclient.UnixSocketClientProviderS
 =======
 >>>>>>> f1e2c184c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+>>>>>>> f20961dd9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1085,8 +1093,11 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3691fbb777 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
+=======
+>>>>>>> f20961dd9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -1199,4 +1210,17 @@ To build for a different Scala version (e.g. 2.11), run the following script, th
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> f1e2c184c8 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> locationtech-main
+=======
+=======
+To build for a different Scala version (e.g. 2.11), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.11
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> f20961dd9b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
