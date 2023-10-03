@@ -655,6 +655,7 @@ object FilterHelper {
             andFilters(orOption(simplified.toSeq).toSeq ++ duplicates)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             andFilters(orOption(simplified).toSeq ++ duplicates)
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -769,6 +770,11 @@ object FilterHelper {
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> locationtech-main
+=======
+=======
+            andFilters(orOption(simplified).toSeq ++ duplicates)
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
           }
         }
 
