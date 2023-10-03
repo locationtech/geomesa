@@ -434,6 +434,7 @@ The following classes have been deprecated and will be removed in a future versi
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Removed Modules
 ---------------
 
@@ -454,6 +455,9 @@ The ``geomesa-convert-osm`` module has been relocated to https://github.com/geom
 =======
 <<<<<<< HEAD
 >>>>>>> 98a051b4665 (Add note on NiFi scala version to upgrade guide)
+=======
+<<<<<<< HEAD
+>>>>>>> c1b51837558 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 Partitioned PostGIS Prepared Statements
 ---------------------------------------
 
@@ -461,6 +465,8 @@ If not specified, prepared statements now default to ``true``  in the partitione
 statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
 supported through prepared statements.
 
+=======
+>>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
@@ -542,7 +548,20 @@ supported through prepared statements.
 =======
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
+<<<<<<< HEAD
 >>>>>>> aa984d6123 (Add note on NiFi scala version to upgrade guide)
+=======
+>>>>>>> locationtech-main
+=======
+Partitioned PostGIS Prepared Statements
+---------------------------------------
+
+If not specified, prepared statements now default to ``true``  in the partitioned PostGIS data store. Prepared
+statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
+supported through prepared statements.
+
+>>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+>>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
