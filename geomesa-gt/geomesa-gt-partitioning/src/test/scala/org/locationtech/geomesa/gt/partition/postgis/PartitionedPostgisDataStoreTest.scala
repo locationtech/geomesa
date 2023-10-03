@@ -328,6 +328,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
+<<<<<<< HEAD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, TableConfig, TypeInfo}
 =======
 import org.geotools.data._
@@ -613,7 +614,14 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{TableConfig, TypeI
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> locationtech-main
+=======
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+>>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
+>>>>>>> d5f3f284a6 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -5470,6 +5478,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 >>>>>>> 6de7ca735b (GEOMESA-3215 Postgis - support List-type attributes)
     }
 
+<<<<<<< HEAD
     "support query interceptors" in {
       val sft = SimpleFeatureTypes.renameSft(this.sft, "interceptor")
       sft.getUserData.put(SimpleFeatureTypes.Configs.QueryInterceptors, classOf[TestQueryInterceptor].getName)
@@ -5509,6 +5518,28 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
       } finally {
         ds.dispose()
+=======
+    "default to using prepared statements" in {
+      foreach(Seq(params, params + ("preparedStatements" -> "true"), params - "preparedStatements")) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisPsDialect]
+        } finally {
+          ds.dispose()
+        }
+      }
+      foreach(Seq(params + ("preparedStatements" -> "false"))) { params =>
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[JDBCDataStore]
+          ds.asInstanceOf[JDBCDataStore].getSQLDialect must beAnInstanceOf[PartitionedPostgisDialect] // not partitioned
+        } finally {
+          ds.dispose()
+        }
+>>>>>>> be2711c68dc (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
       }
     }
 
