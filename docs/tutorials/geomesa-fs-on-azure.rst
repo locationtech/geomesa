@@ -331,7 +331,10 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 6d9a5b626c (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 7fbbd56493 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -407,6 +410,7 @@ Back inside the Apache Spark container on your master node run the following:
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -430,6 +434,12 @@ Back inside the Apache Spark container on your master node run the following:
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
   wget https://repo1.maven.org/maven2/org/locationtech/geomesa/geomesa-jupyter-leaflet_2.12/${VERSION}/geomesa-jupyter-leaflet_${VERSION}.jar
   jupyter toree install \
     --spark_home=/home/spark-current \
@@ -454,8 +464,12 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3676d4e56a (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -587,6 +601,7 @@ Back inside the Apache Spark container on your master node run the following:
 <<<<<<< HEAD
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 =======
 >>>>>>> b9bdd406e3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 3d5144418e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -637,6 +652,12 @@ Back inside the Apache Spark container on your master node run the following:
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 9d0ea08871 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> locationtech-main
+=======
+>>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.
