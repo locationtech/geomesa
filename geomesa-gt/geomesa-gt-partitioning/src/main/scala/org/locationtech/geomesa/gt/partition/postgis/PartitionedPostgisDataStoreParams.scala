@@ -26,6 +26,15 @@ object PartitionedPostgisDataStoreParams {
       Collections.singletonMap(Parameter.LEVEL, "program")
     )
 
+  val PreparedStatements =
+    new Param(
+      "preparedStatements",
+      classOf[java.lang.Boolean],
+      "Use prepared statements",
+      false,
+      java.lang.Boolean.FALSE
+    )
+
   val IdleInTransactionTimeout =
     new Param(
       "idle_in_transaction_session_timeout",

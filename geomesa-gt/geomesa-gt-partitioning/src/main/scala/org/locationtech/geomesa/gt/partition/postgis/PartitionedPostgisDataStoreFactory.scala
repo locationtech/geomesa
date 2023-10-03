@@ -746,7 +746,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
 >>>>>>> ee1d5f2071 (GEOMESA-3215 Postgis - support List-type attributes)
 
-  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout}
+  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, PreparedStatements}
 
   override def getDisplayName: String = "PostGIS (partitioned)"
 
@@ -757,7 +757,11 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
 <<<<<<< HEAD
+<<<<<<< HEAD
     Seq(DbType, IdleInTransactionTimeout)
+=======
+    Seq(DbType, IdleInTransactionTimeout, PreparedStatements)
+>>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
         .foreach(p => parameters.put(p.key, p))
   }
 
@@ -775,6 +779,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
     source
   }
 
+<<<<<<< HEAD
 =======
     // override postgis dbkey
     parameters.put(DbType.key, DbType)
@@ -783,6 +788,14 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgis
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
   override protected def createDataStoreInternal(store: JDBCDataStore, params: java.util.Map[String, _]): JDBCDataStore = {
 
+=======
+  override protected def createDataStoreInternal(store: JDBCDataStore, baseParams: java.util.Map[String, _]): JDBCDataStore = {
+    val params = new java.util.HashMap[String, Any](baseParams)
+    // default to using prepared statements, if not specified
+    if (!params.containsKey(PreparedStatements.key)) {
+      params.put(PreparedStatements.key, java.lang.Boolean.TRUE)
+    }
+>>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
     val ds = super.createDataStoreInternal(store, params)
     val dialect = new PartitionedPostgisDialect(ds)
 

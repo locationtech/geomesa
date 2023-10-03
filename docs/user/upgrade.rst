@@ -145,6 +145,7 @@ The following classes have been deprecated and will be removed in a future versi
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
 
+<<<<<<< HEAD
 =======
 >>>>>>> 16e5072a4a (Add note on NiFi scala version to upgrade guide)
 <<<<<<< HEAD
@@ -184,6 +185,15 @@ The following classes have been deprecated and will be removed in a future versi
 =======
 >>>>>>> d381f46e90 (Add note on NiFi scala version to upgrade guide)
 >>>>>>> locationtech-main
+=======
+Partitioned PostGIS Prepared Statements
+---------------------------------------
+
+If not specified, prepared statements now default to ``true``  in the partitioned PostGIS data store. Prepared
+statements are generally faster on insert, and some attribute types (such as list-type attributes) are only
+supported through prepared statements.
+
+>>>>>>> 008807b427 (GEOMESA-3295 Partitioned PostGIS - default to using prepared statements (#2993))
 Version 4.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
