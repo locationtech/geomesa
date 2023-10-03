@@ -37,6 +37,7 @@ package org.locationtech.geomesa.convert.avro
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f7b6b53d97 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
@@ -357,12 +358,17 @@ import com.google.common.hash.Hashing
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
 import com.google.common.hash.Hashing
 >>>>>>> b9bdd406e (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> fcfc8ed547 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
