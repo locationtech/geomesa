@@ -66,15 +66,15 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     }
 
     params.renameAttributes.asScala.grouped(2).foreach { case Seq(from, to) =>
-      val i = sft.indexOf(from.asInstanceOf[String])
+      val i = sft.indexOf(from)
       if (i == -1) {
         throw new ParameterException(s"Attribute '$from' does not exist in the schema")
       }
       val attribute = new AttributeTypeBuilder()
       attribute.init(sft.getDescriptor(i))
-      builder.set(i, attribute.buildDescriptor(to.asInstanceOf[String]))
+      builder.set(i, attribute.buildDescriptor(to))
       if (sft.getGeomField == from) {
-        builder.setDefaultGeometry(to.asInstanceOf[String])
+        builder.setDefaultGeometry(to)
       }
       prompts.append(s"\n  $number: Renaming attribute '$from' to '$to'")
       canRenameTables = canRenameTables || sft.getIndices.exists(_.attributes.contains(from))
