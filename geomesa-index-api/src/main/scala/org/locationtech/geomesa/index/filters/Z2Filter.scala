@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.filters
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.filters.Z3Filter._
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.zorder.sfcurve.Z2
 
@@ -69,7 +70,7 @@ object Z2Filter extends RowFilterFactory[Z2Filter] {
 
   override def serializeToStrings(filter: Z2Filter): Map[String, String] = {
     val xy = filter.xy.map(bounds => bounds.mkString(RangeSeparator)).mkString(TermSeparator)
-    Map(XYKey -> xy)
+    Map(XYKey -> xy, VersionKey -> GeoMesaProperties.ProjectVersion)
   }
 
   override def deserializeFromStrings(serialized: scala.collection.Map[String, String]): Z2Filter = {
