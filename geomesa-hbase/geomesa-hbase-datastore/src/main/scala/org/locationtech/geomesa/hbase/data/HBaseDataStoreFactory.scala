@@ -136,6 +136,9 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val RemoteDensityProperty       : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
   val RemoteStatsProperty         : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
   val YieldPartialResultsProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
+  val CoprocessorThreadsProperty  : SystemProperty = SystemProperty("hbase.coprocessor.threads", "16")
+  val MaxRangesPerExtendedScanProperty    : SystemProperty = SystemProperty("hbase.ranges.max-per-extended-scan", "100")
+  val MaxRangesPerCoprocessorScanProperty : SystemProperty = SystemProperty("hbase.ranges.max-per-coprocessor-scan", Int.MaxValue.toString)
 
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"
