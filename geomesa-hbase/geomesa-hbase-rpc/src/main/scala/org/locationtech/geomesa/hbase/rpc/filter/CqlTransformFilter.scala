@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.FilterCompatibility
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -143,10 +144,14 @@ object CqlTransformFilter extends StrictLogging {
     val samplingFactorBytes = samplingFactor.map(f => ByteBuffer.allocate(4).putFloat(f).array()).getOrElse(Array.empty)
     val samplingFieldBytes = samplingField.map(field => field.getBytes(StandardCharsets.UTF_8)).getOrElse(Array.empty)
 
+    val version = GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8)
+
     delegate.transform match {
       case None =>
-        val array = Array.ofDim[Byte](sftBytes.length + cqlBytes.length +
-            indexBytes.length + indexSftBytes.length + samplingFactorBytes.length + samplingFieldBytes.length + 4*7) //4 bytes (length info) per 7 fields
+        val array =
+          Array.ofDim[Byte](sftBytes.length + cqlBytes.length +
+              indexBytes.length + indexSftBytes.length + samplingFactorBytes.length +
+              samplingFieldBytes.length + version.length + 4*8) // 4 bytes (length info) per 8 fields
 
         var offset = 0
         ByteArrays.writeInt(sftBytes.length, array, offset)
@@ -191,11 +196,18 @@ object CqlTransformFilter extends StrictLogging {
 
         if (samplingFieldBytes.isEmpty) {
           ByteArrays.writeInt(0, array, offset)
+          offset += 4
         } else {
           ByteArrays.writeInt(samplingFieldBytes.length, array, offset)
           offset += 4
           System.arraycopy(samplingFieldBytes, 0, array, offset, samplingFieldBytes.length)
+          offset += samplingFieldBytes.length
         }
+
+        ByteArrays.writeInt(version.length, array, offset)
+        offset += 4
+        System.arraycopy(version, 0, array, offset, version.length)
+        offset += version.length
 
         array
 
@@ -203,8 +215,10 @@ object CqlTransformFilter extends StrictLogging {
         val tdefsBytes = tdefs.getBytes(StandardCharsets.UTF_8)
         val tsftBytes = SimpleFeatureTypes.encodeType(tsft).getBytes(StandardCharsets.UTF_8)
 
-        val array = Array.ofDim[Byte](sftBytes.length + cqlBytes.length + tdefsBytes.length + tsftBytes.length +
-            indexBytes.length + indexSftBytes.length +samplingFactorBytes.length + samplingFieldBytes.length + 4*8) //4 bytes (length info) per 8 fields
+        val array =
+          Array.ofDim[Byte](sftBytes.length + cqlBytes.length + tdefsBytes.length + tsftBytes.length +
+              indexBytes.length + indexSftBytes.length + samplingFactorBytes.length +
+              samplingFieldBytes.length + version.length + 4*9) // 4 bytes (length info) per 9 fields
 
         var offset = 0
         ByteArrays.writeInt(sftBytes.length, array, offset)
@@ -254,11 +268,18 @@ object CqlTransformFilter extends StrictLogging {
 
         if (samplingFieldBytes.isEmpty) {
           ByteArrays.writeInt(0, array, offset)
+          offset += 4
         } else {
           ByteArrays.writeInt(samplingFieldBytes.length, array, offset)
           offset += 4
           System.arraycopy(samplingFieldBytes, 0, array, offset, samplingFieldBytes.length)
+          offset += samplingFieldBytes.length
         }
+
+        ByteArrays.writeInt(version.length, array, offset)
+        offset += 4
+        System.arraycopy(version, 0, array, offset, version.length)
+        offset += version.length
 
         array
     }
@@ -291,7 +312,6 @@ object CqlTransformFilter extends StrictLogging {
       offset += cqlLength
 
       val tdefsLength = ByteArrays.readInt(bytes, offset)
-
 
       if (tdefsLength == -1) {
         if (cql == null) {

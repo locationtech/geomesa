@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.FilterCompatibility
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -174,12 +175,15 @@ object FilterTransformIterator {
       }
       sampling.foreach(SamplingIterator.configure(sft, _).foreach { case (k, v) => is.addOption(k, v) })
 
-      compatibility.foreach {
-        case FilterCompatibility.`1.3` =>
+      compatibility match {
+        case None =>
+          is.addOption(VersionOpt, GeoMesaProperties.ProjectVersion)
+
+        case Some(FilterCompatibility.`1.3`) =>
           is.setIteratorClass("org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator")
           is.addOption(IndexOpt, s"${index.name}:${index.version}")
 
-        case c =>
+        case Some(c) =>
           throw new NotImplementedError(s"Unknown compatibility flag: '$c'")
       }
       Some(is)
