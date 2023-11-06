@@ -21,17 +21,27 @@ class PartitionTablespacesTable extends Sql {
   val Name: TableName = TableName("partition_tablespaces")
 
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
-    val table = s"${info.schema.quoted}.${Name.quoted}"
+    val table = TableIdentifier(info.schema.raw, Name.raw)
+    val cName = TableName(Name.raw + "_pkey")
     val create =
-      s"""CREATE TABLE IF NOT EXISTS $table (
+      s"""CREATE TABLE IF NOT EXISTS ${table.quoted} (
          |  type_name text not null,
          |  table_type text not null,
          |  table_space text
          |);""".stripMargin
-    ex.execute(create)
+    val constraint =
+      s"""DO $$$$
+         |BEGIN
+         |  IF NOT EXISTS (SELECT FROM pg_constraint WHERE conname = ${cName.asLiteral} AND conrelid = ${table.asRegclass}) THEN
+         |    ALTER TABLE ${table.quoted} ADD CONSTRAINT ${cName.quoted} PRIMARY KEY (type_name, table_type);
+         |  END IF;
+         |END$$$$;""".stripMargin
+
+    Seq(create, constraint).foreach(ex.execute)
 
     val insertSql =
-      s"INSERT INTO $table (type_name, table_type, table_space) VALUES (?, ?, ?) ON CONFLICT DO NOTHING;"
+      s"INSERT INTO ${table.quoted} (type_name, table_type, table_space) VALUES (?, ?, ?) " +
+          "ON CONFLICT (type_name, table_type) DO UPDATE SET table_space = EXCLUDED.table_space;"
 
     def insert(suffix: String, table: TableConfig): Unit =
       ex.executeUpdate(insertSql, Seq(info.typeName, suffix, table.tablespace.map(_.raw).orNull))

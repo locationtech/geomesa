@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities}
+import org.geotools.data.DataStore
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -30,7 +30,8 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, Inge
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
+import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
@@ -101,27 +102,19 @@ trait IngestCommand[DS <: DataStore]
       throw new ParameterException("--split-max-size can only be used with --combine-inputs")
     }
 
-    // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs.paths, format, Some(this)).get.foreach { case (sft, converter) =>
-      val start = System.currentTimeMillis()
-      // create schema for the feature prior to ingest
-      val ds = DataStoreFinder.getDataStore(connection.asJava).asInstanceOf[DS]
-      if (ds == null) {
-        throw new ParameterException("Could not create data store from parameters")
-      }
-      try {
+    withDataStore { ds =>
+      // use .get to re-throw the exception if we fail
+      IngestCommand.getSftAndConverter(params, inputs.paths, format, Some(ds)).get.foreach { case (sft, converter) =>
+        val start = System.currentTimeMillis()
+        // create schema for the feature prior to ingest
         val existing = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         if (existing == null) {
           Command.user.info(s"Creating schema '${sft.getTypeName}'")
           setBackendSpecificOptions(sft)
           ds.createSchema(sft)
         } else {
+          // note: sft will have been loaded from the datastore if it already exists, so will match existing
           Command.user.info(s"Schema '${sft.getTypeName}' exists")
-          if (DataUtilities.compare(sft, existing) != 0) {
-            throw new ParameterException("Existing simple feature type does not match expected type" +
-                s"\n  existing: '${SimpleFeatureTypes.encodeType(existing)}'" +
-                s"\n  expected: '${SimpleFeatureTypes.encodeType(sft)}'")
-          }
         }
         val result = startIngest(mode, ds, sft, converter, inputs)
         if (params.waitForCompletion) {
@@ -140,8 +133,6 @@ trait IngestCommand[DS <: DataStore]
         } else {
           Command.user.info("Job submitted, check tracking for progress and result")
         }
-      } finally {
-        CloseWithLogging(ds)
       }
     }
   }
@@ -232,18 +223,18 @@ object IngestCommand extends LazyLogging {
     * @param params params
     * @param inputs input files
     * @param format input format
-    * @param command hook to data store for loading schemas by name
+    * @param ds data store for loading schemas by name
     * @return None if user declines inferred result, otherwise the loaded/inferred result
     */
   def getSftAndConverter(
       params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
       inputs: Seq[String],
       format: Option[String],
-      command: Option[DataStoreCommand[_ <: DataStore]]): Try[Option[(SimpleFeatureType, Config)]] = Try {
+      ds: Option[_ <: DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
-    var sft: SimpleFeatureType = loadSft(params, command).orNull
+    var sft: SimpleFeatureType = loadSft(params, ds).orNull
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
@@ -277,7 +268,7 @@ object IngestCommand extends LazyLogging {
 
       if (sft == null) {
         val typeName = Option(params.featureName).getOrElse {
-          val existing = command.toSet[DataStoreCommand[_ <: DataStore]].flatMap(_.withDataStore(_.getTypeNames))
+          val existing = ds.toSet[DataStore].flatMap(_.getTypeNames)
           val fileName = Option(FilenameUtils.getBaseName(file.path))
           val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse("geomesa")
           var name = base
@@ -382,23 +373,23 @@ object IngestCommand extends LazyLogging {
   }
 
   object Inputs {
-    val StdInInputs = Seq("-")
+    val StdInInputs: Seq[String] = Seq("-")
   }
 
   /**
     * Tries to load a feature type, first from the data store then from the params/environment
     *
     * @param params params
-    * @param command command with data store access
+    * @param ds data store access
     * @return
     */
   private def loadSft(
       params: TypeNameParam with FeatureSpecParam,
-      command: Option[DataStoreCommand[_ <: DataStore]]): Option[SimpleFeatureType] = {
+      ds: Option[_ <: DataStore]): Option[SimpleFeatureType] = {
     val fromStore = for {
-      cmd  <- command
+      d    <- ds
       name <- Option(params.featureName)
-      sft  <- cmd.withDataStore(ds => Try(ds.getSchema(name)).filter(_ != null).toOption)
+      sft  <- Try(d.getSchema(name)).filter(_ != null).toOption
     } yield {
       sft
     }
@@ -408,11 +399,13 @@ object IngestCommand extends LazyLogging {
 
     if (logger.underlying.isWarnEnabled()) {
       for { fs <- fromStore; fe <- fromEnv } {
-        if (fs.getTypeName != fe.getTypeName || SimpleFeatureTypes.compare(fs, fe) != 0) {
-          logger.warn(
-            "Schema from data store does not match schema from environment." +
-              s"\n  From data store:  ${fs.getTypeName} identified ${DataUtilities.encodeType(fs)}" +
-              s"\n  From environment: ${fe.getTypeName} identified ${DataUtilities.encodeType(fe)}")
+        SimpleFeatureTypeComparator.compare(fs, fe) match {
+          case TypeComparison.Compatible(false, false, _) if fs.getTypeName == fe.getTypeName => // ok
+          case _ =>
+            logger.warn(
+              "Schema from data store does not match schema from environment." +
+                s"\n  From data store:  ${fs.getTypeName} identified ${SimpleFeatureTypes.encodeType(fs)}" +
+                s"\n  From environment: ${fe.getTypeName} identified ${SimpleFeatureTypes.encodeType(fe)}")
         }
       }
     }

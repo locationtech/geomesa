@@ -54,9 +54,6 @@ class UserDataTable extends Sql {
     insert(Config.IntervalHours, Some(Integer.toString(info.partitions.hoursPerPartition)))
     insert(Config.PagesPerRange, Some(Integer.toString(info.partitions.pagesPerRange)))
     insert(Config.MaxPartitions, info.partitions.maxPartitions.map(Integer.toString))
-    insert(Config.WriteAheadTableSpace, info.tables.writeAhead.tablespace.map(_.raw))
-    insert(Config.WriteAheadPartitionsTableSpace, info.tables.writeAheadPartitions.tablespace.map(_.raw))
-    insert(Config.MainTableSpace, info.tables.mainPartitions.tablespace.map(_.raw))
     insert(Config.CronMinute, info.partitions.cronMinute.map(Integer.toString))
     insert(Config.FilterWholeWorld, info.userData.get(Config.FilterWholeWorld))
   }
