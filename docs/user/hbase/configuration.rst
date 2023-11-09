@@ -117,3 +117,18 @@ geomesa.hbase.query.block.caching.enabled
 
 Set whether blocks should be cached for scans, true by default. When true, default settings of the table and
 family are used (this will never override caching blocks if the block cache is disabled for that family or entirely).
+
+geomesa.hbase.coprocessor.threads
++++++++++++++++++++++++++++++++++
+
+The number of HBase RPC threads to use per coprocessor query
+
+geomesa.hbase.ranges.max-per-extended-scan
+++++++++++++++++++++++++++++++++++++++++++
+
+Max ranges per extended scan. Ranges will be grouped into scans based on this setting.
+
+geomesa.hbase.ranges.max-per-coprocessor-scan
++++++++++++++++++++++++++++++++++++++++++++++
+
+Max ranges per coprocessor scan. Ranges will be grouped into scans based on this setting
