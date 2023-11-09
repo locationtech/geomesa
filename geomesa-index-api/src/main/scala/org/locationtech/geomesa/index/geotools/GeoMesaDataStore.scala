@@ -25,6 +25,7 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -461,14 +462,18 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (previous == null) {
       new SchemaCompatibility.DoesNotExist(this, sft)
     } else {
-      Try(validateSchemaUpdate(previous, sft)).failed.map(SchemaCompatibility.Incompatible).getOrElse {
-        val copy = SimpleFeatureTypes.copy(sft)
-        updateSchemaUserData(copy, previous)
-        if (SimpleFeatureTypes.compare(copy, previous) == 0 && copy.getUserData == previous.getUserData) {
-          SchemaCompatibility.Unchanged
-        } else {
-          new SchemaCompatibility.Compatible(this, typeName, sft)
-        }
+      validateSchemaUpdate(previous, sft) match {
+        case Right(TypeComparison.Compatible(extension, renamed, _)) =>
+          val copy = SimpleFeatureTypes.copy(sft)
+          updateSchemaUserData(copy, previous)
+          if (!extension && !renamed && copy.getUserData == previous.getUserData) {
+            SchemaCompatibility.Unchanged
+          } else {
+            new SchemaCompatibility.Compatible(this, typeName, sft)
+          }
+
+        case Left(e) =>
+          SchemaCompatibility.Incompatible(e)
       }
     }
   }
