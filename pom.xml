@@ -3459,14 +3459,6 @@
                     <schemaVersion>1.4</schemaVersion>
                     <projectType>library</projectType>
                 </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>makeAggregateBom</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
