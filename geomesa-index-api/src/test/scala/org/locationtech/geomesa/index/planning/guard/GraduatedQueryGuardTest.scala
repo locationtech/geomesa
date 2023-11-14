@@ -9,10 +9,14 @@
 package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.config.ConfigFactory
+import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
+import org.locationtech.geomesa.index.TestGeoMesaDataStore.TestQueryPlan
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -24,17 +28,17 @@ import java.io.StringReader
 class GraduatedQueryGuardTest extends Specification {
 
   "GraduatedQueryGuard" should {
+    // note: z3 needs to be declared first so it's picked for full table scans
+    val sft = SimpleFeatureTypes.createType("cea650aea6284b5281ee84c784cb56a7",
+      "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
+    // NB: Uses configuration in the test reference.conf
+    sft.getUserData.put("geomesa.query.interceptors",
+      "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")
+
+    val ds = new TestGeoMesaDataStore(true)
+    ds.createSchema(sft)
+
     "block queries with an excessive duration and spatial extent using graduated query guard" in {
-      // note: z3 needs to be declared first so it's picked for full table scans
-      val sft = SimpleFeatureTypes.createType("cea650aea6284b5281ee84c784cb56a7",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
-      // NB: Uses configuration in the test reference.conf
-      sft.getUserData.put("geomesa.query.interceptors",
-        "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")
-
-      val ds = new TestGeoMesaDataStore(true)
-      ds.createSchema(sft)
-
       val valid = Seq(
         "name = 'bob'",
         "IN('123')",
@@ -98,21 +102,66 @@ class GraduatedQueryGuardTest extends Specification {
           |   { size = 10, duration = "60 days" }
           |   { duration = "1 day" }
           | ]
-          |  "repeated-size" = [
-          |   { size = 1,  duration = "3 days"  }
+          | "repeated-size" = [
+          |   { size = 1, duration = "3 days"  }
           |   { size = 1, duration = "60 days" }
           |   { duration = "1 day" }
           | ]
-          |   "no-upper-bound" = [
-          |   { size = 1,  duration = "3 days"  }
-          |   { size = 1, duration = "60 days" }
+          | "no-upper-bound" = [
+          |   { size = 1, duration = "3 days"  }
+          |   { size = 10, duration = "60 days" }
+          | ]
+          | "out-of-order-percentage" = [
+          |   { size = 1,  duration = "60 days", percentage = ".2" }
+          |   { size = 10, duration = "3 days",  percentage = ".3" }
+          |   { duration = "1 day", percentage = ".1" }
+          | ]
+          | "repeated-size-percentage" = [
+          |   { size = 1,  duration = "3 days",  percentage = ".2" }
+          |   { size = 10, duration = "60 days", percentage = ".2" }
+          |   { duration = "1 day", percentage = ".1" }
+          | ]
+          | "no-upper-bound-percentage" = [
+          |   { size = 1,  duration = "3 days",  percentage = ".3" }
+          |   { size = 10, duration = "60 days", percentage = ".2" }
+          |   { duration = "1 day" }
           | ]
           |""".stripMargin
 
-      forall(Seq("out-of-order", "repeated-size", "no-upper-bound")) {
+      forall(Seq("out-of-order", "repeated-size", "no-upper-bound",
+                 "out-of-order-percentage", "repeated-size-percentage", "no-upper-bound-percentage")) {
         path =>
           val configList = ConfigFactory.parseReader(new StringReader(configString)).getConfigList(path)
-          GraduatedQueryGuard.buildLimits(configList) must throwAn[IllegalArgumentException]
+          GraduatedQueryGuard.buildLimits(configList, sft) must throwAn[IllegalArgumentException]
+      }
+    }
+    "gradually apply subsampling to large queries" in {
+      val guard = new GraduatedQueryGuard
+      guard.init(ds, sft)
+
+      val tests = Map(
+        "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z" -> (None, None),
+        "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z" -> (Some(0.5f), None),
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:00:00.000Z" -> (Some(0.1f), Some("name"))
+      )
+
+      forall(tests) { case (filter, expected) =>
+        val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+        guard.rewrite(query)
+        val hints = query.getHints
+        expected match {
+          case (None, None) =>
+            hints.containsKey(QueryHints.SAMPLING) must beFalse
+            hints.containsKey(QueryHints.SAMPLE_BY) must beFalse
+          case (Some(percent), None) =>
+            hints.containsKey(QueryHints.SAMPLING) must beTrue
+            hints.get(QueryHints.SAMPLING) mustEqual percent
+          case (Some(percent), Some(attr)) =>
+            hints.containsKey(QueryHints.SAMPLING) must beTrue
+            hints.get(QueryHints.SAMPLING) mustEqual percent
+            hints.containsKey(QueryHints.SAMPLE_BY) must beTrue
+            hints.get(QueryHints.SAMPLE_BY) mustEqual attr
+        }
       }
     }
   }
