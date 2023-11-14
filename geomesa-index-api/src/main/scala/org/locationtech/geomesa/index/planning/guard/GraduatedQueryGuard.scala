@@ -193,6 +193,6 @@ object GraduatedQueryGuard extends LazyLogging {
 
       new SizeAndLimits(size, duration, percentage, percentageAttr)
     }
-    evaluateLimits(confs, sft)
+    evaluateLimits(confs.toSeq, sft)
   }
 }
