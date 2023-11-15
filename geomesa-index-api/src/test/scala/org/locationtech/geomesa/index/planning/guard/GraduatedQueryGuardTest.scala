@@ -9,14 +9,11 @@
 package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.config.ConfigFactory
-import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.TestGeoMesaDataStore.TestQueryPlan
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -100,31 +97,31 @@ class GraduatedQueryGuardTest extends Specification {
           | "out-of-order" = [
           |   { size = 1,  duration = "3 days"  }
           |   { size = 10, duration = "60 days" }
-          |   { duration = "1 day" }
+          |   {            duration = "1 day"   }
           | ]
           | "repeated-size" = [
           |   { size = 1, duration = "3 days"  }
           |   { size = 1, duration = "60 days" }
-          |   { duration = "1 day" }
+          |   {           duration = "1 day"   }
           | ]
           | "no-upper-bound" = [
-          |   { size = 1, duration = "3 days"  }
+          |   { size = 1,  duration = "3 days"  }
           |   { size = 10, duration = "60 days" }
           | ]
           | "out-of-order-percentage" = [
-          |   { size = 1,  duration = "60 days", percentage = ".2" }
-          |   { size = 10, duration = "3 days",  percentage = ".3" }
-          |   { duration = "1 day", percentage = ".1" }
+          |   { size = 1,  duration = "60 days", sampling-percentage = ".2" }
+          |   { size = 10, duration = "3 days",  sampling-percentage = ".3" }
+          |   {            duration = "1 day",   sampling-percentage = ".1" }
           | ]
           | "repeated-size-percentage" = [
-          |   { size = 1,  duration = "3 days",  percentage = ".2" }
-          |   { size = 10, duration = "60 days", percentage = ".2" }
-          |   { duration = "1 day", percentage = ".1" }
+          |   { size = 1,  duration = "3 days",  sampling-percentage = ".2" }
+          |   { size = 10, duration = "60 days", sampling-percentage = ".2" }
+          |   {            duration = "1 day",   sampling-percentage = ".1" }
           | ]
           | "no-upper-bound-percentage" = [
-          |   { size = 1,  duration = "3 days",  percentage = ".3" }
-          |   { size = 10, duration = "60 days", percentage = ".2" }
-          |   { duration = "1 day" }
+          |   { size = 1,  duration = "3 days",  sampling-percentage = ".3" }
+          |   { size = 10, duration = "60 days", sampling-percentage = ".2" }
+          |   {            duration = "1 day"                               }
           | ]
           |""".stripMargin
 
@@ -140,8 +137,8 @@ class GraduatedQueryGuardTest extends Specification {
       guard.init(ds, sft)
 
       val tests = Map(
-        "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z" -> (None, None),
-        "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z" -> (Some(0.5f), None),
+        "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z"     -> (None, None),
+        "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z"       -> (Some(0.5f), None),
         "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:00:00.000Z" -> (Some(0.1f), Some("name"))
       )
 

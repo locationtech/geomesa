@@ -183,12 +183,12 @@ object GraduatedQueryGuard extends LazyLogging {
         Some(Duration(limitsConfig.getString("duration")))
       } else None
 
-      val percentage: Option[Double] = if (limitsConfig.hasPath("percentage")) {
-        Some(limitsConfig.getDouble("percentage"))
+      val percentage: Option[Double] = if (limitsConfig.hasPath("sampling-percentage")) {
+        Some(limitsConfig.getDouble("sampling-percentage"))
       } else None
 
-      val percentageAttr: Option[String] = if (limitsConfig.hasPath("attribute")) {
-        Some(limitsConfig.getString("attribute"))
+      val percentageAttr: Option[String] = if (limitsConfig.hasPath("sampling-attribute")) {
+        Some(limitsConfig.getString("sampling-attribute"))
       } else None
 
       new SizeAndLimits(size, duration, percentage, percentageAttr)

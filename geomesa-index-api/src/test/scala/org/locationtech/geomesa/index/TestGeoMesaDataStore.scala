@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index
 
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
@@ -108,8 +107,7 @@ object TestGeoMesaDataStore {
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy.filter, tables.toMap, strategy.index.sft, serializer, ranges,
-        reducer, ecql, sort, maxFeatures, project)
+      TestQueryPlan(strategy.filter, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
     }
 
     override def createWriter(
