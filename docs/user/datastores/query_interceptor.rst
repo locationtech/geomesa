@@ -141,13 +141,13 @@ Durations can be given in a number of days, hours, or minutes. For example:
           "sftName" = [
             { size = 1,  duration = "60 days" }
             { size = 10, duration = "3 days"  }
-            { duration = "1 day" }
+            {            duration = "1 day"   }
           ]
         }
       }
     }
 
-Percentages can be defined in decimal form. e.g. .1 corresponds to 10%. Any query smaller than the first size will
+Sampling percentages can be defined in decimal form. e.g. .1 corresponds to 10%. Any query smaller than the first size will
 return 100% of the records. For example:
 
 .. code-block:: none
@@ -156,15 +156,15 @@ return 100% of the records. For example:
       guard {
         graduated {
           "sftName" = [
-            { size = 1,  percentage = .8 }
-            { size = 10, percentage = .5  }
-            { percentage = .1 }
+            { size = 1,  sampling-percentage = .8 }
+            { size = 10, sampling-percentage = .5 }
+            {            sampling-percentage = .1 }
           ]
         }
       }
     }
 
-It is also possible to specify the attribute to use for the threading key in subsampling:
+It is also possible to specify the sampling attribute to use for the threading key in subsampling:
 
 .. code-block:: none
 
@@ -172,9 +172,9 @@ It is also possible to specify the attribute to use for the threading key in sub
       guard {
         graduated {
           "sftName" = [
-            { size = 1,  percentage = .8, attribute = "name" }
-            { size = 10, percentage = .5, attribute = "name"  }
-            { percentage = .1, attribute = "name" }
+            { size = 1,  sampling-percentage = .8, sampling-attribute = "name" }
+            { size = 10, sampling-percentage = .5, sampling-attribute = "name" }
+            {            sampling-percentage = .1, sampling-attribute = "name" }
           ]
         }
       }
@@ -188,9 +188,9 @@ Additionally, it's possible to combine duration and percentage limits, with or w
       guard {
         graduated {
           "sftName" = [
-            { size = 1,  duration = "60 days" }
-            { size = 10, duration = "3 days", percentage = .5  }
-            { duration = "1 day", percentage = .1, attribute = "name" }
+            { size = 1,  duration = "60 days"                                                       }
+            { size = 10, duration = "3 days", sampling-percentage = .5                              }
+            {            duration = "1 day",  sampling-percentage = .1, sampling-attribute = "name" }
           ]
         }
       }
