@@ -15,12 +15,26 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
+<<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.text.DateParsing
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+import org.locationtech.geomesa.utils.text.DateParsing
+>>>>>>> bc50eb4be1 (GEOMESA-3297 Support for tiered date index pre-splits (#2996))
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
+<<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.Date
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+=======
+import java.util.Date
+>>>>>>> bc50eb4be1 (GEOMESA-3297 Support for tiered date index pre-splits (#2996))
 
 @RunWith(classOf[JUnitRunner])
 class DefaultSplitterTest extends Specification {
@@ -111,6 +125,24 @@ class DefaultSplitterTest extends Specification {
       splits.toSeq must containAllOf(dates)
     }
 
+<<<<<<< HEAD
+    "produce correct string tiered date splits for all dates" in {
+      foreach(Seq("2023-01-01", "2023-10-04", "2023-11-11", "2023-12-31")) { date =>
+        val opts =
+          "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+              s"attr.myString.date-range:2023-09-15/$date/4"
+        splitter.getSplits(sft, attrString, opts) must not(throwAn[Exception])
+      }
+      foreach(Seq("2023-01-32", "2023-13-04", "2023-00-11", "2023-12-00")) { date =>
+        val opts =
+          "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+              s"attr.myString.date-range:2023-09-15/$date/4"
+        splitter.getSplits(sft, attrString, opts) must throwAn[Exception]
+      }
+    }
+
+=======
+>>>>>>> bc50eb4be1 (GEOMESA-3297 Support for tiered date index pre-splits (#2996))
     "produce correct int splits" in {
       val opts = "attr.myInt.pattern:[0-9]"
       val splits = splitter.getSplits(sft, attrInt, opts)

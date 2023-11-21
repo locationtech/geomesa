@@ -33,6 +33,11 @@ To build HTML versions of the manuals:
 If you do not have Sphinx installed the manual will not be built.
 The outputted files are written to the ``target/html`` directory. 
 
+To view the docs, use the provided ``docs-server.sh`` script (requires Docker), then browse to
+``http://localhost:8080``:
+
+    $ ./docs/docs-server.sh
+
 To build a PDF version:
 
     $ mvn clean install -Pdocs,latex

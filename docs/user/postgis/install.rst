@@ -18,20 +18,53 @@ Installing Partitioned PostGIS in GeoServer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 =======
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 >>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+=======
+>>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 3bcff61f7d (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+=======
+>>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 .. warning::
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
@@ -46,28 +79,75 @@ Note that the regular PostGIS data store can also be used instead, but some quer
 optimization.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 3bcff61f7d (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+=======
+>>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+=======
+>>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 =======
 The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 =======
 >>>>>>> 8f431b9969 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 =======
 =======
 The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
 >>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
 >>>>>>> 9bd39d5310 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+<<<<<<< HEAD
 =======
 >>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
 >>>>>>> locationtech-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+=======
+=======
+The regular PostGIS data store can be used in GeoServer, so no additional installation is required.
+>>>>>>> 5c8e27c70f (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+>>>>>>> e54159ef30 (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+>>>>>>> 3bcff61f7d (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+=======
+>>>>>>> b463955e6d (GEOMESA-3260 Postgis - fix age-off bug (#2958))
+=======
+=======
+>>>>>>> b62213df9e (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> 7d000f11e3 (GEOMESA-3262 Add partitioned PostGIS gs-plugin)
+>>>>>>> locatelli-main
 
 Upgrading Existing Schemas
 --------------------------
