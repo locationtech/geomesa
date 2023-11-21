@@ -14,7 +14,7 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyBooleanParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyBooleanParam, SystemPropertyIntegerParam}
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
 
@@ -57,6 +57,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "The number of HBase RPC threads to use per coprocessor query",
       default = Int.box(16),
       supportsNiFiExpressions = true,
+      systemProperty = Some(SystemPropertyIntegerParam(HBaseSystemProperties.CoprocessorThreadsProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 
@@ -84,6 +85,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       default = 100,
       deprecatedKeys = Seq("max.ranges.per.extended.scan"),
       supportsNiFiExpressions = true,
+      systemProperty = Some(SystemPropertyIntegerParam(HBaseSystemProperties.MaxRangesPerExtendedScanProperty)),
       readWrite = ReadWriteFlag.ReadUpdate
     )
 
@@ -93,6 +95,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "Max ranges per coprocessor scan. Ranges will be grouped into scans based on this setting",
       default = Int.MaxValue,
       supportsNiFiExpressions = true,
+      systemProperty = Some(SystemPropertyIntegerParam(HBaseSystemProperties.MaxRangesPerCoprocessorScanProperty)),
       readWrite = ReadWriteFlag.ReadOnly
     )
 

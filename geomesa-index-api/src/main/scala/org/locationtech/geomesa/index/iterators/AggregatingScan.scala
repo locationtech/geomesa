@@ -16,6 +16,7 @@ import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.AggregatingScan.{AggregateCallback, CqlSampleValidator, CqlValidator, RowValidator, RowValue, SampleValidator, ValidateAll}
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -223,6 +224,7 @@ object AggregatingScan {
     val TransformSchemaOpt = "tsft"
     val TransformDefsOpt   = "tdefs"
     val BatchSizeOpt       = "batch"
+    val VersionOpt         = "v"
   }
 
   def configure(
@@ -243,7 +245,8 @@ object AggregatingScan {
       Configuration.CqlOpt             -> filter.map(ECQL.toCQL),
       Configuration.TransformDefsOpt   -> transform.map(_._1),
       Configuration.TransformSchemaOpt -> transform.map(t => SimpleFeatureTypes.encodeType(t._2)),
-      Configuration.BatchSizeOpt       -> batchSize.toString
+      Configuration.BatchSizeOpt       -> batchSize.toString,
+      Configuration.VersionOpt         -> GeoMesaProperties.ProjectVersion
     )
   }
 

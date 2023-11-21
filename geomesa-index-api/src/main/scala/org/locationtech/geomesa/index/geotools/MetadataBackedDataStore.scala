@@ -21,10 +21,11 @@ import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.Name
@@ -244,7 +245,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
       GeoMesaSchemaValidator.validate(schema)
 
-      validateSchemaUpdate(previousSft, schema)
+      validateSchemaUpdate(previousSft, schema).left.foreach(e => throw e)
 
       val sft = SimpleFeatureTypes.mutable(schema)
 
@@ -415,43 +416,50 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
    *
    * @param existing existing schema
    * @param schema updated sft
+   * @return validation result
    */
-  protected def validateSchemaUpdate(existing: SimpleFeatureType, schema: SimpleFeatureType): Unit = {
+  protected def validateSchemaUpdate(
+      existing: SimpleFeatureType,
+      schema: SimpleFeatureType): Either[UnsupportedOperationException, TypeComparison.Compatible] = {
     // validate that default geometry and date have not changed (rename is ok)
     if (schema.getGeomIndex != existing.getGeomIndex) {
-      throw new UnsupportedOperationException("Changing the default geometry attribute is not supported")
-    } else if (schema.getDtgIndex != existing.getDtgIndex) {
-      throw new UnsupportedOperationException("Changing the default date attribute is not supported")
+      return Left(new UnsupportedOperationException("Changing the default geometry attribute is not supported"))
+    }
+    if (schema.getDtgIndex != existing.getDtgIndex) {
+      return Left(new UnsupportedOperationException("Changing the default date attribute is not supported"))
     }
 
     // check that unmodifiable user data has not changed
-    MetadataBackedDataStore.UnmodifiableUserDataKeys.foreach { key =>
-      if (schema.userData[Any](key) != existing.userData[Any](key)) {
-        throw new UnsupportedOperationException(s"Updating '$key' is not supported")
+    val userDataChanges = MetadataBackedDataStore.UnmodifiableUserDataKeys.flatMap { key =>
+      if (schema.userData[Any](key) == existing.userData[Any](key)) { None } else {
+        Some(s"'$key'")
       }
     }
-
-    // validate that attributes weren't removed
-    if (existing.getAttributeCount > schema.getAttributeCount) {
-      throw new UnsupportedOperationException("Removing attributes from the schema is not supported")
+    if (userDataChanges.nonEmpty) {
+      val msg = s"${if (userDataChanges.size == 1) { "" } else { "s" }} ${userDataChanges.mkString(", ")}"
+      return Left(new UnsupportedOperationException(s"Updating user data key$msg is not supported"))
     }
 
-    // check for column type changes
-    existing.getAttributeDescriptors.asScala.zipWithIndex.foreach { case (prev, i) =>
-      val binding = schema.getDescriptor(i).getType.getBinding
-      if (!binding.isAssignableFrom(prev.getType.getBinding)) {
-        throw new UnsupportedOperationException(
-          s"Incompatible schema column type change: ${schema.getDescriptor(i).getLocalName} " +
-              s"from ${prev.getType.getBinding.getName} to ${binding.getName}")
-      }
-    }
+    SimpleFeatureTypeComparator.compare(existing, schema) match {
+      case TypeComparison.AttributeRemoved =>
+        Left(new UnsupportedOperationException("Removing attributes from the schema is not supported"))
 
-    // check for reserved words - only check for new/renamed attributes
-    val reserved = schema.getAttributeDescriptors.asScala.map(_.getLocalName).exists { name =>
-      existing.getDescriptor(name) == null && FeatureUtils.ReservedWords.contains(name.toUpperCase(Locale.US))
-    }
-    if (reserved) {
-      ReservedWordCheck.validateAttributeNames(schema)
+      case TypeComparison.AttributeTypeChanged(changes) =>
+        val msg = changes.map { case (name, (from, to)) => s"$name from ${from.getName} to ${to.getName}" }
+        Left(new UnsupportedOperationException(s"Incompatible schema column type changes: ${msg.mkString(", ")}"))
+
+      case c: TypeComparison.Compatible =>
+        // check for reserved words - only check for new/renamed attributes
+        val reserved = schema.getAttributeDescriptors.asScala.map(_.getLocalName).exists { name =>
+          existing.getDescriptor(name) == null && FeatureUtils.ReservedWords.contains(name.toUpperCase(Locale.US))
+        }
+        if (reserved) {
+          try { ReservedWordCheck.validateAttributeNames(schema) } catch {
+            case NonFatal(e) =>
+              return Left(new UnsupportedOperationException(e.getMessage))
+          }
+        }
+        Right(c)
     }
   }
 

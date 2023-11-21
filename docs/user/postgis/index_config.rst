@@ -1,3 +1,5 @@
+.. _postgis_index_config:
+
 Partitioned PostGIS Index Configuration
 =======================================
 
@@ -5,17 +7,27 @@ GeoMesa exposes a variety of configuration options that can be used to customize
 See :ref:`set_sft_options` for details on setting configuration parameters. Note that most of the general options
 for GeoMesa stores are not supported by the partitioned PostGIS store, except as specified below.
 
+.. note::
+
+    Most configurations can be updated after a schema has been created. See below for details
+    specific to each configuration.
+
 Configuring the Default Date Attribute
 --------------------------------------
 
 The default date attribute is the attribute that will be used for sorting data into partitions. See
 :ref:`set_date_attribute` for details on how to specify it.
 
+The default date cannot be changed after the schema has been created.
+
 Configuring Indices
 -------------------
 
 Attributes in the feature type may be marked for indexing, which will create a B-tree index on the associated
 table column. See :ref:`attribute_indices` for details on how to specify indices.
+
+After the schema has been created, additional indices can be added through ``CREATE INDEX`` statements on the
+parent partition tables. See :ref:`pg_partition_table_design` for a description of the partition tables.
 
 Configuring Partition Size
 --------------------------
@@ -34,6 +46,11 @@ Partition size is configured with the key ``pg.partitions.interval.hours``.
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.interval.hours", "12");
 
+After the schema has been created, changes to the partition size can be made through the
+:ref:`postgis_cli_update_schema` command. Changes will not be applied to any existing partitions. If the partition
+size is **increased**, any recent partitions that would overlap with the new partition size will need to be
+manually dropped and the data re-inserted in the write-ahead table in order to prevent partition range conflict errors.
+
 Configuring Index Resolution
 ----------------------------
 
@@ -51,6 +68,8 @@ The number of pages is configured with the key ``pg.partitions.pages-per-range``
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.pages-per-range", "64");
 
+The index resolution cannot be changed after the schema has been created.
+
 Configuring Data Age-Off
 ------------------------
 
@@ -67,6 +86,10 @@ Age-off is configured with the key ``pg.partitions.max``.
 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.max", "14");
+
+After the schema has been created, changes to the age-off can be made through the
+:ref:`postgis_cli_update_schema` command, or by directly updating the ``geomesa_userdata`` table in Postgres.
+Changes will take effect within the next 10 minutes.
 
 .. _postgis_filter_world:
 
@@ -86,6 +109,10 @@ which will ignore whole world filters.
      // enable filtering on "whole world" queries
     sft.getUserData().put("pg.partitions.filter.world", "true");
 
+After the schema has been created, changes to the filter optimization can be made through the
+:ref:`postgis_cli_update_schema` command, or by directly updating the ``geomesa_userdata`` table in Postgres.
+Clients must be restarted in order to pick up the change.
+
 Configuring Tablespaces
 -----------------------
 
@@ -104,8 +131,9 @@ and ``pg.partitions.tablespace.main``. See :ref:`pg_partition_table_design` for 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.tablespace.wa", "fasttablespace");
 
-Once the schema has been created, the tablespaces are stored in the ``partition_tablespaces`` table. This table
-can be modified manually to change the location used for new partitions.
+After the schema has been created, changes to the configured tablespaces can be made through the
+:ref:`postgis_cli_update_schema` command, or by directly updating the ``partition_tablespaces`` table in Postgres.
+Changes will not be applied to any existing partitions.
 
 Configuring the Maintenance Schedule
 ------------------------------------
@@ -125,3 +153,6 @@ for each query, moving data out of it faster may improve performance.
 
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.cron.minute", "0");
+
+After the schema has been created, changes to the schedule can be made through the
+:ref:`postgis_cli_update_schema` command.

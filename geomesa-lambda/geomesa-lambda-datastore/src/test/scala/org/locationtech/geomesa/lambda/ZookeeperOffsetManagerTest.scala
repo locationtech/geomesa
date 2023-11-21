@@ -12,26 +12,35 @@ package org.locationtech.geomesa.lambda
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
@@ -42,6 +51,9 @@ package org.locationtech.geomesa.lambda
 >>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
@@ -58,6 +70,7 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -72,6 +85,14 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 >>>>>>> locationtech-main
 =======
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6d1a5d55eb (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
@@ -79,6 +100,9 @@ import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 =======
@@ -105,14 +129,20 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 =======
@@ -143,9 +173,12 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -207,6 +240,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 
 @RunWith(classOf[JUnitRunner])
@@ -217,16 +253,22 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 =======
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 
@@ -252,9 +294,14 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> locationtech-main
+=======
+>>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+>>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
@@ -282,10 +329,13 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
   }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 =======
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 
@@ -334,6 +384,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
       container.stop()
     }
   }
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 
@@ -363,13 +416,19 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 247707e7e5 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4794e7a57e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
 =======
 =======
 >>>>>>> 0dba605f9e (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 0b203c6713 (GEOMESA-3258 Use docker instead of embedded Kafka for tests (#2957))
   "ZookeeperOffsetManager" should {
@@ -379,6 +438,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -386,6 +446,8 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -394,14 +456,23 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
@@ -411,9 +482,12 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
@@ -424,6 +498,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
       try {
         foreach(0 until 3) { i =>
@@ -437,26 +514,35 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
@@ -469,6 +555,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
       val offsets = 0 until 3
       forall(offsets)(i => manager.getOffset("foo", i) mustEqual -1L)
@@ -477,6 +566,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -484,6 +574,8 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -492,14 +584,23 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
@@ -509,9 +610,12 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
@@ -522,6 +626,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
     }
 
@@ -531,6 +638,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -538,6 +646,8 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -546,14 +656,23 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
@@ -563,9 +682,12 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
@@ -576,6 +698,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
       try {
         val triggers = new LinkedBlockingQueue[(Int, Int)]()
@@ -585,26 +710,35 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
@@ -617,6 +751,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 =======
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
       val triggers = scala.collection.mutable.Map(0 -> 0, 1 -> 0, 2 -> 0)
       manager.addOffsetListener("bar", new OffsetListener() {
@@ -626,6 +763,7 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a03d53d147 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
@@ -633,6 +771,8 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -641,14 +781,23 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 =======
 >>>>>>> 564f32a99e (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
@@ -658,9 +807,12 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> 77f2650b49 (Try to fix intermittent zookeeper test failures)
 >>>>>>> 6c49ac84e4 (Try to fix intermittent zookeeper test failures)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> fae5c0e52f (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
@@ -671,6 +823,9 @@ class ZookeeperOffsetManagerTest extends Specification with BeforeAfterAll with 
 >>>>>>> a6f7217266 (GEOMESA-3258 Use zookeeper docker for offset manager test (#2971))
 =======
 >>>>>>> 32133570e6 (Try to fix intermittent zookeeper test failures)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 
         manager.setOffset("bar", 0, 1)

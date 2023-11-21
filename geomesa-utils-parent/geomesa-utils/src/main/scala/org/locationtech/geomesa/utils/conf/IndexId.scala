@@ -26,6 +26,8 @@ case class IndexId(name: String, version: Int, attributes: Seq[String], mode: In
     val state = Seq(encoded)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
+
+  override def toString: String = encoded
 }
 
 object IndexId {

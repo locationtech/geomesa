@@ -620,9 +620,8 @@ package object dialect {
       val create =
         s"""DO $$$$
            |BEGIN
-           |  IF NOT EXISTS (SELECT FROM cron.job WHERE jobname = $jName) THEN
-           |    PERFORM cron.schedule($jName, ${schedule(info).quoted}, ${invocation(info).quoted});
-           |  END IF;
+           |${unscheduleSql(jName)}
+           |  PERFORM cron.schedule($jName, ${schedule(info).quoted}, ${invocation(info).quoted});
            |END$$$$;""".stripMargin
       Seq(create)
     }
@@ -632,12 +631,15 @@ package object dialect {
       val drop =
         s"""DO $$$$
            |BEGIN
-           |  IF EXISTS (SELECT FROM cron.job WHERE jobname = $jName) THEN
-           |    PERFORM cron.unschedule($jName);
-           |  END IF;
+           |${unscheduleSql(jName)}
            |END$$$$;""".stripMargin
       Seq(drop) ++ super.dropStatements(info)
     }
+
+    protected def unscheduleSql(quotedName: String): String =
+      s"""  IF EXISTS (SELECT FROM cron.job WHERE jobname = $quotedName) THEN
+         |    PERFORM cron.unschedule($quotedName);
+         |  END IF;""".stripMargin
   }
 
   /**
