@@ -28,6 +28,8 @@ jobs:
         run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+      - name: Generate SBOM
+        run: ./build/mvn org.cyclonedx:cyclonedx-maven-plugin:makeBom org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_CLI_OPTS -Pcyclonedx -s .github/settings.xml
       - name: Unit tests
         id: test
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
