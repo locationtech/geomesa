@@ -315,6 +315,7 @@ class KafkaDataStore(
     CloseWithLogging(defaultProducer)
     CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
+    CloseWithLogging(config.metrics)
     caches.invalidateAll()
     super.dispose()
   }

@@ -30,6 +30,9 @@ package object hbase {
     val RemoteDensityProperty      : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
     val RemoteStatsProperty        : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
     val YieldPartialResultsProperty: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
+    val CoprocessorThreadsProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.threads", "16")
+    val MaxRangesPerExtendedScanProperty   : SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-extended-scan", "100")
+    val MaxRangesPerCoprocessorScanProperty: SystemProperty = SystemProperty("geomesa.hbase.ranges.max-per-coprocessor-scan", Int.MaxValue.toString)
 
     @deprecated("Use coprocessor url")
     val CoprocessorPath: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.path")

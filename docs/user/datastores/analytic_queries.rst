@@ -7,6 +7,8 @@ GeoMesa provides advanced query capabilities through GeoTools query hints. You c
 various aspects of query processing or to trigger distributed analytic processing. See :ref:`query_hints`
 for details on setting query hints.
 
+.. _feature_sampling:
+
 Feature Sampling
 ----------------
 
