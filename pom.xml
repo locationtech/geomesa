@@ -291,6 +291,58 @@
         </profile>
 
         <profile>
+            <!-- cyclonedx does not pick up the repos defined in our pom, so we have to redefine them here -->
+            <id>cyclonedx</id>
+            <repositories>
+                <!-- include central so that it is searched before our alternate repos -->
+                <repository>
+                    <id>central</id>
+                    <name>Maven Repository Switchboard</name>
+                    <layout>default</layout>
+                    <url>https://repo1.maven.org/maven2</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <!-- geotools -->
+                <repository>
+                    <id>osgeo</id>
+                    <url>https://repo.osgeo.org/repository/release</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <!-- confluent -->
+                <repository>
+                    <id>confluent</id>
+                    <url>https://packages.confluent.io/maven/</url>
+                </repository>
+                <!-- nightly geomesa snapshots -->
+                <repository>
+                    <id>locationtech-snapshots</id>
+                    <url>https://repo.eclipse.org/content/groups/snapshots</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+                <!-- nightly geotools snapshots -->
+                <repository>
+                    <id>osgeo-snapshots</id>
+                    <url>https://repo.osgeo.org/repository/snapshot</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+
+        <profile>
             <id>bloop</id>
             <properties>
                 <scala.maven.plugin.version>4.8.0</scala.maven.plugin.version>
@@ -3459,6 +3511,15 @@
                     <schemaVersion>1.4</schemaVersion>
                     <projectType>library</projectType>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>makeBom</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>makeBom</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
