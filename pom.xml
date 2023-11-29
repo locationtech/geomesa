@@ -14,8 +14,8 @@
 
     <licenses>
         <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <name>Apache-2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -288,6 +288,32 @@
                     </snapshots>
                 </pluginRepository>
             </pluginRepositories>
+        </profile>
+
+        <profile>
+            <id>cyclonedx</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <version>2.7.10</version>
+                        <configuration>
+                            <schemaVersion>1.4</schemaVersion>
+                            <projectType>library</projectType>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>makeBom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
@@ -3460,6 +3486,11 @@
         <url>https://github.com/locationtech/geomesa</url>
         <tag>geomesa_2.11-3.1.0</tag>
     </scm>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://geomesa.atlassian.net/issues/</url>
+    </issueManagement>
 
     <developers>
         <developer>
