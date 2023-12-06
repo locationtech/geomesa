@@ -23,7 +23,7 @@ import redis.clients.jedis.{Jedis, JedisPool}
 
 import java.awt.RenderingHints
 import java.net.URI
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
@@ -66,6 +66,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       RedisUrlParam,
       RedisCatalogParam,
       PoolSizeParam,
+      SocketTimeoutParam,
       QueryThreadsParam,
       QueryTimeoutParam,
       PipelineParam,
@@ -89,20 +90,29 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     */
   def buildConnection(params: java.util.Map[String, _]): JedisPool = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
-      val url = RedisUrlParam.lookup(params)
+      val uri = {
+        val url = RedisUrlParam.lookup(params)
+        // if there is no protocol/port, or the url is a valid redis url, use as is
+        // else use the redis:// protocol to support databases, etc
+        val parsed =
+          if (url.indexOf(":") == -1) {
+            Try(new URI(url))
+          } else {
+            parse(url).orElse(parse(s"redis://$url"))
+          }
+        parsed match {
+          case Success(uri) => uri
+          case Failure(e) =>
+            throw new IllegalArgumentException(s"Could not create valid Redis connection URI from: $url", e)
+        }
+      }
+
       val config = new GenericObjectPoolConfig[Jedis]()
       PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
       config.setTestOnBorrow(TestConnectionParam.lookup(params))
-      // if there is no protocol/port, or the url is a valid redis url, use as is
-      // else use the redis:// protocol to support databases, etc
-      if (url.indexOf(":") == -1) {
-        new JedisPool(config, url)
-      } else {
-        val uri = parse(url).orElse(parse(s"redis://$url")).getOrElse {
-          throw new IllegalArgumentException(s"Could not create valid Redis connection URI from: $url")
-        }
-        new JedisPool(config, uri)
-      }
+      val timeout = SocketTimeoutParam.lookup(params).toMillis.toInt
+
+      new JedisPool(config, uri, timeout)
     }
   }
 
