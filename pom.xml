@@ -99,7 +99,7 @@
 
         <specs2.version>4.9.2</specs2.version>
         <junit.version>4.13.1</junit.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 

@@ -112,6 +112,14 @@ io.opentelemetry:opentelemetry-context	1.15.0	compile
 io.opentelemetry:opentelemetry-context	1.25.0	compile
 io.opentelemetry:opentelemetry-semconv	1.15.0-alpha	compile
 io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
+io.prometheus:simpleclient	0.16.0	compile
+io.prometheus:simpleclient_common	0.16.0	compile
+io.prometheus:simpleclient_dropwizard	0.16.0	compile
+io.prometheus:simpleclient_httpserver	0.16.0	compile
+io.prometheus:simpleclient_pushgateway	0.16.0	compile
+io.prometheus:simpleclient_tracer_common	0.16.0	compile
+io.prometheus:simpleclient_tracer_otel	0.16.0	compile
+io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
@@ -372,7 +380,7 @@ org.slf4j:jul-to-slf4j	1.7.36	test
 org.specs2:specs2-core_2.12	4.9.2	test
 org.specs2:specs2-junit_2.12	4.9.2	test
 org.specs2:specs2-mock_2.12	4.9.2	test
-org.testcontainers:kafka	1.17.6	test
-org.testcontainers:postgresql	1.17.6	test
-org.testcontainers:testcontainers	1.17.6	test
+org.testcontainers:kafka	1.19.3	test
+org.testcontainers:postgresql	1.19.3	test
+org.testcontainers:testcontainers	1.19.3	test
 org.wololo:jts2geojson	0.16.1	test
