@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.Writer
+import java.util.regex.Pattern
 import java.util.{Base64, Date, UUID}
 
 /**
@@ -90,11 +91,13 @@ object GeoJsonSerializer extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.ObjectType
   import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 
-  private val geometryWriter = {
+  private val GeometryWriter = {
     val writer = new org.locationtech.jts.io.geojson.GeoJsonWriter()
     writer.setEncodeCRS(false)
     writer
   }
+
+  private val JsonObjectPattern = Pattern.compile("^\\s*[{\\[]")
 
   /**
    * Create a JsonWriter from a standard writer.
@@ -153,8 +156,14 @@ object GeoJsonSerializer extends LazyLogging {
   }
 
   private class JsonStringWriter(name: String, i: Int) extends JsonAttributeWriter {
-    override def apply(feature: SimpleFeature, writer: JsonWriter): Unit =
-      writer.name(name).beginObject().jsonValue(feature.getAttribute(i).asInstanceOf[String]).endObject()
+    override def apply(feature: SimpleFeature, writer: JsonWriter): Unit = {
+      writer.name(name)
+      feature.getAttribute(i).asInstanceOf[String] match {
+        case null => writer.nullValue()
+        case obj if JsonObjectPattern.matcher(obj).find() => writer.jsonValue(obj.trim)
+        case primitive => writer.value(primitive)
+      }
+    }
   }
 
   private class NumberWriter(name: String, i: Int) extends JsonAttributeWriter {
@@ -182,7 +191,7 @@ object GeoJsonSerializer extends LazyLogging {
       writer.name(name)
       val geom = feature.getAttribute(i).asInstanceOf[Geometry]
       if (geom == null) { writer.nullValue() } else {
-        writer.jsonValue(geometryWriter.write(geom))
+        writer.jsonValue(GeometryWriter.write(geom))
       }
     }
   }
@@ -255,7 +264,7 @@ object GeoJsonSerializer extends LazyLogging {
     case ObjectType.FLOAT    => (writer, elem) => writer.value(elem.asInstanceOf[Number])
     case ObjectType.DOUBLE   => (writer, elem) => writer.value(elem.asInstanceOf[Number])
     case ObjectType.DATE     => (writer, elem) => writer.value(DateParsing.formatDate(elem.asInstanceOf[Date]))
-    case ObjectType.GEOMETRY => (writer, elem) => writer.jsonValue(geometryWriter.write(elem.asInstanceOf[Geometry]))
+    case ObjectType.GEOMETRY => (writer, elem) => writer.jsonValue(GeometryWriter.write(elem.asInstanceOf[Geometry]))
     case ObjectType.BYTES    => (writer, elem) => writer.value(Base64.getEncoder.encodeToString(elem.asInstanceOf[Array[Byte]]))
     case ObjectType.BOOLEAN  => (writer, elem) => writer.value(elem.asInstanceOf[java.lang.Boolean])
     case _                   => (writer, elem) => writer.value(elem.toString)
