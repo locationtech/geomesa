@@ -160,7 +160,9 @@ object GeoJsonSerializer extends LazyLogging {
       writer.name(name)
       feature.getAttribute(i).asInstanceOf[String] match {
         case null => writer.nullValue()
+        // note: this check isn't exhaustive, and may still produce invalid json if the value is badly formatted
         case obj if JsonObjectPattern.matcher(obj).find() => writer.jsonValue(obj.trim)
+        // note: we don't support primitive types, but this is here to prevent bad input from producing invalid json
         case primitive => writer.value(primitive)
       }
     }
