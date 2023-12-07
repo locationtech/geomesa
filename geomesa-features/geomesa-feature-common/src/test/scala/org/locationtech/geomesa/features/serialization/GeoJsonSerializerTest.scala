@@ -259,5 +259,57 @@ class GeoJsonSerializerTest extends Specification {
             |"dtg":null}
             |}""".stripMargin.replaceAll("\n", "")
     }
+
+    "serialize a json attribute" in {
+      val spec = "age:Integer,name:String,dtg:Date,*geom:Point:srid=4326,extra:String:json=true"
+      val sft = SimpleFeatureTypes.createType("testType", spec)
+
+      val sf = new ScalaSimpleFeature(sft, "1")
+      sf.setAttribute("age", "1")
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+
+      // (attribute value, rendered json) pairs
+      val extras = Seq(
+        ("""{"a":1,"b":2}""", """{"a":1,"b":2}"""),
+        ("""["a","b"]""", """["a","b"]"""),
+        (null, "null"),
+        ("", "\"\""),
+        ("abc", "\"abc\"")
+      )
+
+      def expectedFeature(extra: String): String =
+        s"""{
+           |"type":"Feature",
+           |"id":"1",
+           |"geometry":{"type":"Point","coordinates":[45,49]},
+           |"properties":{
+             |"age":1,
+             |"name":"foo",
+             |"dtg":"2013-01-02T00:00:00.000Z",
+             |"extra":$extra
+           |}
+           |}""".stripMargin.replaceAll("\n", "")
+
+      val expected = extras.map { case (_, rendered) => expectedFeature(rendered) }
+
+      val serializer = new GeoJsonSerializer(sft)
+
+      val out = new StringWriter()
+      WithClose(GeoJsonSerializer.writer(out)) { writer =>
+        serializer.startFeatureCollection(writer)
+        extras.foreach { case (attr, _) =>
+          sf.setAttribute("extra", attr)
+          serializer.write(writer, sf)
+        }
+        serializer.endFeatureCollection(writer)
+      }
+
+      val serialized = out.toString
+
+      serialized mustEqual s"""{"type":"FeatureCollection","features":[${expected.mkString(",")}]}"""
+    }
+
   }
 }
