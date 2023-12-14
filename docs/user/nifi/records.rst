@@ -16,6 +16,8 @@ the input source:
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | ``Feature ID column``             | Column that will be used as the feature ID. If not specified, a random ID will be used              |
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Keep Feature ID as attribute``  | If ``Feature ID column`` is specified, also keep the column as an attribute in the feature type     |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | ``Geometry columns``              | Column(s) that will be deserialized as geometries, and their type, as a                             |
 |                                   | SimpleFeatureType specification string (e.g. ``the_geom:Point``). A '*' can be used to              |
 |                                   | indicate the default geometry column, otherwise it will be the first geometry in the schema         |
