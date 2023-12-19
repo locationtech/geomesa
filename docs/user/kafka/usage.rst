@@ -38,8 +38,8 @@ The Kafka data store accepts the following parameters (required parameters are m
 ==================================== ======= ====================================================================================================
 Parameter                            Type    Description
 ==================================== ======= ====================================================================================================
-``kafka.brokers *``                  String  Kafka brokers, e.g. "localhost:9092"
-``kafka.zookeepers``                 String  Kafka zookeepers, e.g "localhost:2181", used to persist GeoMesa metadata in Zookeeper instead
+``kafka.brokers *``                  String  Kafka brokers, e.g. ``localhost:9092``
+``kafka.zookeepers``                 String  Kafka zookeepers, e.g ``localhost:2181``, used to persist GeoMesa metadata in Zookeeper instead
                                              of in Kafka topics. See :ref:`no_zookeeper` for details.
 ``kafka.catalog.topic``              String  The Kafka topic used to store schema metadata (when not using Zookeeper)
 ``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to namespace feature types (when using Zookeeper)
@@ -50,9 +50,9 @@ Parameter                            Type    Description
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
                                              format. See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
-                                             '1 hour'. Use 'Inf' to read all messages. If enabled, features will not be available for query until
-                                             all existing messages are processed. However, feature listeners will still be invoked as normal.
-                                             See :ref:`kafka_initial_load`
+                                             ``1 hour``. Use ``Inf`` to read all messages. If enabled, features will not be available for query
+                                             until all existing messages are processed. However, feature listeners will still be invoked as
+                                             normal. See :ref:`kafka_initial_load`
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
 ``kafka.consumer.group-prefix``      String  Prefix to use for kafka group ID, to more easily identify particular data stores
 ``kafka.consumer.start-on-demand``   Boolean The default behavior is to start consuming a topic only when that feature type is first requested.

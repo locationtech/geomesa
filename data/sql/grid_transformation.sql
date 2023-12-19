@@ -46,6 +46,7 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -54,6 +55,8 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -71,10 +74,13 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -86,10 +92,13 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -116,6 +125,9 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -128,11 +140,15 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -142,9 +158,12 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -168,6 +187,9 @@ INSERT INTO "usage" VALUES('EPSG','8395','grid_transformation','EPSG','1474','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -233,10 +255,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -258,6 +284,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -268,6 +298,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -282,6 +315,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1475','NAD83 to NAD83(HARN) (2)
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -290,6 +324,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1475','NAD83 to NAD83(HARN) (2)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -371,11 +408,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -383,6 +423,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -392,8 +435,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -403,7 +449,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1475','NAD83 to NAD83(HARN) (2)
 >>>>>>> 86ade66356 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -470,6 +519,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -482,6 +532,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -502,11 +554,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -516,8 +572,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -588,7 +647,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -603,6 +665,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -617,9 +680,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30)','Accuracy 67% confidence level. Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1740.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','wyhpgn.las','EPSG','8658','Longitude difference file','wyhpgn.los',NULL,NULL,'NGS-Usa WY',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -645,6 +713,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1013,6 +1083,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1082,6 +1155,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -1096,6 +1170,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1103,6 +1179,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1112,6 +1191,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1119,6 +1199,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1130,6 +1212,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1503','NAD83 to NAD83(HARN) (30
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1148,6 +1233,7 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1156,6 +1242,8 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1173,10 +1261,13 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1188,10 +1279,13 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1218,6 +1312,9 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1230,11 +1327,15 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1244,9 +1345,12 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1270,6 +1374,9 @@ INSERT INTO "usage" VALUES('EPSG','8428','grid_transformation','EPSG','1507','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1295,10 +1402,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1320,6 +1431,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1330,6 +1445,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1344,6 +1462,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1520','NAD83 to NAD83(HARN) (31
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1352,6 +1471,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1520','NAD83 to NAD83(HARN) (31
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -1393,11 +1515,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1405,6 +1530,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1414,8 +1542,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1425,7 +1556,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1520','NAD83 to NAD83(HARN) (31
 >>>>>>> 86ade66356 (typo fixes)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1452,6 +1586,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1464,6 +1599,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1484,11 +1621,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1498,8 +1639,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1530,7 +1674,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1545,6 +1692,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1559,9 +1707,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1749.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','njhpgn.las','EPSG','8658','Longitude difference file','njhpgn.los',NULL,NULL,'NGS-Usa NJ',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1587,6 +1740,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -1795,6 +1950,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1824,6 +1982,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -1838,6 +1997,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1845,6 +2006,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1854,6 +2018,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1861,6 +2026,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1872,6 +2039,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1554','NAD83 to NAD83(HARN) (39
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1948,6 +2118,7 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1956,6 +2127,8 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1973,10 +2146,13 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1988,10 +2164,13 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2018,6 +2197,9 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2030,11 +2212,15 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2044,9 +2230,12 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2070,6 +2259,9 @@ INSERT INTO "usage" VALUES('EPSG','8624','grid_transformation','EPSG','1703','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2083,10 +2275,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2108,6 +2304,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2118,6 +2318,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2125,6 +2328,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2142,6 +2346,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2150,6 +2356,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2162,11 +2371,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -2177,16 +2389,20 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -2199,6 +2415,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2235,6 +2453,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2243,6 +2464,7 @@ INSERT INTO "usage" VALUES('EPSG','8625','grid_transformation','EPSG','1704','EP
 INSERT INTO "grid_transformation" VALUES('EPSG','1705','NAD83 to NAD83(HARN) (41)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east. May be taken as approximate transformation NAD83-WGS 84 - see code 1709.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','iahpgn.las','EPSG','8658','Longitude difference file','iahpgn.los',NULL,NULL,'NGS-Usa IA',0);
 INSERT INTO "usage" VALUES('EPSG','8626','grid_transformation','EPSG','1705','EPSG','1384','EPSG','1027');
 INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42)','Uses NADCON method which expects longitudes positive west; EPSG GeogCRSs NAD83 (code 4269) and NAD83(HARN) (code 4152) have longitudes positive east.  May be taken as approximate transformation NAD83-WGS 84 - see code 1710.','EPSG','9613','NADCON','EPSG','4269','EPSG','4152',0.05,'EPSG','8657','Latitude difference file','mnhpgn.las','EPSG','8658','Longitude difference file','mnhpgn.los',NULL,NULL,'NGS-Usa MN',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2266,6 +2488,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2283,6 +2507,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2292,9 +2519,12 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2314,6 +2544,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2325,7 +2558,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2339,9 +2575,12 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2358,12 +2597,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2388,11 +2631,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
@@ -2405,6 +2653,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2419,6 +2670,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2441,11 +2693,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2456,6 +2713,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2465,6 +2725,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2479,6 +2740,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2487,6 +2750,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2499,11 +2765,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -2519,11 +2789,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2534,11 +2807,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -2548,6 +2824,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2557,9 +2834,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -2572,6 +2853,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2624,6 +2907,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','1706','NAD83 to NAD83(HARN) (42
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2752,6 +3038,7 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2760,6 +3047,8 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2777,10 +3066,13 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2792,10 +3084,13 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2822,6 +3117,9 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2834,11 +3132,15 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2848,9 +3150,12 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2874,6 +3179,9 @@ INSERT INTO "usage" VALUES('EPSG','8772','grid_transformation','EPSG','1851','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2889,12 +3197,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2914,6 +3226,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2926,6 +3242,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2933,6 +3252,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2944,12 +3264,17 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2961,6 +3286,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2969,6 +3295,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2982,6 +3310,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2995,6 +3326,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3017,11 +3349,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
@@ -3034,6 +3371,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3046,6 +3386,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3066,11 +3407,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3081,6 +3427,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3093,6 +3442,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -3109,11 +3459,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3124,6 +3479,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3135,6 +3493,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3143,6 +3502,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3155,6 +3516,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3168,11 +3532,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -3186,11 +3554,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3201,11 +3572,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3214,6 +3588,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3222,6 +3597,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
@@ -3276,6 +3653,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3286,11 +3666,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','3858','WGS 84 to EGM2008 height (1)','Replaces WGS 84 to EGM96 height (1) (CT code 15781). Grid spacing is 2.5 arc-minutes. For smaller spacing (in principle more exact) see CT code 3859. For reversible alternative see CT code 9704. An executable using spherical harmonics is also available.','EPSG','1025','Geographic3D to GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','3855',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 INSERT INTO "usage" VALUES('EPSG','8948','grid_transformation','EPSG','3858','EPSG','1262','EPSG','1133');
 INSERT INTO "grid_transformation" VALUES('EPSG','3859','WGS 84 to EGM2008 height (2)','Replaces WGS 84 to EGM96 height (1) (CT code 15781). Grid spacing is 1 arc-minute. For a larger grid spacing (in principle less exact) see CT code 3858. For reversible alternative see CT code 9618. An executable using spherical harmonics is available.','EPSG','1025','Geographic3D to GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','3855',0.5,'EPSG','8666','Geoid (height correction) model file','Und_min1x1_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3354,6 +3737,7 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3362,6 +3746,8 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3379,10 +3765,13 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3394,10 +3783,13 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3424,6 +3816,9 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3436,11 +3831,15 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3450,9 +3849,12 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3476,6 +3878,9 @@ INSERT INTO "usage" VALUES('EPSG','9460','grid_transformation','EPSG','5526','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3491,12 +3896,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3516,6 +3925,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3528,6 +3941,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3535,6 +3951,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3546,12 +3963,17 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3563,6 +3985,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3571,6 +3994,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3584,6 +4009,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3597,6 +4025,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3619,11 +4048,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
@@ -3636,6 +4070,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3648,6 +4085,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3668,11 +4106,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3683,6 +4126,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3695,6 +4141,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -3711,11 +4158,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3726,6 +4178,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3737,6 +4192,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3745,6 +4201,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3757,6 +4215,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3770,11 +4231,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -3788,11 +4253,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3803,11 +4271,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3816,6 +4287,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3824,6 +4296,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
@@ -3878,6 +4352,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3888,11 +4365,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','5528','SAD69 to SIRGAS 2000 (2)','For IBGE, in onshore east and south Brazil only, replaces SAD69 to SIRGAS 2000 (1) (tfm code 15485) for pre-1996 data based on the classical geodetic network. May be used as transformation between SAD69 and WGS 84 - see tfm code 5542.','EPSG','9615','NTv2','EPSG','4618','EPSG','4674',1.0,'EPSG','8656','Latitude and longitude difference file','SAD69_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9461','grid_transformation','EPSG','5528','EPSG','3887','EPSG','1068');
 INSERT INTO "grid_transformation" VALUES('EPSG','5529','SAD69(96) to SIRGAS 2000 (1)','May be used as transformation between SAD69(96) and WGS 84 - see tfm code 5543.','EPSG','9615','NTv2','EPSG','5527','EPSG','4674',0.5,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3912,6 +4392,7 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3920,6 +4401,8 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3937,10 +4420,13 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3952,10 +4438,13 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3982,6 +4471,9 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3994,11 +4486,15 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4008,9 +4504,12 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4034,6 +4533,9 @@ INSERT INTO "usage" VALUES('EPSG','9464','grid_transformation','EPSG','5541','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4049,12 +4551,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4074,6 +4580,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4086,6 +4596,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4093,6 +4606,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4104,12 +4618,17 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4121,6 +4640,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4129,6 +4649,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4142,6 +4664,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4155,6 +4680,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4177,11 +4703,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
@@ -4194,6 +4725,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4206,6 +4740,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4226,11 +4761,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4241,6 +4781,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4253,6 +4796,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -4269,11 +4813,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4284,6 +4833,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4295,6 +4847,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4303,6 +4856,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4315,6 +4870,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4328,11 +4886,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -4346,11 +4908,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4361,11 +4926,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -4374,6 +4942,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4382,6 +4951,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
@@ -4436,6 +5007,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4446,11 +5020,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)'
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','5542','SAD69 to WGS 84 (15)','Parameters values taken from SAD69 to SIRGAS 2000 (2) (tfm code 5528) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','4618','EPSG','4326',2.0,'EPSG','8656','Latitude and longitude difference file','SAD69_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9465','grid_transformation','EPSG','5542','EPSG','3887','EPSG','1252');
 INSERT INTO "grid_transformation" VALUES('EPSG','5543','SAD69(96) to WGS 84 (1)','Parameters values taken from SAD69(96) to SIRGAS 2000 (1) (tfm code 5529) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation.','EPSG','9615','NTv2','EPSG','5527','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','SAD96_003.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4500,6 +5077,7 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4508,6 +5086,8 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4525,10 +5105,13 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4540,10 +5123,13 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4570,6 +5156,9 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4582,11 +5171,15 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4596,9 +5189,12 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4622,6 +5218,9 @@ INSERT INTO "usage" VALUES('EPSG','9741','grid_transformation','EPSG','6713','EP
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4635,10 +5234,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4660,6 +5263,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4670,6 +5277,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4689,6 +5299,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4701,6 +5312,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4721,6 +5334,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4730,6 +5344,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4738,6 +5354,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4749,6 +5368,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -4757,12 +5377,17 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4791,11 +5416,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Parameter values taken from TM75 to ETRS89 (3) (tfm code 6946) assuming that ETRS89 is coincident with WGS 84 within the accuracy of the tfm. Within accuracy of the tfm equivalent to TM75 to WGS 84 (1) (tfm code 1042).','EPSG','9615','NTv2','EPSG','4300','EPSG','4326',1.0,'EPSG','8656','Latitude and longitude difference file','tm75_etrs89.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Ire NT approx',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -4804,11 +5432,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4821,11 +5453,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4838,6 +5474,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4850,6 +5487,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4933,6 +5572,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4947,6 +5589,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -4962,10 +5605,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4981,6 +5627,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5025,6 +5676,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5038,10 +5692,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5051,6 +5708,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 <<<<<<< HEAD
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5068,6 +5728,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5075,6 +5736,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5086,6 +5749,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','6947','TM75 to WGS 84 (4)','Par
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5386,6 +6052,7 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5394,6 +6061,8 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5411,10 +6080,13 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5426,10 +6098,13 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5456,6 +6131,9 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5468,11 +6146,15 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5482,9 +6164,12 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5508,6 +6193,9 @@ INSERT INTO "usage" VALUES('EPSG','10976','grid_transformation','EPSG','9181','E
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5521,10 +6209,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5546,6 +6238,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5556,6 +6252,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5577,6 +6276,7 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5589,6 +6289,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5609,6 +6311,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5618,6 +6321,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5626,6 +6331,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5634,6 +6342,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5651,6 +6360,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5682,11 +6396,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5696,11 +6413,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5713,6 +6434,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5725,6 +6447,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5815,6 +6539,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9228','RGSPM06 to Danger 1950 h
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5831,6 +6558,7 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -5846,10 +6574,13 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5866,6 +6597,11 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5912,6 +6648,9 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5925,10 +6664,13 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5938,6 +6680,9 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 <<<<<<< HEAD
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5955,6 +6700,7 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5962,6 +6708,8 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5973,6 +6721,9 @@ reversible alternative to this transformation see RGSPM06 to RGSPM06 + Danger 19
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6003,6 +6754,7 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6016,6 +6768,8 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6041,6 +6795,9 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6052,6 +6809,7 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6060,6 +6818,8 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -6085,12 +6845,16 @@ INSERT INTO "usage" VALUES('EPSG','13882','grid_transformation','EPSG','9237','E
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6104,6 +6868,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6120,6 +6888,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -6131,11 +6900,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6160,11 +6932,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6177,6 +6954,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6186,6 +6966,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6204,6 +6985,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6218,6 +7001,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6232,11 +7018,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -6245,11 +7034,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011. Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 =======
@@ -6274,17 +7066,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -6296,6 +7092,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6379,6 +7177,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (
 INSERT INTO "grid_transformation" VALUES('EPSG','9238','NAD27 to NAD83(CSRS)v2 (4)','Introduced in 2011.  Precision of 20 cm in area covered by the input data set and 40 cm anywhere else, with the exception of the northwest area of the province (near the border with Quebec) where the precision deteriorates to 80 cm.','EPSG','9615','NTv2','EPSG','4267','EPSG','8237',0.8,'EPSG','8656','Latitude and longitude difference file','NB2783v2.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'SNB-Can NB',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6470,6 +7271,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6483,6 +7285,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6508,6 +7312,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6519,6 +7326,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6527,6 +7335,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -6552,12 +7362,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9330','IGN72 Grande Terre to RG
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6571,6 +7385,10 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6587,6 +7405,7 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -6598,11 +7417,14 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6627,11 +7449,16 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6644,6 +7471,9 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6653,6 +7483,7 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6671,6 +7502,8 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6685,6 +7518,9 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6699,11 +7535,14 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -6712,11 +7551,14 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1079');
 =======
@@ -6741,17 +7583,21 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -6763,6 +7609,8 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6846,6 +7694,9 @@ INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','E
 INSERT INTO "usage" VALUES('EPSG','13959','grid_transformation','EPSG','9330','EPSG','2823','EPSG','1031');
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7039,6 +7890,7 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7052,6 +7904,8 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7077,6 +7931,9 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7088,6 +7945,7 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7096,6 +7954,8 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -7121,12 +7981,16 @@ INSERT INTO "usage" VALUES('EPSG','14455','grid_transformation','EPSG','9597','E
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7140,6 +8004,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7156,6 +8024,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -7167,11 +8036,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7196,11 +8068,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7213,6 +8090,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7222,6 +8102,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7240,6 +8121,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7254,6 +8137,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7268,11 +8154,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -7281,11 +8170,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 =======
@@ -7310,17 +8202,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -7332,6 +8228,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7415,6 +8313,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 h
 INSERT INTO "grid_transformation" VALUES('EPSG','9598','GR96 to GR96 + GVR2000 height (1)','Reversible alternative to GR96 to GVR2000 height (1) (code 8268). File is also available in NOAA VDatum format (ggeoid2000.gtx) and GeoTIFF format (ggeoid2000.tif). ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','4909','EPSG','8349',0.1,'EPSG','8666','Geoid (height correction) model file','gr2000g.gri',NULL,NULL,NULL,NULL,'EPSG','4747','SDFE-Grl',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7467,6 +8368,7 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7475,6 +8377,8 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7492,10 +8396,13 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7507,10 +8414,13 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7537,6 +8447,9 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7549,11 +8462,15 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -7563,9 +8480,12 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7589,6 +8509,9 @@ INSERT INTO "usage" VALUES('EPSG','14449','grid_transformation','EPSG','9617','E
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7602,10 +8525,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7627,6 +8554,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7637,6 +8568,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7644,6 +8578,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7661,6 +8596,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7669,6 +8606,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7681,11 +8621,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -7696,16 +8639,20 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -7718,6 +8665,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7754,6 +8703,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7762,6 +8714,7 @@ INSERT INTO "usage" VALUES('EPSG','15073','grid_transformation','EPSG','9618','E
 INSERT INTO "grid_transformation" VALUES('EPSG','9619','FEH2010 to FEH2010 + FCSVR10 height (1)','Reversible alternative to FEH2010 to FCSVR10 height (1) (code 5626).','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','5592','EPSG','9519',0.1,'EPSG','8666','Geoid (height correction) model file','fehmarn_geoid10.gri',NULL,NULL,NULL,NULL,'EPSG','5593','FEM-Dnk-Deu Feh',0);
 INSERT INTO "usage" VALUES('EPSG','14326','grid_transformation','EPSG','9619','EPSG','3890','EPSG','1139');
 INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 + KSA-VRF14 height (1)','Reversible alternative to KSA-GRF17 to KSA-VRF14 height (1) (code 9355). File also available in IGN2009 format. To access KSA-GEOID17 contact GCS by email to info@gcs.gov.sa. ','EPSG','1093','Geog3D to Geog2D+GravityRelatedHeight (Gravsoft)','EPSG','9332','EPSG','9520',0.1,'EPSG','8666','Geoid (height correction) model file','KSA-GEOID17.gra',NULL,NULL,NULL,NULL,'EPSG','9333','GCS-Sau',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7785,6 +8738,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7802,6 +8757,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7811,9 +8769,12 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7833,6 +8794,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7844,7 +8808,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7858,9 +8825,12 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7877,12 +8847,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7907,11 +8881,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
@@ -7924,6 +8903,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7938,6 +8920,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7960,11 +8943,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7975,6 +8963,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7984,6 +8975,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7998,6 +8990,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8006,6 +9000,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8018,11 +9015,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -8038,11 +9039,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8053,11 +9057,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -8067,6 +9074,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8076,9 +9084,13 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -8091,6 +9103,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8143,6 +9157,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9620','KSA-GRF17 to KSA-GRF17 +
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8253,6 +9270,7 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8266,6 +9284,8 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8291,6 +9311,9 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8302,6 +9325,7 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8310,6 +9334,8 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -8335,12 +9361,16 @@ INSERT INTO "usage" VALUES('EPSG','14967','grid_transformation','EPSG','9693','E
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8354,6 +9384,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8370,6 +9404,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -8381,11 +9416,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8410,11 +9448,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8427,6 +9470,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8436,6 +9482,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8454,6 +9501,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8468,6 +9517,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8482,11 +9534,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -8495,11 +9550,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World 2.5min',0);
 =======
@@ -8524,17 +9582,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -8546,6 +9608,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8629,6 +9693,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM20
 INSERT INTO "grid_transformation" VALUES('EPSG','9704','WGS 84 to WGS 84 + EGM2008 height (1)','Reversible alternative to WGS 84 to EGM2008 height (1) (code 3858).','EPSG','1092','Geog3D to Geog2D+GravityRelatedHeight (EGM2008)','EPSG','4979','EPSG','9518',1.0,'EPSG','8666','Geoid (height correction) model file','Und_min2.5x2.5_egm2008_isw=82_WGS84_TideFree.gz',NULL,NULL,NULL,NULL,'EPSG','4326','NGA-World',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8663,6 +9730,7 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8671,6 +9739,8 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8688,10 +9758,13 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8703,10 +9776,13 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8733,6 +9809,9 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8745,11 +9824,15 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8759,9 +9842,12 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8785,6 +9871,9 @@ INSERT INTO "usage" VALUES('EPSG','15283','grid_transformation','EPSG','9730','E
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8806,10 +9895,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8831,6 +9924,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8841,6 +9938,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8855,6 +9955,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9732','Monte Mario to ED50 (1)'
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8864,6 +9965,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9732','Monte Mario to ED50 (1)'
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -8885,6 +9989,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8897,6 +10002,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8917,6 +10024,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8931,6 +10039,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8939,6 +10049,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8948,8 +10061,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8988,11 +10104,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -9002,8 +10122,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9050,11 +10173,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -9064,6 +10191,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9071,6 +10199,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9253,6 +10383,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9278,6 +10411,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -9292,6 +10426,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9299,6 +10435,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9308,6 +10447,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9315,6 +10455,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9326,6 +10468,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9740','ETRS89 to EOS21-IRF (1)'
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9410,6 +10555,7 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9423,6 +10569,8 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9448,6 +10596,9 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9459,6 +10610,7 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -9467,6 +10619,8 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -9492,12 +10646,16 @@ INSERT INTO "usage" VALUES('EPSG','17356','grid_transformation','EPSG','9941','E
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9511,6 +10669,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9527,6 +10689,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -9538,11 +10701,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9567,11 +10733,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9584,6 +10755,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9593,6 +10767,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9611,6 +10786,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9625,6 +10802,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9639,11 +10819,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -9652,11 +10835,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955). Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 =======
@@ -9681,17 +10867,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -9703,6 +10893,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9786,6 +10978,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height 
 INSERT INTO "grid_transformation" VALUES('EPSG','9954','ISN93 to ISH2004 height (1)','File is also available in NOAA VDatum format (Icegeoid_ISN93.gtx). For reversible alternative to this transformation see ISN93 to ISN93 + ISH2004 height (1) (CT code 9955).  Replaced by Icegeoid_ISN2004 (CT code 9956).','EPSG','1047','Geographic3D to GravityRelatedHeight (Gravsoft)','EPSG','4945','EPSG','8089',0.05,'EPSG','8666','Geoid (height correction) model file','Icegeoid_ISN93.gri',NULL,NULL,NULL,NULL,NULL,NULL,'NMI-Isl',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9812,6 +11007,7 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9825,6 +11021,8 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9850,6 +11048,9 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9861,6 +11062,7 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -9869,6 +11071,8 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -9894,12 +11098,16 @@ INSERT INTO "usage" VALUES('EPSG','17458','grid_transformation','EPSG','9965','E
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9913,6 +11121,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9929,6 +11141,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -9940,11 +11153,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9969,11 +11185,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9986,6 +11207,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9995,6 +11219,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10013,6 +11238,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10027,6 +11254,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10041,11 +11271,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -10054,11 +11287,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 =======
@@ -10083,17 +11319,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -10105,6 +11345,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10188,6 +11430,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)'
 INSERT INTO "grid_transformation" VALUES('EPSG','9970','ETRS89 to SCM22-IRF (1)','In conjunction with the SCM22-TM map projection (code 9971) applied to SCM22-IRF (code 9969), emulates the SCM22 Snake projection. Applied to ETRS89 (as realized through the OSNet v2009) defines SCM22-IRF hence is errorless.						','EPSG','9615','NTv2','EPSG','4258','EPSG','9969',0.0,'EPSG','8656','Latitude and longitude difference file','TN15-ETRS89-to-SCM22-IRF.gsb',NULL,NULL,NULL,NULL,NULL,NULL,'NR-Gbr SCM22 OSNet2009',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10386,6 +11631,7 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10399,6 +11645,8 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10424,6 +11672,9 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10435,6 +11686,7 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10443,6 +11695,8 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> a4391c6673 (typo fixes)
 =======
@@ -10468,12 +11722,16 @@ INSERT INTO "usage" VALUES('EPSG','11084','grid_transformation','EPSG','10083','
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10487,6 +11745,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -10503,6 +11765,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -10514,11 +11777,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10543,11 +11809,16 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10560,6 +11831,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10569,6 +11843,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10587,6 +11862,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10601,6 +11878,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10615,11 +11895,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> 86ade66356 (typo fixes)
 =======
@@ -10628,11 +11911,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59). For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 =======
@@ -10657,17 +11943,21 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -10679,6 +11969,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10762,6 +12054,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height 
 INSERT INTO "grid_transformation" VALUES('EPSG','10084','WGS 84 to EGM96 height (1)','Replaces WGS 84 to EGM84 height (1) (CT 15781). Replaced by WGS 84 to EGM2008 height (1) and (2) (CTs 3858-59).  For reversible alternative see WGS 84 to WGS 84 + EGM96 height (1) (CT 9708). An executable using spherical harmonics is also available.','EPSG','9661','Geographic3D to GravityRelatedHeight (EGM)','EPSG','4979','EPSG','5773',1.0,'EPSG','8666','Geoid (height correction) model file','WW15MGH.GRD',NULL,NULL,NULL,NULL,NULL,NULL,'NGA-World',0);
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10816,6 +12111,7 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10829,6 +12125,8 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10852,6 +12150,9 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10861,9 +12162,12 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10889,12 +12193,16 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10913,6 +12221,11 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 86ade66356 (typo fixes)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10921,11 +12234,14 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -10935,6 +12251,7 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10943,6 +12260,8 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> bf1dfe8af6 (typo fixes)
 =======
@@ -10972,6 +12291,9 @@ INSERT INTO "usage" VALUES('EPSG','18588','grid_transformation','EPSG','10155','
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11010,6 +12332,7 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -11027,6 +12350,8 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11039,6 +12364,9 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11048,10 +12376,13 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11072,6 +12403,9 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11089,6 +12423,7 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 >>>>>>> location-main
@@ -11109,11 +12444,16 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11126,6 +12466,9 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11133,6 +12476,7 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11149,6 +12493,8 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11163,6 +12509,9 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11175,23 +12524,29 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 86ade66356 (typo fixes)
 =======
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -11211,16 +12566,20 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -11230,6 +12589,8 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11296,6 +12657,9 @@ INSERT INTO "usage" VALUES('EPSG','19182','grid_transformation','EPSG','10278','
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11327,6 +12691,7 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11335,6 +12700,8 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11352,10 +12719,13 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11367,10 +12737,13 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11397,6 +12770,9 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11409,11 +12785,15 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -11423,9 +12803,12 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11449,6 +12832,9 @@ INSERT INTO "usage" VALUES('EPSG','11797','grid_transformation','EPSG','15786','
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11466,10 +12852,14 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11491,6 +12881,10 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11501,6 +12895,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11515,6 +12912,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15834','NAD83 to NAD83(HARN) (4
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -11524,6 +12922,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15834','NAD83 to NAD83(HARN) (4
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -11541,6 +12942,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11553,6 +12955,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11573,6 +12977,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11587,6 +12992,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11595,6 +13002,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11604,8 +13014,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11640,11 +13053,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -11654,8 +13071,11 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11698,11 +13118,15 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -11712,6 +13136,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11719,6 +13144,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11885,6 +13312,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11906,6 +13336,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -11920,6 +13351,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11927,6 +13360,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11936,6 +13372,7 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11943,6 +13380,8 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11954,6 +13393,9 @@ INSERT INTO "grid_transformation" VALUES('EPSG','15838','NAD83 to NAD83(HARN) (4
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

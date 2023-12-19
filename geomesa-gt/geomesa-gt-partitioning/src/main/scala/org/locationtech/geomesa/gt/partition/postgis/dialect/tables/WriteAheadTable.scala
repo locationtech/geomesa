@@ -25,6 +25,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47,6 +48,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -79,6 +82,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -86,6 +92,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -100,6 +107,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -133,6 +142,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -142,12 +154,15 @@ object WriteAheadTable extends SqlStatements {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -159,6 +174,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -166,6 +182,8 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 =======
@@ -190,6 +208,9 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -199,10 +220,13 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 13c719556e (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 55813998f4 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -210,6 +234,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 13c719556e (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -238,6 +265,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 <<<<<<< HEAD
@@ -255,6 +283,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -274,6 +304,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -285,6 +318,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -293,6 +327,8 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 =======
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 27b2ae4d07 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -312,6 +348,9 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7e938f4284 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -322,6 +361,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -331,6 +371,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -339,6 +381,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -349,6 +394,7 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -358,6 +404,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -366,6 +414,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 2b1154ca34 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -374,6 +425,7 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7d3c180a16 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -389,6 +441,8 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -397,6 +451,9 @@ object WriteAheadTable extends SqlStatements {
 =======
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -411,11 +468,14 @@ object WriteAheadTable extends SqlStatements {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 50746157c5 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 =======
@@ -426,11 +486,14 @@ object WriteAheadTable extends SqlStatements {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -442,11 +505,14 @@ object WriteAheadTable extends SqlStatements {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -457,10 +523,13 @@ object WriteAheadTable extends SqlStatements {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c61a3b395b (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 478b92b696 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
@@ -505,6 +574,9 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 7d3a435be0 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -514,10 +586,13 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> 13c719556e (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 55813998f4 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
@@ -525,6 +600,9 @@ object WriteAheadTable extends SqlStatements {
 >>>>>>> c61a3b395 (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 >>>>>>> 13c719556e (GEOMESA-3209 Postgis - allow for re-creation of schema if _wa table exists)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

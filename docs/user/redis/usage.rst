@@ -32,6 +32,8 @@ Parameter                              Type    Description
 ``redis.connection.pool.size``         Integer Max number of simultaneous connections to use
 ``redis.connection.pool.validate``     Boolean Test connections when borrowed from the pool. Connections may be closed due to
                                                inactivity, which would cause a transient error if validation is disabled
+``redis.connection.timeout``           String  Timeout for socket connections to Redis. The timeout is specified as a duration,
+                                               e.g. ``10 seconds``. The default value is ``2 seconds``
 ``redis.pipeline.enabled``             Boolean Enable pipelining of query requests. This reduces network latency, but restricts
                                                queries to a single execution thread
 ``geomesa.query.threads``              Integer The number of threads to use per query (if not pipelining)

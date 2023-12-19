@@ -34,6 +34,7 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -56,6 +57,8 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -86,6 +89,9 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 =======
 >>>>>>> a35379a55f (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -96,12 +102,15 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 8d12a2c148 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
@@ -110,6 +119,7 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a239b00f12 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -118,6 +128,8 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> a239b00f12 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
 =======
@@ -148,6 +160,9 @@ import org.locationtech.geomesa.fs.storage.parquet.jobs.ParquetStorageConfigurat
 =======
 >>>>>>> a35379a55f (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -163,6 +178,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -172,6 +188,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -180,6 +198,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -187,6 +208,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -206,6 +228,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -219,6 +243,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> d805b562c5 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -231,6 +258,11 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -246,6 +278,10 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> locationtech-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fcefe3e604 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
+>>>>>>> locatelli-main
 =======
 >>>>>>> fcefe3e604 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 >>>>>>> locatelli-main
@@ -260,8 +296,11 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -273,12 +312,15 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 918f17f856 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
@@ -295,11 +337,15 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -312,11 +358,14 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 0222d5f61c (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 =======
@@ -339,6 +388,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> a239b00f12 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> d805b562c5 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
@@ -346,6 +396,8 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -444,6 +496,9 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 =======
 >>>>>>> d805b562c5 (GEOMESA-3095 Generate random feature IDs when id-field is not specified in converter spec)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

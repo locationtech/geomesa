@@ -88,10 +88,14 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -152,18 +156,26 @@ static void Init(void) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -184,6 +196,9 @@ static void Init(void) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -196,11 +211,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -209,11 +227,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -222,11 +243,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -235,19 +259,25 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -305,6 +335,9 @@ static void Init(void) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -312,6 +345,7 @@ static void Init(void) {
 =======
     tolb = tol0 * tol2;
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -324,6 +358,8 @@ static void Init(void) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -332,6 +368,9 @@ static void Init(void) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -344,6 +383,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -353,6 +393,8 @@ static void Init(void) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -361,6 +403,9 @@ static void Init(void) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -371,6 +416,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -380,6 +426,8 @@ static void Init(void) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -388,6 +436,9 @@ static void Init(void) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -395,6 +446,7 @@ static void Init(void) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -409,6 +461,8 @@ static void Init(void) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -417,6 +471,9 @@ static void Init(void) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -431,11 +488,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -443,9 +503,12 @@ static void Init(void) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -467,6 +530,9 @@ static void Init(void) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -479,6 +545,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -499,6 +566,8 @@ static void Init(void) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -510,11 +579,15 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -522,9 +595,12 @@ static void Init(void) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -537,6 +613,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -557,13 +634,20 @@ static void Init(void) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -576,6 +660,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -596,13 +681,20 @@ static void Init(void) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -616,6 +708,7 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     tolb = tol0;
 >>>>>>> locationtech-main
@@ -626,10 +719,13 @@ static void Init(void) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     tolb = tol0 * tol2;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -645,6 +741,8 @@ static void Init(void) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -653,6 +751,9 @@ static void Init(void) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -667,11 +768,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     tolb = tol0;
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -681,11 +785,15 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -699,11 +807,14 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -715,11 +826,15 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -730,12 +845,15 @@ static void Init(void) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -750,8 +868,11 @@ static void Init(void) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -770,8 +891,11 @@ static void Init(void) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -790,8 +914,11 @@ static void Init(void) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -816,11 +943,15 @@ static void Init(void) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -833,10 +964,13 @@ static void Init(void) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     tolb = tol0 * tol2;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1009,6 +1143,9 @@ static void Init(void) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1018,10 +1155,13 @@ static void Init(void) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     tolb = tol0;
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1032,6 +1172,9 @@ static void Init(void) {
     tolb = tol0;
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1079,10 +1222,14 @@ static double sumx(double u, double v, double* t) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1143,18 +1290,26 @@ static double sumx(double u, double v, double* t) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1175,6 +1330,9 @@ static double sumx(double u, double v, double* t) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1187,11 +1345,14 @@ static double sumx(double u, double v, double* t) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1200,11 +1361,14 @@ static double sumx(double u, double v, double* t) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1213,11 +1377,14 @@ static double sumx(double u, double v, double* t) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -1226,19 +1393,25 @@ static double sumx(double u, double v, double* t) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1296,6 +1469,9 @@ static double sumx(double u, double v, double* t) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1303,6 +1479,7 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 static double polyval(int N, const double p[], double x) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1315,6 +1492,8 @@ static double polyval(int N, const double p[], double x) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1323,6 +1502,9 @@ static double polyval(int N, const double p[], double x) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1335,6 +1517,7 @@ static double polyval(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1344,6 +1527,8 @@ static double polyval(int N, const double p[], double x) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1352,6 +1537,9 @@ static double polyval(int N, const double p[], double x) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1362,6 +1550,7 @@ static double polyvalx(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1371,6 +1560,8 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1379,6 +1570,9 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1386,6 +1580,7 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1400,6 +1595,8 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1408,6 +1605,9 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1422,11 +1622,14 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1434,9 +1637,12 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1458,6 +1664,9 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1470,6 +1679,7 @@ static double polyval(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1490,6 +1700,8 @@ static double polyval(int N, const double p[], double x) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1501,11 +1713,15 @@ static double polyval(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -1513,9 +1729,12 @@ static double polyval(int N, const double p[], double x) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1528,6 +1747,7 @@ static double polyvalx(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -1548,13 +1768,20 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1567,6 +1794,7 @@ static double polyval(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -1587,13 +1815,20 @@ static double polyval(int N, const double p[], double x) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1607,6 +1842,7 @@ static double polyvalx(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 static double polyvalx(int N, const double p[], double x) {
 >>>>>>> locationtech-main
@@ -1617,10 +1853,13 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 static double polyval(int N, const double p[], double x) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1636,6 +1875,8 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1644,6 +1885,9 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1658,11 +1902,14 @@ static double polyval(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 static double polyvalx(int N, const double p[], double x) {
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -1672,11 +1919,15 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -1690,11 +1941,14 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1706,11 +1960,15 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1721,12 +1979,15 @@ static double polyval(int N, const double p[], double x) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -1741,8 +2002,11 @@ static double polyval(int N, const double p[], double x) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1761,8 +2025,11 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1781,8 +2048,11 @@ static double polyval(int N, const double p[], double x) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1807,11 +2077,15 @@ static double polyvalx(int N, const double p[], double x) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -1824,10 +2098,13 @@ static double polyvalx(int N, const double p[], double x) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 static double polyval(int N, const double p[], double x) {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2000,6 +2277,9 @@ static double polyvalx(int N, const double p[], double x) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2009,10 +2289,13 @@ static double polyval(int N, const double p[], double x) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 static double polyvalx(int N, const double p[], double x) {
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2023,6 +2306,9 @@ static double polyval(int N, const double p[], double x) {
 static double polyvalx(int N, const double p[], double x) {
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2804,10 +3090,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2868,18 +3158,26 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2900,6 +3198,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2912,11 +3213,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2925,11 +3229,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2938,11 +3245,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -2951,19 +3261,25 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3021,6 +3337,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3028,6 +3347,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
       for (; numit < maxit2; ++numit) {
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3040,6 +3360,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3048,6 +3370,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3060,6 +3385,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3069,6 +3395,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3077,6 +3405,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3087,6 +3418,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3096,6 +3428,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3104,6 +3438,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3111,6 +3448,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3125,6 +3463,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3133,6 +3473,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3147,11 +3490,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -3159,9 +3505,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3183,6 +3532,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3195,6 +3547,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3215,6 +3568,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -3226,11 +3581,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -3238,9 +3597,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3253,6 +3615,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -3273,13 +3636,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3292,6 +3662,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -3312,13 +3683,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3332,6 +3710,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       for (;; ++numit) {
 >>>>>>> locationtech-main
@@ -3342,10 +3721,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
       for (; numit < maxit2; ++numit) {
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3361,6 +3743,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3369,6 +3753,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3383,11 +3770,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
       for (;; ++numit) {
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -3397,11 +3787,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -3415,11 +3809,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -3431,11 +3828,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3446,12 +3847,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -3466,8 +3870,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3486,8 +3893,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3506,8 +3916,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3532,11 +3945,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -3549,10 +3966,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
       for (; numit < maxit2; ++numit) {
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3725,6 +4145,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3734,10 +4157,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       for (;; ++numit) {
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3748,6 +4174,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
       for (;; ++numit) {
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3769,10 +4198,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3833,18 +4266,26 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -3861,6 +4302,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3871,12 +4315,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3884,12 +4331,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3900,6 +4350,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3910,6 +4361,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3961,12 +4414,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3979,6 +4436,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3987,6 +4446,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3997,6 +4459,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -4012,11 +4475,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4027,6 +4495,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4038,6 +4509,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
@@ -4046,9 +4518,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4065,6 +4540,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -4079,6 +4556,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4091,11 +4571,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -4106,11 +4589,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
@@ -4121,11 +4607,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -4138,11 +4628,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
@@ -4150,11 +4643,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4206,6 +4702,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4223,8 +4722,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -4250,6 +4752,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4268,6 +4771,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -4281,6 +4786,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4291,12 +4799,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -4304,12 +4815,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -4318,6 +4832,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -4326,6 +4841,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 987375068c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4366,12 +4883,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4384,6 +4905,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4392,6 +4915,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4404,6 +4930,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4413,6 +4940,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4421,6 +4950,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4428,6 +4960,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4444,6 +4977,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4452,6 +4987,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4462,17 +5000,23 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4484,6 +5028,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4492,6 +5037,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -4505,6 +5052,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4516,6 +5066,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4536,6 +5087,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -4547,11 +5100,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -4559,9 +5116,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4573,6 +5133,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -4593,13 +5154,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4613,6 +5181,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -4633,13 +5202,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4652,11 +5228,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4666,6 +5245,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4680,6 +5260,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4688,6 +5270,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4702,11 +5287,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4715,11 +5303,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -4732,11 +5324,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -4747,11 +5342,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
 <<<<<<< HEAD
@@ -4768,8 +5366,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4787,8 +5388,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4808,8 +5412,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4833,11 +5440,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -4849,10 +5460,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
         /* Reversed test to allow escape with NaNs */
         if (tripb || !(fabs(v) >= (tripn ? 8 : 1) * tol0)) break;
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5020,6 +5634,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5030,9 +5647,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5043,6 +5663,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5065,10 +5688,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5129,18 +5756,26 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -5157,6 +5792,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5167,12 +5805,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5180,12 +5821,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5196,6 +5840,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -5206,6 +5851,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+=======
+>>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5257,12 +5904,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5fb (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5275,6 +5926,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5283,6 +5936,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5293,6 +5949,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -5308,11 +5965,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5323,6 +5985,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5334,6 +5999,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
@@ -5342,9 +6008,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8cbe5e736 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> eabb22d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5361,6 +6030,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -5375,6 +6046,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5387,11 +6061,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -5402,11 +6079,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
@@ -5417,11 +6097,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -5434,11 +6118,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
@@ -5446,11 +6133,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5502,6 +6192,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5527,6 +6220,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5534,6 +6228,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5577,6 +6274,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -5592,6 +6293,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5604,6 +6308,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5614,6 +6319,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5643,6 +6350,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5655,6 +6365,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5664,6 +6375,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ef1ca97594 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> bb15f534d5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5687,6 +6400,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5698,7 +6414,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5710,15 +6433,17 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
-<<<<<<< HEAD
 =======
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5734,6 +6459,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5743,6 +6471,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5757,6 +6486,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5765,6 +6496,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5777,11 +6511,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5793,11 +6530,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5806,6 +6546,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5815,9 +6556,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -5828,6 +6573,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5870,6 +6617,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5885,6 +6635,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
              * instead of sqrt(epsilon). */
             tripn = fabs(v) <= 16 * tol0;
             continue;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5914,6 +6665,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5942,6 +6695,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5955,12 +6711,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 491ae81179 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5985,12 +6744,16 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 8cbe5e736e (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6003,6 +6766,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -6017,6 +6784,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> location-main
@@ -6043,6 +6811,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6053,6 +6829,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6067,6 +6846,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6076,6 +6856,10 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6091,6 +6875,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -6111,13 +6896,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6129,6 +6921,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -6149,13 +6942,20 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6168,6 +6968,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -6182,9 +6983,12 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6194,6 +6998,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -6201,6 +7007,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6213,11 +7022,14 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6227,6 +7039,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+<<<<<<< HEAD
 =======
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6237,6 +7050,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 2f268a5476 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -6246,6 +7061,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6257,12 +7075,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6271,8 +7092,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6289,12 +7113,15 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 21f069ac96 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -6310,8 +7137,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6329,8 +7159,11 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6354,6 +7187,7 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -6363,9 +7197,13 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> bd2f3a692f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -6378,6 +7216,8 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6552,6 +7392,9 @@ static double geod_geninverse_int(const struct geod_geodesic* g,
 =======
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7137,10 +7980,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7201,18 +8048,26 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -7233,6 +8088,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7245,11 +8103,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -7258,11 +8119,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -7271,11 +8135,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -7284,19 +8151,25 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7354,6 +8227,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7361,6 +8237,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
   return polyval(nA3 - 1, g->A3x, eps);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7373,6 +8250,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7381,6 +8260,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7393,6 +8275,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7402,6 +8285,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7410,6 +8295,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7420,6 +8308,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7429,6 +8318,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7437,6 +8328,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7444,6 +8338,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7458,6 +8353,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7466,6 +8363,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7480,11 +8380,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -7492,9 +8395,12 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7516,6 +8422,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7528,6 +8437,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7548,6 +8458,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -7559,11 +8471,15 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -7571,9 +8487,12 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7586,6 +8505,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -7606,13 +8526,20 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7625,6 +8552,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -7645,13 +8573,20 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7665,6 +8600,7 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   return polyvalx(nA3 - 1, g->A3x, eps);
 >>>>>>> locationtech-main
@@ -7675,10 +8611,13 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
   return polyval(nA3 - 1, g->A3x, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7694,6 +8633,8 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7702,6 +8643,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7716,11 +8660,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
   return polyvalx(nA3 - 1, g->A3x, eps);
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -7730,11 +8677,15 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -7748,11 +8699,14 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -7764,11 +8718,15 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -7779,12 +8737,15 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -7799,8 +8760,11 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7819,8 +8783,11 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7839,8 +8806,11 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7865,11 +8835,15 @@ double A3f(const struct geod_geodesic* g, double eps) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -7882,10 +8856,13 @@ double A3f(const struct geod_geodesic* g, double eps) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
   return polyval(nA3 - 1, g->A3x, eps);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8058,6 +9035,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8067,10 +9047,13 @@ double A3f(const struct geod_geodesic* g, double eps) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   return polyvalx(nA3 - 1, g->A3x, eps);
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8081,6 +9064,9 @@ double A3f(const struct geod_geodesic* g, double eps) {
   return polyvalx(nA3 - 1, g->A3x, eps);
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8105,10 +9091,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8169,18 +9159,26 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -8201,6 +9199,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8213,11 +9214,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -8226,11 +9230,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -8239,11 +9246,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -8252,19 +9262,25 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8322,6 +9338,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8329,6 +9348,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
     c[l] = mult * polyval(m, g->C3x + o, eps);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8341,6 +9361,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8349,6 +9371,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8361,6 +9386,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8370,6 +9396,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8378,6 +9406,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8388,6 +9419,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8397,6 +9429,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8405,6 +9439,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8412,6 +9449,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8426,6 +9464,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8434,6 +9474,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8448,11 +9491,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -8460,9 +9506,12 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8484,6 +9533,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8496,6 +9548,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8516,6 +9569,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -8527,11 +9582,15 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -8539,9 +9598,12 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8554,6 +9616,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -8574,13 +9637,20 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8593,6 +9663,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -8613,13 +9684,20 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8633,6 +9711,7 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
 >>>>>>> locationtech-main
@@ -8643,10 +9722,13 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     c[l] = mult * polyval(m, g->C3x + o, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8662,6 +9744,8 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8670,6 +9754,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8684,11 +9771,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -8698,11 +9788,15 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -8716,11 +9810,14 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -8732,11 +9829,15 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8747,12 +9848,15 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -8767,8 +9871,11 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8787,8 +9894,11 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8807,8 +9917,11 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8833,11 +9946,15 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -8850,10 +9967,13 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = mult * polyval(m, g->C3x + o, eps);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9026,6 +10146,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9035,10 +10158,13 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9049,6 +10175,9 @@ void C3f(const struct geod_geodesic* g, double eps, double c[]) {
     c[l] = mult * polyvalx(m, g->C3x + o, eps);
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9074,10 +10203,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9138,18 +10271,26 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -9170,6 +10311,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9182,11 +10326,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -9195,11 +10342,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -9208,11 +10358,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -9221,19 +10374,25 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9291,6 +10450,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9298,6 +10460,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
     c[l] = mult * polyval(m, g->C4x + o, eps);
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9310,6 +10473,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9318,6 +10483,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9330,6 +10498,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9339,6 +10508,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9347,6 +10518,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9357,6 +10531,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9366,6 +10541,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9374,6 +10551,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9381,6 +10561,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9395,6 +10576,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9403,6 +10586,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9417,11 +10603,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -9429,9 +10618,12 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9453,6 +10645,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9465,6 +10660,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9485,6 +10681,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -9496,11 +10694,15 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -9508,9 +10710,12 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9523,6 +10728,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -9543,13 +10749,20 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9562,6 +10775,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -9582,13 +10796,20 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9602,6 +10823,7 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
 >>>>>>> locationtech-main
@@ -9612,10 +10834,13 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     c[l] = mult * polyval(m, g->C4x + o, eps);
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9631,6 +10856,8 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9639,6 +10866,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9653,11 +10883,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -9667,11 +10900,15 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -9685,11 +10922,14 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -9701,11 +10941,15 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -9716,12 +10960,15 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -9736,8 +10983,11 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9756,8 +11006,11 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9776,8 +11029,11 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9802,11 +11058,15 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -9819,10 +11079,13 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = mult * polyval(m, g->C4x + o, eps);
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9995,6 +11258,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10004,10 +11270,13 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10018,6 +11287,9 @@ void C4f(const struct geod_geodesic* g, double eps, double c[]) {
     c[l] = mult * polyvalx(m, g->C4x + o, eps);
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10044,10 +11316,14 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10108,18 +11384,26 @@ double A1m1f(double eps)  {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -10140,6 +11424,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10152,11 +11439,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -10165,11 +11455,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -10178,11 +11471,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -10191,19 +11487,25 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10261,6 +11563,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10268,6 +11573,7 @@ double A1m1f(double eps)  {
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10280,6 +11586,8 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10288,6 +11596,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10300,6 +11611,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10309,6 +11621,8 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10317,6 +11631,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10327,6 +11644,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10336,6 +11654,8 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10344,6 +11664,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10351,6 +11674,7 @@ double A1m1f(double eps)  {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10365,6 +11689,8 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10373,6 +11699,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10387,11 +11716,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -10399,9 +11731,12 @@ double A1m1f(double eps)  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10423,6 +11758,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10435,6 +11773,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10455,6 +11794,8 @@ double A1m1f(double eps)  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -10466,11 +11807,15 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -10478,9 +11823,12 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10493,6 +11841,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -10513,13 +11862,20 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10532,6 +11888,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -10552,13 +11909,20 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10572,6 +11936,7 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> locationtech-main
@@ -10582,10 +11947,13 @@ double A1m1f(double eps)  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10601,6 +11969,8 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10609,6 +11979,9 @@ double A1m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10623,11 +11996,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -10637,11 +12013,15 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -10655,11 +12035,14 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -10671,11 +12054,15 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -10686,12 +12073,15 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -10706,8 +12096,11 @@ double A1m1f(double eps)  {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10726,8 +12119,11 @@ double A1m1f(double eps)  {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10746,8 +12142,11 @@ double A1m1f(double eps)  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10772,11 +12171,15 @@ double A1m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -10789,10 +12192,13 @@ double A1m1f(double eps)  {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -10965,6 +12371,9 @@ double A1m1f(double eps)  {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10974,10 +12383,13 @@ double A1m1f(double eps)  {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10988,6 +12400,9 @@ double A1m1f(double eps)  {
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11027,10 +12442,14 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11091,18 +12510,26 @@ void C1f(double eps, double c[])  {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -11123,6 +12550,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11135,11 +12565,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -11148,11 +12581,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -11161,11 +12597,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -11174,19 +12613,25 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11244,6 +12689,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11251,6 +12699,7 @@ void C1f(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11263,6 +12712,8 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11271,6 +12722,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11283,6 +12737,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11292,6 +12747,8 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11300,6 +12757,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11310,6 +12770,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11319,6 +12780,8 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11327,6 +12790,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11334,6 +12800,7 @@ void C1f(double eps, double c[])  {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11348,6 +12815,8 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11356,6 +12825,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11370,11 +12842,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -11382,9 +12857,12 @@ void C1f(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11406,6 +12884,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11418,6 +12899,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11438,6 +12920,8 @@ void C1f(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -11449,11 +12933,15 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -11461,9 +12949,12 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11476,6 +12967,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -11496,13 +12988,20 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11515,6 +13014,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -11535,13 +13035,20 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11555,6 +13062,7 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -11565,10 +13073,13 @@ void C1f(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11584,6 +13095,8 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11592,6 +13105,9 @@ void C1f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11606,11 +13122,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -11620,11 +13139,15 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -11638,11 +13161,14 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -11654,11 +13180,15 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -11669,12 +13199,15 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -11689,8 +13222,11 @@ void C1f(double eps, double c[])  {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11709,8 +13245,11 @@ void C1f(double eps, double c[])  {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11729,8 +13268,11 @@ void C1f(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11755,11 +13297,15 @@ void C1f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -11772,10 +13318,13 @@ void C1f(double eps, double c[])  {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11948,6 +13497,9 @@ void C1f(double eps, double c[])  {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11957,10 +13509,13 @@ void C1f(double eps, double c[])  {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11971,6 +13526,9 @@ void C1f(double eps, double c[])  {
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12012,10 +13570,14 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12076,18 +13638,26 @@ void C1pf(double eps, double c[])  {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -12108,6 +13678,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12120,11 +13693,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -12133,11 +13709,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -12146,11 +13725,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -12159,19 +13741,25 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12229,6 +13817,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12236,6 +13827,7 @@ void C1pf(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12248,6 +13840,8 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12256,6 +13850,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12268,6 +13865,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12277,6 +13875,8 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12285,6 +13885,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12295,6 +13898,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12304,6 +13908,8 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12312,6 +13918,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12319,6 +13928,7 @@ void C1pf(double eps, double c[])  {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12333,6 +13943,8 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12341,6 +13953,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12355,11 +13970,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -12367,9 +13985,12 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12391,6 +14012,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12403,6 +14027,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12423,6 +14048,8 @@ void C1pf(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -12434,11 +14061,15 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -12446,9 +14077,12 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12461,6 +14095,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -12481,13 +14116,20 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12500,6 +14142,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -12520,13 +14163,20 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12540,6 +14190,7 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -12550,10 +14201,13 @@ void C1pf(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12569,6 +14223,8 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12577,6 +14233,9 @@ void C1pf(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12591,11 +14250,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -12605,11 +14267,15 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -12623,11 +14289,14 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -12639,11 +14308,15 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -12654,12 +14327,15 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -12674,8 +14350,11 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12694,8 +14373,11 @@ void C1pf(double eps, double c[])  {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12714,8 +14396,11 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12740,11 +14425,15 @@ void C1pf(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -12757,10 +14446,13 @@ void C1pf(double eps, double c[])  {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12933,6 +14625,9 @@ void C1pf(double eps, double c[])  {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12942,10 +14637,13 @@ void C1pf(double eps, double c[])  {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12956,6 +14654,9 @@ void C1pf(double eps, double c[])  {
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12982,10 +14683,14 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13046,18 +14751,26 @@ double A2m1f(double eps)  {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -13078,6 +14791,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13090,11 +14806,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -13103,11 +14822,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -13116,11 +14838,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -13129,19 +14854,25 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13199,6 +14930,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13206,6 +14940,7 @@ double A2m1f(double eps)  {
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13218,6 +14953,8 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13226,6 +14963,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13238,6 +14978,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13247,6 +14988,8 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13255,6 +14998,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13265,6 +15011,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13274,6 +15021,8 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13282,6 +15031,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13289,6 +15041,7 @@ double A2m1f(double eps)  {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13303,6 +15056,8 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13311,6 +15066,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13325,11 +15083,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -13337,9 +15098,12 @@ double A2m1f(double eps)  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13361,6 +15125,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13373,6 +15140,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13393,6 +15161,8 @@ double A2m1f(double eps)  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -13404,11 +15174,15 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -13416,9 +15190,12 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13431,6 +15208,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -13451,13 +15229,20 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13470,6 +15255,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -13490,13 +15276,20 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13510,6 +15303,7 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> locationtech-main
@@ -13520,10 +15314,13 @@ double A2m1f(double eps)  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13539,6 +15336,8 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13547,6 +15346,9 @@ double A2m1f(double eps)  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13561,11 +15363,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -13575,11 +15380,15 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -13593,11 +15402,14 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -13609,11 +15421,15 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -13624,12 +15440,15 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -13644,8 +15463,11 @@ double A2m1f(double eps)  {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13664,8 +15486,11 @@ double A2m1f(double eps)  {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13684,8 +15509,11 @@ double A2m1f(double eps)  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13710,11 +15538,15 @@ double A2m1f(double eps)  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -13727,10 +15559,13 @@ double A2m1f(double eps)  {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
   double t = polyval(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -13903,6 +15738,9 @@ double A2m1f(double eps)  {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13912,10 +15750,13 @@ double A2m1f(double eps)  {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13926,6 +15767,9 @@ double A2m1f(double eps)  {
   double t = polyvalx(m, coeff, sq(eps)) / coeff[m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13965,10 +15809,14 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14029,18 +15877,26 @@ void C2f(double eps, double c[])  {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -14061,6 +15917,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14073,11 +15932,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -14086,11 +15948,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -14099,11 +15964,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -14112,19 +15980,25 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14182,6 +16056,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14189,6 +16066,7 @@ void C2f(double eps, double c[])  {
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14201,6 +16079,8 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14209,6 +16089,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14221,6 +16104,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14230,6 +16114,8 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14238,6 +16124,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14248,6 +16137,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14257,6 +16147,8 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14265,6 +16157,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14272,6 +16167,7 @@ void C2f(double eps, double c[])  {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14286,6 +16182,8 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14294,6 +16192,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14308,11 +16209,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -14320,9 +16224,12 @@ void C2f(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14344,6 +16251,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14356,6 +16266,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14376,6 +16287,8 @@ void C2f(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -14387,11 +16300,15 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -14399,9 +16316,12 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14414,6 +16334,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -14434,13 +16355,20 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14453,6 +16381,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -14473,13 +16402,20 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14493,6 +16429,7 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -14503,10 +16440,13 @@ void C2f(double eps, double c[])  {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14522,6 +16462,8 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14530,6 +16472,9 @@ void C2f(double eps, double c[])  {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14544,11 +16489,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -14558,11 +16506,15 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -14576,11 +16528,14 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -14592,11 +16547,15 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -14607,12 +16566,15 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -14627,8 +16589,11 @@ void C2f(double eps, double c[])  {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14647,8 +16612,11 @@ void C2f(double eps, double c[])  {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14667,8 +16635,11 @@ void C2f(double eps, double c[])  {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14693,11 +16664,15 @@ void C2f(double eps, double c[])  {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -14710,10 +16685,13 @@ void C2f(double eps, double c[])  {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     c[l] = d * polyval(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -14886,6 +16864,9 @@ void C2f(double eps, double c[])  {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14895,10 +16876,13 @@ void C2f(double eps, double c[])  {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14909,6 +16893,9 @@ void C2f(double eps, double c[])  {
     c[l] = d * polyvalx(m, coeff + o, eps2) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14947,10 +16934,14 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15011,18 +17002,26 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -15043,6 +17042,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15055,11 +17057,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -15068,11 +17073,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -15081,11 +17089,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -15094,19 +17105,25 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15164,6 +17181,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15171,6 +17191,7 @@ void A3coeff(struct geod_geodesic* g) {
 =======
     g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15183,6 +17204,8 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15191,6 +17214,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15203,6 +17229,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15212,6 +17239,8 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15220,6 +17249,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15230,6 +17262,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15239,6 +17272,8 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15247,6 +17282,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15254,6 +17292,7 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15268,6 +17307,8 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15276,6 +17317,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15290,11 +17334,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -15302,9 +17349,12 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15326,6 +17376,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15338,6 +17391,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15358,6 +17412,8 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -15369,11 +17425,15 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -15381,9 +17441,12 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15396,6 +17459,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -15416,13 +17480,20 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15435,6 +17506,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -15455,13 +17527,20 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15475,6 +17554,7 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -15485,10 +17565,13 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
     g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15504,6 +17587,8 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15512,6 +17597,9 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15526,11 +17614,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -15540,11 +17631,15 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -15558,11 +17653,14 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -15574,11 +17672,15 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15589,12 +17691,15 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -15609,8 +17714,11 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15629,8 +17737,11 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15649,8 +17760,11 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15675,11 +17789,15 @@ void A3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -15692,10 +17810,13 @@ void A3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
     g->A3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -15868,6 +17989,9 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15877,10 +18001,13 @@ void A3coeff(struct geod_geodesic* g) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15891,6 +18018,9 @@ void A3coeff(struct geod_geodesic* g) {
     g->A3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15947,10 +18077,14 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16011,18 +18145,26 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -16043,6 +18185,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16055,11 +18200,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -16068,11 +18216,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -16081,11 +18232,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -16094,19 +18248,25 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16164,6 +18324,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16171,6 +18334,7 @@ void C3coeff(struct geod_geodesic* g) {
 =======
       g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16183,6 +18347,8 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16191,6 +18357,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16203,6 +18372,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16212,6 +18382,8 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16220,6 +18392,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16230,6 +18405,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16239,6 +18415,8 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16247,6 +18425,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16254,6 +18435,7 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16268,6 +18450,8 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16276,6 +18460,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16290,11 +18477,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -16302,9 +18492,12 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16326,6 +18519,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16338,6 +18534,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -16358,6 +18555,8 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -16369,11 +18568,15 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -16381,9 +18584,12 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16396,6 +18602,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -16416,13 +18623,20 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16435,6 +18649,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -16455,13 +18670,20 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16475,6 +18697,7 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -16485,10 +18708,13 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
       g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16504,6 +18730,8 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16512,6 +18740,9 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16526,11 +18757,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -16540,11 +18774,15 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -16558,11 +18796,14 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -16574,11 +18815,15 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -16589,12 +18834,15 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -16609,8 +18857,11 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16629,8 +18880,11 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16649,8 +18903,11 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16675,11 +18932,15 @@ void C3coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -16692,10 +18953,13 @@ void C3coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
       g->C3x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -16868,6 +19132,9 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16877,10 +19144,13 @@ void C3coeff(struct geod_geodesic* g) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -16891,6 +19161,9 @@ void C3coeff(struct geod_geodesic* g) {
       g->C3x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16960,10 +19233,14 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17024,18 +19301,26 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -17056,6 +19341,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17068,11 +19356,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> a8a0b0cebf (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -17081,11 +19372,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10b5e77237 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -17094,11 +19388,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
@@ -17107,19 +19404,25 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b5faafdd4a (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17177,6 +19480,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17184,6 +19490,7 @@ void C4coeff(struct geod_geodesic* g) {
 =======
       g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> c59e00e4fb (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17196,6 +19503,8 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17204,6 +19513,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17216,6 +19528,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17225,6 +19538,8 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17233,6 +19548,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 2fd0015d5f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17243,6 +19561,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17252,6 +19571,8 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17260,6 +19581,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17267,6 +19591,7 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17281,6 +19606,8 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17289,6 +19616,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17303,11 +19633,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -17315,9 +19648,12 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17339,6 +19675,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17351,6 +19690,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17371,6 +19711,8 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -17382,11 +19724,15 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> fac49d943f (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -17394,9 +19740,12 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17409,6 +19758,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 =======
@@ -17429,13 +19779,20 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> cc0cfab9cf (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 >>>>>>> fa7699b912 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17448,6 +19805,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -17468,13 +19826,20 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b1527fbb85 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17488,6 +19853,7 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
@@ -17498,10 +19864,13 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 796f091050 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
       g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17517,6 +19886,8 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17525,6 +19896,9 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17539,11 +19913,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> cc67c2deee (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
@@ -17553,11 +19930,15 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c98204a06c (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -17571,11 +19952,14 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -17587,11 +19971,15 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -17602,12 +19990,15 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -17622,8 +20013,11 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 08a1ba6659 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17642,8 +20036,11 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17662,8 +20059,11 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 3c2c2fccef (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17688,11 +20088,15 @@ void C4coeff(struct geod_geodesic* g) {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
+>>>>>>> locatelli-main
 =======
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 >>>>>>> locatelli-main
@@ -17705,10 +20109,13 @@ void C4coeff(struct geod_geodesic* g) {
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
       g->C4x[k++] = polyval(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 208fcbd5e7 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -17881,6 +20288,9 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> da73f22a17 (install.rst: improve instructions regarding proj-data (fixes #3539))
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17890,10 +20300,13 @@ void C4coeff(struct geod_geodesic* g) {
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17904,6 +20317,9 @@ void C4coeff(struct geod_geodesic* g) {
       g->C4x[k++] = polyvalx(m, coeff + o, g->n) / coeff[o + m + 1];
 >>>>>>> 9a55b4f828 (install.rst: improve instructions regarding proj-data (fixes #3539))
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
