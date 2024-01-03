@@ -103,7 +103,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
         // corresponds to filter.exclude
         // we still need to return something so that we can handle reduce steps, if needed
         explain("No filter plans found - creating empty plan")
-        FilterPlan(Seq(FilterStrategy(new EmptyIndex(ds, sft), None, None, temporal = false, 1f)))
+        FilterPlan(Seq(FilterStrategy(new EmptyIndex(ds, sft), Some(Filter.EXCLUDE), None, temporal = false, 1f)))
       } else if (options.lengthCompare(1) == 0) {
         // only a single option, so don't bother with cost
         explain(s"Filter plan: ${options.head}")
