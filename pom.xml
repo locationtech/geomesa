@@ -3029,8 +3029,8 @@
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
                         </args>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${jdk.version}</source>
+                        <target>${jdk.version}</target>
                         <scalaVersion>${scala.version}</scalaVersion>
                     </configuration>
                 </plugin>
