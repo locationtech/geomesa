@@ -165,16 +165,40 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       metadata: DatabaseMetaData,
       schemaName: String,
       cx: Connection): Unit = {
+
+    import PartitionedPostgisDialect.Config._
+
     // normally views get set to read-only, override that here since we use triggers to delegate writes
     sft.getUserData.remove(JDBCDataStore.JDBC_READ_ONLY)
 
     // populate user data
-    val sql = s"select key, value from ${escape(schemaName)}.${UserDataTable.Name.quoted} where type_name = ?"
-    WithClose(cx.prepareStatement(sql)) { statement =>
+    val userDataSql = s"select key, value from ${escape(schemaName)}.${UserDataTable.Name.quoted} where type_name = ?"
+    WithClose(cx.prepareStatement(userDataSql)) { statement =>
       statement.setString(1, sft.getTypeName)
       WithClose(statement.executeQuery()) { rs =>
         while (rs.next()) {
           sft.getUserData.put(rs.getString(1), rs.getString(2))
+        }
+      }
+    }
+
+    // populate tablespaces
+    val tablespaceSql =
+      s"select table_space, table_type from " +
+          s"${escape(schemaName)}.${PartitionTablespacesTable.Name.quoted} where type_name = ?"
+    WithClose(cx.prepareStatement(tablespaceSql)) { statement =>
+      statement.setString(1, sft.getTypeName)
+      WithClose(statement.executeQuery()) { rs =>
+        while (rs.next()) {
+          val ts = rs.getString(1)
+          if (ts != null && ts.nonEmpty) {
+            rs.getString(2) match {
+              case WriteAheadTableSuffix.raw => sft.getUserData.put(WriteAheadTableSpace, ts)
+              case PartitionedWriteAheadTableSuffix.raw => sft.getUserData.put(WriteAheadPartitionsTableSpace, ts)
+              case PartitionedTableSuffix.raw => sft.getUserData.put(MainTableSpace, ts)
+              case s => logger.warn(s"Ignoring unexpected tablespace table: $s")
+            }
+          }
         }
       }
     }
@@ -359,14 +383,23 @@ object PartitionedPostgisDialect {
 
   object Config extends Conversions {
 
-    val IntervalHours                  = "pg.partitions.interval.hours"
-    val PagesPerRange                  = "pg.partitions.pages-per-range"
-    val MaxPartitions                  = "pg.partitions.max"
-    val WriteAheadTableSpace           = "pg.partitions.tablespace.wa"
+    // size of each partition - can be updated after schema is created, but requires
+    // running PartitionedPostgisDialect.upgrade in order to be applied
+    val IntervalHours = "pg.partitions.interval.hours"
+    // pages_per_range on the BRIN index - can't be updated after schema is created
+    val PagesPerRange = "pg.partitions.pages-per-range"
+    // max partitions to keep, i.e. age-off - can be updated freely after schema is created
+    val MaxPartitions = "pg.partitions.max"
+    // minute of each 10 minute block to execute the partition jobs - can be updated after schema is created,
+    // but requires running PartitionedPostgisDialect.upgrade in order to be applied
+    val CronMinute = "pg.partitions.cron.minute"
+    // remove 'whole world' filters - can be updated freely after schema is created
+    val FilterWholeWorld = "pg.partitions.filter.world"
+
+    // tablespace configurations - can be updated freely after the schema is created
+    val WriteAheadTableSpace = "pg.partitions.tablespace.wa"
     val WriteAheadPartitionsTableSpace = "pg.partitions.tablespace.wa-partitions"
-    val MainTableSpace                 = "pg.partitions.tablespace.main"
-    val CronMinute                     = "pg.partitions.cron.minute"
-    val FilterWholeWorld               = "pg.partitions.filter.world"
+    val MainTableSpace = "pg.partitions.tablespace.main"
 
     implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
       def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)

@@ -15,6 +15,8 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.JedisPool
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 package object data extends LazyLogging {
@@ -52,6 +54,14 @@ package object data extends LazyLogging {
         "redis.connection.pool.size",
         "Max number of simultaneous connections to use",
         default = 16,
+        supportsNiFiExpressions = true
+      )
+
+    val SocketTimeoutParam =
+      new GeoMesaParam[Duration](
+        "redis.connection.timeout",
+        "Connection socket timeout for calls to Redis",
+        default = Duration(redis.clients.jedis.Protocol.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS),
         supportsNiFiExpressions = true
       )
 

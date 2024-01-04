@@ -72,11 +72,9 @@ includeFids            Include feature IDs in arrow file
 proxyFids              Proxy feature IDs to integers instead of strings
 formatVersion          Arrow IPC format version
 dictionaryFields       Attributes to dictionary encode
-useCachedDictionaries  Use cached top-k stats (if available), or run a dynamic stats query to build dictionaries
 sortField              Attribute to sort by
 sortReverse            Reverse the default sort order
 batchSize              Number of features to include in each record batch
-doublePass             Build dictionaries first, then query results in a separate scan
 =====================  ===========
 
 .. _bin_conversion_process:
@@ -109,7 +107,8 @@ Parameters    Description
 ============  ===========
 data          Input Simple Feature Collection to run the density process over
 radiusPixels  Radius of the density kernel in pixels. Controls the "fuzziness" of the density map
-weightAttr    Name of the attribute to use for data point weights
+geomAttr      Name of the geometry attribute to render, if not specified will use the default geometry for the layer
+weightAttr    Name of the attribute to use for data point weights, if not specified all points will be constant weight
 outputBBOX    Bounding box and CRS of the output raster
 outputWidth   Width of the output raster in pixels
 outputHeight  Height of the output raster in pixels

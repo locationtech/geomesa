@@ -37,7 +37,7 @@ Parameter                            Type    Description
                                              timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``            Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
-``geomesa.stats.generate``           Boolean Toggle collection of statistics (currently not implemented)
+``geomesa.stats.enable``             Boolean Toggle collection of statistics (currently not implemented)
 ==================================== ======= ========================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide

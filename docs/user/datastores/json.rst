@@ -16,7 +16,7 @@ feature type:
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
     dataStore.createSchema(sft);
 
-JSON attributes are still strings, and are set as any other strings:
+JSON attributes are still strings, and are set as any other strings. The value must be a valid JSON object or array:
 
 .. code-block:: java
 

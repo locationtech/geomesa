@@ -19,6 +19,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.EmptyIndex
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -163,6 +164,47 @@ class GeoMesaDataStoreTest extends Specification {
       } finally {
         System.clearProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table")
         ds2.dispose()
+      }
+    }
+    "block queries which would cause a full table scan via sys props" in {
+      val sft = SimpleFeatureTypes.createType("test",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val valid = Seq(
+        "name = 'bob'",
+        "IN('123')",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)",
+        "EXCLUDE"
+      )
+
+      val invalid = Seq(
+        "INCLUDE",
+        "bbox(geom,-180,-90,180,90)",
+        "name ilike '%b'",
+        "not IN('1')"
+      )
+
+      QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
+      try {
+        foreach(valid.map(ECQL.toFilter)) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+        }
+
+        foreach(invalid.map(ECQL.toFilter)) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must throwA[RuntimeException]
+          // you can set max features and use a full-table scan
+          query.setMaxFeatures(50)
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
+        }
+      } finally {
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+        ds.dispose()
       }
     }
     "support timestamp types with stats" in {

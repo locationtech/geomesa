@@ -60,7 +60,7 @@ Parameter                              Type    Description
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``accumulo.query.record-threads``      Integer The number of threads to use for record retrieval
 ``accumulo.write.threads``             Integer The number of threads to use for writing records
-``geomesa.stats.generate``             Boolean Toggle collection of statistics for newly created feature types
+``geomesa.stats.enable``               Boolean Toggle collection of statistics for newly created feature types
 ====================================== ======= ==================================================================================================
 
 Note: one (but not both) of ``lambda.accumulo.password`` and ``lambda.accumulo.keytab.path`` must be provided.

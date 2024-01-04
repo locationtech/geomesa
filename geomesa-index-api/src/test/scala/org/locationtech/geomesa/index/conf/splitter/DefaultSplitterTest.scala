@@ -111,6 +111,21 @@ class DefaultSplitterTest extends Specification {
       splits.toSeq must containAllOf(dates)
     }
 
+    "produce correct string tiered date splits for all dates" in {
+      foreach(Seq("2023-01-01", "2023-10-04", "2023-11-11", "2023-12-31")) { date =>
+        val opts =
+          "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+              s"attr.myString.date-range:2023-09-15/$date/4"
+        splitter.getSplits(sft, attrString, opts) must not(throwAn[Exception])
+      }
+      foreach(Seq("2023-01-32", "2023-13-04", "2023-00-11", "2023-12-00")) { date =>
+        val opts =
+          "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+              s"attr.myString.date-range:2023-09-15/$date/4"
+        splitter.getSplits(sft, attrString, opts) must throwAn[Exception]
+      }
+    }
+
     "produce correct int splits" in {
       val opts = "attr.myInt.pattern:[0-9]"
       val splits = splitter.getSplits(sft, attrInt, opts)

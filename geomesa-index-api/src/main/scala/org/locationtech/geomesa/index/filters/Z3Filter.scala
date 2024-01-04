@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.filters
 
 import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
+import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.zorder.sfcurve.Z3
 
@@ -69,9 +70,10 @@ object Z3Filter extends RowFilterFactory[Z3Filter] {
   private val TermSeparator  = ";"
   private val EpochSeparator = ","
 
-  val XYKey     = "zxy"
-  val TKey      = "zt"
-  val EpochKey  = "epoch"
+  val XYKey      = "zxy"
+  val TKey       = "zt"
+  val EpochKey   = "epoch"
+  val VersionKey = "v"
 
   def apply(values: Z3IndexValues): Z3Filter = {
     val Z3IndexValues(sfc, _, spatialBounds, _, temporalBounds, _) = values
@@ -160,9 +162,10 @@ object Z3Filter extends RowFilterFactory[Z3Filter] {
     val epoch = s"${filter.minEpoch}$RangeSeparator${filter.maxEpoch}"
 
     Map(
-      XYKey    -> xy,
-      TKey     -> t,
-      EpochKey -> epoch
+      XYKey      -> xy,
+      TKey       -> t,
+      EpochKey   -> epoch,
+      VersionKey -> GeoMesaProperties.ProjectVersion
     )
   }
 

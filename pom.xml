@@ -14,8 +14,8 @@
 
     <licenses>
         <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <name>Apache-2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -59,8 +59,8 @@
         <scala.xml.version>2.1.0</scala.xml.version>
         <scala.parsers.version>2.1.1</scala.parsers.version>
 
-        <gt.version>30-SNAPSHOT</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.22.2</geoserver.version>
+        <gt.version>30.1</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.24.1</geoserver.version>
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
@@ -100,7 +100,7 @@
 
         <specs2.version>4.9.2</specs2.version>
         <junit.version>4.13.1</junit.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
@@ -156,7 +156,7 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>4.0.3</geomesa.release.version>
+        <geomesa.release.version>4.0.4</geomesa.release.version>
         <geomesa.devel.version>4.1.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2023</copyright.year>
 
@@ -289,6 +289,32 @@
                     </snapshots>
                 </pluginRepository>
             </pluginRepositories>
+        </profile>
+
+        <profile>
+            <id>cyclonedx</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <version>2.7.10</version>
+                        <configuration>
+                            <schemaVersion>1.4</schemaVersion>
+                            <projectType>library</projectType>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>makeBom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
@@ -3461,6 +3487,11 @@
         <url>https://github.com/locationtech/geomesa</url>
         <tag>geomesa_2.11-3.1.0</tag>
     </scm>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://geomesa.atlassian.net/issues/</url>
+    </issueManagement>
 
     <developers>
         <developer>
