@@ -53,11 +53,11 @@
         <!-- *** main dependency versions *** -->
 
         <jdk.version>11</jdk.version>
-        <scala.version>2.12.17</scala.version>
+        <scala.version>2.12.18</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
 
-        <scala.xml.version>2.1.0</scala.xml.version>
-        <scala.parsers.version>2.1.1</scala.parsers.version>
+        <scala.xml.version>2.2.0</scala.xml.version>
+        <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <gt.version>30.1</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
         <geoserver.version>2.24.1</geoserver.version>
@@ -171,24 +171,6 @@
     </properties>
 
     <profiles>
-
-        <profile>
-            <id>zinc</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>net.alchim31.maven</groupId>
-                            <artifactId>scala-maven-plugin</artifactId>
-                            <configuration>
-                                <recompileMode>incremental</recompileMode>
-                                <useZincServer>true</useZincServer>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
 
         <profile>
             <id>debug-tests</id>
@@ -2882,8 +2864,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <!-- 3.8.0 was released 2018-07-26. -->
-                    <version>3.8.0</version>
+                    <version>3.12.1</version>
                     <configuration>
                         <!-- Turn off 'useIncrementalCompilation' to keep this plugin
                              from recompiling Java files that the scala-maven-plugin
@@ -3007,9 +2988,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <!-- we use an older version that still supports using zinc compile server-->
-                    <version>3.4.4</version> <!-- published 2018-11-01 -->
-                    <!--<version>4.8.0</version>&lt;!&ndash; published 2022-11-29 &ndash;&gt;-->
+                    <version>4.8.1</version>
                     <configuration>
                         <dependencies>
                             <dependency>
@@ -3031,7 +3010,6 @@
                         </args>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
-                        <scalaVersion>${scala.version}</scalaVersion>
                     </configuration>
                 </plugin>
                 <plugin>
