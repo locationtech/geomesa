@@ -47,7 +47,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   val hours = 1
   val spec =
-    "name:List[String],props:String:json=true,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+    "name:List[String],props:String:json=true,age:Int,dtg_abcdefghijklmnopqrstuvwxyzabcde:Date,*geom_abcdefghijklmnopqrstuvwxyzabcde:Point:srid=4326;" +
         Seq(
           s"pg.partitions.interval.hours=$hours",
           "pg.partitions.cron.minute=0"/*,
@@ -69,8 +69,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     builder.set("name", Collections.singletonList(s"name$i"))
     builder.set("age", i)
     builder.set("props", s"""["name$i"]""")
-    builder.set("dtg", new java.util.Date(now - ((i + 1) * 20 * 60 * 1000))) // 20 minutes
-    builder.set("geom", WKTUtils.read(s"POINT(0 $i)"))
+    builder.set("dtg_abcdefghijklmnopqrstuvwxyzabcde", new java.util.Date(now - ((i + 1) * 20 * 60 * 1000))) // 20 minutes
+    builder.set("geom_abcdefghijklmnopqrstuvwxyzabcde", WKTUtils.read(s"POINT(0 $i)"))
     builder.buildFeature(s"fid$i")
   }
 
@@ -109,6 +109,27 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   "PartitionedPostgisDataStore" should {
+    "not work" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        // This sft name exceeds 31 characters, so it should fail
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyzabcde_____")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft) must throwAn[java.io.IOException].like {
+          case e => e.getMessage mustEqual "Error occurred creating table"
+        }
+      } catch {
+        case NonFatal(e) => logger.error("", e); ko
+      } finally {
+        ds.dispose()
+      }
+      ok
+    }
+
     "work" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
@@ -116,7 +137,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        foreach(Seq("test", "test-dash")) { name =>
+        val sftNames: Seq[String] = Seq("abcdefghijklmnopqrstuvwxyzabcde")
+
+        foreach(sftNames) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
@@ -439,7 +462,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           import FilterHelper.ff
           import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
           // note: can't use ECQL.toFilter as it tries to load jai and dies
-          val geom = ff.property("geom")
+          val geom = ff.property("geom_abcdefghijklmnopqrstuvwxyzabcde")
           val bbox = ff.bbox(geom, -180, -90, 180, 90, CRS.toSRS(CRS_EPSG_4326))
           val intersects =
             ff.intersects(geom, ff.literal(WKTUtils.read("POLYGON((-190 -100, 190 -100, 190 100, -190 100, -190 -100))")))
@@ -549,8 +572,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         ObjectType.selectType(schema.getDescriptor("name")) mustEqual Seq(ObjectType.LIST, ObjectType.STRING)
         ObjectType.selectType(schema.getDescriptor("props")) mustEqual Seq(ObjectType.STRING, ObjectType.JSON)
-        ObjectType.selectType(schema.getDescriptor("dtg")) mustEqual Seq(ObjectType.DATE)
-        ObjectType.selectType(schema.getDescriptor("geom")) mustEqual Seq(ObjectType.GEOMETRY, ObjectType.POINT)
+        ObjectType.selectType(schema.getDescriptor("dtg_abcdefghijklmnopqrstuvwxyzabcde")) mustEqual Seq(ObjectType.DATE)
+        ObjectType.selectType(schema.getDescriptor("geom_abcdefghijklmnopqrstuvwxyzabcde")) mustEqual Seq(ObjectType.GEOMETRY, ObjectType.POINT)
       } finally {
         ds.dispose()
       }
