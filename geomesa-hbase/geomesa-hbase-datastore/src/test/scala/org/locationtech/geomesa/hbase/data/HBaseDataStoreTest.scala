@@ -29,14 +29,14 @@ import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.File
+import java.io.{File, StringWriter}
 import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
@@ -171,6 +171,43 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
         testCount(ds)
         testExactCount(ds)
+
+        def testMergedView(): MatchResult[_] = {
+          val hbaseConf = {
+            val sw = new StringWriter()
+            MiniCluster.cluster.getConfiguration.writeXml(sw)
+            sw.toString
+          }
+
+          val conf =
+            s"""{
+               |  "stores" = [
+               |    {
+               |      "hbase.catalog": "${params(HBaseCatalogParam.key)}",
+               |      "${ConfigsParam.key}": \"\"\"$hbaseConf\"\"\",
+               |      "geomesa.merged.store.filter": "dtg >= 2014-01-05T17:00:00Z",
+               |    },
+               |    {
+               |      "hbase.catalog": "${params(HBaseCatalogParam.key)}",
+               |      "${ConfigsParam.key}": \"\"\"$hbaseConf\"\"\",
+               |      "geomesa.merged.store.filter": "dtg < 2014-01-05T17:00:00Z",
+               |    }
+               |  ]
+               |}""".stripMargin
+          val ds = DataStoreFinder.getDataStore(Map("geomesa.merged.stores" -> conf).asJava)
+          ds must not(beNull)
+          QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
+          try {
+            val query = new Query(typeName, ECQL.toFilter("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T12:00:00.000Z"))
+            val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+            features must haveLength(4)
+          } finally {
+            QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+            CloseWithLogging(ds)
+          }
+        }
+
+        testMergedView()
 
         ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
 
