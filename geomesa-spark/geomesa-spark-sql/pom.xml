@@ -54,11 +54,11 @@
         <!-- Spark SQL support powered by Apache Sedona -->
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-core-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-${sedona.spark.version}_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-sql-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-common-${sedona.spark.version}_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- test -->

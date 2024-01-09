@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import java.io.{File, FileWriter}
 import java.nio.file.Files
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 case object MiniCluster extends LazyLogging {
 
@@ -39,7 +40,9 @@ case object MiniCluster extends LazyLogging {
 
   val namespace = "gm"
 
-  lazy val cluster: MiniAccumuloCluster = {
+  lazy val cluster: MiniAccumuloCluster = tryCluster.get
+
+  lazy private val tryCluster: Try[MiniAccumuloCluster] = Try {
     logger.info(s"Starting Accumulo minicluster at $miniClusterTempDir")
 
     val config = new MiniAccumuloConfig(miniClusterTempDir.toFile, Users.root.password)
@@ -59,6 +62,7 @@ case object MiniCluster extends LazyLogging {
     WithClose(new FileWriter(new File(miniClusterTempDir.toFile, "conf/zoo.cfg"), true)) { writer =>
       writer.write("admin.enableServer=false\n") // disable the admin server, which tries to bind to 8080
       writer.write("4lw.commands.whitelist=*\n") // enable 'ruok', which the minicluster uses to check zk status
+      writer.write("snapshot.compression.method=gz\n")
     }
     cluster.start()
 

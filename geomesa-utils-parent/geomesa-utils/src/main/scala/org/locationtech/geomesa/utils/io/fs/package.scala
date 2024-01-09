@@ -51,7 +51,7 @@ package object fs {
     }
   }
 
-  class ArchiveFileIterator(archive: ArchiveInputStream, path: String)
+  class ArchiveFileIterator(archive: ArchiveInputStream[_ <: ArchiveEntry], path: String)
       extends CloseableIterator[(Option[String], InputStream)]() {
 
     // the archive input stream will only read the current entry

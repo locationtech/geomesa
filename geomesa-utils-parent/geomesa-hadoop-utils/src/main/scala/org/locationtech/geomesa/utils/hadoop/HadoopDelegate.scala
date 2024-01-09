@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.hadoop
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
@@ -180,7 +180,8 @@ object HadoopDelegate extends LazyLogging {
   class HadoopTarHandle(fc: FileContext, file: Path) extends HadoopFileHandle(fc, file) {
     override def open: CloseableIterator[(Option[String], InputStream)] = {
       val uncompressed = PathUtils.handleCompression(fc.open(file), file.getName)
-      val archive = factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+      val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+        factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
       new ArchiveFileIterator(archive, file.toString)
     }
 

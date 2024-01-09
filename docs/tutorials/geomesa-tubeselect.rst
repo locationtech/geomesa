@@ -45,7 +45,7 @@ uses. After completing the deployment tutorial, you should have:
 Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
--  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
 -  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
 -  a `git <https://git-scm.com/>`__ client.
 

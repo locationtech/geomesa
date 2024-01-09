@@ -10,7 +10,7 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
@@ -112,7 +112,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val streams: CloseableIterator[(Option[String], InputStream)] =
       PathUtils.getUncompressedExtension(filePath.getName).toLowerCase(Locale.US) match {
         case ArchiveStreamFactory.TAR =>
-          val archive = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
+          val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+            new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
           new ArchiveFileIterator(archive, filePath.toString)
 
         case ArchiveStreamFactory.ZIP | ArchiveStreamFactory.JAR =>

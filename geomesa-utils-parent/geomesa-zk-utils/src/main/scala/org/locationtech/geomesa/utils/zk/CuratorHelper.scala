@@ -23,6 +23,5 @@ object CuratorHelper {
     CuratorFrameworkFactory.builder()
         .connectString(zookeepers)
         .retryPolicy(new ExponentialBackoffRetry(1000, 3))
-        .zk34CompatibilityMode(true)
         .dontUseContainerParents()
 }
