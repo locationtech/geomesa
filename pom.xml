@@ -875,7 +875,7 @@
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
-                <version>2.8.1</version>
+                <version>2.12.6</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.jts.io</groupId>
@@ -1456,22 +1456,22 @@
             <!--
                 `org.eclipse.emf` is a transitive dependency of gt-xsd-wfs, however the version number is
                 specified as `[2.15.0,3.0.0)`, which seems to intermittently trigger a maven bug.
-                geotools 28 uses 2.15.0, so we peg to that version here.
+                we peg to the latest versions here.
             -->
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.common</artifactId>
-                <version>2.15.0</version>
+                <version>2.29.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.ecore</artifactId>
-                <version>2.15.0</version>
+                <version>2.35.0</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.emf</groupId>
                 <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-                <version>2.15.0</version>
+                <version>2.36.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
@@ -1481,7 +1481,7 @@
             <dependency>
                 <groupId>commons-configuration</groupId>
                 <artifactId>commons-configuration</artifactId>
-                <version>1.6</version>
+                <version>1.10</version>
                 <exclusions>
                     <exclusion>
                         <!-- exclude commons-beanutils-core, which doesn't exist in 1.9.3 -->
@@ -1498,17 +1498,17 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
-                <version>2.6.1</version>
+                <version>2.12.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-dbcp2</artifactId>
-                <version>2.6.0</version>
+                <version>2.11.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
-                <version>1.15</version>
+                <version>1.16.0</version>
             </dependency>
             <dependency>
                 <!-- managed from jts 1.1.1 and geotools 1.1 -->
@@ -1550,7 +1550,7 @@
             <dependency>
                 <groupId>net.minidev</groupId>
                 <artifactId>accessors-smart</artifactId>
-                <version>1.1</version>
+                <version>2.5.0</version>
                 <exclusions>
                     <!--
                         excluded due to spark conflicts. note:
@@ -1578,7 +1578,7 @@
             <dependency>
                 <groupId>com.googlecode.cqengine</groupId>
                 <artifactId>cqengine</artifactId>
-                <version>3.0.0</version>
+                <version>3.6.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -1738,12 +1738,12 @@
             <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-core</artifactId>
-                <version>1.3.1</version>
+                <version>1.4.1</version>
             </dependency>
             <dependency>
                 <groupId>com.github.luben</groupId>
                 <artifactId>zstd-jni</artifactId>
-                <version>1.5.0-1</version>
+                <version>1.5.5-11</version>
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -1774,17 +1774,17 @@
                 <!-- transitive dependency versioned due to license issues -->
                 <groupId>xml-apis</groupId>
                 <artifactId>xml-apis</artifactId>
-                <version>1.4.01</version>
+                <version>2.0.2</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-core</artifactId>
-                <version>2.2.11</version>
+                <version>4.0.4</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-impl</artifactId>
-                <version>2.2.11</version>
+                <version>4.0.4</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
@@ -1805,17 +1805,17 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.13</version>
+                <version>4.5.14</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient-cache</artifactId>
-                <version>4.5.13</version>
+                <version>4.5.14</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.15</version>
+                <version>4.4.16</version>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -1825,7 +1825,7 @@
             <dependency>
                 <groupId>com.clearspring.analytics</groupId>
                 <artifactId>stream</artifactId>
-                <version>2.9.2</version>
+                <version>2.9.8</version>
                 <exclusions>
                     <exclusion>
                         <groupId>it.unimi.dsi</groupId>
@@ -1872,7 +1872,7 @@
             <dependency>
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
-                <version>4.3.1</version>
+                <version>5.1.0</version>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issue -->
@@ -1926,7 +1926,7 @@
             <dependency>
                 <groupId>org.ehcache</groupId>
                 <artifactId>sizeof</artifactId>
-                <version>0.4.0</version>
+                <version>0.4.3</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -2437,7 +2437,7 @@
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.el</artifactId>
-                <version>3.0.1-b11</version>
+                <version>3.0.1-b12</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -2609,7 +2609,7 @@
                 <!-- marked provided due to license issues -->
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
-                <version>2.0.3</version>
+                <version>3.0.2</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -2622,7 +2622,7 @@
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
-                <version>1.78</version>
+                <version>1.82</version>
             </dependency>
             <!-- apache sedona -->
             <dependency>
@@ -2822,7 +2822,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
-                <version>1.8.5</version>
+                <version>1.10.19</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

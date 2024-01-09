@@ -26,7 +26,7 @@
         <dependency>
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-core</artifactId>
-            <version>0.0.18</version>
+            <version>1.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-utils</artifactId>
-            <version>0.0.22</version>
+            <version>1.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>de.topobyte</groupId>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-xml</artifactId>
-            <version>0.0.3</version>
+            <version>1.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>log4j</groupId>
@@ -79,7 +79,7 @@
         <dependency>
             <groupId>de.topobyte</groupId>
             <artifactId>osm4j-pbf</artifactId>
-            <version>0.0.7</version>
+            <version>1.3.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>de.topobyte</groupId>
@@ -118,6 +118,10 @@
         <repository>
             <id>topobyte</id>
             <url>https://mvn.topobyte.de/</url>
+        </repository>
+        <repository>
+            <id>slimjars</id>
+            <url>https://mvn.slimjars.com/</url>
         </repository>
     </repositories>
 

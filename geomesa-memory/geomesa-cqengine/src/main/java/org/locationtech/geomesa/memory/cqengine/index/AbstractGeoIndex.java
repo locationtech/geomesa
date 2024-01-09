@@ -99,6 +99,10 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
         this.index.clear();
     }
 
+    public void destroy(QueryOptions queryOptions) {
+        this.index.clear();
+    }
+
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
         lastUsed.set(this.index);

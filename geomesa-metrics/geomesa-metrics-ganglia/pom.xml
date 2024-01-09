@@ -17,7 +17,7 @@
                 <!-- excluded due to licensing -->
                 <groupId>info.ganglia.gmetric4j</groupId>
                 <artifactId>gmetric4j</artifactId>
-                <version>1.0.7</version>
+                <version>1.0.10</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>
