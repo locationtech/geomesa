@@ -122,8 +122,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.createSchema(sft) must throwAn[java.io.IOException].like {
           case e => e.getCause.getMessage mustEqual "Can't create schema: type name exceeds max supported length of 31 characters"
         }
-      } catch {
-        case NonFatal(e) => logger.error("", e); ko
       } finally {
         ds.dispose()
       }
