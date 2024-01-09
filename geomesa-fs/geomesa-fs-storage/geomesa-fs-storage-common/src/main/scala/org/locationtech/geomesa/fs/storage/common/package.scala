@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage
 import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.{ConfigConvert, ConfigSource}
@@ -23,6 +24,7 @@ package object common {
 
   val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
   val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
+  val fileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
 
   implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
 

@@ -8,13 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.parquet
 
+import org.apache.parquet.hadoop.ParquetReader
+import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, fileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
@@ -81,6 +83,32 @@ object ParquetFileSystemStorage {
       observer.write(f)
     }
     override def flush(): Unit = observer.flush()
-    override def close(): Unit = CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+    override def close(): Unit = {
+      println(s"Closing file ${file}")
+      CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+      validateParquetFile(file)
+    }
+  }
+
+  def validateParquetFile(file: Path): Unit = {
+    if (!fileValidationEnabled.get.toBoolean) {
+      return
+    }
+
+    val reader = ParquetReader.builder(new GroupReadSupport(), file).build()
+
+    try {
+      // Read Parquet file content
+      var record = reader.read()
+      while (record != null) {
+        // Process the record
+        record = reader.read()
+      }
+      println(s"${file} is a valid Parquet file")
+    } catch {
+      case _: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted")
+    } finally {
+      reader.close()
+    }
   }
 }
