@@ -137,7 +137,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        val sftNames: Seq[String] = Seq("abcdefghijklmnopqrstuvwxyzabcde")
+        val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
 
         foreach(sftNames) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
