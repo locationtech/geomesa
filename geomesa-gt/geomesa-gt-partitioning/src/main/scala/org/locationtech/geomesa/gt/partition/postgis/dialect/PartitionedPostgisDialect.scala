@@ -114,7 +114,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   override def postCreateTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
     // Throw an error if the sft name is longer than 31 characters
     if (sft.getTypeName.length() > 31) {
-      val errorMsg = "Failed to create schema: the name of the SimpleFeatureType exceeds 31 characters"
+      val errorMsg = "Can't create schema: type name exceeds max supported length of 31 characters"
       throw new IllegalArgumentException(errorMsg)
     }
 
