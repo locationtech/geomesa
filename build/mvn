@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Determine the current working directory
+_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# Preserve the calling directory
+_CALLING_DIR="$(pwd)"
+# Options used during compilation
+_COMPILE_JVM_OPTS="-Xmx8g -XX:ReservedCodeCacheSize=512m"
+
+# Installs any application tarball given a URL, the expected tarball name,
+# and, optionally, a checkable binary path to determine if the binary has
+# already been installed
+## Arg1 - URL
+## Arg2 - Tarball Name
+## Arg3 - Checkable Binary
+install_app() {
+  local remote_tarball="$1/$2"
+  local local_tarball="${_DIR}/$2"
+  local binary="${_DIR}/$3"
+
+  # setup `curl` and `wget` silent options if we're running on Jenkins
+  local curl_opts="-L"
+  local wget_opts=""
+  curl_opts="--progress-bar ${curl_opts}"
+  wget_opts="--progress=bar:force ${wget_opts}"
+
+  if [ -z "$3" -o ! -f "$binary" ]; then
+    # check if we already have the tarball
+    # check if we have curl installed
+    # download application
+    [ ! -f "${local_tarball}" ] && [ $(command -v curl) ] && \
+      echo "exec: curl ${curl_opts} ${remote_tarball}" 1>&2 && \
+      curl ${curl_opts} "${remote_tarball}" > "${local_tarball}"
+    # if the file still doesn't exist, lets try `wget` and cross our fingers
+    [ ! -f "${local_tarball}" ] && [ $(command -v wget) ] && \
+      echo "exec: wget ${wget_opts} ${remote_tarball}" 1>&2 && \
+      wget ${wget_opts} -O "${local_tarball}" "${remote_tarball}"
+    # if both were unsuccessful, exit
+    [ ! -f "${local_tarball}" ] && \
+      echo -n "ERROR: Cannot download $2 with cURL or wget; " && \
+      echo "please install manually and try again." && \
+      exit 2
+    cd "${_DIR}" && tar -xzf "$2"
+    rm -rf "$local_tarball"
+  fi
+}
+
+# Install maven under the build/ folder
+install_mvn() {
+  local MVN_VERSION="3.5.0"
+
+  install_app \
+    "http://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries" \
+    "apache-maven-${MVN_VERSION}-bin.tar.gz" \
+    "apache-maven-${MVN_VERSION}/bin/mvn"
+
+  MVN_BIN="${_DIR}/apache-maven-${MVN_VERSION}/bin/mvn"
+}
+
+# Install zinc under the build/ folder
+install_zinc() {
+  local ZINC_VERSION="0.3.13"
+  local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
+  [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
+  install_app \
+    "http://downloads.typesafe.com/zinc/${ZINC_VERSION}" \
+    "zinc-${ZINC_VERSION}.tgz" \
+    "${zinc_path}"
+  ZINC_BIN="${_DIR}/${zinc_path}"
+}
+
+# Setup healthy defaults for the Zinc port if none were provided from
+# the environment
+ZINC_PORT=${ZINC_PORT:-"3030"}
+
+# Install Maven if necessary
+MVN_BIN="$(command -v mvn)"
+
+if [ ! "$MVN_BIN" ]; then
+  install_mvn
+fi
+
+# Install the proper version of Scala and Zinc for the build
+if [[ -n "${ZINC_HOME}" ]]; then
+  ZINC_BIN="${ZINC_HOME}/bin/zinc"
+  ZINC_INSTALL_FLAG=1
+  echo "Using external zinc server at ${ZINC_BIN}"
+elif [[ -n "${ZINC_BIN}" ]]; then
+  echo "Using external zinc server at ${ZINC_BIN}"
+  ZINC_INSTALL_FLAG=1
+else
+  install_zinc
+fi
+
+# Reset the current working directory
+cd "${_CALLING_DIR}"
+
+# Now that zinc is ensured to be installed, check its status and, if its
+# not running or just installed, start it
+if [ -n "${ZINC_INSTALL_FLAG}" -o -z "`"${ZINC_BIN}" -status -port ${ZINC_PORT}`" ]; then
+  export ZINC_OPTS=${ZINC_OPTS:-"$_COMPILE_JVM_OPTS"}
+  "${ZINC_BIN}" -shutdown -port ${ZINC_PORT}
+  "${ZINC_BIN}" -start -port ${ZINC_PORT} &>/dev/null
+fi
+
+# Set any `mvn` options if not already present
+export MAVEN_OPTS=${MAVEN_OPTS:-"$_COMPILE_JVM_OPTS"}
+
+# Last, call the `mvn` command as usual, but with the 'zinc' port and profile
+${MVN_BIN} -DzincPort=${ZINC_PORT} -Pzinc "$@"
+
+RET_STATUS=$?
+
+# shut down zinc again
+"${ZINC_BIN}" -shutdown -port ${ZINC_PORT}
+
+exit $RET_STATUS
