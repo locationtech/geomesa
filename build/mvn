@@ -64,7 +64,7 @@ install_app() {
 
 # Install maven under the build/ folder
 install_mvn() {
-  local MVN_VERSION="3.5.0"
+  local MVN_VERSION="3.8.4"
 
   install_app \
     "http://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries" \
@@ -76,7 +76,7 @@ install_mvn() {
 
 # Install zinc under the build/ folder
 install_zinc() {
-  local ZINC_VERSION="0.3.13"
+  local ZINC_VERSION="0.3.15"
   local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \
@@ -96,6 +96,8 @@ MVN_BIN="$(command -v mvn)"
 if [ ! "$MVN_BIN" ]; then
   install_mvn
 fi
+
+mvn --version
 
 # Install the proper version of Scala and Zinc for the build
 if [[ -n "${ZINC_HOME}" ]]; then
