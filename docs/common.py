@@ -113,7 +113,7 @@ rst_epilog = """
 
 .. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
 
-.. |java_supported_versions| replace:: 11, 17 and 21
+.. |java_supported_versions| replace:: 11 and 17
 
 """ % {"release": target.versions.release,
        "release_version": target.versions.release_version,
