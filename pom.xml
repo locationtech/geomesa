@@ -949,73 +949,31 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-main</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-shapefile</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-api</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-cql</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-metadata</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.jdbc</groupId>
                 <artifactId>gt-jdbc-postgis</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -1026,18 +984,6 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imagemosaic</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.ejml</groupId>
@@ -1074,18 +1020,8 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1096,18 +1032,8 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1118,18 +1044,8 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1140,41 +1056,13 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>org.jaitools</groupId>
-                        <artifactId>jt-zonalstats</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>org.jaitools</groupId>
-                        <artifactId>jt-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1182,41 +1070,17 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-jdbc</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.jdbc</groupId>
                 <artifactId>gt-jdbc-h2</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
@@ -1231,16 +1095,6 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -1250,24 +1104,12 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-xml</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>commons-jxpath</groupId>
@@ -1279,25 +1121,11 @@
                 <groupId>org.geotools.xsd</groupId>
                 <artifactId>gt-xsd-core</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.xsd</groupId>
                 <artifactId>gt-xsd-wfs</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1306,22 +1134,8 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>org.jaitools</groupId>
-                        <artifactId>jt-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1337,25 +1151,6 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -1368,22 +1163,8 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1391,97 +1172,41 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-transform</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-grid</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-arcgrid</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-complex</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-app-schema-resolver</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson-core</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geopkg</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-gml-geometry-streaming</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <dependency>
