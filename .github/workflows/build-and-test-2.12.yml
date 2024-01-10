@@ -25,7 +25,7 @@ jobs:
           java-version: '11'
           cache: 'maven'
       - name: Build with Maven
-        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests
       - name: Unit tests
         id: test
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
