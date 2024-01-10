@@ -2920,12 +2920,7 @@
                     <configuration>
                         <!-- Turn off 'useIncrementalCompilation' to keep this plugin
                              from recompiling Java files that the scala-maven-plugin
-                             already compiled.  The scala-maven-plugin generates .class
-                             files from Java sources when its 'incremental' option is
-                             turned on (as it is in the 'zinc' profile).  In this case,
-                             maven-compiler-plugin 3.0 to current (3.8.0) erroneously
-                             detects changes and re-compiles the Java files unless this
-                             option is turned off.  -->
+                             already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
