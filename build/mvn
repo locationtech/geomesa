@@ -97,8 +97,6 @@ if [ ! "$MVN_BIN" ]; then
   install_mvn
 fi
 
-mvn --version
-
 # Install the proper version of Scala and Zinc for the build
 if [[ -n "${ZINC_HOME}" ]]; then
   ZINC_BIN="${ZINC_HOME}/bin/zinc"

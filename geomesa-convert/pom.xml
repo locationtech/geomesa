@@ -20,7 +20,6 @@
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-jdbc</module>
         <module>geomesa-convert-json</module>
-        <module>geomesa-convert-osm</module>
         <module>geomesa-convert-parquet</module>
         <module>geomesa-convert-redis-cache</module>
         <module>geomesa-convert-shp</module>
