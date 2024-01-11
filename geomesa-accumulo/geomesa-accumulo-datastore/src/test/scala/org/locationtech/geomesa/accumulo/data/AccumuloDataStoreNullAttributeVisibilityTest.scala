@@ -20,6 +20,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -101,6 +102,263 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+ * Crown Copyright (c) 2016-2024 Dstl
+=======
+=======
+>>>>>>> 58c93ed806 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 90c7b688e9 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 422349e56d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 903b3b81c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5e3d21a94f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3fce3b91e5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 0fc2920d6d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 50088d24c0 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> f76413defa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b0d44cc502 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> aa977ecc5f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 82122ae50e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> acd22640e2 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 03796f30c1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a84d1830af (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 838b7e581b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 6f08de2ab4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> e0d00527f8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c576183101 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ed2e337c3d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e7e01a7501 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d66521d8df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 582d9c96fe (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> eb88cebc2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3804445eba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> bfe6dff453 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 8b6c6d5923 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 37810c789e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 13c61294e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 680865bab5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e879fecec8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7436df0053 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a6586d74a7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 1dd9b51a15 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 31cf70f026 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4f8169d03b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 7ac940a9b0 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9ddb5aa17d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 985b17e61a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 90019ddd93 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> e4259dc457 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e3608cdf89 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 23c403c1e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 102006aff2 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ffefc49f06 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 49611aed99 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 361e937243 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9cf0c5297f7 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cb8d1635ef3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d2e79ca9efc (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 =======
@@ -111,6 +369,9 @@
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -120,6 +381,7 @@
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -178,10 +440,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 =======
 >>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1934b71a19 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -224,6 +492,9 @@
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -233,6 +504,7 @@
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -248,7 +520,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 6f57a76c5d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> e4259dc457 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 6f08de2ab4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -264,7 +551,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> e0d00527f8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -280,7 +582,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> c576183101 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -296,7 +613,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> ed2e337c3d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -312,7 +644,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 2f0f322607 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e3608cdf89 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 2f0f322607 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> e7e01a7501 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bc2855a0cb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -328,7 +675,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 9f85c4fe46 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> d66521d8df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 23c403c1e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 102006aff2 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 9f85c4fe46 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 582d9c96fe (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 26051bd32c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -344,7 +706,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> eb88cebc2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> ffefc49f06 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -360,7 +737,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 3804445eba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 49611aed99 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -376,7 +768,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> bfe6dff453 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -447,69 +854,312 @@
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 361e937243 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 8b6c6d5923 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> c70da9c2ff (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 37810c789e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> fa485325b8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 13c61294e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 9004b9f533 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 680865bab5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> fa71a7935f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> e879fecec8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7b0a7b3644 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 7436df0053 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 874211d057 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> a6586d74a7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 3072825f37 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 1dd9b51a15 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 4a45401d41 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 31cf70f026 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 2ac50f11ba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 4f8169d03b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5d7dbe7be8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 7ac940a9b0 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 645b46822e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 9ddb5aa17d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 985b17e61a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 90019ddd93 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 1934b71a19 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 94e6fffd6c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> e4259dc457 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 94e6fffd6c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 2f0f322607 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 59141d65a4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> e3608cdf89 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 23c403c1e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 9f85c4fe46 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> bc1fec9954 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 2844beaea9 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 102006aff2 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 2844beaea9 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> ffefc49f06 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 49611aed99 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -518,6 +1168,14 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 361e937243 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
  * Crown Copyright (c) 2016-2023 Dstl
 =======
@@ -528,6 +1186,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -549,8 +1208,31 @@
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 1913317092 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 838b7e581b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 6f57a76c5d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 37810c789e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 90019ddd93 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -565,6 +1247,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 1934b71a19 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -572,6 +1256,9 @@
 >>>>>>> 94e6fffd6c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -585,6 +1272,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
@@ -599,6 +1287,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -607,6 +1297,9 @@
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -615,6 +1308,7 @@
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -629,6 +1323,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -636,6 +1332,9 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -649,6 +1348,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -661,6 +1361,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -669,6 +1371,9 @@
 >>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -682,6 +1387,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -694,6 +1400,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -702,6 +1410,9 @@
 >>>>>>> 2844beaea9 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -715,6 +1426,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -727,6 +1439,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -735,6 +1449,9 @@
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -748,6 +1465,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -760,6 +1478,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -768,6 +1488,9 @@
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -777,6 +1500,7 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -794,6 +1518,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -802,6 +1528,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -817,11 +1546,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1e0c0bec21 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -838,11 +1571,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 9f85c4fe46 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -856,11 +1592,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
@@ -874,11 +1613,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
@@ -892,11 +1634,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -907,9 +1652,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -974,6 +1722,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -989,6 +1740,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -1000,12 +1752,17 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1023,11 +1780,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1041,11 +1801,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1062,8 +1825,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1125,6 +1891,9 @@
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1140,12 +1909,16 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1190,6 +1963,8 @@
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
@@ -1200,6 +1975,9 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1215,11 +1993,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -1230,6 +2011,7 @@
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1238,6 +2020,8 @@
 <<<<<<< HEAD
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1272,6 +2056,7 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1281,7 +2066,19 @@
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+>>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 58c93ed806 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 90c7b688e9 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d1ecc0df13 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1315,7 +2112,37 @@
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 422349e56d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> e0d00527f8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 680865bab5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 94e6fffd6c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+ * Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e980963df5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1347,6 +2174,27 @@
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 903b3b81c6 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> c576183101 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> e879fecec8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1356,6 +2204,9 @@
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1366,6 +2217,7 @@
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1399,8 +2251,38 @@
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+ * Crown Copyright (c) 2016-2022 Dstl
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> e22b6ade6f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1437,6 +2319,28 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 5e3d21a94f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> ed2e337c3d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 7436df0053 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1447,6 +2351,9 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1464,6 +2371,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1481,18 +2389,27 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 59141d65a4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1514,6 +2431,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1526,6 +2444,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1534,6 +2454,9 @@
 >>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1549,6 +2472,7 @@
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1563,6 +2487,9 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -1577,6 +2504,7 @@
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1585,6 +2513,8 @@
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1607,6 +2537,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1632,6 +2565,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -1651,6 +2585,13 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 3fce3b91e5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1664,6 +2605,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
@@ -1686,14 +2628,24 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> b0d44cc502 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1711,6 +2663,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3a3424a161 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1741,6 +2694,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 3a3424a161 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> dd15127a4b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> aa977ecc5f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1754,6 +2717,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
@@ -1788,6 +2752,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1799,6 +2774,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
@@ -1835,6 +2811,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 82122ae50e (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1847,6 +2834,7 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1856,6 +2844,9 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -1871,9 +2862,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1896,6 +2890,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1919,6 +2916,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -1942,6 +2943,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -1962,6 +2968,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -1981,6 +2991,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2022,6 +3033,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> acd22640e2 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2037,6 +3058,7 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2070,10 +3092,44 @@
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 03796f30c1 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> a84d1830af (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> a4d0fcd200 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 838b7e581b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 90019ddd93 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 6f57a76c5d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 71dfaa45da (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2089,10 +3145,25 @@
 >>>>>>> locatelli-main
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 6f08de2ab4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> e4259dc457 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> e0d00527f8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2108,9 +3179,24 @@
 >>>>>>> locatelli-main
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> c576183101 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2125,12 +3211,24 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2146,10 +3244,25 @@
 >>>>>>> locatelli-main
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> ed2e337c3d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2164,6 +3277,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 59141d65a4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 59141d65a4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> e3608cdf89 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -2175,11 +3299,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 951b61baf (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2198,12 +3325,15 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2213,6 +3343,9 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2237,6 +3370,12 @@
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 2f0f322607 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e7e01a7501 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2247,8 +3386,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2259,6 +3401,12 @@
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2268,7 +3416,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2282,6 +3433,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2295,12 +3449,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2311,6 +3468,7 @@
 >>>>>>> dd15127a4b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -2318,10 +3476,19 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 3804445eba (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2331,6 +3498,8 @@
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2342,6 +3511,7 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2353,11 +3523,19 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2369,8 +3547,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2381,6 +3562,12 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2390,8 +3577,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2428,6 +3618,12 @@
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> bfe6dff453 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2446,16 +3642,29 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 8b6c6d5923 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2471,31 +3680,93 @@
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> c70da9c2ff (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+<<<<<<< HEAD
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 8c0331be3e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> 5369b95fd8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 44b956e093 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> c70da9c2ff (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 37810c789e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 21f7547af3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> fa485325b8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 9004b9f533 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 13c61294e7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 9004b9f533 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 680865bab5 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> fa71a7935f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> fa71a7935f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> e879fecec8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 =======
  * Crown Copyright (c) 2016-2022 Dstl
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> 7b0a7b3644 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7b0a7b3644 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 7436df0053 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2534,6 +3805,12 @@
 >>>>>>> 42fbaa6c7a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 874211d057 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a6586d74a7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2546,6 +3823,12 @@
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2564,6 +3847,12 @@
 >>>>>>> dd15127a4b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 5d7dbe7be8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 7ac940a9b0 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2579,6 +3868,12 @@
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2592,6 +3887,12 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2629,6 +3930,12 @@
 >>>>>>> b34574273f (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 645b46822e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 9ddb5aa17d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2647,45 +3954,117 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 985b17e61a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 2175959a54 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 90019ddd93 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 0e7ab435a8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> ef6b8fccdb (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> b38bcc8a60 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 1934b71a19 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+<<<<<<< HEAD
+>>>>>>> 501b202e71 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 1934b71a19 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> e4259dc457 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 9838ac675d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 94e6fffd6c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> ba81d1584e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 6b41bcc08d (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 58065d3fec (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
+>>>>>>> 91dc21f459 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 6eac7f1faa (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 3f25b2fd2b (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2720,6 +4099,12 @@
 >>>>>>> 2f0f322607 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 59141d65a4 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e3608cdf89 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2736,6 +4121,12 @@
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2757,6 +4148,12 @@
 >>>>>>> 59746cdccd (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> a510c2304a (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 49611aed99 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2775,6 +4172,12 @@
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2791,6 +4194,12 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2831,6 +4240,12 @@
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> e536414d08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2852,6 +4267,12 @@
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2861,24 +4282,38 @@
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 361e937243 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 >>>>>>> locationtech-main
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2894,9 +4329,16 @@
 >>>>>>> locatelli-main
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
+>>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> 8c0331be3e (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2908,6 +4350,20 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 9cf0c5297f7 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> e980963df (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
+>>>>>>> cb8d1635ef3 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+=======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d2e79ca9efc (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
@@ -2944,6 +4400,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   import scala.collection.JavaConversions._
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -2977,6 +4434,12 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2995,6 +4458,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3016,6 +4486,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3029,12 +4502,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3048,6 +4524,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3058,6 +4535,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3096,6 +4575,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3113,6 +4595,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3125,6 +4608,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3133,6 +4618,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3149,6 +4637,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3161,6 +4650,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3169,6 +4660,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3185,16 +4679,20 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -3212,6 +4710,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3221,6 +4721,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3231,6 +4734,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
   import scala.collection.JavaConversions._
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3257,6 +4761,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
+=======
+=======
   import scala.collection.JavaConversions._
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3275,11 +4783,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3296,11 +4808,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3314,11 +4829,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3329,10 +4847,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3398,6 +4919,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3412,6 +4936,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -3428,7 +4956,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -3484,6 +5016,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3517,6 +5050,12 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3535,6 +5074,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3556,6 +5102,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3569,12 +5118,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3588,6 +5140,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3598,6 +5151,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3636,6 +5191,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3653,6 +5211,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3665,6 +5224,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3673,6 +5234,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3689,6 +5253,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3701,6 +5266,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3709,6 +5276,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3725,16 +5295,20 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> b818c64b86 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -3752,6 +5326,8 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> fae05f2711 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 =======
 >>>>>>> fc8f2cb000 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3761,6 +5337,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3771,6 +5350,7 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 >>>>>>> e5f251e08 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> 867bb626d8 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3797,6 +5377,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 0ce938599c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
+=======
+=======
     val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asInstanceOf[AccumuloDataStore]
 <<<<<<< HEAD
 >>>>>>> e5f251e08c (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3815,11 +5399,15 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3836,11 +5424,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 7bbbc378d7 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3854,11 +5445,14 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 4b71543a85 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
@@ -3869,10 +5463,13 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3938,6 +5535,9 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3952,6 +5552,10 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1397b76b67 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main
@@ -3968,7 +5572,11 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d15e309d98 (GEOMESA-3091 Attribute level visibilities error with null attribute values (#2775))
 >>>>>>> locatelli-main

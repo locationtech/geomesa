@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -70,6 +70,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -103,6 +104,12 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -121,6 +128,13 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -142,6 +156,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -155,12 +172,15 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -174,6 +194,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -184,6 +205,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -222,6 +245,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -239,6 +265,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -251,6 +278,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -259,6 +288,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -275,6 +307,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -287,6 +320,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -295,6 +330,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -311,16 +349,20 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 2eb5450278 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
@@ -338,6 +380,8 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b7a3bd4175 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 =======
 >>>>>>> fd1708e975 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -347,6 +391,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -357,6 +404,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 >>>>>>> f639b39b8 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> 85b4d3f0dc (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -383,6 +431,10 @@ object PartitionWriteAheadLog extends SqlProcedure {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 969cec534e (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> locatelli-main
+=======
+=======
        |          AND relname != ${WriteAheadTable.writesPartition(info).asLiteral}
 <<<<<<< HEAD
 >>>>>>> f639b39b85 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -401,11 +453,15 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -422,11 +478,14 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 25cedeff6a (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -440,11 +499,14 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 8d6784b70d (GEOMESA-3208 Postgis - Fix camel-case feature type names)
@@ -455,10 +517,13 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -524,6 +589,9 @@ object PartitionWriteAheadLog extends SqlProcedure {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -538,6 +606,10 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9bc1fe9da1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 9bc1fe9da1 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> locatelli-main
@@ -554,7 +626,11 @@ object PartitionWriteAheadLog extends SqlProcedure {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
+>>>>>>> locatelli-main
 =======
 >>>>>>> eabc30be69 (GEOMESA-3208 Postgis - Fix camel-case feature type names)
 >>>>>>> locatelli-main

@@ -20,6 +20,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -101,6 +102,263 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+=======
+>>>>>>> 7181c84cc0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> eb34170404 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 61533f9a14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 91465b5762 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 1b3f3ee760 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b2d6426b73 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> c8143c1c7f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 386d1ec879 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 22ddb64f13 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b0d44cc502 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 68eb33480c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 82122ae50e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0602955adc (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 03796f30c1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5c4dcc5654 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 14dab7bbba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> b8078a364c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 1305b49638 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 37514b7cbe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 85014620eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 073a4c9ba7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 29c82c3ad9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 36ad7e5f73 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 30b10f27e9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> feb66a488c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d95cff7d4a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 17951e3b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c6384b5ff3 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 30c9906c8e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a762c6ddf0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 3bce443a84 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 60eb6f112d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e87c194c45 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 657c564afe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 7864a4bd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> c3572abcdb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> e33e453d35 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 70e85b8b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6964adc686 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> a082808243 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6eb27b2982 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 27c93d5927 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 405a17dd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 0f33912f25 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b263fd6292 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 3b1baeb8ca (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3302e9508e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6e69ca53bf (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cf6f31490a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 9cf0c5297f7 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6222f8abdfe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d2e79ca9efc (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 =======
@@ -111,6 +369,9 @@
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -120,6 +381,7 @@
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -178,10 +440,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 =======
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
 =======
 >>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -224,6 +492,9 @@
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -233,6 +504,7 @@
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 780343bd80 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -248,7 +520,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 8df5477634 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 4dac2ce37b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 27c93d5927 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 8df5477634 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> b8078a364c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ab4b56ca6a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -264,7 +551,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 1305b49638 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d127f509ed (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -280,7 +582,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 37514b7cbe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -296,7 +613,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 85014620eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -312,7 +644,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 405a17dd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 073a4c9ba7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3feac94548 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -328,7 +675,22 @@
 >>>>>>> locatelli-main
 >>>>>>> f78143e887 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 29c82c3ad9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 0f33912f25 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> b263fd6292 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> f78143e887 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 36ad7e5f73 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> efdbc526f2 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -344,7 +706,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 30b10f27e9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 3b1baeb8ca (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7a5e8ec736 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -360,7 +737,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> feb66a488c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 3302e9508e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -376,7 +768,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6e69ca53bf (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> d95cff7d4a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -447,69 +854,312 @@
 =======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> cf6f31490a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 17951e3b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6b6a8cecec (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> c6384b5ff3 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> d3f9875d2c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 30c9906c8e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> d260b0f25e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> a762c6ddf0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 0188cff1d4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 3bce443a84 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> edba4ab184 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 60eb6f112d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> e87c194c45 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> db758c30eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 657c564afe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 2bdaeeeea1 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 7864a4bd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> c1b95cc59a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> c3572abcdb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> d3d481a7c7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> e33e453d35 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 0eab2dd67e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 70e85b8b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 15e786eba8 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 6964adc686 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 5343d2ddea (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> a082808243 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 383fa0c977 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 6eb27b2982 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 8df5477634 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> e6c8cd2766 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 27c93d5927 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> e6c8cd2766 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 405a17dd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 0f33912f25 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> f78143e887 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 6eb49a0fcd (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> c880d1ee50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> b263fd6292 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> c880d1ee50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 3b1baeb8ca (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 346b6b322f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 346b6b322f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 3302e9508e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 6e69ca53bf (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -518,6 +1168,14 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> cf6f31490a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
@@ -528,6 +1186,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -549,8 +1208,31 @@
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 0b01e2802b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 14dab7bbba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 4dac2ce37b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> c6384b5ff3 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 30c9906c8e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 383fa0c977 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 6eb27b2982 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 019a35a728 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -565,6 +1247,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -572,6 +1256,9 @@
 >>>>>>> e6c8cd2766 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -585,6 +1272,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
@@ -599,6 +1287,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -607,6 +1297,9 @@
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -615,6 +1308,7 @@
 =======
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -629,6 +1323,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -636,6 +1332,9 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -649,6 +1348,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -661,6 +1361,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -669,6 +1371,9 @@
 >>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -682,6 +1387,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -694,6 +1400,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -702,6 +1410,9 @@
 >>>>>>> c880d1ee50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -715,6 +1426,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -727,6 +1439,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -735,6 +1449,9 @@
 >>>>>>> 346b6b322f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -748,6 +1465,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -760,6 +1478,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -768,6 +1488,9 @@
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -777,6 +1500,7 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -794,6 +1518,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -802,6 +1528,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -817,11 +1546,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 84c3992196 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
@@ -838,11 +1571,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> f78143e887 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -856,11 +1592,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
@@ -874,11 +1613,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
@@ -892,11 +1634,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -907,9 +1652,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -974,6 +1722,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -989,6 +1740,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -1000,12 +1752,17 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 780343bd80 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1023,11 +1780,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> d127f509ed (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1041,11 +1801,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1062,8 +1825,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1125,6 +1891,9 @@
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1140,12 +1909,16 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1190,6 +1963,8 @@
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -1200,6 +1975,9 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1215,11 +1993,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
@@ -1230,6 +2011,7 @@
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1238,6 +2020,8 @@
 <<<<<<< HEAD
 =======
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1272,6 +2056,7 @@
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1281,7 +2066,19 @@
 =======
 >>>>>>> 019a35a728 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+>>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 7181c84cc0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 019a35a728 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> eb34170404 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 25dfeecf10 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1315,7 +2112,37 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 61533f9a14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 1305b49638 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 3bce443a84 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> e6c8cd2766 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> d136bd4a2c (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7f520da00a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1347,6 +2174,27 @@
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 91465b5762 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 37514b7cbe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 60eb6f112d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1356,6 +2204,9 @@
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1366,6 +2217,7 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1399,8 +2251,38 @@
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> b368bb796e (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+ * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
+>>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> c8d2cfae9c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f4e2dcfd14 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1437,6 +2319,28 @@
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 1b3f3ee760 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 85014620eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> e87c194c45 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1447,6 +2351,9 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1464,6 +2371,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -1481,18 +2389,27 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 823f734cb8 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1514,6 +2431,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1526,6 +2444,8 @@
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1534,6 +2454,9 @@
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1549,6 +2472,7 @@
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1563,6 +2487,9 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -1577,6 +2504,7 @@
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1585,6 +2513,8 @@
 <<<<<<< HEAD
 =======
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1607,6 +2537,9 @@
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1632,6 +2565,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -1651,6 +2585,13 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> b2d6426b73 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1664,6 +2605,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
@@ -1686,14 +2628,24 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> b0d44cc502 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 =======
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1711,6 +2663,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> bd7d990658 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1741,6 +2694,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> bd7d990658 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 9357fdf666 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 68eb33480c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1754,6 +2717,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
@@ -1788,6 +2752,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> c5ef523249 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1799,6 +2774,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
@@ -1835,6 +2811,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 82122ae50e (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -1847,6 +2834,7 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1856,6 +2844,9 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -1871,9 +2862,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1896,6 +2890,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1919,6 +2916,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
@@ -1942,6 +2943,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -1962,6 +2968,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
@@ -1981,6 +2991,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2022,6 +3033,16 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 0602955adc (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2037,6 +3058,7 @@
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 217acd3c0a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2070,10 +3092,44 @@
 >>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 780343bd80 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 03796f30c1 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 217acd3c0a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 5c4dcc5654 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 6c202d4480 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 14dab7bbba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 6eb27b2982 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 780343bd80 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 4dac2ce37b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 019a35a728 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 8df5477634 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2089,10 +3145,25 @@
 >>>>>>> locatelli-main
 >>>>>>> ab4b56ca6a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> b8078a364c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 27c93d5927 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> ab4b56ca6a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 1305b49638 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 34472778d3 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2108,9 +3179,24 @@
 >>>>>>> locatelli-main
 >>>>>>> d127f509ed (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 93a68e91bb (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> d127f509ed (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 37514b7cbe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2125,12 +3211,24 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 6841c84934 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -2146,10 +3244,25 @@
 >>>>>>> locatelli-main
 >>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> dbed56f042 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 85014620eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2164,6 +3277,17 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> b71b0e3cfc (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> 405a17dd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
@@ -2175,11 +3299,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 0061c3f6c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2198,12 +3325,15 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 346b6b322f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2213,6 +3343,9 @@
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2237,6 +3370,12 @@
 >>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 073a4c9ba7 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2247,8 +3386,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2259,6 +3401,12 @@
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 09e1125c28 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2268,7 +3416,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2282,6 +3433,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2295,12 +3449,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2311,6 +3468,7 @@
 >>>>>>> 9357fdf666 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 7a5e8ec736 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -2318,10 +3476,19 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> feb66a488c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2331,6 +3498,8 @@
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2342,6 +3511,7 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2353,11 +3523,19 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b5fb9c834b (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2369,8 +3547,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2381,6 +3562,12 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 2d904e5c26 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2390,8 +3577,11 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2428,6 +3618,12 @@
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d95cff7d4a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2446,16 +3642,29 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 25ff9d478a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 217acd3c0a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 17951e3b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2471,31 +3680,93 @@
 >>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> d3f9875d2c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
+>>>>>>> 3689edc98a (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c29045466d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> 6b6a8cecec (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> c6384b5ff3 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> d3f9875d2c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 30c9906c8e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 019a35a728 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> d260b0f25e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 0188cff1d4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> a762c6ddf0 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 0188cff1d4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 3bce443a84 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 4c41429da9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> edba4ab184 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
 =======
+<<<<<<< HEAD
+>>>>>>> 93d13e3103 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> edba4ab184 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 60eb6f112d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 6e0709aba8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> fa8dd01af9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 4464bbe22c (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> dcaad7e3f9 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> e87c194c45 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
+>>>>>>> ed25decdd5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 69f3e67660 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 =======
@@ -2534,6 +3805,12 @@
 >>>>>>> 3571af2793 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> db758c30eb (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 657c564afe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2546,6 +3823,12 @@
 >>>>>>> e944f1c88b (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> f893d9a594 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d437e1ce0e (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2564,6 +3847,12 @@
 >>>>>>> 9357fdf666 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 0eab2dd67e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 70e85b8b5c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2579,6 +3868,12 @@
 >>>>>>> 26e5afc4ea (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 964e86145a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> cb722e124a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2592,6 +3887,12 @@
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> b298e017f1 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> f90df6f56c (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2629,6 +3930,12 @@
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 15e786eba8 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 6964adc686 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2647,45 +3954,117 @@
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> bf6bde0830 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d0e4fa865a (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 217acd3c0a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 5343d2ddea (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a082808243 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 383fa0c977 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 7d0389c9d2 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 383fa0c977 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 6eb27b2982 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 07d3783d19 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 780343bd80 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 81a5a4c61f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+<<<<<<< HEAD
+>>>>>>> 0fff6fea7c (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> a5ff5763ba (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 27c93d5927 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> ab4b56ca6a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> e6c8cd2766 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 4fe5f74c59 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> d581fa3e8f (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> f3a1757913 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> d127f509ed (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
+>>>>>>> b4a20fcf22 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> ac067890a5 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> f18d5b538e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 962cfa7e50 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 =======
 >>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+=======
+<<<<<<< HEAD
+>>>>>>> 6008a1a846 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 217b7d1cb9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+>>>>>>> 58388d7c78 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2720,6 +4099,12 @@
 >>>>>>> 6f390d7f70 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> c1f81bc268 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 405a17dd36 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2736,6 +4121,12 @@
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> b6e56a9e80 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 1e0862a098 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2757,6 +4148,12 @@
 >>>>>>> 7a5e8ec736 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 346b6b322f (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 3302e9508e (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2775,6 +4172,12 @@
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> ba6eae3c37 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2791,6 +4194,12 @@
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 5f2481dae6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2831,6 +4240,12 @@
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 6e69ca53bf (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2852,6 +4267,12 @@
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> a053722dae (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -2861,24 +4282,38 @@
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> cf6f31490a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> f99583a804 (Merge branch 'feature/postgis-fixes')
+=======
 =======
 >>>>>>> locatelli-main
 >>>>>>> locationtech-main
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2894,9 +4329,16 @@
 >>>>>>> locatelli-main
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> c29045466d (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 79bf541ac8 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 =======
 >>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -2908,6 +4350,20 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 9cf0c5297f7 (Merge branch 'feature/postgis-fixes')
+=======
+=======
+>>>>>>> 7f520da00 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
+>>>>>>> 6222f8abdfe (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+=======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d2e79ca9efc (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
@@ -2931,11 +4387,6 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2943,19 +4394,27 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
-<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2986,6 +4445,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3000,6 +4462,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3008,6 +4471,8 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3035,6 +4500,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3044,6 +4512,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> b11f0e2cf4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3062,6 +4531,8 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3070,6 +4541,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3082,12 +4556,15 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3103,11 +4580,14 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -3118,9 +4598,12 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3147,6 +4630,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3160,6 +4646,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
 =======
@@ -3167,6 +4654,9 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3199,6 +4689,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -3207,6 +4699,9 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3222,11 +4717,14 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 0eb6dc6a60 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
@@ -3235,9 +4733,12 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3264,6 +4765,9 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3278,6 +4782,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -3301,12 +4806,18 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 628f3a0c4b (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 =======
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3323,6 +4834,8 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -3330,6 +4843,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> c94b71d579 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3344,6 +4860,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3356,6 +4873,8 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3364,6 +4883,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> afdad4a952 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3375,6 +4897,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> 544d6f235 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 217acd3c0a (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3400,6 +4923,10 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 96b3033c39 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 544d6f2353 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 >>>>>>> 6255df1e67 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
@@ -3410,11 +4937,15 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3431,11 +4962,14 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -3450,11 +4984,14 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
@@ -3468,6 +5005,7 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> 3820b86465 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3482,6 +5020,8 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -3557,6 +5097,9 @@ import org.locationtech.geomesa.spark.sql.{SQLTypes, SparkUtils}
 >>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3572,8 +5115,14 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+=======
+>>>>>>> f7e376a051 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 29fba6fef4 (GEOMESA-3078 Support Bytes, List and Map attribute types in GeoMesa Spark SQL)
 =======
