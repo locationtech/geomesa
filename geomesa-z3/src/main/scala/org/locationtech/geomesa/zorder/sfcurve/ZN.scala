@@ -171,12 +171,12 @@ abstract class ZN {
     // bottom out and get all the ranges that partially overlapped but we didn't fully process
     // note: this method is only called when we know there are items remaining in the queue
     def bottomOut(): Unit = {
-      do {
+      while ({{
         val minMax = remaining.poll
         if (!minMax.eq(LevelTerminator)) {
           ranges.add(IndexRange(minMax._1, minMax._2, contained = false))
         }
-      } while (!remaining.isEmpty)
+      }; !remaining.isEmpty })()
     }
 
     // initial level - we just check the single quadrant
@@ -190,7 +190,7 @@ abstract class ZN {
     val rangeStop = maxRanges.getOrElse(Int.MaxValue)
     val recurseStop = maxRecurse.getOrElse(ZN.DefaultRecurse)
 
-    do {
+    while ({{
       val next = remaining.poll
       if (next.eq(LevelTerminator)) {
         // we've fully processed a level, increment our state
@@ -215,7 +215,7 @@ abstract class ZN {
           bottomOut()
         }
       }
-    } while (!remaining.isEmpty)
+    }; !remaining.isEmpty })()
 
     // we've got all our ranges - now reduce them down by merging overlapping values
     ranges.sort(IndexRange.IndexRangeIsOrdered)

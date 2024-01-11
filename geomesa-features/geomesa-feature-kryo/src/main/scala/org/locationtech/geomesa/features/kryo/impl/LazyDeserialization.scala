@@ -306,7 +306,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
     }
     if (i < offsets.length) {
       // attributes have been added to the sft since this feature was serialized
-      do { offsets(i) = -1; i += 1 } while (i < offsets.length)
+      while ({{ offsets(i) = -1; i += 1 }; i < offsets.length })()
     }
     val userDataOffset = input.position()
 

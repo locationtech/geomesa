@@ -489,7 +489,7 @@ object KryoBufferSimpleFeature {
       if (i < offsets.length) {
         // attributes have been added to the sft since this feature was serialized
         missingAttributes = true
-        do { offsets(i) = -1; i += 1 } while (i < offsets.length)
+        while ({{ offsets(i) = -1; i += 1 }; i < offsets.length })()
       } else {
         missingAttributes = false
       }
