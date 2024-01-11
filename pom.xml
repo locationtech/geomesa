@@ -138,6 +138,7 @@
         <sedona.spark.version>3.4</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
+        <snappy.java.version>1.1.10.4</snappy.java.version>
 
         <!-- guava - versions vary across environments -->
         <guava.version>${geotools.guava.version}</guava.version>
@@ -215,7 +216,7 @@
         <profile>
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>${maven.test.memory} ${maven.test.debug} ${maven.test.opens}</maven.test.jvmargs>
+                <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens} ${maven.test.debug}</maven.test.jvmargs>
             </properties>
         </profile>
 
@@ -2652,6 +2653,13 @@
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <!-- 'works with' due to license issues -->
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.java.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>

@@ -136,7 +136,7 @@
             <!-- 'works with' due to license issues -->
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.10.1</version>
+            <version>${snappy.java.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
