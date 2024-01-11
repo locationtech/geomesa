@@ -10,23 +10,29 @@ package org.locationtech.geomesa.curve
 
 import org.locationtech.geomesa.curve.NormalizedDimension._
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.curve.Z3SFC.{Z3Dimensions, StandardZ3Dimensions}
 import org.locationtech.geomesa.zorder.sfcurve.{IndexRange, Z3, ZRange}
 
 /**
   * Z3 space filling curve
   *
-  * @param period time period used to bin results
-  * @param precision bits used per dimension - note all precisions must sum to less than 64
+  * @param dims curve dimensions
   */
-class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCurve {
+class Z3SFC(dims: Z3Dimensions) extends SpaceTimeFillingCurve {
 
-  require(precision > 0 && precision < 22, "Precision (bits) per dimension must be in [1,21]")
+  val lon: NormalizedDimension  = dims.lon
+  val lat: NormalizedDimension  = dims.lat
+  val time: NormalizedDimension = dims.time
 
-  val lon: NormalizedDimension  = NormalizedLon(precision)
-  val lat: NormalizedDimension  = NormalizedLat(precision)
-  val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
+  val wholePeriod: Seq[(Long, Long)] = Seq((time.min.toLong, time.max.toLong))
 
-  val wholePeriod = Seq((time.min.toLong, time.max.toLong))
+  /**
+   * Alternate constructor
+   *
+   * @param period    time period used to bin results
+   * @param precision bits used per dimension - note all precisions must sum to less than 64
+   */
+  def this(period: TimePeriod, precision: Int = 21) = this(StandardZ3Dimensions(period, precision))
 
   override def index(x: Double, y: Double, t: Long, lenient: Boolean = false): Long = {
     try {
@@ -75,5 +81,20 @@ object Z3SFC {
     case TimePeriod.Week  => SfcWeek
     case TimePeriod.Month => SfcMonth
     case TimePeriod.Year  => SfcYear
+  }
+
+  trait Z3Dimensions {
+    def lon: NormalizedDimension
+    def lat: NormalizedDimension
+    def time: NormalizedDimension
+  }
+
+  case class StandardZ3Dimensions(period: TimePeriod, precision: Int = 21) extends Z3Dimensions {
+
+    require(precision > 0 && precision < 22, "Precision (bits) per dimension must be in [1,21]")
+
+    override val lon: NormalizedDimension = NormalizedLon(precision)
+    override val lat: NormalizedDimension = NormalizedLat(precision)
+    override val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
   }
 }
