@@ -136,6 +136,7 @@
         <confluent.avro.version>1.11.3</confluent.avro.version>
         <sedona.version>1.5.0</sedona.version>
         <sedona.spark.version>3.4</sedona.spark.version>
+        <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
 
         <!-- guava - versions vary across environments -->
@@ -181,7 +182,7 @@
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
-        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=permit</maven.test.opens>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>4</test.fork.count>
@@ -2435,6 +2436,24 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.apache.sedona</groupId>
+                <artifactId>sedona-common</artifactId>
+                <version>${sedona.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.uber</groupId>
+                <artifactId>h3</artifactId>
+                <version>${sedona.h3.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- dependencies excluded due to license issues -->
             <dependency>
@@ -2940,6 +2959,8 @@
                         </execution>
                     </executions>
                     <configuration>
+                        <argLine>${maven.test.opens}</argLine>
+                        <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
                         <systemProperties>
                             <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
