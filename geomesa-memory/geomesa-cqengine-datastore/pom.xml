@@ -40,11 +40,6 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-api</artifactId>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>
