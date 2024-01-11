@@ -109,6 +109,25 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   "PartitionedPostgisDataStore" should {
+    "fail with a useful error message if type name is too long" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        // This sft name exceeds 31 characters, so it should fail
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "abcdefghijklmnopqrstuvwxyzabcde_____")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft) must throwAn[java.io.IOException].like {
+          case e => e.getCause.getMessage mustEqual "Can't create schema: type name exceeds max supported length of 31 characters"
+        }
+      } finally {
+        ds.dispose()
+      }
+      ok
+    }
+
     "work" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
@@ -116,7 +135,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       try {
         ds must beAnInstanceOf[JDBCDataStore]
 
-        foreach(Seq("test", "test-dash")) { name =>
+        val sftNames: Seq[String] = Seq("test", "test-abcdefghijklmnopqrstuvwxyz")
+
+        foreach(sftNames) { name =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, name)
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
