@@ -72,18 +72,16 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -91,6 +89,11 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -116,6 +119,9 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -133,6 +139,7 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -141,6 +148,8 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -172,6 +181,9 @@ INSERT INTO "usage" VALUES('EPSG','7986','helmert_transformation','EPSG','1065',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -188,6 +200,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -197,6 +210,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -223,6 +240,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000 MB',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -238,11 +256,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000 MB',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -286,6 +307,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -298,6 +324,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -311,6 +340,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -331,6 +361,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -351,6 +383,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -371,11 +406,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -390,11 +428,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -425,11 +466,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -444,6 +488,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 (2)','Replaced by Amersfoort to ETRS89 (4) (tfm code 15740). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 1751.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.032,26.0,478.741,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.148,368135.313,5012970.306,'EPSG','9001','NCG-Nld 2000',0);
@@ -453,6 +498,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -542,6 +589,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1066','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -871,18 +921,16 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -890,6 +938,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -915,6 +968,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -932,6 +988,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -940,6 +997,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -971,6 +1030,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1226','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -987,6 +1049,7 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -996,6 +1059,10 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1022,6 +1089,7 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 Beware! Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -1037,11 +1105,14 @@ Beware! Source CRS uses German legal metres, transformation parameter values are
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 Beware! Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1085,6 +1156,11 @@ Beware! Source CRS uses German legal metres, transformation parameter values are
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -1097,6 +1173,9 @@ Beware! Source CRS uses German legal metres, transformation parameter values are
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1110,6 +1189,7 @@ Beware! Source CRS uses German legal metres, transformation parameter values are
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1130,6 +1210,8 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1150,6 +1232,9 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1170,11 +1255,14 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1189,11 +1277,14 @@ Beware! Source CRS uses German legal metres, transformation parameter values are
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1224,11 +1315,14 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1243,6 +1337,7 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 Beware!  Source CRS uses German legal metres, transformation parameter values are in (International) metres. See tfm code 1271 for example.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',35.0,616.0,97.0,-251.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Nam',0);
@@ -1252,6 +1347,8 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1341,6 +1438,9 @@ Beware!  Source CRS uses German legal metres, transformation parameter values ar
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1421,18 +1521,16 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1440,6 +1538,11 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1465,6 +1568,9 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1482,6 +1588,7 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1490,6 +1597,8 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1521,6 +1630,9 @@ INSERT INTO "usage" VALUES('EPSG','8188','helmert_transformation','EPSG','1267',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1537,6 +1649,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1546,6 +1659,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1572,6 +1689,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware! Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -1587,11 +1705,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware! Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1635,6 +1756,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -1647,6 +1773,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1660,6 +1789,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1680,6 +1810,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1700,6 +1832,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1720,11 +1855,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1739,11 +1877,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1774,11 +1915,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1793,6 +1937,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 (2)','Beware!  Source CRS uses GLM, tfm param in m. Example: Schwarzeck φ=19°35''46.952"S λ=20°41''50.649"E h=1185.99m; X=5623409.386 Y=2124618.003 Z=-2125847.632 GLM; X=5623485.84m Y=2124646.89m Z=-2125876.54m; WGS 84 X=5624101.48m Y=2124748.97m Z=-2126132.35m.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4293','EPSG','4326',999.0,615.64,102.08,-255.81,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SLI-Nam',0);
@@ -1802,6 +1947,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1891,6 +2038,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1271','Schwarzeck to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2304,18 +2454,16 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -2323,6 +2471,11 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2348,6 +2501,9 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2365,6 +2521,7 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2373,6 +2530,8 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2404,6 +2563,9 @@ INSERT INTO "usage" VALUES('EPSG','8579','helmert_transformation','EPSG','1658',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2420,6 +2582,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2429,6 +2592,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2455,6 +2622,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -2470,11 +2638,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2518,6 +2689,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -2530,6 +2706,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2543,6 +2722,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2563,6 +2743,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2583,6 +2765,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2603,11 +2788,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2622,11 +2810,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2657,11 +2848,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2676,6 +2870,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89 (1)','May be taken as approximate transformation Monte Mario to WGS 84 - see code 1660. For more accurate transformations to explicit realizations of ETRS89 see Monte Mario to IGM95 (4) and Monte Mario to RDN2008 (5), CTs 9733 and 9734. ','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4265','EPSG','4258',4.0,-104.1,-49.1,-9.9,'EPSG','9001',0.971,-2.917,0.714,'EPSG','9104',-11.68,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Ita main',0);
@@ -2685,6 +2880,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2774,6 +2971,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1659','Monte Mario to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2816,18 +3016,16 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -2835,6 +3033,11 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2860,6 +3063,9 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2877,6 +3083,7 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2885,6 +3092,8 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2916,6 +3125,9 @@ INSERT INTO "usage" VALUES('EPSG','8592','helmert_transformation','EPSG','1671',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2932,6 +3144,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2941,6 +3154,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2967,6 +3184,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld 2000',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -2982,11 +3200,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld 2000',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3030,6 +3251,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -3042,6 +3268,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3055,6 +3284,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3075,6 +3305,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3095,6 +3327,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3115,11 +3350,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3134,11 +3372,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3169,11 +3410,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3188,6 +3432,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 (2)','Parameter values from Amersfoort to ETRS89 (1) (code 1751) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (1) (code 1112). Replaced by Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Nld',0);
@@ -3197,6 +3442,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3286,6 +3533,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1672','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3336,18 +3586,16 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -3355,6 +3603,11 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3380,6 +3633,9 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3397,6 +3653,7 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3405,6 +3662,8 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3436,6 +3695,9 @@ INSERT INTO "usage" VALUES('EPSG','8622','helmert_transformation','EPSG','1701',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3452,6 +3714,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3461,6 +3724,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3487,6 +3754,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000 CF',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -3502,11 +3770,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000 CF',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3550,6 +3821,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -3562,6 +3838,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3575,6 +3854,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3595,6 +3875,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3615,6 +3897,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3635,11 +3920,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3654,11 +3942,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3689,11 +3980,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3708,6 +4002,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 (1)','Replaced by Amersfoort to ETRS89 (3) (tfm code 15739). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 1066.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.04,49.91,465.84,'EPSG','9001',1.9848,-1.7439,9.0587,'EPSG','9109',4.0772,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2000',0);
@@ -3717,6 +4012,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3806,6 +4103,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1751','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3892,18 +4192,16 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -3911,6 +4209,11 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3936,6 +4239,9 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3953,6 +4259,7 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3961,6 +4268,8 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3992,6 +4301,9 @@ INSERT INTO "usage" VALUES('EPSG','8717','helmert_transformation','EPSG','1796',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4008,6 +4320,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4017,6 +4330,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4043,6 +4360,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations. Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -4058,11 +4376,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations. Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4106,6 +4427,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -4118,6 +4444,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4131,6 +4460,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4151,6 +4481,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4171,6 +4503,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4191,11 +4526,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4210,11 +4548,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4245,11 +4586,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4264,6 +4608,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84 (1)','Derived at 2 stations.  Accuracy 25m, 25m and 32m in X, Y and Z axes.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4194','EPSG','4326',48.0,164.0,138.0,-189.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Grl S',0);
@@ -4273,6 +4618,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4362,6 +4709,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1797','Qornoq 1927 to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4515,18 +4865,16 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -4534,6 +4882,11 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4559,6 +4912,9 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4576,6 +4932,7 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4584,6 +4941,8 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4615,6 +4974,9 @@ INSERT INTO "usage" VALUES('EPSG','8797','helmert_transformation','EPSG','1876',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4631,6 +4993,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4640,6 +5003,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4666,6 +5033,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1989',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -4681,11 +5049,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1989',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4729,6 +5100,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -4741,6 +5117,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4754,6 +5133,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4774,6 +5154,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4794,6 +5176,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4814,11 +5199,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4833,11 +5221,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4868,11 +5259,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4887,6 +5281,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)','Derived by Brazilian Institute of Geography and Statistics (IBGE) in 1989 at Chua origin point. In use by Shell throughout Brazil. For use by Petrobras and ANP, replaced by tfm code 5882 from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-66.87,4.37,-38.52,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGBE-Bra',0);
@@ -4896,6 +5291,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4985,6 +5382,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1877','SAD69 to WGS 84 (14)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5093,6 +5493,7 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5107,6 +5508,8 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5124,6 +5527,7 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5134,6 +5538,8 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5145,10 +5551,13 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5181,6 +5590,9 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5199,11 +5611,15 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5221,9 +5637,12 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5253,6 +5672,9 @@ INSERT INTO "usage" VALUES('EPSG','8847','helmert_transformation','EPSG','1926',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5274,6 +5696,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -5284,6 +5707,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5305,6 +5731,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -5327,6 +5757,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5338,6 +5771,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5357,12 +5791,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5380,6 +5819,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5388,6 +5828,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5407,6 +5849,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5426,6 +5871,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5465,6 +5911,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5477,6 +5928,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5495,6 +5949,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5532,6 +5987,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -5542,6 +6002,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5560,6 +6023,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -5593,6 +6057,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5603,6 +6072,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5620,6 +6092,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5628,6 +6101,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5646,6 +6121,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5665,11 +6143,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -5691,11 +6173,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5712,11 +6197,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5731,6 +6219,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5742,6 +6231,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5799,6 +6290,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5815,11 +6309,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1927','IGN56 Lifou to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15902.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4633','EPSG','4326',1.0,137.092,131.66,91.475,'EPSG','9001',-1.9436,-11.5993,-4.3321,'EPSG','9104',-7.4824,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 INSERT INTO "usage" VALUES('EPSG','8848','helmert_transformation','EPSG','1927','EPSG','2814','EPSG','1041');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1928','IGN53 Mare to WGS 84 (1)','Withdrawn by information source and replaced by improved information - see tfm code 15901.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4641','EPSG','4326',1.0,-408.809,366.856,-412.987,'EPSG','9001',1.8842,-0.5308,2.1655,'EPSG','9104',-121.0993,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5883,6 +6380,7 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -5897,6 +6395,8 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5914,6 +6414,7 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5924,6 +6425,8 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5935,10 +6438,13 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5971,6 +6477,9 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5989,11 +6498,15 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -6011,9 +6524,12 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6043,6 +6559,9 @@ INSERT INTO "usage" VALUES('EPSG','8873','helmert_transformation','EPSG','1952',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6064,6 +6583,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -6074,6 +6594,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6095,6 +6618,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -6117,6 +6644,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6128,6 +6658,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6147,12 +6678,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6170,6 +6706,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6178,6 +6715,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6197,6 +6736,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6216,6 +6758,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6255,6 +6798,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6267,6 +6815,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6285,6 +6836,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6322,6 +6874,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -6332,6 +6889,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6350,6 +6910,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -6383,6 +6944,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6393,6 +6959,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6410,6 +6979,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6418,6 +6988,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6436,6 +7008,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6455,11 +7030,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -6481,11 +7060,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6502,11 +7084,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6521,6 +7106,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6532,6 +7118,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6589,6 +7177,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6605,11 +7196,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1953','TM75 to ETRS89 (2)','TM75 is based on the geodetic datum of 1965 which should not be confused with the mapping adjustment of 1965 (TM65). May be taken as approximate transformations TM75 to WGS 84, TM65 to WGS 84 and OSNI 1952 to WGS 84 - see codes 1954, 1641 and 1955.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4300','EPSG','4258',1.0,482.5,-130.6,564.6,'EPSG','9001',-1.042,-0.214,-0.631,'EPSG','9104',8.15,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OSI-Ire',0);
 INSERT INTO "usage" VALUES('EPSG','8874','helmert_transformation','EPSG','1953','EPSG','1305','EPSG','1041');
 INSERT INTO "helmert_transformation" VALUES('EPSG','1954','TM75 to WGS 84 (2)','Parameter values taken from TM65 to ETRS89 (2) (code 1953). Assumes ETRS89 and WGS 84 can be considered the same to within the accuracy of the transformation.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4300','EPSG','4326',1.0,482.5,-130.6,564.6,'EPSG','9001',-1.042,-0.214,-0.631,'EPSG','9104',8.15,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EPSG-Ire',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6647,18 +7241,16 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -6666,6 +7258,11 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6691,6 +7288,9 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6708,6 +7308,7 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6716,6 +7317,8 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6747,6 +7350,9 @@ INSERT INTO "usage" VALUES('EPSG','8883','helmert_transformation','EPSG','1962',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6763,6 +7369,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6772,6 +7379,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6798,6 +7409,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see CT code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl v2',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -6813,11 +7425,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see CT code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl v2',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6861,6 +7476,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -6873,6 +7493,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6886,6 +7509,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6906,6 +7530,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6926,6 +7552,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6946,11 +7575,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6965,11 +7597,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7000,11 +7635,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7019,6 +7657,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to WGS 84 (2)','Withdrawn by information source and replaced by improved information - see tfm code 15903.','EPSG','9606','Position Vector transformation (geog2D domain)','EPSG','4662','EPSG','4326',1.0,97.295,-263.247,310.882,'EPSG','9001',-1.5999,0.8386,3.1409,'EPSG','9104',13.3259,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl',0);
@@ -7028,6 +7667,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7117,6 +7758,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','1963','IGN72 Grande Terre to
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7259,18 +7903,16 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -7278,6 +7920,11 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7303,6 +7950,9 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7320,6 +7970,7 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7328,6 +7979,8 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7359,6 +8012,9 @@ INSERT INTO "usage" VALUES('EPSG','9024','helmert_transformation','EPSG','3990',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7375,6 +8031,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7384,6 +8041,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7410,6 +8071,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values, analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -7425,11 +8087,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values, analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7473,6 +8138,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -7485,6 +8155,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7498,6 +8171,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7518,6 +8192,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7538,6 +8214,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7558,11 +8237,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7577,11 +8259,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7612,11 +8297,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7631,6 +8319,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4)','Derived at 3 stations. Accuracy 20m in each axis. Info source gives source CRS as Arc 1950. From inspection of parameter values,  analysis of TR8350.2 contour chart sand geographic applicability of CRS, OGP believes that the this shuld be Arc 1960.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4210','EPSG','4326',35.0,-153.0,-5.0,-292.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'DMA-Bdi',0);
@@ -7640,6 +8329,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7729,6 +8420,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','3998','Arc 1960 to WGS 84 (4
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7803,6 +8497,7 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7817,6 +8512,8 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7834,6 +8531,7 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7844,6 +8542,8 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7855,10 +8555,13 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7891,6 +8594,9 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7909,11 +8615,15 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -7931,9 +8641,12 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7963,6 +8676,9 @@ INSERT INTO "usage" VALUES('EPSG','9114','helmert_transformation','EPSG','4599',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7986,6 +8702,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -7994,6 +8711,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8015,6 +8735,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -8037,6 +8761,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8057,6 +8784,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4827','S-JTSK to ETRS89 (4)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8066,6 +8794,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4827','S-JTSK to ETRS89 (4)'
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -8091,6 +8822,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8103,6 +8835,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8127,6 +8861,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8149,6 +8884,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8157,6 +8894,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8172,8 +8912,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8214,11 +8957,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8236,8 +8983,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8286,11 +9036,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8308,6 +9062,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8315,6 +9070,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8487,6 +9244,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8514,6 +9274,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -8532,6 +9293,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8541,6 +9304,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8556,6 +9322,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8563,6 +9330,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8580,6 +9349,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4831','Amersfoort to ETRS89 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8603,18 +9375,16 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -8622,6 +9392,11 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8647,6 +9422,9 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8664,6 +9442,7 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8672,6 +9451,8 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8703,6 +9484,9 @@ INSERT INTO "usage" VALUES('EPSG','9125','helmert_transformation','EPSG','4832',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8719,6 +9503,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8728,6 +9513,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8754,6 +9543,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2008',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -8769,11 +9559,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2008',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8817,6 +9610,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -8829,6 +9627,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8842,6 +9643,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8862,6 +9664,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8882,6 +9686,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8902,11 +9709,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8921,11 +9731,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8956,11 +9769,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8975,6 +9791,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 (4)','Parameter values from Amersfoort to ETRS89 (5) (tfm code 4830) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (3) (code 15934).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.4171,50.3319,465.5524,'EPSG','9001',1.9342,-1.6677,9.1019,'EPSG','9109',4.0725,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
@@ -8984,6 +9801,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9073,6 +9892,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','4833','Amersfoort to WGS 84 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9306,6 +10128,7 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -9320,6 +10143,8 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9337,6 +10162,7 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9347,6 +10173,8 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9358,10 +10186,13 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9394,6 +10225,9 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9412,11 +10246,15 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -9434,9 +10272,12 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9466,6 +10307,9 @@ INSERT INTO "usage" VALUES('EPSG','9515','helmert_transformation','EPSG','5878',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9487,6 +10331,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -9497,6 +10342,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9518,6 +10366,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -9540,6 +10392,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9551,6 +10406,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9570,12 +10426,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9593,6 +10454,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -9601,6 +10463,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9620,6 +10484,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9639,6 +10506,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9678,6 +10546,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9690,6 +10563,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9708,6 +10584,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9745,6 +10622,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -9755,6 +10637,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9773,6 +10658,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -9806,6 +10692,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9816,6 +10707,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9833,6 +10727,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9841,6 +10736,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9859,6 +10756,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9878,11 +10778,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -9904,11 +10808,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9925,11 +10832,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9944,6 +10854,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -9955,6 +10866,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10012,6 +10925,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10028,11 +10944,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','5881','SAD69(96) to SIRGAS 2000 (2)','Parameter values from SAD69 to SIRGAS 2000 (1) (tfm code 15485) assuming that SAD69 and SAD69(96) are equal within the accuracy of the transformation. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9516','helmert_transformation','EPSG','5881','EPSG','1053','EPSG','1252');
 INSERT INTO "helmert_transformation" VALUES('EPSG','5882','SAD69 to WGS 84 (16)','Parameter values taken from SAD69 to SIRGAS 2000 (1) (tfm code 15485) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation. Used by ANP and Petrobras throughout Brazil from 1994, replacing use of tfm code 1877.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10076,6 +10995,7 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -10090,6 +11010,8 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10107,6 +11029,7 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10117,6 +11040,8 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10128,10 +11053,13 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10164,6 +11092,9 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10182,11 +11113,15 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -10204,9 +11139,12 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10236,6 +11174,9 @@ INSERT INTO "usage" VALUES('EPSG','9639','helmert_transformation','EPSG','6194',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10257,6 +11198,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -10267,6 +11209,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10288,6 +11233,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -10310,6 +11259,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10321,6 +11273,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10340,12 +11293,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10363,6 +11321,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10371,6 +11330,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10390,6 +11351,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10409,6 +11373,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10448,6 +11413,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10460,6 +11430,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10478,6 +11451,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10515,6 +11489,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -10525,6 +11504,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10543,6 +11525,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -10576,6 +11559,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10586,6 +11574,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10603,6 +11594,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10611,6 +11603,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10629,6 +11623,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10648,11 +11645,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -10674,11 +11675,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10695,11 +11699,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10714,6 +11721,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10725,6 +11733,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10782,6 +11792,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10798,11 +11811,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6195','SAD69(96) to WGS 84 (2)','Parameter values from SAD69(96) to SIRGAS 2000 (2)) (tfm code 5881) assuming that SIRGAS 2000 and WGS 84 are equal within the accuracy of the transformation, based on SAD69 to SIRGAS 2000 (1)) (tfm code 15485). Used by Petrobras and ANP from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','5527','EPSG','4326',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bra',0);
 INSERT INTO "usage" VALUES('EPSG','9640','helmert_transformation','EPSG','6195','EPSG','1053','EPSG','1257');
 INSERT INTO "helmert_transformation" VALUES('EPSG','6196','Minna to WGS 84 (16)','Used by Addax for OPL 118 and OML 124. Derived in 1999 at 4 stations during  extension into OPL 118 of control in Chevron block OML 53.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4263','EPSG','4326',5.0,-93.179,-87.124,114.338,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'ADX-Nga OPL 118',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11021,18 +12037,16 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -11040,6 +12054,11 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11065,6 +12084,9 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11082,6 +12104,7 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -11090,6 +12113,8 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11121,6 +12146,9 @@ INSERT INTO "usage" VALUES('EPSG','9873','helmert_transformation','EPSG','6976',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11137,6 +12165,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11146,6 +12175,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11172,6 +12205,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970. Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -11187,11 +12221,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970. Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11235,6 +12272,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -11247,6 +12289,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11260,6 +12305,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11280,6 +12326,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11300,6 +12348,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11320,11 +12371,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11339,11 +12393,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11374,11 +12431,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11393,6 +12453,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)','Derived at 6 stations. Accuracy 3m, 3m and 4m in X, Y and Z axes. Also used as a transformation from SAD69 to SIRGAS-Chile - see code 6970.  Unlike IGM Chile, NGA extends use of this tfm to all Chile south of 44°S.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4326',6.0,-79.0,13.0,-14.0,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NGA-Chile 44-',0);
@@ -11402,6 +12463,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11491,6 +12554,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','6977','SAD69 to WGS 84 (20)'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11594,18 +12660,16 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -11613,6 +12677,11 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11638,6 +12707,9 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11655,6 +12727,7 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -11663,6 +12736,8 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11694,6 +12769,9 @@ INSERT INTO "usage" VALUES('EPSG','10280','helmert_transformation','EPSG','7817'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11710,6 +12788,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11719,6 +12798,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -11745,6 +12828,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm. Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -11760,11 +12844,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm. Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11808,6 +12895,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -11820,6 +12912,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11833,6 +12928,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11853,6 +12949,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11873,6 +12971,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11893,11 +12994,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11912,11 +13016,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11947,11 +13054,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11966,6 +13076,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS89 (1)','Derived using 90 stations by IGM Italy on behalf of ASIG. mse = 18cm.  Use only for horizontal coordinates; geoid heights must be calculated with ALBGEO3 software. May be taken as approximate transformation from Albanian 1987 to WGS 84 (see code 7834).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4191','EPSG','4258',0.2,-44.183,-0.58,-38.489,'EPSG','9001',-2.3867,-2.7072,3.5196,'EPSG','9104',-8.2703,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IGM-Alb 2D',0);
@@ -11975,6 +13086,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12064,6 +13177,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','7833','Albanian 1987 to ETRS
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12724,18 +13840,16 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -12743,6 +13857,11 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12768,6 +13887,9 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12785,6 +13907,7 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -12793,6 +13916,8 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12824,6 +13949,9 @@ INSERT INTO "usage" VALUES('EPSG','11495','helmert_transformation','EPSG','15484
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12840,6 +13968,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12849,6 +13978,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12875,6 +14008,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1994',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -12890,11 +14024,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra 5m 1994',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12938,6 +14075,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -12950,6 +14092,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12963,6 +14108,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12983,6 +14129,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13003,6 +14151,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13023,11 +14174,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13042,11 +14196,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13077,11 +14234,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13096,6 +14256,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000 (1)','Accuracy generally better than 1m except in Amazon basin where it degenerates to 5m. May be used as CT between SAD69(96) and SIRGAS 2000 and between SAD69 and WGS 84 - see tfm codes 5881 and 5882. Used by Petrobras and ANP throughout Brazil from 1994.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4618','EPSG','4674',5.0,-67.35,3.88,-38.22,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'IBGE-Bra',0);
@@ -13105,6 +14266,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13194,6 +14357,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15485','SAD69 to SIRGAS 2000
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13306,6 +14472,7 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -13320,6 +14487,8 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13337,6 +14506,7 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13347,6 +14517,8 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13358,10 +14530,13 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13394,6 +14569,9 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13412,11 +14590,15 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -13434,9 +14616,12 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13466,6 +14651,9 @@ INSERT INTO "usage" VALUES('EPSG','11749','helmert_transformation','EPSG','15738
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13487,6 +14675,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -13497,6 +14686,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13518,6 +14710,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> locationtech-main
 =======
 =======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 =======
@@ -13540,6 +14736,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13551,6 +14750,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13570,12 +14770,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13593,6 +14798,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13601,6 +14807,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13620,6 +14828,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13639,6 +14850,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13678,6 +14890,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13690,6 +14907,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13708,6 +14928,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13745,6 +14966,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -13755,6 +14981,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13773,6 +15002,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -13806,6 +15036,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e4203f66c (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13816,6 +15051,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13833,6 +15071,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13841,6 +15080,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13859,6 +15100,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13878,11 +15122,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -13904,11 +15152,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13925,11 +15176,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13944,6 +15198,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13955,6 +15210,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14012,6 +15269,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14028,11 +15288,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15739','Amersfoort to ETRS89 (3)','Replaces Amersfoort to ETRS89 (1) (tfm code 1751). Replaced by Amersfoort to ETRS89 (5) (tfm code 4830). Dutch sources also quote an equivalent transformation using the Molodenski-Badekas 10-parameter method (M-B) - see tfm code 15740.','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4258',0.5,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'NCG-Nld 2004',0);
 INSERT INTO "usage" VALUES('EPSG','11750','helmert_transformation','EPSG','15739','EPSG','1275','EPSG','1035');
 INSERT INTO "helmert_transformation" VALUES('EPSG','15740','Amersfoort to ETRS89 (4)','Replaces Amersfoort to ETRS89 (2) (tfm code 1066). Replaced by Amersfoort to ETRS89 (6) (tfm code 4831). Dutch sources also quote an equivalent transformation using the Coordinate Frame 7-parameter method - see tfm code 15739.','EPSG','9636','Molodensky-Badekas (CF geog2D domain)','EPSG','4289','EPSG','4258',0.5,593.0297,26.0038,478.7534,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,3903453.1482,368135.3134,5012970.3051,'EPSG','9001','NCG-Nld 2004',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14124,18 +15387,16 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -14143,6 +15404,11 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14168,6 +15434,9 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14185,6 +15454,7 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -14193,6 +15463,8 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14224,6 +15496,9 @@ INSERT INTO "usage" VALUES('EPSG','11789','helmert_transformation','EPSG','15778
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14240,6 +15515,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14249,6 +15525,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -14275,6 +15555,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy. For consistency with Survey of Bangladesh, Gulshan 303 to WGS 84 (2) [code 9679] should be preferred.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bgd rounded',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -14290,11 +15571,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy. For consistency with Survey of Bangladesh, Gulshan 303 to WGS 84 (2) [code 9679] should be preferred.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Bgd rounded',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14338,6 +15622,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -14350,6 +15639,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14363,6 +15655,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14383,6 +15676,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14403,6 +15698,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14423,11 +15721,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14442,11 +15743,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14477,11 +15781,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14496,6 +15803,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 84 (1)','Derived at origin station in Dhaka. Source information given to 3 decimal places but rounded by OGP to be commensurate with stated accuracy.','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4682','EPSG','4326',1.0,283.7,735.9,261.1,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'SB-Bgd',0);
@@ -14505,6 +15813,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14594,6 +15904,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15779','Gulshan 303 to WGS 8
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14784,18 +16097,16 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -14803,6 +16114,11 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14828,6 +16144,9 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14845,6 +16164,7 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -14853,6 +16173,8 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14884,6 +16206,9 @@ INSERT INTO "usage" VALUES('EPSG','11894','helmert_transformation','EPSG','15883
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14900,6 +16225,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14909,6 +16235,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -14935,6 +16265,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 2m',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -14950,11 +16281,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 2m',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14998,6 +16332,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -15010,6 +16349,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15023,6 +16365,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15043,6 +16386,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15063,6 +16408,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15083,11 +16431,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15102,11 +16453,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15137,11 +16491,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15156,6 +16513,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91-93 (1)','Determined in April 1993, modified in December 1999. May be taken as approximate transformation to WGS 84: see IGN53 Mare to WGS 84 (3) (code 15901).','EPSG','9603','Geocentric translations (geog2D domain)','EPSG','4641','EPSG','4749',2.0,287.58,177.78,-135.41,'EPSG','9001',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'BGN-Ncl 1m',0);
@@ -15165,6 +16523,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15254,6 +16614,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15884','IGN53 Mare to RGNC91
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15304,6 +16667,7 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -15318,6 +16682,8 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15335,6 +16701,7 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15345,6 +16712,8 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15356,10 +16725,13 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15392,6 +16764,9 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15410,11 +16785,15 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15432,9 +16811,12 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15464,6 +16846,9 @@ INSERT INTO "usage" VALUES('EPSG','11911','helmert_transformation','EPSG','15900
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15483,6 +16868,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -15491,6 +16877,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15522,6 +16911,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15534,6 +16927,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15559,6 +16955,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15571,6 +16968,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15597,6 +16996,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15612,6 +17012,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -15620,6 +17022,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15632,6 +17037,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15651,12 +17057,17 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 80ac813585 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15691,11 +17102,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15710,11 +17124,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15735,11 +17153,15 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15760,6 +17182,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15772,6 +17195,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15861,6 +17286,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15881,6 +17309,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
@@ -15900,10 +17329,13 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15924,6 +17356,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -15976,6 +17412,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15995,10 +17434,13 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> aa21c6fa76 (typo fixes)
 >>>>>>> 74eac2217b (typo fixes)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16014,6 +17456,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16037,6 +17482,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -16044,6 +17490,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16061,6 +17509,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15903','IGN72 Grande Terre t
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16122,18 +17573,16 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -16141,6 +17590,11 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16166,6 +17620,9 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16183,6 +17640,7 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16191,6 +17649,8 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16222,6 +17682,9 @@ INSERT INTO "usage" VALUES('EPSG','11942','helmert_transformation','EPSG','15931
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16238,6 +17701,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -16247,6 +17711,10 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -16273,6 +17741,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2004',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -16288,11 +17757,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld 2004',0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16336,6 +17808,11 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -16348,6 +17825,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16361,6 +17841,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16381,6 +17862,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16401,6 +17884,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16421,11 +17907,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16440,11 +17929,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16475,11 +17967,14 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16494,6 +17989,7 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84 (3)','Parameter values from Amersfoort to ETRS89 (3) (tfm code 15739) assuming that ETRS89 is equivalent to WGS 84 within the accuracy of the transformation. Replaces Amersfoort to WGS 84 (2) (code 1672). Replaced by Amersfoort to WGS 84 (4) (tfm code 4833).','EPSG','9607','Coordinate Frame rotation (geog2D domain)','EPSG','4289','EPSG','4326',1.0,565.2369,50.0087,465.658,'EPSG','9001',1.9725,-1.7004,9.0677,'EPSG','9109',4.0812,'EPSG','9202',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'OGP-Nld',0);
@@ -16503,6 +17999,8 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16592,6 +18090,9 @@ INSERT INTO "helmert_transformation" VALUES('EPSG','15934','Amersfoort to WGS 84
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
