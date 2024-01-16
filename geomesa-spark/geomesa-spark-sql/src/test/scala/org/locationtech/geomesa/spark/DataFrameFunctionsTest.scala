@@ -11,11 +11,11 @@ package org.locationtech.geomesa.spark
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{Column, TypedColumn, _}
+import org.apache.spark.sql._
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.sql.DataFrameFunctions._
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.geomesa.spark.sql.DataFrameFunctions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -41,7 +41,7 @@ class DataFrameFunctionsTest extends Specification with LazyLogging with Spatial
 
     "st_transform" >> {
       val pointWGS84 = "POINT(-0.871722 52.023636)"
-      val expectedOSGB36 = WKTUtils.read("POINT(477514.0081191745 236736.03179982008)")
+      val expectedOSGB36 = WKTUtils.read("POINT(477514.0081191745 236736.03179981868)")
       val transf = dfBlank.select(st_transform(st_geomFromWKT(pointWGS84), lit("EPSG:4326"), lit("EPSG:27700"))).first
       transf must not(throwAn[Exception])
       transf mustEqual expectedOSGB36

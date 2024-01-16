@@ -14,27 +14,27 @@ import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
-import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
 import org.apache.spark.sql.sedona_sql.UDT.{GeometryUDT => Sedona_GeometryUDT}
-import org.apache.spark.sql.types.{DataTypes, StructType}
+import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
+import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{SQLContext, Strategy}
+import org.geotools.api.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
+import org.geotools.api.filter.{FilterFactory, Filter => GTFilter}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
-import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.sql.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
-import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
-import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 object SQLRules extends LazyLogging {
   @transient
-  private val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
+  private val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
     udf match {

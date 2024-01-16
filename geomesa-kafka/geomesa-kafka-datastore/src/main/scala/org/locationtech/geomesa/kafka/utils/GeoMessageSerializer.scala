@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kafka.utils
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{SerializationOption, SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random

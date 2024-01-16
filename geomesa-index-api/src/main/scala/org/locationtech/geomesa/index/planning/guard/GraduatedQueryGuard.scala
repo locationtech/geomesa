@@ -10,7 +10,8 @@ package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.{DataStore, Query}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.index.index.{SpatialIndexValues, SpatioTemporalI
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
 

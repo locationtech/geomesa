@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 sealed trait GeoMessage
 

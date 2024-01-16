@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.hbase.jobs
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{EmptyPlan, ScanPlan}
 

@@ -14,8 +14,9 @@ import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.apache.hadoop.io.Text
-import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureSource, Transaction}
+import org.geotools.api.filter.Filter
+import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -28,7 +29,6 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 

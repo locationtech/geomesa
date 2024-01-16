@@ -32,12 +32,14 @@ object SedonaGeometryLiteralRules extends Rule[LogicalPlan] with PredicateHelper
   private def isSedonaExpression(expression: Expression): Boolean =
     expression.getClass.getCanonicalName.startsWith("org.apache.spark.sql.sedona_sql.expressions")
 
-  private def tryConstantFolding(expr: Expression): Expression = Try {
-    expr.eval(null) match {
-      case data: ArrayData =>
-        val ret = GeometryUDT.deserialize(data)
-        GeometryLiteral(data, ret)
-      case other: Any => Literal(other)
+  private def tryConstantFolding(expr: Expression): Expression = {
+    val attempt = Try {
+      expr.eval(null) match {
+        case data: ArrayData   => GeometryLiteral(data, GeometryUDT.deserialize(data))
+        case data: Array[Byte] => GeometryLiteral(data, GeometryUDT.deserialize(data))
+        case other: Any => Literal(other)
+      }
     }
-  }.getOrElse(expr)
+    attempt.getOrElse(expr)
+  }
 }

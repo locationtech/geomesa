@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert2
 
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, FieldAccessor}
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.InputStream
 import scala.util.control.NonFatal

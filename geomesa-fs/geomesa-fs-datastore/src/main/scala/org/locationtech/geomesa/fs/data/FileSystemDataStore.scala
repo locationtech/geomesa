@@ -11,7 +11,9 @@ package org.locationtech.geomesa.fs.data
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal

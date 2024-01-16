@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.KafkaDataStoreCommand.KafkaDistributedCommand
@@ -22,7 +23,6 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.concurrent.duration.Duration
 

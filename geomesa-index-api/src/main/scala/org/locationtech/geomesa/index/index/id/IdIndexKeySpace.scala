@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index.id
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
@@ -16,8 +18,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 class IdIndexKeySpace(val sft: SimpleFeatureType) extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
 

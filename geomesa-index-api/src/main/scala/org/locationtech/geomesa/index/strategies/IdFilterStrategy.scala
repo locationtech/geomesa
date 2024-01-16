@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index.strategies
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.{And, Filter, Id, Or}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.{And, Filter, Id, Or}
 
 trait IdFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 

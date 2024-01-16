@@ -73,6 +73,13 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
         </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>${snappy.java.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- used by hadoop-minicluster -->
         <dependency>
             <groupId>org.mockito</groupId>

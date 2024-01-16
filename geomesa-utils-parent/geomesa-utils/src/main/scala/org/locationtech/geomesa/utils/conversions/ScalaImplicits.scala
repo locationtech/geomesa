@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.utils.conversions
 
-import scala.collection.Iterator
 import scala.reflect.ClassTag
 
 object ScalaImplicits {

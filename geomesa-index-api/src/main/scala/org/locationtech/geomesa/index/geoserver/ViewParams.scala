@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.index.geoserver
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.{StringSerialization, WKTUtils}
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.{Locale, Map => jMap}
 import scala.util.Try

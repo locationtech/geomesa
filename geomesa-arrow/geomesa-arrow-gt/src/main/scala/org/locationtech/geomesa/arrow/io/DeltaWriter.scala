@@ -17,6 +17,7 @@ import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.apache.arrow.vector.util.TransferPair
 import org.apache.arrow.vector.{FieldVector, IntVector}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.jts.{GeometryFields, GeometryVector}
@@ -29,7 +30,6 @@ import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType, S
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
 import java.nio.channels.Channels
@@ -37,7 +37,6 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.{Collections, PriorityQueue}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.math.Ordering
 import scala.util.control.NonFatal
 
 /**

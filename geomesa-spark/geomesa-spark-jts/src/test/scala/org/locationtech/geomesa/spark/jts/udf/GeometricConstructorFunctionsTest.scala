@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.functions._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._

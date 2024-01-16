@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert.text
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, CSVRecord, QuoteMode}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.Converters
 import org.geotools.util.factory.GeoTools
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -22,7 +23,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.StringCollectionConverterFactory
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io._
 import java.nio.charset.{Charset, StandardCharsets}

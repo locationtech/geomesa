@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.features
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.AbstractSimpleFeature.{AbstractImmutableSimpleFeature, AbstractMutableSimpleFeature}
 import org.locationtech.geomesa.utils.collection.WordBitSet
 import org.locationtech.geomesa.utils.io.Sizable
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util
 import java.util.Collections

@@ -19,7 +19,8 @@ import org.apache.accumulo.hadoopImpl.mapreduce.RangeInputSplit
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloClientConfig, AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
@@ -28,7 +29,6 @@ import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithStore
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io._
 import java.net.{URL, URLClassLoader}

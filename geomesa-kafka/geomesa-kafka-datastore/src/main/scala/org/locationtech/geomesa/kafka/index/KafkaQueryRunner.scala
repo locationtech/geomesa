@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 class KafkaQueryRunner(ds: KafkaDataStore, caches: String => KafkaFeatureCache)
     extends LocalQueryRunner(ds.stats, Option(ds.config.authProvider)) {

@@ -19,8 +19,8 @@ import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, Ker
 import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
 import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStoreFactorySpi, Parameter}
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore

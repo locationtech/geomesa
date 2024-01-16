@@ -8,11 +8,12 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.{DataUtilities, FeatureWriter}
+import org.geotools.api.data.FeatureWriter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.lang.{Boolean => jBoolean}
 import java.util.Locale

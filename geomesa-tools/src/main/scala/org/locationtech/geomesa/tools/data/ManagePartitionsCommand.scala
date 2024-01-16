@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.{TablePartition, TimePartition}
@@ -21,7 +22,6 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import scala.collection.mutable.ArrayBuffer

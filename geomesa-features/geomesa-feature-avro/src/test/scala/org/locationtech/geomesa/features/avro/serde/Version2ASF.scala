@@ -13,6 +13,11 @@ import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.commons.codec.binary.Hex
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.{GeometryAttribute, Property}
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.api.geometry.BoundingBox
 import org.geotools.data.DataUtilities
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
@@ -20,11 +25,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
 
 import java.io.OutputStream
 import java.nio._
@@ -42,9 +42,9 @@ class Version2ASF(id: FeatureId, sft: SimpleFeatureType)
   extends SimpleFeature
   with Serializable {
 
-  import scala.collection.JavaConverters._
-
   import Version2ASF._
+
+  import scala.collection.JavaConverters._
 
   val values  = Array.ofDim[AnyRef](sft.getAttributeCount)
   @transient val userData  = collection.mutable.HashMap.empty[AnyRef, AnyRef]

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.{CreateSchemaParams, SchemaOptionsCommand}
 import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.IOException
 

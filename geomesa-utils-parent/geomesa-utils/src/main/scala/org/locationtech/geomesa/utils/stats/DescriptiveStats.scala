@@ -11,8 +11,8 @@ package org.locationtech.geomesa.utils.stats
 import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.Array._
 import scala.collection.immutable.ListMap

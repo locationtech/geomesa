@@ -15,7 +15,8 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce.lib.output.{LazyOutputFormat, MultipleOutputs}
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper, Reducer}
-import org.geotools.data.DataStoreFinder
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.VisibilityCache
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloWritableFeature}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -25,7 +26,6 @@ import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
 

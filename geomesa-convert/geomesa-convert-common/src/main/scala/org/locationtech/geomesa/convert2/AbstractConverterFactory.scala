@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert2
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.{LazyLogging, Logger}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.convert2.validators.{HasDtgValidatorFactory, Has
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 

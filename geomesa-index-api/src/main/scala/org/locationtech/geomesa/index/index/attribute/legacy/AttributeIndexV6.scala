@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV7.At
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndexKey, AttributeIndexKeySpace, AttributeIndexValues}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * Attribute index with secondary z-curve indexing. Z-indexing is based on the sft and will be

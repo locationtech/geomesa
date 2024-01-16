@@ -9,10 +9,16 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource, SimpleFeatureStore}
+import org.geotools.api.data._
+import org.geotools.api.feature.FeatureVisitor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.sort.SortBy
+import org.geotools.api.util.ProgressListener
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.util.NullProgressListener
-import org.geotools.data.{FeatureReader, Query, Transaction}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor.GroupByVisitor.GroupByRawResult
@@ -25,12 +31,6 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.FeatureVisitor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.sort.SortBy
-import org.opengis.util.ProgressListener
 
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong

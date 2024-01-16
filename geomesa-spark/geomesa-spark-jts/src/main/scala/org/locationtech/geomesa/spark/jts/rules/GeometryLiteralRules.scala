@@ -30,11 +30,11 @@ object GeometryLiteralRules {
                 s.eval(null) match {
                   // Prior to Spark 3.1.1 GenericInteralRows have been returned
                   // Spark 3.1.1 started returning UnsafeRows instead of GenericInteralRows
+                  // Spark 3.5 returns primitive byte arrays
                   // When we're using serialization/deserialization functions provided by Apache Sedona in
                   // AbstractGeometryUDT, datum should be a GenericArrayData object.
-                  case datum @ (_: InternalRow | _: ArrayData) =>
-                    val ret = GeometryUDT.deserialize(datum)
-                    GeometryLiteral(datum, ret)
+                  case datum @ (_: InternalRow | _: ArrayData | _: Array[Byte]) =>
+                    GeometryLiteral(datum, GeometryUDT.deserialize(datum))
                   case other: Any =>
                     Literal(other)
                 }

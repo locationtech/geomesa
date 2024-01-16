@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.IndexKeySpace
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.index.index.z3.XZ3IndexKeySpace
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV4.Z3IndexKeySpaceV4
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.Date
 

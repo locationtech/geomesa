@@ -10,9 +10,12 @@ package org.locationtech.geomesa.index.geotools
 
 import com.github.benmanes.caffeine.cache.{AsyncCacheLoader, AsyncLoadingCache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
+import org.geotools.api.data._
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
-import org.locationtech.geomesa.index.api.{IndexManager, _}
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibility, VersionKey}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -31,9 +34,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOpti
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.io.IOException
 import java.util.Collections
@@ -282,10 +282,10 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
   }
 
-  // methods from org.geotools.data.DataStore
+  // methods from org.geotools.api.data.DataStore
 
   /**
-   * @see org.geotools.data.DataStore#getSchema(java.lang.String)
+   * @see org.geotools.api.data.DataStore#getSchema(java.lang.String)
    * @param typeName feature type name
    * @return feature type, or null if it does not exist
    */
@@ -340,7 +340,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   }
 
   /**
-   * @see org.geotools.data.DataStore#getFeatureSource(java.lang.String)
+   * @see org.geotools.api.data.DataStore#getFeatureSource(java.lang.String)
    * @param typeName simple feature type name
    * @return featureStore, suitable for reading and writing
    */
@@ -407,7 +407,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     super.dispose()
   }
 
-  // end methods from org.geotools.data.DataStore
+  // end methods from org.geotools.api.data.DataStore
 
   // other public methods
 

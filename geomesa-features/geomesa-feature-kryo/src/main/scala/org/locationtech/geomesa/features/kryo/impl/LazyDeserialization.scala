@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.kryo
 package impl
 
 import com.esotericsoftware.kryo.io.Input
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.{LazyAttributeReader, LazyImmutableSimpleFeature, LazyMutableSimpleFeature, LazyUserDataReader}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoAttributeReader
 import org.locationtech.geomesa.features.kryo.impl.LazyDeserialization._
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerializ
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.io.Sizable
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io.InputStream
 

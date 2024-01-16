@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.status
 
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 
 trait GetTypeNamesCommand[DS <: DataStore] extends DataStoreCommand[DS] {

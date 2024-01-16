@@ -8,13 +8,12 @@
 
 package org.locationtech.geomesa.tools.data
 
-import org.geotools.data.DataStore
-import org.geotools.data.simple.SimpleFeatureStore
+import org.geotools.api.data.{DataStore, SimpleFeatureStore}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 import org.locationtech.geomesa.tools.utils.Prompt
-import org.opengis.filter.Filter
 
 trait DeleteFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 

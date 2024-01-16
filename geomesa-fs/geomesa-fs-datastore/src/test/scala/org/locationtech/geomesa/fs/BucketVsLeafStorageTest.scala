@@ -9,20 +9,19 @@
 package org.locationtech.geomesa.fs
 
 import org.apache.commons.io.FileUtils
-import org.geotools.data.DataStoreFinder
+import org.geotools.api.data.{DataStoreFinder, SimpleFeatureStore}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.{SimpleFeatureIterator, SimpleFeatureStore}
+import org.geotools.data.simple.SimpleFeatureIterator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.file.{Files, Path}
-import java.util.stream.Collectors
 
 @RunWith(classOf[JUnitRunner])
 class BucketVsLeafStorageTest extends Specification {

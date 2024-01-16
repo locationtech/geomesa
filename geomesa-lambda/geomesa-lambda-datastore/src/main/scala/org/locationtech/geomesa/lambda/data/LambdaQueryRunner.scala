@@ -10,8 +10,8 @@ package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.data.simple.SimpleFeatureReader
-import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -23,7 +23,6 @@ import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.lambda.data.LambdaQueryRunner.TransientQueryable
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients: LoadingCache[String, TransientStore])
     extends MergedQueryRunner(

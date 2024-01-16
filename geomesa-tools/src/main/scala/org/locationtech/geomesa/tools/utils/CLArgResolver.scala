@@ -10,9 +10,9 @@ package org.locationtech.geomesa.tools.utils
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * Wrapper for SFT and Config parsing that throws ParameterExceptions for JCommander

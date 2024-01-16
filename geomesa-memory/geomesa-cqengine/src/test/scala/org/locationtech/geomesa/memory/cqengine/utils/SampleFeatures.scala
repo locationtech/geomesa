@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
@@ -50,7 +50,7 @@ object SampleFeatures {
   val sftWithIndexes = SimpleFeatureTypes.createType("test2", specIndexes)
 
   val cq = SFTAttributes(sft)
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val ff = CommonFactoryFinder.getFilterFactory
 
   val MIN_DATE = ZonedDateTime.of(2014, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
   val seconds_per_year = 365L * 24L * 60L * 60L
@@ -103,7 +103,7 @@ object SampleFeatures {
   */
 object SampleFilters {
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val ff = CommonFactoryFinder.getFilterFactory
 
   // big enough so there are likely to be points in them
   val bbox1 = "POLYGON((-89 89, -1 89, -1 -89, -89 -89, -89 89))"

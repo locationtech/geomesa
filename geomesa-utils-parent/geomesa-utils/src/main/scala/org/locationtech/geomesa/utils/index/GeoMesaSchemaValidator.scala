@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.utils.index
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Seq

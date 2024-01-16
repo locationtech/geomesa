@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import org.geotools.api.data._
+import org.geotools.api.filter.Filter
 import org.geotools.data._
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
@@ -23,10 +25,10 @@ import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
-import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
+import org.locationtech.geomesa.index.index.{EmptyIndex, NamedIndex}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -35,7 +37,6 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Coordinate
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

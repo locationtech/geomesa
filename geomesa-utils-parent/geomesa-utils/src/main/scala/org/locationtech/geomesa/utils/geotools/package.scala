@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.utils
 
-import org.geotools.data.FeatureReader
+import org.geotools.api.data.FeatureReader
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -16,8 +18,6 @@ import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, Polygon}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter

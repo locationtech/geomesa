@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.features.avro.io
 
 import org.apache.avro.file.DataFileStream
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.InputStream
 

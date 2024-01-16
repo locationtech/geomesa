@@ -10,10 +10,10 @@ package org.locationtech.geomesa.spark.api.python
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.api.java.{JavaRDD, JavaSparkContext}
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.spark.api.java.JavaSpatialRDD
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConverters._
 

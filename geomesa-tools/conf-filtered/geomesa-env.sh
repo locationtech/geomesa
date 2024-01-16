@@ -270,7 +270,12 @@ function download_maven() {
     version="${gav#$group:$artifact:}"
     version="${version%%:*}"
     type="${gav#$group:$artifact:$version:}"
-    urls+=("${GEOMESA_MAVEN_URL}${group//.//}/${artifact}/${version}/${artifact}-${version}.${type}")
+    type="${type%%:*}"
+    qualifier="${gav#$group:$artifact:$version:$type}"
+    if [[ -n "$qualifier" ]]; then
+      qualifier="${qualifier/:/-}"
+    fi
+    urls+=("${GEOMESA_MAVEN_URL}${group//.//}/${artifact}/${version}/${artifact}-${version}${qualifier}.${type}")
     names+="$newline  $gav"
   done
 

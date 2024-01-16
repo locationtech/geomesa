@@ -16,7 +16,8 @@ import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.storage.StorageLevel
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
@@ -27,10 +28,8 @@ import org.locationtech.geomesa.spark.{GeoMesaSpark, SpatialRDD}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.{Collections, Locale}
-import scala.collection.Iterator
 import scala.util.control.NonFatal
 
 /**
@@ -49,7 +48,7 @@ case class GeoMesaRelation(
     sft: SimpleFeatureType,
     schema: StructType,
     params: Map[String, String],
-    filter: Option[org.opengis.filter.Filter],
+    filter: Option[org.geotools.api.filter.Filter],
     cached: Option[CachedRDD],
     partitioned: Option[PartitionedRDD]
   ) extends BaseRelation with PrunedFilteredScan with LazyLogging {
@@ -98,10 +97,10 @@ case class GeoMesaRelation(
       s"filt = $filter, filters = ${filters.mkString(",")}, requiredColumns = ${requiredColumns.mkString(",")}"
 
     val filt = {
-      val sum = Seq.newBuilder[org.opengis.filter.Filter]
+      val sum = Seq.newBuilder[org.geotools.api.filter.Filter]
       filter.foreach(sum += _)
       filters.foreach(f => SparkUtils.sparkFilterToCQLFilter(f).foreach(sum += _))
-      FilterHelper.filterListAsAnd(sum.result).getOrElse(org.opengis.filter.Filter.INCLUDE)
+      FilterHelper.filterListAsAnd(sum.result).getOrElse(org.geotools.api.filter.Filter.INCLUDE)
     }
     val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
 

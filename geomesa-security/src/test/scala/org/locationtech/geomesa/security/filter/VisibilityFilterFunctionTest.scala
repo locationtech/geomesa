@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.security.filter
 
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
@@ -15,8 +17,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.security.filter.VisibilityFilterFunctionTest.TestAuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -25,7 +25,7 @@ class VisibilityFilterFunctionTest extends Specification {
 
   import scala.collection.JavaConverters._
 
-  val ff2 = CommonFactoryFinder.getFilterFactory2()
+  val ff2 = CommonFactoryFinder.getFilterFactory()
 
   val testSft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
 

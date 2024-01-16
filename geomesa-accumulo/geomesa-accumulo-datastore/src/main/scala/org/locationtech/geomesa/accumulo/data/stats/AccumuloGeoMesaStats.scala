@@ -10,13 +10,13 @@ package org.locationtech.geomesa.accumulo.data.stats
 
 import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}

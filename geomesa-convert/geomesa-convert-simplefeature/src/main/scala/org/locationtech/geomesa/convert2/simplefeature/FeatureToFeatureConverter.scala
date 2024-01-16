@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.convert2.simplefeature
 
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.FeatureToFeatureConfig
 import org.locationtech.geomesa.convert2.{AbstractConverter, SimpleFeatureConverter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.InputStream
 

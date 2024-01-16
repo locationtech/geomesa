@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.cache
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 
 object CacheKeyGenerator {
 

@@ -7,7 +7,7 @@ Versions and Downloads
 
     The current recommended version of GeoMesa is |release_version_literal|.
 
-GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions 8, 11 and 17.
+GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions |java_supported_versions|.
 
 __ https://adoptium.net/temurin/releases/
 
@@ -78,7 +78,7 @@ Source Code
 
 To build and install the source distribution requires:
 
-* `Java JDK 8 <https://adoptium.net/temurin/releases/>`__
+* `Java JDK 11 <https://adoptium.net/temurin/releases/>`__
 * `Apache Maven <https://maven.apache.org/>`__ |maven_version|
 
 Source can be cloned using `Git <https://git-scm.com/>`__ or downloaded from `GitHub`__.

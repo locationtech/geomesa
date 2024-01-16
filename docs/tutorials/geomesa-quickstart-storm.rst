@@ -29,7 +29,7 @@ In order to install the GeoMesa Accumulo GeoServer plugin, see :ref:`install_acc
 You will also need:
 
 -  The `xz <https://tukaani.org/xz/>`__ data compression tool,
--  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
 -  `Apache Maven <https://maven.apache.org>`__ |maven_version|, and
 -  a `git <https://git-scm.com/>`__ client.
 

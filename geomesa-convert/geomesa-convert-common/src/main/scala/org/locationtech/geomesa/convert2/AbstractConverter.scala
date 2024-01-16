@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert2
 import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}

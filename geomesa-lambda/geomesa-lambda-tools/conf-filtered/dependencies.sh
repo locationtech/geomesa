@@ -67,6 +67,13 @@ function dependencies() {
     "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
     "net.sf.jopt-simple:jopt-simple:%%kafka.jopt.version%%:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
   )
 
   # add accumulo 2.1 jars if needed

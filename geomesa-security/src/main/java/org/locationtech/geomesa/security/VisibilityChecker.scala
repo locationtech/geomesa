@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.security
 
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.SimpleFeature
 
 /**
  * Checks for visibilities set in a feature's user data

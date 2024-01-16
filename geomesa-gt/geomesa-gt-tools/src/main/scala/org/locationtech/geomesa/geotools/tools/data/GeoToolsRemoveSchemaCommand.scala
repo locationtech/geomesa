@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.geotools.tools.data
 
 import com.beust.jcommander.Parameters
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.geotools.tools.data.GeoToolsRemoveSchemaCommand.GeoToolsRemoveSchemaParams

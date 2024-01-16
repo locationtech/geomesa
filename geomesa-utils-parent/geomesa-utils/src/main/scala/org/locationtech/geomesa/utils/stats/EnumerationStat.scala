@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag

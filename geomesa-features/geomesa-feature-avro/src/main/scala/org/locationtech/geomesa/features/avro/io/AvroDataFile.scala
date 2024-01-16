@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.features.avro.io
 
 import org.apache.avro.file.{DataFileStream, DataFileWriter}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object AvroDataFile extends AvroDataFile
 

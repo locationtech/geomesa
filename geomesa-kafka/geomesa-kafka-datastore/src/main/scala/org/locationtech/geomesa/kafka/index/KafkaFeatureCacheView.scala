@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.LayerView
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache.EmptyFeatureCache
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.util.concurrent.ConcurrentHashMap
 

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.curve.{TimePeriod, XZ3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy
 import org.locationtech.geomesa.index.api.ShardStrategy.Z3ShardStrategy
@@ -15,7 +16,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.legacy.XZ3IndexV2.XZ3IndexKeySpaceV2
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, XZ3IndexKeySpace}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 // legacy yearly epoch z curve
 class XZ3IndexV2 protected (

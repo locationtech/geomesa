@@ -17,7 +17,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob.{AttributeIndexArgs, AttributeMapper}
@@ -33,8 +35,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptio
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 
 import java.util.Properties
 import scala.util.control.NonFatal

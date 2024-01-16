@@ -10,6 +10,7 @@ package org.locationtech.geomesa.geotools.tools.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+import org.geotools.api.data._
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -20,7 +21,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{Partiti
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll

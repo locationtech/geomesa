@@ -16,7 +16,9 @@ import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
 import org.apache.orc.mapred.OrcStruct
 import org.apache.orc.mapreduce.OrcMapreduceRecordReader
 import org.apache.orc.{OrcConf, OrcFile}
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
@@ -24,8 +26,6 @@ import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader.OrcReadOption
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat.{OrcSimpleFeatureInputFormatBase, OrcSimpleFeatureRecordReaderBase}
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcInputFormatReader
 import org.locationtech.geomesa.index.planning.QueryRunner
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.util
 

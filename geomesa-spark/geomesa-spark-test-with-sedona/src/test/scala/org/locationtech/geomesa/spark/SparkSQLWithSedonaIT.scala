@@ -14,8 +14,10 @@ import org.apache.spark.sql.catalyst.plans.logical.Project
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.functions.{broadcast, expr}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities}
+import org.geotools.api.data.SimpleFeatureStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.data.{DataUtilities}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -25,7 +27,7 @@ import org.locationtech.geomesa.spark.jts.{geomLit, st_equals, st_intersects}
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, Point}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

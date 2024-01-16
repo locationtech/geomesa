@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.index.utils
 
+import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.id.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -15,7 +16,6 @@ import org.locationtech.geomesa.index.index.id.IdIndexKeySpace
 import org.locationtech.geomesa.index.index.id.legacy.IdIndexV1.IdIndexKeySpaceV1
 import org.locationtech.geomesa.index.index.id.legacy.IdIndexV3.IdIndexKeySpaceV3
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 class IdIndexV1(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, mode: IndexMode)
     extends IdIndexV2(ds, sft, 1, mode) {

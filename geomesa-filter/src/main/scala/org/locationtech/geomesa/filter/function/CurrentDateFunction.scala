@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.filter.function
 
-import org.geotools.data.Parameter
+import org.geotools.api.data.Parameter
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 

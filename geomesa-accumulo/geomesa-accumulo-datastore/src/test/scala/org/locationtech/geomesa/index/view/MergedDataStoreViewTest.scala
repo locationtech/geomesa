@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -28,8 +30,6 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.jts.geom.Point
-import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 

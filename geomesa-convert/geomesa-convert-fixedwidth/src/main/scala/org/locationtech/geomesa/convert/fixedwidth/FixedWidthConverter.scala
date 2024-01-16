@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.convert.fixedwidth
 
 import org.apache.commons.io.IOUtils
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.fixedwidth.FixedWidthConverter.FixedWidthField
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 

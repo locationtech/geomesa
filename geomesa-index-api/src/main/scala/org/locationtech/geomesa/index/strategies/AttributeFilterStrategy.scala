@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.index.strategies
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.utils.stats.Cardinality
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 import java.util.Date
 

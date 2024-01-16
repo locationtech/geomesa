@@ -77,7 +77,7 @@ rst_epilog = """
 
 .. _GeoServer: https://geoserver.org/
 
-.. |maven_version| replace:: 3.6 or later
+.. |maven_version| replace:: 3.6.3 or later
 
 .. |geoserver_version| replace:: %(geoserver_version)s
 
@@ -112,6 +112,8 @@ rst_epilog = """
 .. |scala_binary_version| replace:: %(scala_binary_version)s
 
 .. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
+
+.. |java_supported_versions| replace:: 11 and 17
 
 """ % {"release": target.versions.release,
        "release_version": target.versions.release_version,

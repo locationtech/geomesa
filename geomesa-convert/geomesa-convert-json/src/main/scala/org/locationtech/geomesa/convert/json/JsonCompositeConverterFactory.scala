@@ -11,10 +11,10 @@ package org.locationtech.geomesa.convert.json
 import com.google.gson.JsonElement
 import com.typesafe.config.{Config, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.{ConfigConvert, ConfigSource}
 
 import scala.util.control.NonFatal

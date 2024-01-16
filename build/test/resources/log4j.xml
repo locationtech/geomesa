@@ -118,13 +118,10 @@
     </category>
 
     <!-- suppress logs from Apache Sedona kryo serializer registrator -->
-    <category name="org.apache.sedona.core.serde.SedonaKryoRegistrator">
+    <category name="org.apache.sedona.core.serde">
         <priority value="warn"/>
     </category>
-    <category name="org.apache.sedona.core.serde.SedonaWKBKryoRegistrator">
-        <priority value="warn"/>
-    </category>
-    <category name="org.apache.sedona.core.serde.SedonaKryoRegistratorHelper">
+    <category name="org.apache.sedona.viz.core.Serde">
         <priority value="warn"/>
     </category>
 

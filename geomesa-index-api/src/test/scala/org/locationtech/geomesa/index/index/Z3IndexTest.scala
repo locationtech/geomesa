@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature

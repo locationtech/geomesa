@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.hbase.aggregators
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.AggregatingScan
-import org.opengis.feature.simple.SimpleFeatureType
 
 object HBaseVersionAggregator {
 

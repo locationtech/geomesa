@@ -13,13 +13,13 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.spark.GeoMesaSpark
 import org.locationtech.geomesa.spark.sql.GeoMesaSparkSQL._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithStore
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 // Spark DataSource for GeoMesa
 // enables loading a GeoMesa DataFrame as

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.avro.serialization
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.apache.commons.io.IOUtils
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

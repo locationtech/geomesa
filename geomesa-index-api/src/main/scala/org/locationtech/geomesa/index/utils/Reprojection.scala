@@ -8,15 +8,15 @@
 
 package org.locationtech.geomesa.index.utils
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem
 import org.geotools.feature.FeatureTypes
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 /**
   * Reproject the geometries in a simple feature to a different CRS

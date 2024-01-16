@@ -18,7 +18,7 @@ Then download and extract the binary distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
     $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
     $ cd geomesa-fs_${VERSION}
-    $ cat examples/ingest/csv/example.csv
+    $ cat examples/csv/example.csv
 
 The output should look like::
 
@@ -69,7 +69,7 @@ Now lets ingest.
 .. code-block:: bash
 
     $ bin/geomesa-fs ingest -p /tmp/dstest -e parquet -s example-csv -C example-csv \
-    --partition-scheme daily,z2-2bit examples/ingest/csv/example.csv
+    --partition-scheme daily,z2-2bit examples/csv/example.csv
 
 The output should look like::
 

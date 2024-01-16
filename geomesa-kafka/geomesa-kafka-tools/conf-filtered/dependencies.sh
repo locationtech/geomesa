@@ -41,6 +41,13 @@ function dependencies() {
     "com.101tec:zkclient:${zkclient_version}:jar"
     "net.sf.jopt-simple:jopt-simple:${jopt_install_version}:jar"
     "com.yammer.metrics:metrics-core:2.2.0:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
   )
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)

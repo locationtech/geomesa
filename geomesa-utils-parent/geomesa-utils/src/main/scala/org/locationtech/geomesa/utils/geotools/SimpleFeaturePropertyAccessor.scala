@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessors}
-import org.opengis.feature.simple.SimpleFeature
 
 object SimpleFeaturePropertyAccessor extends LazyLogging {
 

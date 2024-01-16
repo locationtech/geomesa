@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z2.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.curve.{LegacyZ2SFC, Z2SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy
 import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV3.Z2IndexKeySpaceV
 import org.locationtech.geomesa.index.index.z2.legacy.Z2IndexV4.Z2IndexKeySpaceV4
 import org.locationtech.geomesa.index.index.z2.{Z2IndexKeySpace, Z2IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 // legacy z curve - no delete checks for old col qualifiers
 class Z2IndexV3 protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)

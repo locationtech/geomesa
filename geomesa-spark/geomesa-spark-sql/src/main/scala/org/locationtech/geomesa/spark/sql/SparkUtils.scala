@@ -14,15 +14,15 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types._
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.FilterFactory
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
 import org.locationtech.geomesa.utils.uuid.TimeSortedUuidGenerator
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.FilterFactory2
 
 import java.sql.Timestamp
 import java.util.Date
@@ -32,7 +32,7 @@ object SparkUtils extends LazyLogging {
   import scala.collection.JavaConverters._
 
   @transient
-  val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
+  val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
 
   // the SFT attributes do not have the __fid__ so we have to translate accordingly
   def getExtractors(requiredColumns: Array[String], schema: StructType): Array[SimpleFeature => AnyRef] = {
@@ -95,7 +95,7 @@ object SparkUtils extends LazyLogging {
     }
   }
 
-  def sparkFilterToCQLFilter(filt: org.apache.spark.sql.sources.Filter): Option[org.opengis.filter.Filter] = filt match {
+  def sparkFilterToCQLFilter(filt: org.apache.spark.sql.sources.Filter): Option[org.geotools.api.filter.Filter] = filt match {
     case GreaterThanOrEqual(attribute, v) => Some(ff.greaterOrEqual(ff.property(attribute), ff.literal(v)))
     case GreaterThan(attr, v)             => Some(ff.greater(ff.property(attr), ff.literal(v)))
     case LessThanOrEqual(attr, v)         => Some(ff.lessOrEqual(ff.property(attr), ff.literal(v)))
@@ -104,7 +104,7 @@ object SparkUtils extends LazyLogging {
     case EqualTo(attr, v)                      => Some(ff.equals(ff.property(attr), ff.literal(v)))
     case In(attr, values) if attr == "__fid__" => Some(ff.id(values.map(v => ff.featureId(v.toString)).toSet.asJava))
     case In(attr, values)                      =>
-      Some(values.map(v => ff.equals(ff.property(attr), ff.literal(v))).reduce[org.opengis.filter.Filter]( (l,r) => ff.or(l,r)))
+      Some(values.map(v => ff.equals(ff.property(attr), ff.literal(v))).reduce[org.geotools.api.filter.Filter]( (l,r) => ff.or(l,r)))
     case And(left, right)                 => Some(ff.and(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get)) // TODO: can these be null
     case Or(left, right)                  => Some(ff.or(sparkFilterToCQLFilter(left).get, sparkFilterToCQLFilter(right).get))
     case Not(f)                           => Some(ff.not(sparkFilterToCQLFilter(f).get))

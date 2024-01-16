@@ -12,6 +12,7 @@ import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -25,7 +26,6 @@ import org.locationtech.geomesa.features.avro.serialization.AvroSerialization
 import org.locationtech.geomesa.features.avro.{FieldNameEncoder, SerializationVersions}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{ConfigReaderFailures, FailureReason}
 

@@ -13,11 +13,11 @@ import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.memory.{MemoryDataStore, MemoryEntry}
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.URLs
 import org.geotools.util.factory.Hints
@@ -39,7 +39,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -171,7 +170,7 @@ class ExportCommandTest extends Specification {
         withCommand { command =>
           command.params.file = file
           command.params.suppressEmpty = true
-          command.params.cqlFilter = org.opengis.filter.Filter.EXCLUDE
+          command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
           command.execute()
         }
         val empty = new File(file)
@@ -186,7 +185,7 @@ class ExportCommandTest extends Specification {
           command.params.file = file
           command.params.force = true // overwrite empty arrow file without prompting
           command.params.suppressEmpty = false
-          command.params.cqlFilter = org.opengis.filter.Filter.EXCLUDE
+          command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
           command.execute()
         }
         readFeatures(format, file) must beEmpty

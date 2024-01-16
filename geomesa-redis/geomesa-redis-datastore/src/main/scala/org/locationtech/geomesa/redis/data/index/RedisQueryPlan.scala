@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.redis.data
 package index
 
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
@@ -16,7 +17,6 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.filter.Filter
 import redis.clients.jedis.Response
 
 import java.nio.charset.StandardCharsets

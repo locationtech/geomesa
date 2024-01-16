@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.config.ConfigFactory
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOpti
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecConfig
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

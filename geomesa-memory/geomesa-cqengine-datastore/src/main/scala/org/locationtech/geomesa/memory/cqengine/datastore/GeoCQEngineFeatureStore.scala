@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
+import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.feature.collection.DelegateFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeatu
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineFeatureStore.{GeoCQEngineFeatureWriter, GeoCQEngineQueryCapabilities}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong

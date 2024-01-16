@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.geotools.tools.data
 
 import com.beust.jcommander.Parameters
-import org.geotools.data.Transaction
+import org.geotools.api.data.Transaction
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.{JDBCDataStore, JDBCDataStoreFactory}
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand

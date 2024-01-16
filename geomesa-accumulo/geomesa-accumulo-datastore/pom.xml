@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
+            <artifactId>gt-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -121,6 +121,11 @@
             <artifactId>accumulo-minicluster</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-vector</artifactId>
             <classifier>tests</classifier>
@@ -147,6 +152,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>${snappy.java.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
@@ -154,27 +166,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-cli</id>
-                        <goals>
-                            <goal>console</goal>
-                        </goals>
-                        <configuration>
-                            <useTestClasspath>true</useTestClasspath>
-                            <args>
-                                <arg>-i</arg>
-                                <arg>${project.basedir}/src/test/resources/geomesa-scala-setup.scala</arg>
-                                <arg>-Yrepl-sync</arg>
-                                <arg>-JXms64m</arg>
-                            </args>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>

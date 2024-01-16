@@ -10,8 +10,9 @@ package org.locationtech.geomesa.convert.shp
 
 import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.data.{DataStoreFinder, Query}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
-import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter
@@ -20,7 +21,6 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.InputStream
 import java.nio.charset.Charset

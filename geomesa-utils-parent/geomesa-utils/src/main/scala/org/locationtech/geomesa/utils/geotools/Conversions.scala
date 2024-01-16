@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.geometry.DirectPosition2D
+import org.geotools.geometry.Position2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId, SemanticVersion}
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
 import org.locationtech.jts.geom._
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
@@ -32,7 +32,7 @@ import scala.util.Try
 object Conversions extends Conversions {
 
   implicit class RichCoord(val c: Coordinate) extends AnyVal {
-    def toPoint2D = new DirectPosition2D(c.x, c.y)
+    def toPoint2D = new Position2D(c.x, c.y)
   }
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {

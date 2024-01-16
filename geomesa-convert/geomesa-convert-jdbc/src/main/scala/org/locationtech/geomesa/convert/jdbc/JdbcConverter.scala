@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert.jdbc
 
 import com.typesafe.config.Config
 import org.apache.commons.io.{IOUtils, LineIterator}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.jdbc.JdbcConverter.{JdbcConfig, ResultSetIterator, StatementIterator}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable}
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import java.nio.charset.Charset

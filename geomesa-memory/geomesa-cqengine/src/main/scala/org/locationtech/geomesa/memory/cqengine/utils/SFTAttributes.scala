@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.memory.cqengine.utils
 
 import com.googlecode.cqengine.attribute.Attribute
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.memory.cqengine.attribute.{SimpleFeatureAttribute, SimpleFeatureFidAttribute}
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 case class SFTAttributes(sft: SimpleFeatureType) {
 

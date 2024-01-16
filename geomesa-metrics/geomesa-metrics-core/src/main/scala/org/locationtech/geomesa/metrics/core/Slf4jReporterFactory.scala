@@ -11,7 +11,6 @@ package org.locationtech.geomesa.metrics.core
 import com.codahale.metrics.Slf4jReporter.LoggingLevel
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter, Slf4jReporter}
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import org.locationtech.geomesa.metrics.core.ReporterFactory.defaults
 import org.slf4j.LoggerFactory
 import pureconfig.{ConfigReader, ConfigSource}
 

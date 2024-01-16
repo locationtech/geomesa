@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.ResourceInfo
+import org.geotools.api.data.ResourceInfo
 import org.geotools.data.store.ContentFeatureSource
 
 trait ContentFeatureSourceInfo extends ContentFeatureSource {

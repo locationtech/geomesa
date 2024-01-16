@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.features.avro.serialization
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.AbstractAvroSimpleFeatureTest
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -14,7 +14,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -36,7 +37,6 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.{File, FileWriter, InputStream, PrintWriter}
 import java.nio.charset.StandardCharsets

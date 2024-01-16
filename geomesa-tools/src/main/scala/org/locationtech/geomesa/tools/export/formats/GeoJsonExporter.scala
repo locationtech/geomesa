@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import com.google.gson.stream.JsonWriter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.OutputStreamWriter
 

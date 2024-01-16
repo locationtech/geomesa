@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.io.fs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
@@ -149,7 +149,8 @@ object LocalDelegate {
   class LocalTarHandle(file: File) extends LocalFileHandle(file) {
     override def open: CloseableIterator[(Option[String], InputStream)] = {
       val uncompressed = PathUtils.handleCompression(new FileInputStream(file), file.getName)
-      val archive = factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+      val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+        factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
       new ArchiveFileIterator(archive, file.getAbsolutePath)
     }
     override def write(mode: CreateMode, createParents: Boolean): OutputStream =

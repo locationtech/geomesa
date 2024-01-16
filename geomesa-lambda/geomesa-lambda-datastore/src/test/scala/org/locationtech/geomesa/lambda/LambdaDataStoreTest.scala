@@ -9,7 +9,10 @@
 package org.locationtech.geomesa.lambda
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -22,8 +25,6 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 

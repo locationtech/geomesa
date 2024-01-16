@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.index.planning
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
@@ -19,9 +22,6 @@ import org.locationtech.geomesa.index.stats.NoopStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortOrder
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.uuid
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.UUID
 

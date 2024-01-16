@@ -10,7 +10,8 @@ package org.locationtech.geomesa.kafka.tools.export
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataUtilities, FeatureEvent, FeatureListener}
+import org.geotools.api.data.{FeatureEvent, FeatureListener}
+import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.kafka.tools.export.KafkaListenCommand.{ListenParameters, OutFeatureListener}
 import org.locationtech.geomesa.kafka.tools.{ConsumerDataStoreParams, KafkaDataStoreCommand}
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
