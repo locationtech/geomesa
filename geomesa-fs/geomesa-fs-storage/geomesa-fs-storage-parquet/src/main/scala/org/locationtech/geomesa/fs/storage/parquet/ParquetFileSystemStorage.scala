@@ -16,7 +16,7 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, fileValidationEnabled}
+import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
@@ -91,7 +91,7 @@ object ParquetFileSystemStorage {
   }
 
   def validateParquetFile(file: Path): Unit = {
-    if (!fileValidationEnabled.get.toBoolean) {
+    if (!FileValidationEnabled.get.toBoolean) {
       return
     }
 

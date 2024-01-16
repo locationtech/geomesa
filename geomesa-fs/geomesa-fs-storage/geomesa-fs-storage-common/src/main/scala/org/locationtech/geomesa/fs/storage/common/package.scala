@@ -24,7 +24,7 @@ package object common {
 
   val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
   val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
-  val fileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
+  val FileValidationEnabled: SystemProperty = SystemProperty("geomesa.fs.validate.file", "false")
 
   implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
 

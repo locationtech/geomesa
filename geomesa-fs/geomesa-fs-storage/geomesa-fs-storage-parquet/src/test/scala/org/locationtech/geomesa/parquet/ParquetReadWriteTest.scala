@@ -19,7 +19,7 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.fileValidationEnabled
+import org.locationtech.geomesa.fs.storage.common.FileValidationEnabled
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, validateParquetFile}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
@@ -105,13 +105,13 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
       randomAccessFile.close()
 
       // Set the system property, validate the file, and then unset it
-      fileValidationEnabled.threadLocalValue.set("true")
+      FileValidationEnabled.threadLocalValue.set("true")
       try {
         validateParquetFile(filePath) must throwA[RuntimeException].like {
           case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
         }
       } finally {
-        fileValidationEnabled.threadLocalValue.remove()
+        FileValidationEnabled.threadLocalValue.remove()
       }
     }
 
