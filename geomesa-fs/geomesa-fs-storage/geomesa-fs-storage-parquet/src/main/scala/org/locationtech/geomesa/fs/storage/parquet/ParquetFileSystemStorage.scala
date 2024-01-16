@@ -84,7 +84,6 @@ object ParquetFileSystemStorage {
     }
     override def flush(): Unit = observer.flush()
     override def close(): Unit = {
-      println(s"Closing file ${file}")
       CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
       validateParquetFile(file)
     }
