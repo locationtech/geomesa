@@ -90,7 +90,7 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
-Version 4.1.0 Upgrade Guide
+Version 5.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
 Dependency Version Upgrades
