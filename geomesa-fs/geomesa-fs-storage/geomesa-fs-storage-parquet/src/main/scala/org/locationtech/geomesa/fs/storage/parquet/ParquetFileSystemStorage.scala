@@ -105,7 +105,7 @@ object ParquetFileSystemStorage {
       }
       println(s"${file} is a valid Parquet file")
     } catch {
-      case _: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted")
+      case e: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted", e)
     } finally {
       reader.close()
     }
