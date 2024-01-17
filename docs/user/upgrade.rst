@@ -183,7 +183,7 @@ The following dependencies have been upgraded:
 * si.uom ``2.0.1`` -> ``2.1``
 * spring-security ``5.8.0`` -> ``5.8.9``
 * systems.uom ``2.0.2`` -> ``2.1``
-* tech.units:indriya ``2.0.2`` -> ``2.1.3``
+* tech.units:indriya ``2.0.2`` -> ``2.2``
 * tech.uom.lib ``2.0`` -> ``2.1``
 * xmlresolver ``4.4.3`` -> ``5.2.2``
 * zookeeper ``3.5.10`` -> ``3.9.1``
