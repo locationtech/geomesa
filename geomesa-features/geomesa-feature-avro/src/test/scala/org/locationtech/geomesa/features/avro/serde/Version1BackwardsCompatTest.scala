@@ -61,9 +61,9 @@ class Version1BackwardsCompatTest extends Specification {
     val fsr = SimpleFeatureDatumReader(AvroSerialization(oldType, Set.empty).schema, oldType)
 
     val sfList = new ListBuffer[SimpleFeature]()
-    do {
+    while (!decoder.isEnd) {
       sfList += fsr.read(null, decoder)
-    } while(!decoder.isEnd)
+    }
 
     fis.close()
     sfList.toList

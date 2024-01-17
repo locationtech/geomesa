@@ -563,14 +563,16 @@ object DeltaWriter extends StrictLogging {
         result.clear()
         var resultIndex = 0
         // copy the next sorted value and then queue and sort the next element out of the batch we copied from
-        do {
-          val next = queue.remove()
-          if (next.transfer(resultIndex)) {
-            queue.add(next)
-          }
-          result.underlying.setIndexDefined(resultIndex)
-          resultIndex += 1
-        } while (!queue.isEmpty && resultIndex < batchSize)
+        while ({
+          {
+            val next = queue.remove()
+            if (next.transfer(resultIndex)) {
+              queue.add(next)
+            }
+            result.underlying.setIndexDefined(resultIndex)
+            resultIndex += 1
+          }; !queue.isEmpty && resultIndex < batchSize
+        })()
 
         if (writtenHeader) {
           unloader.unload(resultIndex)

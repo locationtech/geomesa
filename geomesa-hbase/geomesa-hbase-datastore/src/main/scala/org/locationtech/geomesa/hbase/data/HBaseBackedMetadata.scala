@@ -19,9 +19,15 @@ import org.locationtech.geomesa.utils.io.WithClose
 import scala.collection.JavaConverters._
 
 class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val serializer: MetadataSerializer[T])
-    extends { private val table = connection.getTable(catalog) } with KeyValueStoreMetadata[T] {
+    extends KeyValueStoreMetadata[T] {
 
   import HBaseBackedMetadata._
+  import state.table
+
+  // state object to allow table val to be instantiated before superclass initializes
+  private object state {
+    val table: Table = connection.getTable(catalog)
+  }
 
   override protected def checkIfTableExists: Boolean = WithClose(connection.getAdmin)(_.tableExists(catalog))
 

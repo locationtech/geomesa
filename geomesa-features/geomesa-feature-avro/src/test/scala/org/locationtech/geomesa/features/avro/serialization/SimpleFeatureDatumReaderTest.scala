@@ -72,9 +72,9 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
 
     val sfList = new ListBuffer[SimpleFeature]()
 
-    do {
+    while (!decoder.isEnd) {
       sfList += reader.read(null, decoder)
-    } while(!decoder.isEnd)
+    }
 
     fis.close()
     sfList.toList

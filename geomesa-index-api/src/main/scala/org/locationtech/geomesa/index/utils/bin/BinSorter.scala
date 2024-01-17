@@ -192,11 +192,14 @@ object BinSorter extends LazyLogging {
          */
         // Skip the longest ascending sequence
         var i = left
-        do {
+        if (i >= right) {
+          return
+        }
+        while ({ i += binSize; compare(bytes, i , bytes, i - binSize) >= 0 }) {
           if (i >= right) {
             return
           }
-        } while ({ i += binSize; compare(bytes, i , bytes, i - binSize) >= 0 })
+        }
 
         val a1 = Array.ofDim[Byte](binSize)
         val a2 = Array.ofDim[Byte](binSize)
