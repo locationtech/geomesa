@@ -86,15 +86,13 @@ object ParquetFileSystemStorage {
     override def flush(): Unit = observer.flush()
     override def close(): Unit = {
       CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
-      validateParquetFile(file, logger)
+      if (FileValidationEnabled.get.toBoolean) {
+        validateParquetFile(file, logger)
+      }
     }
   }
 
   def validateParquetFile(file: Path, logger: com.typesafe.scalalogging.Logger): Unit = {
-    if (!FileValidationEnabled.get.toBoolean) {
-      return
-    }
-
     val reader = ParquetReader.builder(new GroupReadSupport(), file).build()
 
     try {
