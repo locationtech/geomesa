@@ -1625,6 +1625,12 @@
                 <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
                 <version>2.15.0</version>
             </dependency>
+            <!-- 2.2 fixes Accumulo classloading GEOMESA-3292 -->
+            <dependency>
+                <groupId>tech.units</groupId>
+                <artifactId>indriya</artifactId>
+                <version>2.2</version>
+            </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
