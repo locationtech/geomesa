@@ -563,24 +563,24 @@ object FilterHelper {
   private [filter] def flattenAnd(filters: Seq[Filter]): ListBuffer[Filter] = {
     val remaining = ListBuffer.empty[Filter] ++ filters
     val result = ListBuffer.empty[Filter]
-    do {
+    while (remaining.nonEmpty) {
       remaining.remove(0) match {
         case f: And => remaining.appendAll(f.getChildren.asScala)
         case f      => result.append(flatten(f))
       }
-    } while (remaining.nonEmpty)
+    }
     result
   }
 
   private [filter] def flattenOr(filters: Seq[Filter]): ListBuffer[Filter] = {
     val remaining = ListBuffer.empty[Filter] ++ filters
     val result = ListBuffer.empty[Filter]
-    do {
+    while (remaining.nonEmpty) {
       remaining.remove(0) match {
         case f: Or => remaining.appendAll(f.getChildren.asScala)
         case f     => result.append(flatten(f))
       }
-    } while (remaining.nonEmpty)
+    }
     result
   }
 
