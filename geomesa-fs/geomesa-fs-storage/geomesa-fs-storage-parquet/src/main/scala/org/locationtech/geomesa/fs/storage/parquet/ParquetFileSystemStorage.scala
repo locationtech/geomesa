@@ -63,7 +63,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   }
 }
 
-object ParquetFileSystemStorage {
+object ParquetFileSystemStorage extends LazyLogging {
 
   val Encoding = "parquet"
   val FileExtension = "parquet"
@@ -75,7 +75,7 @@ object ParquetFileSystemStorage {
       file: Path,
       conf: Configuration,
       observer: FileSystemObserver = NoOpObserver
-    ) extends FileSystemWriter with LazyLogging {
+    ) extends FileSystemWriter {
 
     private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
 
@@ -87,12 +87,12 @@ object ParquetFileSystemStorage {
     override def close(): Unit = {
       CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
       if (FileValidationEnabled.get.toBoolean) {
-        validateParquetFile(file, logger)
+        validateParquetFile(file)
       }
     }
   }
 
-  def validateParquetFile(file: Path, logger: com.typesafe.scalalogging.Logger): Unit = {
+  def validateParquetFile(file: Path): Unit = {
     val reader = ParquetReader.builder(new GroupReadSupport(), file).build()
 
     try {

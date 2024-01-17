@@ -108,7 +108,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
       // Set the system property, validate the file, and then unset it
       FileValidationEnabled.threadLocalValue.set("true")
       try {
-        validateParquetFile(filePath, logger) must throwA[RuntimeException].like {
+        validateParquetFile(filePath) must throwA[RuntimeException].like {
           case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
         }
       } finally {
