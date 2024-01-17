@@ -120,5 +120,21 @@ class FastFilterFactoryTest extends Specification {
       FastFilterFactory.toFilter(sft, "s < '100'").evaluate(sf) must beFalse
       FastFilterFactory.toFilter(sft, "s <= '100'").evaluate(sf) must beFalse
     }
+
+    "calculate the distance between points horizontally across the antimeridian" >> {
+      val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
+      val feature = ScalaSimpleFeature.create(sft, "1", "POINT (178 0)")
+      val ecql = "dwithin('POINT (-179 0)', geom, 2500, kilometers)"
+      val fast = FastFilterFactory.toFilter(sft, ecql)
+      fast.evaluate(feature) must beTrue
+    }
+
+    "calculate the distance between points diagonally across the antimeridian" >> {
+      val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
+      val feature = ScalaSimpleFeature.create(sft, "1", "POINT (178 3.1415)")
+      val ecql = "dwithin('POINT (-179 -2.7182)', geom, 2500, kilometers)"
+      val fast = FastFilterFactory.toFilter(sft, ecql)
+      fast.evaluate(feature) must beTrue
+    }
   }
 }

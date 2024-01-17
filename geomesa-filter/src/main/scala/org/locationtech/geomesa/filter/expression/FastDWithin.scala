@@ -41,14 +41,24 @@ object FastDWithin {
 
     override def evaluate(obj: AnyRef): Boolean = {
       val geom = exp1.evaluate(obj).asInstanceOf[Geometry]
-      if (geom == null || envelope.distance(geom.getEnvelopeInternal) > maxDegrees) { false } else {
+
+      if (geom == null) {
+        false
+      } else {
         val op = new DistanceOp(geometry, geom)
         op.distance <= minDegrees || {
           val Array(p1, p2) = op.nearestPoints()
           val calculator = calculators.get
-          calculator.setStartingGeographicPoint(p1.x, p1.y)
+
+          calculator.setStartingGeographicPoint(p1.x - 360, p1.y)
           calculator.setDestinationGeographicPoint(p2.x, p2.y)
-          calculator.getOrthodromicDistance <= meters
+          val dist1 = calculator.getOrthodromicDistance
+
+          calculator.setStartingGeographicPoint(p1.x + 360, p1.y)
+          calculator.setDestinationGeographicPoint(p2.x, p2.y)
+          val dist2 = calculator.getOrthodromicDistance
+
+          Math.min(dist1, dist2) <= meters
         }
       }
     }
