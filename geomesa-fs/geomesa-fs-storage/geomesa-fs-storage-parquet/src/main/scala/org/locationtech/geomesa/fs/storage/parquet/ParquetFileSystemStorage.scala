@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.parquet
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.hadoop.conf.Configuration
@@ -74,7 +75,7 @@ object ParquetFileSystemStorage {
       file: Path,
       conf: Configuration,
       observer: FileSystemObserver = NoOpObserver
-    ) extends FileSystemWriter {
+    ) extends FileSystemWriter with LazyLogging {
 
     private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
 
@@ -85,11 +86,11 @@ object ParquetFileSystemStorage {
     override def flush(): Unit = observer.flush()
     override def close(): Unit = {
       CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
-      validateParquetFile(file)
+      validateParquetFile(file, logger)
     }
   }
 
-  def validateParquetFile(file: Path): Unit = {
+  def validateParquetFile(file: Path, logger: com.typesafe.scalalogging.Logger): Unit = {
     if (!FileValidationEnabled.get.toBoolean) {
       return
     }
@@ -103,7 +104,7 @@ object ParquetFileSystemStorage {
         // Process the record
         record = reader.read()
       }
-      println(s"${file} is a valid Parquet file")
+      logger.debug(s"${file} is a valid Parquet file")
     } catch {
       case e: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted", e)
     } finally {

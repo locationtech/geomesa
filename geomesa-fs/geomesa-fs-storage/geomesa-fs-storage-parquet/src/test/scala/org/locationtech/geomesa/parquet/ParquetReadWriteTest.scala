@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.parquet
 
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -36,7 +37,7 @@ import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
-class ParquetReadWriteTest extends Specification with AllExpectations {
+class ParquetReadWriteTest extends Specification with AllExpectations with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -98,7 +99,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
 
       // Corrupt the file by writing an invalid byte somewhere
       val randomAccessFile = new RandomAccessFile(f.toFile, "rw")
-      println(s"File length: ${randomAccessFile.length()}")
+      logger.debug(s"File length: ${randomAccessFile.length()}")
       Files.size(f) must beGreaterThan(50L)
       randomAccessFile.seek(50)
       randomAccessFile.writeByte(999)
@@ -107,7 +108,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
       // Set the system property, validate the file, and then unset it
       FileValidationEnabled.threadLocalValue.set("true")
       try {
-        validateParquetFile(filePath) must throwA[RuntimeException].like {
+        validateParquetFile(filePath, logger) must throwA[RuntimeException].like {
           case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
         }
       } finally {
