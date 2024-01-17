@@ -27,6 +27,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -59,6 +65,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 >>>>>>> locatelli-main
@@ -68,6 +75,10 @@
 =======
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 >>>>>>> locatelli-main
+=======
+>>>>>>> be6e7ba471 (Set latest release to 4.0.3)
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -140,6 +151,10 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+    <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
+    <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
+>>>>>>> locatelli-main
+=======
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 >>>>>>> locatelli-main
@@ -237,6 +252,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
