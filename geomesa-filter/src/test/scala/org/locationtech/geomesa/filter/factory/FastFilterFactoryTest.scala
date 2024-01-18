@@ -136,5 +136,14 @@ class FastFilterFactoryTest extends Specification {
       val fast = FastFilterFactory.toFilter(sft, ecql)
       fast.evaluate(feature) must beTrue
     }
+
+    // A degree of longitude is widest at the equator, with a distance of ~69 mi (~111 km)
+    "calculate the distance spanning one degree of longitude" >> {
+      val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
+      val feature = ScalaSimpleFeature.create(sft, "1", "POINT (0 0)")
+      val ecql = "dwithin('POINT (1 0)', geom, 112, kilometers)"
+      val fast = FastFilterFactory.toFilter(sft, ecql)
+      fast.evaluate(feature) must beTrue
+    }
   }
 }
