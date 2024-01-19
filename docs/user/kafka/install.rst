@@ -68,6 +68,12 @@ Do this with the following command:
 
     $ ./bin/install-shapefile-support.sh
 
+If working with Parquet files, install the required dependencies with the following command:
+
+.. code-block:: bash
+
+    $ ./bin/install-parquet-support.sh
+
 Test the command that invokes the GeoMesa Tools:
 
 .. code-block:: bash

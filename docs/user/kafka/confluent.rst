@@ -14,7 +14,7 @@ regular Kafka store.
 
 Note that Confluent requires the Confluent client JARs, which are not bundled with GeoMesa. If the GeoMesa Kafka
 binary distribution has been :ref:`installed <setting_up_kafka_commandline>`, then the script
-``bin/install-confluent-dependencies.sh`` can be used to download them.
+``bin/install-confluent-support.sh`` can be used to download them.
 
 Supported Avro Schema Fields
 ----------------------------
