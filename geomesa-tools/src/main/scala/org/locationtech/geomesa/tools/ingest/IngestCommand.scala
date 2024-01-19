@@ -246,6 +246,10 @@ object IngestCommand extends LazyLogging {
       }
       val opened = ListBuffer.empty[CloseableIterator[InputStream]]
       def open(): InputStream = {
+        if (file.path.last == '-') {
+          throw new ParameterException("Could not infer type from inputs - please specify a converter/sft or ingest from a file")
+        }
+
         val streams = file.open.map(_._2)
         opened += streams
         if (streams.hasNext) { streams.next } else {
