@@ -40,12 +40,13 @@ object AvroPath extends BasicParser {
 
   private def convert(record: Any): Any = {
     record match {
-      case x: Utf8                 => x.toString
-      case x: ByteBuffer           => convertBytes(x)
-      case x: GenericFixed         => x.bytes()
-      case x: GenericEnumSymbol[_] => x.toString
-      case x: GenericArray[Any]    => convertList(x)
-      case x                       => x
+      case x: Utf8                       => x.toString
+      case x: ByteBuffer                 => convertBytes(x)
+      case x: GenericFixed               => x.bytes()
+      case x: GenericEnumSymbol[_]       => x.toString
+      case x: GenericArray[Any]          => convertList(x)
+      case x: java.util.Map[String, Any] => convertMap(x)
+      case x                             => x
     }
   }
 
@@ -63,6 +64,17 @@ object AvroPath extends BasicParser {
     val iter = list.iterator()
     while (iter.hasNext) {
       result.add(convert(iter.next()))
+    }
+    result
+  }
+
+  // note: maps get re-used, so we need to copy to a new structure
+  private def convertMap(map: java.util.Map[String, Any]): java.util.Map[String, Any] = {
+    val result = new java.util.HashMap[String, Any](map.size())
+    val iter = map.entrySet().iterator()
+    while (iter.hasNext) {
+      val entry = iter.next
+      result.put(convert(entry.getKey).asInstanceOf[String], convert(entry.getValue))
     }
     result
   }

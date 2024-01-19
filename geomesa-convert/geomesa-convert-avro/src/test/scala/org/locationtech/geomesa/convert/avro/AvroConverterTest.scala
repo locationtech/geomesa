@@ -27,6 +27,8 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 @RunWith(classOf[JUnitRunner])
 class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   sequential
 
   val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
@@ -247,6 +249,8 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           |    { "name": "lat", "type": "double" },
           |    { "name": "lon", "type": "double" },
           |    { "name": "label", "type": [ "string", "null" ] },
+          |    { "name": "list", "type": { "type": "array", "items": "string" }},
+               { "name": "map", "type": { "type": "map", "values": "int" }},
           |    { "name": "props",
           |      "type": {
           |        "name": "properties",
@@ -271,6 +275,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           rec.put("lat", 40d + i)
           rec.put("lon", 50d + i)
           rec.put("label", s"name$i")
+          val list = new GenericData.Array[String](schema.getField("list").schema(), Seq(s"$i", s"${i+1}").asJava)
+          rec.put("list", list)
+          rec.put("map", Map[String, Int]("one" -> i, "two" -> {i + 1}).asJava)
           val props = new GenericData.Record(schema.getField("props").schema())
           props.put("age", i)
           props.put("weight", 10f + i)
@@ -287,7 +294,7 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       inferred must beSome
 
       val expectedSft = SimpleFeatureTypes.createType(inferred.get._1.getTypeName,
-        "lat:Double,lon:Double,label:String,age:Int,weight:Float,*geom:Point:srid=4326")
+        "lat:Double,lon:Double,label:String,list:List[String],map:Map[String,Int],age:Int,weight:Float,*geom:Point:srid=4326")
       inferred.get._1 mustEqual expectedSft
 
       logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
@@ -299,8 +306,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         converted must not(beEmpty)
 
         val expected = Seq.tabulate(10) { i =>
-          ScalaSimpleFeature.create(expectedSft, s"$i", 40d + i, 50d + i, s"name$i", i, 10f + i,
-            s"POINT (${ 50d + i } ${ 40d + i })")
+          ScalaSimpleFeature.create(expectedSft, s"$i",
+            40d + i, 50d + i, s"name$i", Seq(s"$i", s"${i+1}").asJava,
+            Map[String, Int]("one" -> i, "two" -> {i + 1}).asJava, i, 10f + i, s"POINT (${ 50d + i } ${ 40d + i })")
         }
 
         // note: feature ids won't be the same
