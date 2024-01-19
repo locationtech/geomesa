@@ -8,5 +8,5 @@
 #
 
 cd "$(dirname "$0")" || exit
-echo >&2 "WARNING: this script is deprecated, please use 'install-confluent-support.sh' instead"
-./install-confluent-support.sh "$@"
+export GEOMESA_DEPENDENCIES="parquet-dependencies.sh"
+./install-dependencies.sh "$@"

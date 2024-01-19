@@ -22,13 +22,23 @@ import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 trait Runner extends MethodProfiling with LazyLogging {
 
   def name: String
+  @deprecated("Use classpathEnvironments instead")
   def environmentErrorInfo(): Option[String] = None
+
+  /**
+   * A list of environment variables used to load the classpath, used for error messages after
+   * ClassNotFoundExceptions
+   *
+   * @return
+   */
+  protected def classpathEnvironments: Seq[String] = Seq.empty
 
   def main(args: Array[String]): Unit = execute(new MainExecutor(args))
 
@@ -40,7 +50,7 @@ trait Runner extends MethodProfiling with LazyLogging {
         // log the underling exception to the log file, but don't show to the user
         val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
         logger.error(msg, e)
-        CommandResult(1, Seq(Left(msg)) ++ environmentErrorInfo().map(Left.apply))
+        CommandResult(1, Seq(Left(msg)) ++ getEnvironmentErrors.map(Left.apply[String, Throwable]))
       case e: ParameterException => CommandResult(1, Seq(Left(e.getMessage)))
       case e: CommandException   => CommandResult(1, Seq(Left(e.getMessage)))
       case NonFatal(e)           => CommandResult(1, Seq(Right(e)))
@@ -97,7 +107,7 @@ trait Runner extends MethodProfiling with LazyLogging {
   def usage(jc: JCommander): String = {
     val out = new StringBuilder()
     out.append(s"Usage: $name [command] [command options]\n")
-    val commands = jc.getCommands.asScala.map(_._1).toSeq.sorted
+    val commands = jc.getCommands.asScala.keys.toSeq.sorted
     out.append("  Commands:\n")
     val maxLen = commands.map(_.length).max + 4
     commands.foreach { name =>
@@ -191,6 +201,24 @@ trait Runner extends MethodProfiling with LazyLogging {
   }
 
   protected def resolveEnvironment(command: Command): Unit = {}
+
+  private def getEnvironmentErrors: Option[String] = {
+    // noinspection ScalaDeprecation
+    environmentErrorInfo().orElse {
+      val env = classpathEnvironments
+      if (env.forall(sys.env.contains)) { None } else {
+        val envMsg = if (env.size == 1) { "is not set as an environment variable" } else { "are not set as environment variables" }
+        val types = env.map(e => e.take(1) ++ e.drop(1).toLowerCase(Locale.US).replace("_home", "")).mkString(" and ")
+        val msg =
+          s"\nWarning: ${env.mkString(" and/or ")} $envMsg." +
+              s"\nGeoMesa tools will not run without the appropriate $types JARs in the tools classpath." +
+              s"\nPlease ensure that those JARs are present in the classpath by running '$name classpath'." +
+              "\nTo take corrective action, copy the necessary JAR files in the GeoMesa tools lib directory " +
+              "using the provided 'install-dependencies.sh' and 'install-*-support.sh' scripts."
+        Some(msg)
+      }
+    }
+  }
 
   class DefaultCommand(jc: JCommander) extends Command {
     override def execute(): Unit = Command.user.info(usage(jc))

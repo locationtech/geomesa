@@ -91,12 +91,5 @@ trait RunnerWithAccumuloEnvironment extends Runner {
     }
   }
 
-  override def environmentErrorInfo(): Option[String] = {
-    if (!sys.env.contains("ACCUMULO_HOME") || !sys.env.contains("HADOOP_HOME")) {
-      Option("\nWarning: ACCUMULO_HOME and/or HADOOP_HOME are not set as environment variables." +
-        "\nGeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath." +
-        "\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath'." +
-        "\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools.")
-    } else { None }
-  }
+  override protected def classpathEnvironments: Seq[String] = Seq("ACCUMULO_HOME", "HADOOP_HOME")
 }
