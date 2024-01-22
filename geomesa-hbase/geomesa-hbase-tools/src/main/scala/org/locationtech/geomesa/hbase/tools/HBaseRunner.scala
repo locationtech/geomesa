@@ -41,12 +41,5 @@ object HBaseRunner extends Runner {
     )
   }
 
-  override def environmentErrorInfo(): Option[String] = {
-    if (!sys.env.contains("HBASE_HOME") || !sys.env.contains("HADOOP_HOME")) {
-      Option("Warning: you have not set HBASE_HOME and/or HADOOP_HOME as environment variables." +
-        "\nGeoMesa tools will not run without the appropriate HBase and Hadoop jars in the tools classpath." +
-        "\nPlease ensure that those jars are present in the classpath by running 'geomesa-hbase classpath'." +
-        "\nTo take corrective action, please place the necessary jar files in the lib directory of geomesa-tools.")
-    } else { None }
-  }
+  override protected def classpathEnvironments: Seq[String] = Seq("HBASE_HOME", "HADOOP_HOME")
 }

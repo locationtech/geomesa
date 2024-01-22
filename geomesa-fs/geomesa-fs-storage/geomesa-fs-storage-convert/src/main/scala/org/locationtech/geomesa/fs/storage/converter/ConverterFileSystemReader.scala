@@ -9,14 +9,19 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.hadoop.HadoopDelegate.{HadoopFileHandle, HadoopTarHandle, HadoopZipHandle}
+import org.locationtech.geomesa.utils.io.PathUtils
 
+import java.util.Locale
 import scala.util.control.NonFatal
 
 class ConverterFileSystemReader(
@@ -26,9 +31,21 @@ class ConverterFileSystemReader(
     transform: Option[(String, SimpleFeatureType)]
   ) extends FileSystemPathReader with StrictLogging {
 
+  import ArchiveStreamFactory.{JAR, TAR, ZIP}
+
   override def read(path: Path): CloseableIterator[SimpleFeature] = {
     logger.debug(s"Opening file $path")
-    val iter = try { converter.process(fc.open(path)) } catch {
+    val iter = try {
+      val handle = PathUtils.getUncompressedExtension(path.getName).toLowerCase(Locale.US) match {
+        case TAR       => new HadoopTarHandle(fc, path)
+        case ZIP | JAR => new HadoopZipHandle(fc, path)
+        case _         => new HadoopFileHandle(fc, path)
+      }
+      handle.open.flatMap { case (name, is) =>
+        val params = EvaluationContext.inputFileParam(name.getOrElse(handle.path))
+        converter.process(is, converter.createEvaluationContext(params))
+      }
+    } catch {
       case NonFatal(e) => logger.error(s"Error processing uri '$path'", e); CloseableIterator.empty
     }
     transformed(filtered(iter))

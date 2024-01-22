@@ -177,15 +177,8 @@ object AvroConverterFactory {
       }
 
       // checks for nested array/map types we can handle
-      def isSimple: Boolean = field.schema().getFields.asScala.map(_.schema().getType).forall {
-        case Schema.Type.STRING  => true
-        case Schema.Type.INT     => true
-        case Schema.Type.LONG    => true
-        case Schema.Type.FLOAT   => true
-        case Schema.Type.DOUBLE  => true
-        case Schema.Type.BOOLEAN => true
-        case _ => false
-      }
+      def isSimpleArray: Boolean = isSimple(field.schema().getElementType)
+      def isSimpleMap: Boolean = isSimple(field.schema().getValueType)
 
       val transform = FunctionTransform("avroPath(", s",'$path/${field.name}')")
       field.schema().getType match {
@@ -196,8 +189,8 @@ object AvroConverterFactory {
         case Schema.Type.FLOAT   => types += InferredType(name, ObjectType.FLOAT, transform)
         case Schema.Type.DOUBLE  => types += InferredType(name, ObjectType.DOUBLE, transform)
         case Schema.Type.BOOLEAN => types += InferredType(name, ObjectType.BOOLEAN, transform)
-        case Schema.Type.ARRAY   => if (isSimple) { types += InferredType(name, ObjectType.LIST, transform) }
-        case Schema.Type.MAP     => if (isSimple) { types += InferredType(name, ObjectType.MAP, transform) }
+        case Schema.Type.ARRAY   => if (isSimpleArray) { types += InferredType(name, ObjectType.LIST, transform) }
+        case Schema.Type.MAP     => if (isSimpleMap) { types += InferredType(name, ObjectType.MAP, transform) }
         case Schema.Type.FIXED   => types += InferredType(name, ObjectType.BYTES, transform)
         case Schema.Type.ENUM    => types += InferredType(name, ObjectType.STRING, transform.copy(suffix = transform.suffix + "::string"))
         case Schema.Type.UNION   => types += InferredType(name, ObjectType.STRING, transform.copy(suffix = transform.suffix + "::string"))
@@ -212,6 +205,16 @@ object AvroConverterFactory {
     TypeInference.deriveGeometry(types.toSeq).foreach(g => types += g)
 
     types.toSeq
+  }
+
+  private def isSimple(s: Schema): Boolean = s.getType match {
+    case Schema.Type.STRING  => true
+    case Schema.Type.INT     => true
+    case Schema.Type.LONG    => true
+    case Schema.Type.FLOAT   => true
+    case Schema.Type.DOUBLE  => true
+    case Schema.Type.BOOLEAN => true
+    case _ => false
   }
 
   object AvroConfigConvert extends ConverterConfigConvert[AvroConfig] with OptionConvert {

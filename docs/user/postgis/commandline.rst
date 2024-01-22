@@ -24,7 +24,7 @@ Argument                 Description
 .. _postgis_cli_update_schema:
 
 ``update-schema``
------------------
+^^^^^^^^^^^^^^^^^
 
 Alter an existing ``SimpleFeatureType``. For PostGIS, this command can only be used to modify configuration
 values. See :ref:`postgis_index_config` for available configuration values.

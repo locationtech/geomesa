@@ -68,14 +68,14 @@ function download_dependencies() {
   includes="$(dependencies)"
   local classpath=""
   if [[ -d "$install_dir" ]]; then
-    classpath="$(ls "$install_dir")"
+    classpath="$(ls "$install_dir" | tr '\n' ':')"
   fi
   local gavs=()
   for gav in $includes; do
     group="${gav%%:*}"
     artifact="${gav#$group:}"
     artifact="${artifact%%:*}"
-    if [[ $classpath != *"$artifact"* ]]; then
+    if [[ ! $classpath =~ (^|:|/)${artifact}(-[^:]*)*\.jar ]]; then
       gavs+=("$gav")
     fi
   done

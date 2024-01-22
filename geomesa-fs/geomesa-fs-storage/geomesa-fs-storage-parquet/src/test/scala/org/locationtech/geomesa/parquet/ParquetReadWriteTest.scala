@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.parquet
 
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -20,8 +21,9 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.common.FileValidationEnabled
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetCompressionOpt
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, validateParquetFile}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.fs.storage.parquet.{FilterConverter, SimpleFeatureParquetWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -30,11 +32,12 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
+import java.io.RandomAccessFile
 import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
-class ParquetReadWriteTest extends Specification with AllExpectations {
+class ParquetReadWriteTest extends Specification with AllExpectations with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -87,6 +90,26 @@ class ParquetReadWriteTest extends Specification with AllExpectations {
   }
 
   "SimpleFeatureParquetWriter" should {
+
+    "fail if a corrupt parquet file is written" >> {
+      val filePath = new Path(f.toUri)
+      WithClose(SimpleFeatureParquetWriter.builder(filePath, sftConf).build()) { writer =>
+        features.foreach(writer.write)
+      }
+
+      // Corrupt the file by writing an invalid byte somewhere
+      val randomAccessFile = new RandomAccessFile(f.toFile, "rw")
+      logger.debug(s"File length: ${randomAccessFile.length()}")
+      Files.size(f) must beGreaterThan(50L)
+      randomAccessFile.seek(50)
+      randomAccessFile.writeByte(999)
+      randomAccessFile.close()
+
+      // Validate the file
+      validateParquetFile(filePath) must throwA[RuntimeException].like {
+        case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
+      }
+    }
 
     "write parquet files" >> {
       WithClose(SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()) { writer =>

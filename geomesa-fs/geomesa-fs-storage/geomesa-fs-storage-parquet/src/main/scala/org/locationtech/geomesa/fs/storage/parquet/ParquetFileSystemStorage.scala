@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.parquet
 
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.parquet.hadoop.ParquetReader
+import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
@@ -16,7 +19,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
@@ -60,7 +63,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   }
 }
 
-object ParquetFileSystemStorage {
+object ParquetFileSystemStorage extends LazyLogging {
 
   val Encoding = "parquet"
   val FileExtension = "parquet"
@@ -81,6 +84,29 @@ object ParquetFileSystemStorage {
       observer.write(f)
     }
     override def flush(): Unit = observer.flush()
-    override def close(): Unit = CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+    override def close(): Unit = {
+      CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+      if (FileValidationEnabled.get.toBoolean) {
+        validateParquetFile(file)
+      }
+    }
+  }
+
+  def validateParquetFile(file: Path): Unit = {
+    val reader = ParquetReader.builder(new GroupReadSupport(), file).build()
+
+    try {
+      // Read Parquet file content
+      var record = reader.read()
+      while (record != null) {
+        // Process the record
+        record = reader.read()
+      }
+      logger.debug(s"${file} is a valid Parquet file")
+    } catch {
+      case e: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted", e)
+    } finally {
+      reader.close()
+    }
   }
 }
