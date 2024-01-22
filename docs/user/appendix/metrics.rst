@@ -8,7 +8,7 @@ reporting with the ``geomesa-metrics`` module.
 
 Reporters are available for `CloudWatch <https://aws.amazon.com/cloudwatch/>`__,
 `Prometheus <https://prometheus.io/>`__, `Graphite <https://graphiteapp.org/>`__,
-`Ganglia <https://ganglia.sourceforge.net/>`__, and `SLF4J <https://www.slf4j.org/>`__.
+and `SLF4J <https://www.slf4j.org/>`__.
 
 Configuration
 -------------
@@ -139,40 +139,6 @@ Example configuration:
     type     = "prometheus-pushgateway"
     gateway  = "http://pushgateway:8080/"
     job-name = "my-job"
-  }
-
-Ganglia Reporter
-----------------
-
-The Ganglia reporter can be included by adding a dependency on
-``org.locationtech.geomesa:geomesa-metrics-ganglia``. Using Ganglia requires additional GPL-licensed
-dependencies ``info.ganglia.gmetric4j:gmetric4j:1.0.7`` and ``org.acplt:oncrpc:1.0.7``, which are excluded by default.
-
-====================== ===============================================================================================
-Configuration Property Description
-====================== ===============================================================================================
-``type``               Must be ``ganglia``
-``group``              The host/group to send events to
-``port``               Integer - The port to send events to
-``addressing-mode``    One of ``multicast`` or ``unicast``
-``ttl``                Integer - the time-to-live for Ganglia messages
-``ganglia311``         Boolean - defines the Ganglia protocol version, either v3.1 or v3.0
-====================== ===============================================================================================
-
-Example configuration:
-
-::
-
-  {
-    type            = "ganglia"
-    group           = "example"
-    port            = 8649
-    addressing-mode = "multicast"
-    ttl             = 32
-    ganglia311      = true
-    rate-units      = "seconds"
-    duration-units  = "milliseconds"
-    interval        = "10 seconds"
   }
 
 Graphite Reporter
