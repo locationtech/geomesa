@@ -65,7 +65,7 @@
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
 
         <!-- direct dependencies -->
-        <arrow.version>14.0.2</arrow.version>
+        <arrow.version>15.0.0</arrow.version>
         <avro.version>1.11.3</avro.version> <!-- see also confluent.avro.version -->
         <aws.sdk.version>1.12.625</aws.sdk.version>
         <caffeine.version>3.1.8</caffeine.version>
@@ -105,7 +105,7 @@
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
         <json.smart.version>2.5.0</json.smart.version> <!-- used by json-path and hadoop-auth -->
-        <netty.version>4.1.100.Final</netty.version> <!-- newer versions require a fix in arrow 15 not yet released -->
+        <netty.version>4.1.106.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.4</commons.collections4.version>
@@ -2575,6 +2575,11 @@
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
                     </exclusion>
+                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
+                    <exclusion>
+                        <groupId>org.openjfx</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2603,6 +2608,11 @@
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
+                    <exclusion>
+                        <groupId>org.openjfx</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

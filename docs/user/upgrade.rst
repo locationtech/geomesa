@@ -158,12 +158,12 @@ The following dependencies have been upgraded:
 * hbase ``2.5.2`` -> ``2.5.7``
 * httpclient ``4.5.13`` -> ``4.5.14``
 * httpcore ``4.4.15`` -> ``4.4.16``
-* io.netty ``4.1.85.Final`` -> ``4.1.100.Final``
+* io.netty ``4.1.85.Final`` -> ``4.1.106.Final``
 * javax.measure:unit-api ``2.0`` -> ``2.1.2``
 * jcommander ``1.78`` -> ``1.82``
 * jedis ``4.3.1`` -> ``5.1.0``
 * kryo ``4.0.2`` -> ``4.0.3``
-* org.apache.arrow ``11.0.0`` -> ``14.0.2``
+* org.apache.arrow ``11.0.0`` -> ``15.0.0``
 * org.apache.avro ``1.11.1`` -> ``1.11.3``
 * org.apache.orc ``1.8.2`` -> ``1.9.2``
 * org.apache.parquet ``1.12.3`` -> ``1.13.1``
