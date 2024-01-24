@@ -129,7 +129,7 @@ class IngestCommandTest extends Specification {
         try {
           System.setIn(input)
           command.execute() must throwA[ParameterException].like {
-            case e => e.getMessage mustEqual "Could not infer type from inputs - please specify a converter/sft or ingest from a file"
+            case e => e.getMessage mustEqual "Cannot infer types from stdin - please specify a converter/sft or ingest from a file"
           }
         } finally {
           System.setIn(in)
