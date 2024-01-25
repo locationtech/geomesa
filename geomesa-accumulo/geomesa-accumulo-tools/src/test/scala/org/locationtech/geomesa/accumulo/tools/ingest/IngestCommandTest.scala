@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
+import com.beust.jcommander.ParameterException
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
@@ -108,6 +109,54 @@ class IngestCommandTest extends Specification {
           features.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
         } finally {
           ds.delete()
+        }
+      }
+    }
+
+    "fail to ingest from stdin if no converter is specified" in {
+      val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
+        IOUtils.toByteArray(in)
+      }
+      val input = new ByteArrayInputStream(dataFile)
+
+      val args = baseArgs ++ Array("-s", confFile.getPath, "-")
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      val in = System.in
+      in.synchronized {
+        try {
+          System.setIn(input)
+          command.execute() must throwA[ParameterException].like {
+            case e => e.getMessage mustEqual "Cannot infer types from stdin - please specify a converter/sft or ingest from a file"
+          }
+        } finally {
+          System.setIn(in)
+        }
+      }
+    }
+
+    "fail to ingest from stdin if no sft is specified" in {
+      val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
+        IOUtils.toByteArray(in)
+      }
+      val input = new ByteArrayInputStream(dataFile)
+
+      val args = baseArgs ++ Array("--converter", confFile.getPath, "-")
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      val in = System.in
+      in.synchronized {
+        try {
+          System.setIn(input)
+          command.execute() must throwA[ParameterException].like {
+            case e => e.getMessage mustEqual "SimpleFeatureType name and/or specification argument is required"
+          }
+        } finally {
+          System.setIn(in)
         }
       }
     }
