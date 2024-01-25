@@ -49,10 +49,10 @@ class AccumuloEventWriter(connector: AccumuloClient, table: String) extends Runn
     var toMutation = queue.poll()
     if (toMutation != null) {
       val writer = getWriter
-      do {
+      while (toMutation != null && running.get) {
         writer.addMutation(toMutation())
         toMutation = queue.poll()
-      } while (toMutation != null && running.get)
+      }
       writer.flush()
     }
   }

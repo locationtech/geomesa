@@ -582,7 +582,7 @@ object ByteArrays {
       bytes
     } else {
       // walk backwards to find the first byte we can increment, then take the sub-array to that point
-      do { i -= 1 } while (i >= 0 && bytes(i) == MaxByte)
+      while ({{ i -= 1 }; i >= 0 && bytes(i) == MaxByte })()
 
       if (i == -1) { Array.empty } else {
         val result = Array.ofDim[Byte](i + 1)

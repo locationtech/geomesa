@@ -29,22 +29,32 @@ queries may not perform well.
 Table Design
 ------------
 
-The data is split into one primary view and three tables, names of which are prefixed by the feature type:
+The data is split into one primary view and four tables, names of which are prefixed by the feature type:
 
   * main view (named after the feature type) - a ``UNION ALL`` of the other tables, this is the view
     that should generally be used for all external reads and writes.
-  * ``_wa`` - the write-ahead table. All writes to the main view are delegated to this table using a trigger.
-    The table is partitioned using table inheritance (as there may be overlap between the partitions), and
-    is rolled over every 10 minutes. Only the most recent partition is ever written to.
-  * ``_wa_partition`` - recent data, partitioned into 10 minute increments using declarative partitioning.
-    The most recent data is stored in this table in spatially-sorted order, copied out of the
-    write ahead table when it is rolled over (after which the write ahead table partition is dropped). This table
-    is designed to handle time-latent data, and to store enough data to fill an entire main partition,
-    while still providing partition pruning for queries.
-  * ``_partition`` - the main data, partitioned using declarative time partitioning. Data is copied into this table
-    from the ``_wa_partition`` table in spatially-sorted order, once enough time has elapsed (after which the
-    ``_wa_partition`` partitions are dropped). It uses a BRIN index, which is small but performs well on sorted data.
-    Keeping the data sorted also reduces the number of page hits required for most spatial queries.
+
+  * ``_wa`` - the write-ahead table. All writes to the main view are relayed to this table using a trigger. The
+    table is partitioned using table inheritance (as there may be overlap between the partitions), and always has one
+    "active" partition that's receiving all writes. Records will continue accumulating in this partition for a period
+    of 10 minutes, after which a new partition will be created and marked "active" (meaning that records will now be
+    written to this new partition). All of the records in the older partitions will be transferred over to the
+    ``_wa_partition`` table (in spatially sorted order) and partitioned into 10-minute increments in that table.
+
+  * ``_wa_partition`` - contains the data transferred over from the ``_wa`` table, after having been spatially sorted
+    and partitioned into 10-minute increments using declarative partitioning. This table is designed to handle
+    time-latent data, and to store enough data to fill an entire main partition, while still providing partition
+    pruning for queries. Once enough time elapses, data from this table gets transferred over to the ``_partition``
+    table (in spatially sorted order) and partitioned based on the value of the key ``pg.partitions.interval.hours``.
+
+  * ``_partition`` - contains the data transferred over from the ``_wa_partition`` table, after having been spatially
+    sorted and partitioned using declarative time partitioning. This table uses a BRIN index, which is small but
+    performs well on sorted data. Keeping the data sorted also reduces the number of page hits required for most spatial
+    queries.
+
+  * ``_spill`` - this table contains any data that gets written after the ``_wa_partition`` table's data is transferred
+    over to the ``_partition`` table and spatially sorted and partitioned there. A separate table is maintained for
+    such data, because the ``_partition`` table would no longer be sorted if this data was written there. 
 
 Helper Tables
 -------------

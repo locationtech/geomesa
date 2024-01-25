@@ -239,6 +239,11 @@ object IngestCommand extends LazyLogging {
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
     if (converter == null && inputs.nonEmpty) {
+      // ingesting from stdin without specifying a converter is not supported
+      if (inputs == Inputs.StdInInputs) {
+        throw new ParameterException("Cannot infer types from stdin - please specify a converter/sft or ingest from a file")
+      }
+
       // if there is no converter passed in, try to infer the schema from the input files themselves
       Command.user.info("No converter defined - will attempt to detect schema from input files")
       val file = inputs.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {

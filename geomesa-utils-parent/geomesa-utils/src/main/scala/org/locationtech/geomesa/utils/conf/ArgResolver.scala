@@ -45,7 +45,7 @@ trait ArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
     var methods = parseMethodList
     assert(methods.nonEmpty, "subclass did not define any parse methods")
 
-    do {
+    while (methods.nonEmpty) {
       methods.head.apply(args) match {
         case Right(res) => return Right(res) // parse method succeeded, re-cast and return result
 
@@ -57,7 +57,7 @@ trait ArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
           }
       }
       methods = methods.tail
-    } while (methods.nonEmpty)
+    }
 
     // nothing passed, return the most relevant error
     Left(error)

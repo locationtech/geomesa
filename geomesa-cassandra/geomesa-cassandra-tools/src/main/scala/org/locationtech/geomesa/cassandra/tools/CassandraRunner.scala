@@ -32,10 +32,5 @@ object CassandraRunner extends Runner {
     )
   }
 
-  override def environmentErrorInfo(): Option[String] = {
-    if (!sys.env.contains("CASSANDRA_HOME")) {
-      Option("Warning: you have not set the CASSANDRA_HOME environment variable." +
-        "\nGeoMesa tools will not run without the appropriate Cassandra jars on the classpath.")
-    } else { None }
-  }
+  override protected def classpathEnvironments: Seq[String] = Seq("CASSANDRA_HOME")
 }

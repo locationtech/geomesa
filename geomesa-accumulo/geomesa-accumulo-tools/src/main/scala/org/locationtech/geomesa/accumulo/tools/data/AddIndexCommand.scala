@@ -158,13 +158,17 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends A
       if (result == 0) {
         setReadWrite()
       } else {
-        var response: String = null
-        do {
-          response = Prompt.read("Index back-fill job failed. You may:\n" +
-            "  1. Switch the indices to read-write mode without existing data (you may manually back-fill later)\n" +
-            "  2. Roll-back index creation\n" +
-            "Select an option: ")
-        } while (response != "1" && response != "2")
+        def readResponse(): String = {
+          Prompt.read("Index back-fill job failed. You may:\n" +
+              "  1. Switch the indices to read-write mode without existing data (you may manually back-fill later)\n" +
+              "  2. Roll-back index creation\n" +
+              "Select an option: ")
+        }
+        var response: String = readResponse()
+        while (response != "1" && response != "2") {
+          Command.user.error("Invalid response, please select 1 or 2")
+          response = readResponse()
+        }
         response match {
           case "1" => setReadWrite()
           case "2" =>

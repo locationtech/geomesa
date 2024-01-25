@@ -66,9 +66,9 @@ class Version3CompatTest extends Specification {
       val fsr = SimpleFeatureDatumReader(AvroSerialization(sft, Set.empty).schema, sft)
 
       val sfList = new ListBuffer[SimpleFeature]()
-      do {
+      while (!decoder.isEnd) {
         sfList += fsr.read(null, decoder)
-      } while(!decoder.isEnd)
+      }
 
       fis.close()
       sfList.zip(v2Features).forall { case (v3, v2) =>
