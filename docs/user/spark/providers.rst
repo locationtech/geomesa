@@ -48,15 +48,11 @@ HBase RDD Provider
 
 The ``HBaseSpatialRDDProvider`` is a spatial RDD provider for HBase data stores. The core code is in
 the ``geomesa-hbase-spark`` module, and the shaded JAR-with-dependencies (which contains all the required
-dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase1`` and
-``geomesa-hbase-spark-runtime-hbase2`` modules.
+dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase2`` module.
 
 .. note::
 
     The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
-    There are two HBase Spark runtime JARs, one for HBase 1.x (``geomesa-hbase-spark-runtime-hbase1``)
-    and one for HBase 2.x (``geomesa-hbase-spark-runtime-hbase2``). Make sure that you use the JAR
-    corresponding to your HBase version.
 
 This provider can read from and write to a GeoMesa ``HBaseDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hbase_parameters` for details.
@@ -68,7 +64,7 @@ are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hb
 
     .. code-block:: bash
 
-        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
     Alternatively, you may specify the zookeepers in the data store parameter map. However, this may not work
     for every HBase setup.

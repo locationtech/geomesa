@@ -53,7 +53,6 @@ Common NAR files:
 
 Datastore NAR files:
 
-* ``geomesa-hbase1-nar_$VERSION.nar`` - HBase 1.4
 * ``geomesa-hbase2-nar_$VERSION.nar`` - HBase 2.5
 * ``geomesa-accumulo20-nar_$VERSION.nar`` - Accumulo 2.0
 * ``geomesa-accumulo21-nar_$VERSION.nar`` - Accumulo 2.1

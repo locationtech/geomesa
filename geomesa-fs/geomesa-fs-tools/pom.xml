@@ -79,7 +79,9 @@
         <!-- used by hadoop-minicluster -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <artifactId>mockito-core</artifactId>
+            <version>${hadoop.minicluster.mockito.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

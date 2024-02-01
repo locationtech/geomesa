@@ -126,6 +126,11 @@ Use the following ``bash`` script to upgrade a project from an earlier version o
     wget 'https://raw.githubusercontent.com/locationtech/geomesa/geomesa-5.0.0/build/gt-30-api-changes.sed'
     find . -name "*.scala" -not -exec grep -q "import org.geotools.api.data._" {} \; -exec sed -E -i -f gt-30-api-changes.sed {} \;
 
+HBase Versions
+--------------
+
+Support for HBase 1.4 has been dropped, as HBase 1.4 does not support Java 11.
+
 Dependency Version Upgrades
 ---------------------------
 
@@ -155,6 +160,7 @@ The following dependencies have been upgraded:
 * geotools ``28.2`` -> ``30.1``
 * gson ``2.10`` -> ``2.10.1``
 * guava ``30.1-jre`` -> ``32.0.0-jre``
+* hadoop ``2.10.2`` -> ``3.3.6``
 * hbase ``2.5.2`` -> ``2.5.7``
 * httpclient ``4.5.13`` -> ``4.5.14``
 * httpcore ``4.4.15`` -> ``4.4.16``
@@ -200,6 +206,9 @@ Removed Modules
 
 The ``geomesa-metrics-ganglia`` module has been removed, and Ganglia is no longer supported as a destination for
 metrics.
+
+As part of dropping support for HBase 1.x, the ``geomesa-hbase-distributed-runtime-hbase1``,
+``geomesa-hbase-server-hbase1`` and ``geomesa-hbase-spark-runtime-hbase1`` modules have been removed.
 
 GeoMesa Convert OSM
 -------------------

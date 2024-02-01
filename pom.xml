@@ -115,6 +115,8 @@
         <specs2.version>4.20.4</specs2.version>
         <junit.version>4.13.2</junit.version>
         <testcontainers.version>1.19.3</testcontainers.version>
+        <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
+        <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.0.1</accumulo.version>
@@ -122,10 +124,10 @@
         <zookeeper.version>3.9.1</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
         <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
-        <hadoop.version>2.10.2</hadoop.version>
+        <hadoop.version>3.3.6</hadoop.version>
         <spark.version>3.5.0</spark.version>
-        <hbase.version>2.5.7</hbase.version>
-        <hbase-1.version>1.4.14</hbase-1.version>
+        <hbase.version>2.5.7-hadoop3</hbase.version>
+        <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <protobuf.version>2.5.0</protobuf.version>
         <cassandra.version>3.11.5</cassandra.version>
         <kafka.version>2.8.2</kafka.version>
@@ -144,9 +146,9 @@
         <guava.version>${geotools.guava.version}</guava.version>
         <geotools.guava.version>32.0.0-jre</geotools.guava.version>
         <accumulo.guava.version>28.0-jre</accumulo.guava.version>
-        <hbase.guava.version>11.0.2</hbase.guava.version>
+        <hbase.guava.version>27.0-jre</hbase.guava.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
-        <hadoop.guava.version>11.0.2</hadoop.guava.version>
+        <hadoop.guava.version>27.0-jre</hadoop.guava.version>
 
         <!-- logging -->
         <slf4j.version>1.7.36</slf4j.version> <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
@@ -645,16 +647,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-server-hbase2_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-hbase-server-hbase1_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-hbase-distributed-runtime-hbase1_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

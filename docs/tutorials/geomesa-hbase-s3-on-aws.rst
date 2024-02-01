@@ -209,7 +209,7 @@ replacing ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. 
 
 .. code-block:: shell
     
-    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 

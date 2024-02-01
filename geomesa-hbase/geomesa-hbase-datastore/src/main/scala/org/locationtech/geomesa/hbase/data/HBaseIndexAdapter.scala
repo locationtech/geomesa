@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter, MultiRowRangeFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.io.compress.Compression
@@ -109,8 +108,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
             }
           }
-          // if the coprocessors are installed site-wide don't register them in the table descriptor
-          val installed = Option(conf.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY))
+          // if the coprocessors are installed site-wide don't register them in the table descriptor.
+          // this key is CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY - but don't want to pull in
+          // a dependency on hbase-server just for this constant
+          val installed = Option(conf.get("hbase.coprocessor.user.region.classes"))
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
           if (names.contains(CoprocessorClass)) { None } else {
             logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")

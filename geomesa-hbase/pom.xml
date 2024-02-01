@@ -19,16 +19,13 @@
     <modules>
         <module>geomesa-hbase-datastore</module>
         <module>geomesa-hbase-dist</module>
-        <module>geomesa-hbase-distributed-runtime-hbase1</module>
         <module>geomesa-hbase-distributed-runtime-hbase2</module>
         <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-hbase-jobs</module>
         <module>geomesa-hbase-rpc</module>
         <module>geomesa-hbase-server</module>
-        <module>geomesa-hbase-server-hbase1</module>
         <module>geomesa-hbase-server-hbase2</module>
         <module>geomesa-hbase-spark</module>
-        <module>geomesa-hbase-spark-runtime-hbase1</module>
         <module>geomesa-hbase-spark-runtime-hbase2</module>
         <module>geomesa-hbase-tools</module>
     </modules>
