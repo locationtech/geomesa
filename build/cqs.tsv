@@ -295,6 +295,7 @@ org.springframework.security:spring-security-core	5.8.9	provided
 com.kjetland:mbknor-jackson-jsonschema_2.12	1.0.39	test
 com.sun.xml.bind:jaxb-impl	2.2.3	test
 com.uber:h3	4.1.1	test
+commons-lang:commons-lang	2.6	test
 io.confluent:kafka-schema-registry	6.2.7	test
 io.confluent:kafka-schema-registry	tests:6.2.7	test
 junit:junit	4.13.2	test
