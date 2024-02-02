@@ -157,7 +157,7 @@ The following dependencies have been upgraded:
 * commons-text ``1.10.0`` -> ``1.11.0``
 * cqengine ``3.0.0`` -> ``3.6.0``
 * org.apache.curator ``4.3.0`` -> ``5.6.0``
-* geotools ``28.2`` -> ``30.1``
+* geotools ``28.2`` -> ``30.2``
 * gson ``2.10`` -> ``2.10.1``
 * guava ``30.1-jre`` -> ``32.0.0-jre``
 * hadoop ``2.10.2`` -> ``3.3.6``
