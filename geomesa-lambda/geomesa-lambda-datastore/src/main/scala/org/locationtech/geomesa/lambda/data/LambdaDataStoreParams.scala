@@ -29,28 +29,32 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "lambda.kafka.brokers",
       "Kafka brokers",
       optional = false,
-      deprecatedKeys = Seq("kafka.brokers"))
+      deprecatedKeys = Seq("kafka.brokers"),
+      supportsNiFiExpressions = true)
 
   val ZookeepersParam =
     new GeoMesaParam[String](
       "lambda.kafka.zookeepers",
       "Kafka zookeepers",
       optional = false,
-      deprecatedKeys = Seq("kafka.zookeepers"))
+      deprecatedKeys = Seq("kafka.zookeepers"),
+      supportsNiFiExpressions = true)
 
   val PartitionsParam =
     new GeoMesaParam[Integer](
       "lambda.kafka.partitions",
       "Number of partitions to use in kafka topics",
       default = Int.box(1),
-      deprecatedKeys = Seq("kafka.partitions"))
+      deprecatedKeys = Seq("kafka.partitions"),
+      supportsNiFiExpressions = true)
 
   val ConsumersParam =
     new GeoMesaParam[Integer](
       "lambda.kafka.consumers",
       "Number of kafka consumers used per feature type",
       default = Int.box(1),
-      deprecatedKeys = Seq("kafka.consumers"))
+      deprecatedKeys = Seq("kafka.consumers"),
+      supportsNiFiExpressions = true)
 
   val ProducerOptsParam =
     new GeoMesaParam[Properties](
@@ -73,7 +77,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
           "to prevent this store from participating in feature expiration",
       optional = false,
       default = Duration("1h"),
-      deprecatedKeys = Seq("expiry"))
+      deprecatedKeys = Seq("expiry"),
+      supportsNiFiExpressions = true)
 
   val PersistParam =
     new GeoMesaParam[java.lang.Boolean](
