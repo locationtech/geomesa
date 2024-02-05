@@ -23,6 +23,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
+import scala.io.Source
 
 @RunWith(classOf[JUnitRunner])
 class ConvertCommandTest extends Specification with LazyLogging {
@@ -101,6 +102,33 @@ class ConvertCommandTest extends Specification with LazyLogging {
       }
     }
 
+    "fail to export non-geojson data" in {
+      val outFmt = ExportFormat.Json
+
+      val file = new File(dir.toFile, s"${counter.getAndIncrement()}/out.${outFmt.extensions.headOption.orNull}")
+      val inputFile = getClass.getResource("/convert/json-data-avro.json").getFile
+      val conf = getClass.getResource("/convert/example1-json.conf").getFile
+
+      val command = new ConvertCommand
+      command.params.files.add(inputFile)
+      command.params.config = conf
+      command.params.spec = conf
+      command.params.explicitOutputFormat = outFmt
+      command.params.force = true
+      command.params.file = file.getAbsolutePath
+      command.execute()
+
+      val source = Source.fromFile(command.params.file)
+      val outputJson = source.getLines()
+
+      try {
+        // No features should get returned
+        outputJson.mkString mustEqual "{\"type\":\"FeatureCollection\",\"features\":[]}"
+      } finally {
+        source.close()
+      }
+    }
+
     "use type inference" in {
       forall(Seq(ExportFormat.Csv, ExportFormat.Tsv)) { inFmt =>
         forall(outFormats) { outFmt =>
@@ -111,6 +139,15 @@ class ConvertCommandTest extends Specification with LazyLogging {
           command.execute()
           new File(command.params.file).length() must beGreaterThan(0L)
         }
+      }
+    }
+
+    "fail to use type inference for non-geojson" in {
+      val command = createCommand(ExportFormat.Json, ExportFormat.Parquet)
+      command.params.config = null
+      command.params.spec = null
+      command.execute() must throwAn[IllegalArgumentException].like {
+        case e => e.getMessage mustEqual "The provided JSON is not valid GeoJSON"
       }
     }
   }

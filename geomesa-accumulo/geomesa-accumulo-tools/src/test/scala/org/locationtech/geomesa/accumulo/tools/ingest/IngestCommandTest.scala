@@ -113,6 +113,39 @@ class IngestCommandTest extends Specification {
       }
     }
 
+    "ingest nothing from a json file that isn't in geojson format, without schema inference" in {
+      val confFile = new File(getClass.getClassLoader.getResource("examples/example1-json.conf").getFile)
+      val dataFile = new File(getClass.getClassLoader.getResource("examples/json-data-avro.json").getFile)
+
+      val args = baseArgs ++ Array("--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+      command.execute()
+
+      // We're not inferring a schema, so the ingest should still work even though all records get skipped
+      command.withDataStore { ds =>
+        try {
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          features must haveSize(0)
+        } finally {
+          ds.delete()
+        }
+      }
+    }
+
+    "fail to ingest from a json file that isn't in geojson format, with schema inference" in {
+      val dataFile = new File(getClass.getClassLoader.getResource("examples/json-data-avro.json").getFile)
+
+      val args = baseArgs ++ Array(dataFile.getPath)
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      // This is the error that gets thrown during the schema inference, and so if inference fails then ingest will fail too
+      command.execute() must throwAn[IllegalArgumentException].like {
+        case e => e.getMessage mustEqual "The provided JSON is not valid GeoJSON"
+      }
+    }
+
     "fail to ingest from stdin if no converter is specified" in {
       val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
       val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>

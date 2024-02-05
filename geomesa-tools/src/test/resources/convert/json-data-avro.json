@@ -1,0 +1,3 @@
+{"__version__":5,"__fid__":"23623","fid":{"int":23623},"name":{"string":"Harry"},"age":{"int":20},"lastseen":{"long":1430870400000},"geom":{"bytes":"\u0000\u0000\u0000\u0000\u0001ÀY\u000F\"Ðå`B@7\u0000\u0000\u0000\u0000\u0000\u0000"},"__userdata__":[]}
+{"__version__":5,"__fid__":"26236","fid":{"int":26236},"name":{"string":"Hermione"},"age":{"int":25},"lastseen":{"long":1433635200000},"geom":{"bytes":"\u0000\u0000\u0000\u0000\u0001@D\u001D²-\u000EV\u0004ÀJ($\u000Bx\u0003"},"__userdata__":[]}
+{"__version__":5,"__fid__":"3233","fid":{"int":3233},"name":{"string":"Severus"},"age":{"int":30},"lastseen":{"long":1445558400000},"geom":{"bytes":"\u0000\u0000\u0000\u0000\u0001@\b\u0000\u0000\u0000\u0000\u0000\u0000ÀO\u001Dp£×\n="},"__userdata__":[]}

@@ -42,6 +42,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
       val reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))
       reader.setLenient(true)
 
+      // TODO: We shouldn't use deprecated methods
       val elements = {
         val iter: Iterator[JsonElement] = new Iterator[JsonElement] {
           private val parser = new JsonParser
@@ -54,6 +55,11 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
       val geojson = elements.collect {
         case el if JsonConverter.isFeature(el) => JsonConverter.parseFeature(el)
         case el if JsonConverter.isFeatureCollection(el) => JsonConverter.parseFeatureCollection(el)
+      }
+
+      // If we were able to parse json elements but couldn't convert them to geojson
+      if (geojson.isEmpty) {
+        throw new IllegalArgumentException("The provided JSON is not valid GeoJSON")
       }
 
       geojson.headOption.map { head =>
@@ -138,6 +144,16 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         (schema, config)
       }
     } catch {
+      // If the json isn't valid geojson, propagate the error we threw instead of catching it
+      case e: IllegalArgumentException =>
+        if (e.getMessage == "The provided JSON is not valid GeoJSON") {
+          throw e
+        } else {
+          logger.debug(s"Could not infer JSON converter from input:", e)
+          None
+        }
+
+      // Everything else
       case NonFatal(e) =>
         logger.debug(s"Could not infer JSON converter from input:", e)
         None
