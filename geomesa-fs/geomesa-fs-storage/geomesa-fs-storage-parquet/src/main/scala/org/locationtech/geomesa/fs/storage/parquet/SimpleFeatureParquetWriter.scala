@@ -16,9 +16,17 @@ import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.MetadataObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureWriteSupport
+import org.locationtech.jts.geom.Envelope
 
 object SimpleFeatureParquetWriter extends LazyLogging {
+
+  private class SimpleObserver extends MetadataObserver {
+    override protected def onClose(bounds: Envelope, count: Long): Unit = {}
+  }
+
+  private val observer = new SimpleObserver()
 
   def builder(file: Path, conf: Configuration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
@@ -40,6 +48,6 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =
-      new SimpleFeatureWriteSupport
+      new SimpleFeatureWriteSupport(observer)
   }
 }

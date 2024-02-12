@@ -10,6 +10,8 @@
 package org.locationtech.geomesa.parquet
 
 
+import com.google.gson.{JsonElement, JsonParser}
+import com.google.gson.stream.JsonReader
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -21,7 +23,6 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.FileValidationEnabled
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, validateParquetFile}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
@@ -31,8 +32,12 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.GeoParquetSchemaKey
+import org.locationtech.geomesa.utils.index.BucketIndex
+import org.locationtech.jts.geom.Geometry
 
-import java.io.RandomAccessFile
+import java.io.{RandomAccessFile, StringReader}
 import java.nio.file.Files
 import scala.collection.mutable.ArrayBuffer
 
@@ -82,11 +87,30 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   }
 
   def readFile(geoFilter: org.geotools.api.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse {
-      ko(s"Couldn't extract a filter from ${ECQL.toCQL(geoFilter)}")
-      FilterCompat.NOOP
+    val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
+    val conf = transformConf(tsft)
+
+    val geomAttributeName = tsft.getGeometryDescriptor.getName.toString
+    val geoms = FilterHelper.extractGeometries(geoFilter, geomAttributeName).values
+
+    val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
+    val result = ArrayBuffer.empty[SimpleFeature]
+    val index = new BucketIndex[SimpleFeature]
+
+    WithClose(builder.withFilter(pFilter).withConf(conf).build()) { reader =>
+      var sf = reader.read()
+      while (sf != null) {
+        result += sf
+        index.insert(sf.getAttribute(geomAttributeName).asInstanceOf[Geometry], sf.getID, sf)
+        sf = reader.read()
+      }
     }
-    readFile(pFilter, transformConf(tsft))
+
+    if (geoms.nonEmpty) {
+      index.query(geoms.head.getEnvelopeInternal).toSeq
+    } else {
+      result.toSeq
+    }
   }
 
   "SimpleFeatureParquetWriter" should {
@@ -107,15 +131,24 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
       // Validate the file
       validateParquetFile(filePath) must throwA[RuntimeException].like {
-        case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
+        case e => e.getMessage mustEqual s"Unable to validate '${filePath}': File may be corrupted"
       }
     }
 
     "write parquet files" >> {
-      WithClose(SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()) { writer =>
+      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()
+      WithClose(writer) { writer =>
         features.foreach(writer.write)
       }
       Files.size(f) must beGreaterThan(0L)
+
+      // Check that the metadata in the file is valid json
+      val metadata = writer.getFooter.getFileMetaData.getKeyValueMetaData.get(GeoParquetSchemaKey)
+      val reader = new JsonReader(new StringReader(metadata))
+      reader.setLenient(true)
+      JsonParser.parseReader(reader) must beAnInstanceOf[JsonElement]
+
+      // TODO: check that the metadata validates against the GeoParquet json schema
     }
 
     "read parquet files" >> {
@@ -183,5 +216,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
   step {
     Files.deleteIfExists(f)
+
+    // TODO: delete the corresponding .crc file
   }
 }

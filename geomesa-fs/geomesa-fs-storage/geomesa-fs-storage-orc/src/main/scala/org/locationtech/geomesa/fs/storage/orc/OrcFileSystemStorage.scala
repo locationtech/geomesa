@@ -19,7 +19,7 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWrite
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.common.observer.BoundsObserver
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom.Geometry
@@ -32,7 +32,7 @@ import org.locationtech.jts.geom.Geometry
 class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, OrcFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(file: Path, observer: BoundsObserver): FileSystemWriter =
     new OrcFileSystemWriter(metadata.sft, context.conf, file, observer)
 
   override protected def createReader(

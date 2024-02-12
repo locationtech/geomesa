@@ -63,24 +63,28 @@ object FilterConverter {
       name: String,
       filter: Filter,
       col: String): (Option[FilterPredicate], Option[Filter]) = {
-    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
-      Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
-        val xy = e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
-          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
-        }
-        val xcol = FilterApi.doubleColumn(s"$col.x")
-        val ycol = FilterApi.doubleColumn(s"$col.y")
-        val filters = Seq[FilterPredicate](
-          FilterApi.gtEq(xcol, Double.box(xy._1)),
-          FilterApi.gtEq(ycol, Double.box(xy._2)),
-          FilterApi.ltEq(xcol, Double.box(xy._3)),
-          FilterApi.ltEq(ycol, Double.box(xy._4))
-        )
-        filters.reduce(FilterApi.and)
-      }
-    }
-    (predicate, nonSpatial)
+    // TODO: need backwards compatibility for old parquet files
+//    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
+//    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+//      Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
+//        val xy = e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
+//          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
+//        }
+//        val xcol = FilterApi.doubleColumn(s"$col.x")
+//        val ycol = FilterApi.doubleColumn(s"$col.y")
+//        val filters = Seq[FilterPredicate](
+//          FilterApi.gtEq(xcol, Double.box(xy._1)),
+//          FilterApi.gtEq(ycol, Double.box(xy._2)),
+//          FilterApi.ltEq(xcol, Double.box(xy._3)),
+//          FilterApi.ltEq(ycol, Double.box(xy._4))
+//        )
+//        filters.reduce(FilterApi.and)
+//      }
+//    }
+//    (predicate, nonSpatial)
+
+    // For geoparquet files
+    (None, Some(filter))
   }
 
   private def temporal(

@@ -53,6 +53,7 @@ class ParquetConverterFactory
 
       path.flatMap { p =>
         val conf = new Configuration()
+        // TODO: ParquetFileReader.readFooter is deprecated, use a different method
         val footer = // note: get the path as a URI so that we handle local files appropriately
           ParquetFileReader.readFooter(conf, new Path(PathUtils.getUrl(p).toURI), ParquetMetadataConverter.NO_FILTER)
         val (schema, fields, id) = SimpleFeatureParquetSchema.read(footer.getFileMetaData) match {

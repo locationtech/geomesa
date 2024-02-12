@@ -14,7 +14,8 @@ import org.locationtech.geomesa.convert.avro.AvroPath
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchemaV1, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
 class ParquetFunctionFactory extends TransformerFunctionFactory {
@@ -42,11 +43,12 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
   abstract class ParquetGeometryFn[T <: Geometry, U](name: String, path: AvroPath)
       extends NamedTransformerFunction(Seq(name), pure = true) {
 
-    import SimpleFeatureParquetSchema.{GeometryColumnX, GeometryColumnY}
+    import SimpleFeatureParquetSchemaV1.{GeometryColumnX, GeometryColumnY}
 
     override def apply(args: Array[AnyRef]): AnyRef = {
       path.eval(args(0).asInstanceOf[GenericRecord]).collect {
         case r: GenericRecord => eval(r.get(GeometryColumnX).asInstanceOf[U], r.get(GeometryColumnY).asInstanceOf[U])
+        case r: Array[Byte] => eval(r)
       }.orNull
     }
 
@@ -58,6 +60,8 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
     }
 
     protected def eval(x: U, y: U): T
+
+    protected def eval(b: Array[Byte]): T = WKBUtils.read(b).asInstanceOf[T]
   }
 
   class ParquetPointFn(path: AvroPath) extends ParquetGeometryFn[Point, Double]("parquetPoint", path) {
