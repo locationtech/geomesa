@@ -23,14 +23,18 @@ import scala.reflect.ClassTag
 
 object FilterConverter {
 
-  def convert(sft: SimpleFeatureType, filter: Filter): (Option[FilterPredicate], Option[Filter]) = {
-    if (filter == Filter.INCLUDE) { (None, None) } else {
-      FilterHelper.propertyNames(filter).foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft))
+  def convert(sft: SimpleFeatureType, filter: Filter): (Int => (Option[FilterPredicate], Option[Filter])) = {
+    if (filter == Filter.INCLUDE) { _ => (None, None) } else {
+      val propertyNames = FilterHelper.propertyNames(filter)
+      lazy val v1 = propertyNames.foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft, 1))
+      lazy val v2 = propertyNames.foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft, 2))
+      i => if (i == 2) { v2 } else { v1 }
     }
   }
 
   private def reduce(
-      sft: SimpleFeatureType
+      sft: SimpleFeatureType,
+      version: Int
     )(result: (Option[FilterPredicate], Option[Filter]),
       name: String): (Option[FilterPredicate], Option[Filter]) = {
     val (parquet, geotools) = result
@@ -44,7 +48,12 @@ object FilterConverter {
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY if bindings.last == ObjectType.POINT => spatial(sft, name, filter, col)
+      case ObjectType.GEOMETRY if bindings.last == ObjectType.POINT => {
+        version match {
+          case 2 => spatial(filter)
+          case _ => spatialV0V1(sft, name, filter, col)
+        }
+      }
       case ObjectType.DATE    => temporal(sft, name, filter, FilterApi.longColumn(col))
       case ObjectType.STRING  => attribute(sft, name, filter, FilterApi.binaryColumn(col), Binary.fromString)
       case ObjectType.INT     => attribute(sft, name, filter, FilterApi.intColumn(col), identity[java.lang.Integer])
@@ -58,7 +67,10 @@ object FilterConverter {
     ((predicate.toSeq ++ parquet).reduceLeftOption(FilterApi.and), remaining)
   }
 
-  private def spatial(
+  private def spatial(filter: Filter): (Option[FilterPredicate], Option[Filter]) = (None, Some(filter))
+
+  // Backwards-compatible method for old parquet files
+  private def spatialV0V1(
       sft: SimpleFeatureType,
       name: String,
       filter: Filter,

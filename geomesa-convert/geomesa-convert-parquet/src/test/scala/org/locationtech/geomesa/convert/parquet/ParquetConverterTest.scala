@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -33,6 +34,39 @@ class ParquetConverterTest extends Specification {
   sequential
 
   "ParquetConverter" should {
+    "parse a geoparquet file" in {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "parquet",
+          |   id-field     = "avroPath($0, '/__fid__')",
+          |   fields = [
+          |     { name = "name",     transform = "avroPath($0, '/name')" },
+          |     { name = "age",      transform = "avroPath($0, '/age')" },
+          |     { name = "dtg",      transform = "avroPath($0, '/dtg')" },
+          |     { name = "position", transform = "point(avroPath($0, '/position'))" },
+          |   ]
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
+
+      val file = getClass.getClassLoader.getResource("example-geo.parquet")
+      val path = new File(file.toURI).getAbsolutePath
+
+      val res = WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
+        WithClose(converter.process(file.openStream(), ec))(_.toList)
+      }
+
+      res must haveLength(3)
+      res.map(_.getID) mustEqual Seq("1", "2", "3")
+      res.map(_.getAttribute("name")) mustEqual Seq("first", null, "third")
+      res.map(_.getAttribute("age")) mustEqual Seq(100, 200, 300)
+      res.map(_.getAttribute("dtg")) mustEqual Seq("2017-01-01", "2017-01-02", "2017-01-03").map(FastConverter.convert(_, classOf[Date]))
+      res.map(_.getAttribute("position")) mustEqual Seq("POINT (25.236263 27.436734)", "POINT (67.2363 55.236)", "POINT (73.0 73.0)").map(FastConverter.convert(_, classOf[Point]))
+    }
+
     "parse a parquet file" in {
       val conf = ConfigFactory.parseString(
         """
@@ -66,6 +100,33 @@ class ParquetConverterTest extends Specification {
       res.map(_.getAttribute("age")) mustEqual Seq(20, 25, 30)
       res.map(_.getAttribute("lastseen")) mustEqual Seq("2015-05-06", "2015-06-07", "2015-10-23").map(FastConverter.convert(_, classOf[Date]))
       res.map(_.getAttribute("geom")) mustEqual Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)").map(FastConverter.convert(_, classOf[Point]))
+    }
+
+    "infer a converter from a geomesa geoparquet file" >> {
+      val file = getClass.getClassLoader.getResource("example-geo.parquet")
+      val path = new File(file.toURI).getAbsolutePath
+
+      val factory = new ParquetConverterFactory()
+      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
+      inferred must beSome
+
+      val (sft, config) = inferred.get
+
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("name", "age", "dtg", "position")
+      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+        Seq(classOf[String], classOf[java.lang.Integer], classOf[Date], classOf[Point])
+
+      val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
+        WithClose(converter.process(file.openStream(), ec))(_.toList)
+      }
+
+      res must haveLength(3)
+      res.map(_.getID) mustEqual Seq("1", "2", "3")
+      res.map(_.getAttribute("name")) mustEqual Seq("first", null, "third")
+      res.map(_.getAttribute("age")) mustEqual Seq(100, 200, 300)
+      res.map(_.getAttribute("dtg")) mustEqual Seq("2017-01-01", "2017-01-02", "2017-01-03").map(FastConverter.convert(_, classOf[Date]))
+      res.map(_.getAttribute("position")) mustEqual Seq("POINT (25.236263 27.436734)", "POINT (67.2363 55.236)", "POINT (73.0 73.0)").map(FastConverter.convert(_, classOf[Point]))
     }
 
     "infer a converter from a geomesa parquet file" >> {

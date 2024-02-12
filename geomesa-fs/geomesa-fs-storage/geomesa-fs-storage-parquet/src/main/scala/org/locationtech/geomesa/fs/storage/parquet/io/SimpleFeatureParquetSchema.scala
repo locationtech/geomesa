@@ -16,13 +16,14 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.Types.BasePrimitiveBuilder
 import org.apache.parquet.schema._
-import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.serialization.TwkbSerialization.GeometryBytes
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.CurrentSchemaVersion
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.jts.geom.Envelope
 
 /**
   * A paired simple feature type and parquet schema
@@ -30,9 +31,9 @@ import org.locationtech.geomesa.utils.text.StringSerialization
   * @param sft simple feature type
   * @param schema parquet message schema
   */
-case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageType) {
+case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageType, version: Integer = CurrentSchemaVersion) {
 
-  import SimpleFeatureParquetSchema.{CurrentSchemaVersion, SchemaVersionKey}
+  import SimpleFeatureParquetSchema.{GeoParquetSchemaKey, SchemaVersionKey}
 
   import scala.collection.JavaConverters._
 
@@ -42,7 +43,8 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
   lazy val metadata: java.util.Map[String, String] = Map(
     StorageConfiguration.SftNameKey -> sft.getTypeName,
     StorageConfiguration.SftSpecKey -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-    SchemaVersionKey                -> CurrentSchemaVersion.toString // note: this may not be entirely accurate, but we don't write older versions
+    SchemaVersionKey                -> version.toString,
+    GeoParquetSchemaKey             -> null
   ).asJava
 
   /**
@@ -56,16 +58,68 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
 
 object SimpleFeatureParquetSchema {
 
+  import StringSerialization.alphaNumericSafeString
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   val FeatureIdField = "__fid__"
 
   val SchemaVersionKey = "geomesa.parquet.version"
 
-  val CurrentSchemaVersion = 1
+  val CurrentSchemaVersion = 2
 
-  val GeometryColumnX = "x"
-  val GeometryColumnY = "y"
+  val Encoding = "WKB"
+  val GeoParquetSchemaKey = "geo"
+
+  /**
+   * See https://geoparquet.org/releases/v1.0.0/schema.json
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  def geoParquetMetadata(sft: SimpleFeatureType, bboxes: Array[Envelope]): String = {
+    val geomField = sft.getGeomField
+
+    // If the sft has no geometry field, then omit the GeoParquet metadata entirely
+    if (geomField == null) {
+      ""
+    } else {
+      val primaryColumn = alphaNumericSafeString(geomField)
+      val columns = {
+        val geometryDescriptors = sft.getAttributeDescriptors.toArray.collect {case gd: GeometryDescriptor => gd}
+        geometryDescriptors.indices.map(i => geoParquetMetadata(geometryDescriptors(i),  bboxes(i))).mkString(",")
+      }
+
+      s"""{"version":"1.0.0","primary_column":"$primaryColumn","columns":{$columns}}"""
+    }
+  }
+
+  def geoParquetMetadata(geom: GeometryDescriptor, bbox: Envelope): String = {
+    // TODO "Z" for 3d, minz/maxz for bbox
+    val geomTypes = {
+      val types = ObjectType.selectType(geom).last match {
+        case ObjectType.POINT               => """"Point""""
+        case ObjectType.LINESTRING          => """"LineString""""
+        case ObjectType.POLYGON             => """"Polygon""""
+        case ObjectType.MULTILINESTRING     => """"MultiLineString""""
+        case ObjectType.MULTIPOLYGON        => """"MultiPolygon""""
+        case ObjectType.MULTIPOINT          => """"MultiPoint""""
+        case ObjectType.GEOMETRY_COLLECTION => """"GeometryCollection""""
+        case ObjectType.GEOMETRY            => null
+      }
+      Seq(types).filter(_ != null)
+    }
+    // note: don't provide crs, as default is EPSG:4326 with longitude first, which is our default/only crs
+
+    def stringify(geomName: String, encoding: String, geometryTypes: Seq[String], bbox: Envelope): String = {
+      val bboxString = s"[${bbox.getMinX}, ${bbox.getMinY}, ${bbox.getMaxX}, ${bbox.getMaxY}]"
+      s""""$geomName":{"encoding":"$encoding","geometry_types":[${geometryTypes.mkString(",")}],"bbox":$bboxString}"""
+    }
+
+    val geomName = alphaNumericSafeString(geom.getLocalName)
+    stringify(geomName, Encoding, geomTypes, bbox)
+  }
 
   /**
     * Extract the simple feature type from a parquet read context. The read context
@@ -80,7 +134,11 @@ object SimpleFeatureParquetSchema {
     context.getKeyValueMetadata.asScala.foreach { case (k, v) => if (!v.isEmpty) { metadata.put(k, v.iterator.next) }}
     val conf = context.getConfiguration
     // copy in the sft from the conf - overwrite the file level metadata as this has our transform schema
-    Seq(StorageConfiguration.SftNameKey, StorageConfiguration.SftSpecKey, SchemaVersionKey).foreach { key =>
+    Seq(
+      StorageConfiguration.SftNameKey,
+      StorageConfiguration.SftSpecKey,
+      SchemaVersionKey,
+      GeoParquetSchemaKey).foreach { key =>
       val value = conf.get(key)
       if (value != null) {
         metadata.put(key, value)
@@ -128,11 +186,16 @@ object SimpleFeatureParquetSchema {
       spec <- Option(metadata.get(StorageConfiguration.SftSpecKey))
     } yield {
       val sft = SimpleFeatureTypes.createType(name, spec)
-      Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(0) match {
-        case 1 => new SimpleFeatureParquetSchema(sft, schema(sft))
-        case 0 => new SimpleFeatureParquetSchema(sft, SimpleFeatureParquetSchemaV0(sft))
+
+      val schemaVersion = Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(0)
+      val messageType = schemaVersion match {
+        case 2 => schema(sft)
+        case 1 => SimpleFeatureParquetSchemaV1(sft)
+        case 0 => SimpleFeatureParquetSchemaV0(sft)
         case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
       }
+
+      SimpleFeatureParquetSchema(sft, messageType, schemaVersion)
     }
   }
 
@@ -147,7 +210,7 @@ object SimpleFeatureParquetSchema {
     // note: id field goes at the end of the record
     val fields = sft.getAttributeDescriptors.asScala.map(schema) :+ id
     // ensure that we use a valid name - for avro conversion, especially, names are very limited
-    new MessageType(StringSerialization.alphaNumericSafeString(sft.getTypeName), fields.asJava)
+    new MessageType(alphaNumericSafeString(sft.getTypeName), fields.asJava)
   }
 
   /**
@@ -159,58 +222,11 @@ object SimpleFeatureParquetSchema {
   private def schema(descriptor: AttributeDescriptor): Type = {
     val bindings = ObjectType.selectType(descriptor)
     val builder = bindings.head match {
-      case ObjectType.GEOMETRY => geometry(bindings(1))
       case ObjectType.LIST     => Binding(bindings(1)).list()
       case ObjectType.MAP      => Binding(bindings(1)).key(bindings(2))
       case p                   => Binding(p).primitive()
     }
-    builder.named(StringSerialization.alphaNumericSafeString(descriptor.getLocalName))
-  }
-
-  /**
-    * Create a builder for a parquet geometry field
-    *
-    * @param binding geometry type
-    * @return
-    */
-  private def geometry(binding: ObjectType): Types.Builder[_, _ <: Type] = {
-    def group: Types.GroupBuilder[GroupType] = Types.buildGroup(Repetition.OPTIONAL)
-    binding match {
-      case ObjectType.POINT =>
-        group.id(GeometryBytes.TwkbPoint)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-      case ObjectType.LINESTRING =>
-        group.id(GeometryBytes.TwkbLineString)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-      case ObjectType.MULTIPOINT =>
-        group.id(GeometryBytes.TwkbMultiPoint)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
-
-      case ObjectType.POLYGON =>
-        group.id(GeometryBytes.TwkbPolygon)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-      case ObjectType.MULTILINESTRING =>
-        group.id(GeometryBytes.TwkbMultiLineString)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-      case ObjectType.MULTIPOLYGON =>
-        group.id(GeometryBytes.TwkbMultiPolygon)
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-      case ObjectType.GEOMETRY =>
-        Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
-
-      case _ => throw new NotImplementedError(s"No mapping defined for geometry type $binding")
-    }
+    builder.named(alphaNumericSafeString(descriptor.getLocalName))
   }
 
   /**
@@ -250,6 +266,7 @@ object SimpleFeatureParquetSchema {
       ObjectType.FLOAT   -> new Binding(PrimitiveTypeName.FLOAT),
       ObjectType.BOOLEAN -> new Binding(PrimitiveTypeName.BOOLEAN),
       ObjectType.BYTES   -> new Binding(PrimitiveTypeName.BINARY),
+      ObjectType.GEOMETRY -> new Binding(PrimitiveTypeName.BINARY),
       ObjectType.UUID    -> new Binding(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, None, Some(16))
     )
 

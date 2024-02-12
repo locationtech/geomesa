@@ -51,6 +51,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>

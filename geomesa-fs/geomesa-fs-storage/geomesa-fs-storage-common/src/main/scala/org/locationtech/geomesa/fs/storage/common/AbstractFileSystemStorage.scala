@@ -21,7 +21,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver, WriterConfig}
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
-import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
@@ -235,8 +235,8 @@ abstract class AbstractFileSystemStorage(
       val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
       PathCache.register(context.fc, path)
       val updateObserver = new UpdateObserver(partition, path, action)
-      val observer = if (observers.isEmpty) { updateObserver } else {
-        new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
+      val observer = if (observers.isEmpty) { updateObserver.asInstanceOf[BoundsObserver] } else {
+        new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver)).asInstanceOf[BoundsObserver]
       }
       WriterConfig(path, observer)
     }
@@ -350,7 +350,10 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
+  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver with BoundsObserver {
+
+    override def getBoundingBox: Envelope = super.getBoundingBox
+
     override protected def onClose(bounds: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
@@ -370,7 +373,7 @@ object AbstractFileSystemStorage {
   /**
    * Tracks metadata during writes
    */
-  abstract class MetadataObserver extends FileSystemObserver {
+  abstract class MetadataObserver extends BoundsObserver {
 
     private var count: Long = 0L
     private val bounds: Envelope = new Envelope()
@@ -384,6 +387,8 @@ object AbstractFileSystemStorage {
       }
     }
 
+    def getBoundingBox: Envelope = bounds
+
     override def flush(): Unit = {}
 
     override def close(): Unit = onClose(bounds, count)
@@ -391,5 +396,5 @@ object AbstractFileSystemStorage {
     protected def onClose(bounds: Envelope, count: Long): Unit
   }
 
-  private case class WriterConfig(path: Path, observer: FileSystemObserver)
+  private case class WriterConfig(path: Path, observer: BoundsObserver)
 }
