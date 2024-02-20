@@ -27,22 +27,22 @@ import scala.collection.JavaConverters._
 trait TestWithDataStore extends Specification {
 
   // we use class name to prevent spillage between unit tests
-  lazy val catalog = s"${MiniCluster.namespace}.${getClass.getSimpleName}"
+  lazy val catalog = s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}"
 
   // note the table needs to be different to prevent tests from conflicting with each other
   lazy val dsParams: Map[String, String] = Map(
-    AccumuloDataStoreParams.InstanceNameParam.key -> MiniCluster.cluster.getInstanceName,
-    AccumuloDataStoreParams.ZookeepersParam.key   -> MiniCluster.cluster.getZooKeepers,
-    AccumuloDataStoreParams.UserParam.key         -> MiniCluster.Users.root.name,
-    AccumuloDataStoreParams.PasswordParam.key     -> MiniCluster.Users.root.password,
+    AccumuloDataStoreParams.InstanceNameParam.key -> AccumuloContainer.instanceName,
+    AccumuloDataStoreParams.ZookeepersParam.key   -> AccumuloContainer.zookeepers,
+    AccumuloDataStoreParams.UserParam.key         -> AccumuloContainer.user,
+    AccumuloDataStoreParams.PasswordParam.key     -> AccumuloContainer.password,
     AccumuloDataStoreParams.CatalogParam.key      -> catalog
   )
 
   lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
-  lazy val root  = MiniCluster.Users.root
-  lazy val admin = MiniCluster.Users.admin
-  lazy val user  = MiniCluster.Users.user
+  lazy val root  = AccumuloContainer.Users.root
+  lazy val admin = AccumuloContainer.Users.admin
+  lazy val user  = AccumuloContainer.Users.user
 
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
     ds.delete()

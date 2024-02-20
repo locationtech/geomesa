@@ -21,20 +21,20 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class CoveringAttributeIndexTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   override val spec = "name:String:index=full,age:Integer:index=join,weight:Double:index=join," +
       "height:Double,dtg:Date,*geom:Point:srid=4326"
 
   val geom = WKTUtils.read("POINT(45.0 49.0)")
 
-  addFeatures({
-    (0 until 10).map { i =>
-      val dtg = s"2014-01-1${i}T12:00:00.000Z"
-      val attrs = Array(s"${i}name$i", s"$i", s"${i * 2.0}", s"${i * 3.0}", dtg, geom)
-      ScalaSimpleFeatureFactory.buildFeature(sft, attrs, i.toString)
-    }
-  })
+  step {
+    addFeatures({
+      (0 until 10).map { i =>
+        val dtg = s"2014-01-1${i}T12:00:00.000Z"
+        val attrs = Array(s"${i}name$i", s"$i", s"${i * 2.0}", s"${i * 3.0}", dtg, geom)
+        ScalaSimpleFeatureFactory.buildFeature(sft, attrs, i.toString)
+      }
+    })
+  }
 
   val joinIndicator = "Join Plan:"
 

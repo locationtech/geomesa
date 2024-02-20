@@ -6,11 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accmulo.dr
+package org.locationtech.geomesa.accumulo.data.stats
 
 /**
-  * Placeholder class to force generation of -javadocs and -sources jars for maven publishing
-  */
-object ScalaDocs {
-
-}
+ * The class is kept here for back-compatibility on already configured tables. Note that it violates
+ * split-packaging with accumulo-datastore, but this module only builds a shaded jar so packages get
+ * flattened out.
+ */
+@deprecated("Moved to org.locationtech.geomesa.accumulo.combiners.StatsCombiner")
+class StatsCombiner extends org.locationtech.geomesa.accumulo.combiners.StatsCombiner

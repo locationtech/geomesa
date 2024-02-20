@@ -9,22 +9,21 @@
 package org.locationtech.geomesa.accumulo.index.legacy
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloWritableFeature
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
+import org.locationtech.geomesa.accumulo.index.{AttributeJoinIndex, ReducedIndexValues}
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV4
+import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV3
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV7.AttributeIndexKeySpaceV7
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndexKey, AttributeIndexKeySpace}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 
-class JoinIndexV4(ds: GeoMesaDataStore[_],
+class JoinIndexV3(ds: GeoMesaDataStore[_],
                   sft: SimpleFeatureType,
                   attribute: String,
-                  secondaries: Seq[String],
+                  dtg: Option[String],
                   mode: IndexMode)
-    extends AttributeIndexV4(ds, sft, attribute, secondaries, mode) with AccumuloJoinIndex {
+    extends AttributeIndexV3(ds, sft, attribute, dtg, mode) with AttributeJoinIndex {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -35,7 +34,7 @@ class JoinIndexV4(ds: GeoMesaDataStore[_],
                               id: Array[Byte],
                               lenient: Boolean): RowKeyValue[AttributeIndexKey] = {
         val kv = super.toIndexKey(writable, tier, id, lenient)
-        kv.copy(values = writable.asInstanceOf[AccumuloWritableFeature].indexValues)
+        kv.copy(values = writable.asInstanceOf[ReducedIndexValues].indexValues)
       }
     }
 }

@@ -24,8 +24,6 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.z3.splits='8'"
 
   val features: Seq[ScalaSimpleFeature] = {
@@ -47,9 +45,12 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
     }
   }
 
+  step {
+    addFeatures(features)
+  }
+
   "Indexes" should {
     "configure from spec" >> {
-      addFeatures(features)
       var shardSet: Set[Long] = Set[Long]()
       val index = ds.manager.indices(sft).find(_.name == Z3Index.name)
       index must beSome

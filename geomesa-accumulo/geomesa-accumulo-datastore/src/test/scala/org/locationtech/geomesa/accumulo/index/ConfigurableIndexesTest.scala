@@ -38,7 +38,10 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     sf.setAttribute(2, s"POINT(4$i 5$i)")
     sf
   }
-  addFeatures(features)
+
+  step {
+    addFeatures(features)
+  }
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {

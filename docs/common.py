@@ -83,9 +83,9 @@ rst_epilog = """
 
 .. |geotools_version| replace:: %(gt_version)s
 
-.. |accumulo_supported_versions| replace:: versions %(accumulo_version)s and %(accumulo_version_recommended)s
+.. |accumulo_supported_versions| replace:: versions 2.0.1 and %(accumulo_version_recommended)s
 
-.. |accumulo_required_version| replace:: %(accumulo_version)s or %(accumulo_version_recommended)s
+.. |accumulo_required_version| replace:: 2.0.1 or %(accumulo_version_recommended)s
 
 .. |hbase_required_version| replace:: %(hbase_version)s
 

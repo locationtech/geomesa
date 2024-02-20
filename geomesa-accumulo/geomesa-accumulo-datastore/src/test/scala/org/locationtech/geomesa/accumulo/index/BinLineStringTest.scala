@@ -29,8 +29,6 @@ class BinLineStringTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
-  sequential
-
   override val spec = "name:String,track:String,dtgList:List[Date],dtg:Date,*geom:LineString:srid=4326"
 
   val features =
@@ -50,7 +48,9 @@ class BinLineStringTest extends Specification with TestWithFeatureType {
       sf
     }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   def getQuery(filter: String, dtg: Option[String] = None, label: Option[String] = None): Query = {
     val query = new Query(sftName, ECQL.toFilter(filter))

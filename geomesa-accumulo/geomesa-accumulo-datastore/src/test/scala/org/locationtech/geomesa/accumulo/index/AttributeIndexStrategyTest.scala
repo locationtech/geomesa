@@ -43,8 +43,6 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
       "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
       "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=join,fingers:List[String]:index=join," +

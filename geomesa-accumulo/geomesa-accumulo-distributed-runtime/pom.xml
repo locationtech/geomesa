@@ -18,11 +18,16 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-accumulo-iterators_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -64,6 +69,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                                    <resource>geomesa-accumulo-distributed-runtime.properties</resource>
+                                    <file>src/main/resources/geomesa-accumulo-distributed-runtime.properties</file>
+                                </transformer>
+                            </transformers>
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>

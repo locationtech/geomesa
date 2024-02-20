@@ -136,6 +136,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* accumulo ``2.0.1`` -> ``2.1.2``
 * aircompressor ``0.21`` -> ``0.25``
 * antlr ``4.7.1`` -> ``4.7.2``
 * aws-java-sdk ``1.11.179`` -> ``1.12.625``
@@ -143,7 +144,7 @@ The following dependencies have been upgraded:
 * cassandra-driver ``3.11.3`` -> ``3.11.5``
 * com.clearspring.analytics ``2.9.2`` -> ``2.9.8``
 * com.fasterxml.jackson ``2.14.1`` -> ``2.16.1``
-* com.jayway.jsonpath ``2.7.0`` -> ``2.8.0``
+* com.jayway.jsonpath ``2.7.0`` -> ``2.9.0``
 * com.typesafe:config ``1.4.2`` -> ``1.4.3``
 * commons-cli ``1.2`` -> ``1.6.0``
 * commons-codec ``1.15`` -> ``1.16.0``

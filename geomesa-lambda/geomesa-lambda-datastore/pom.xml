@@ -117,8 +117,9 @@
             <classifier>tests</classifier>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -146,6 +147,10 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
     </dependencies>
 

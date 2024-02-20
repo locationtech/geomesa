@@ -26,17 +26,17 @@ class ZLineTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   override val spec = "name:String,dtg:Date,*geom:LineString:srid=4326"
 
-  addFeatures({
-    val sf = new ScalaSimpleFeature(sft, "fid1")
-    sf.setAttribute("name", "fred")
-    sf.setAttribute("dtg", "2015-01-01T12:00:00.000Z")
-    sf.setAttribute("geom", "LINESTRING(47.28515625 25.576171875, 48 26, 49 27)")
-    Seq(sf)
-  })
+  step {
+    addFeatures({
+      val sf = new ScalaSimpleFeature(sft, "fid1")
+      sf.setAttribute("name", "fred")
+      sf.setAttribute("dtg", "2015-01-01T12:00:00.000Z")
+      sf.setAttribute("geom", "LINESTRING(47.28515625 25.576171875, 48 26, 49 27)")
+      Seq(sf)
+    })
+  }
 
   def printR(e: java.util.Map.Entry[Key, Value]): Unit = {
     val row = Key.toPrintableString(e.getKey.getRow.getBytes, 0, e.getKey.getRow.getLength, e.getKey.getRow.getLength)

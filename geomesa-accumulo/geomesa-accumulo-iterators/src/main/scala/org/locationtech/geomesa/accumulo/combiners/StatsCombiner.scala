@@ -6,38 +6,37 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.data.stats
+package org.locationtech.geomesa.accumulo.combiners
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
+import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
-import org.locationtech.geomesa.accumulo.data.stats.AccumuloGeoMesaStats.CombinerName
-import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 
-import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 /**
-  * Combiner for serialized stats. Should be one instance configured per catalog table. Simple feature
-  * types and columns with stats should be set in the configuration.
-  */
+ * Combiner for serialized stats. Should be one instance configured per catalog table. Simple feature
+ * types and columns with stats should be set in the configuration.
+ */
 class StatsCombiner extends Combiner with LazyLogging {
 
   import StatsCombiner.{SeparatorOption, SftOption}
+
+  import scala.collection.JavaConverters._
 
   private var serializers: Map[String, StatSerializer] = _
   private var separator: Char = '~'
 
   override def init(source: SortedKeyValueIterator[Key, Value],
-                    options: java.util.Map[String, String],
-                    env: IteratorEnvironment): Unit = {
+      options: java.util.Map[String, String],
+      env: IteratorEnvironment): Unit = {
     super.init(source, options, env)
     serializers = options.asScala.toMap.collect {
       case (k, v) if k.startsWith(SftOption) =>
@@ -54,7 +53,7 @@ class StatsCombiner extends Combiner with LazyLogging {
         KeyValueStoreMetadata.decodeRow(key.getRow.getBytes, separator)._1
       } catch {
         // back compatible check
-        case NonFatal(_) => SingleRowAccumuloMetadata.getTypeName(key.getRow)
+        case NonFatal(_) => StatsCombiner.SingleRowMetadata.getTypeName(key.getRow)
       }
       val serializer = serializers(sftName)
 
@@ -87,19 +86,21 @@ class StatsCombiner extends Combiner with LazyLogging {
 
 object StatsCombiner {
 
+  import scala.collection.JavaConverters._
+
+  val CombinerName = "stats-combiner"
+
   val SftOption = "sft-"
   val SeparatorOption = "sep"
 
   def configure(sft: SimpleFeatureType, connector: AccumuloClient, table: String, separator: String): Unit = {
-    TableUtils.createTableIfNeeded(connector, table)
-
     val sftKey = getSftKey(sft)
     val sftOpt = SimpleFeatureTypes.encodeType(sft)
 
     getExisting(connector, table) match {
       case None => attach(connector, table, options(separator) + (sftKey -> sftOpt))
       case Some(existing) =>
-        val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(StatsCombiner.SftOption))
+        val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(SftOption))
         if (!existingSfts.get(sftKey).contains(sftOpt)) {
           connector.tableOperations().removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
           attach(connector, table, existingSfts.toMap ++ options(separator) + (sftKey -> sftOpt))
@@ -110,7 +111,7 @@ object StatsCombiner {
   def remove(sft: SimpleFeatureType, connector: AccumuloClient, table: String, separator: String): Unit = {
     getExisting(connector, table).foreach { existing =>
       val sftKey = getSftKey(sft)
-      val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(StatsCombiner.SftOption))
+      val existingSfts = existing.getOptions.asScala.filter(_._1.startsWith(SftOption))
       if (existingSfts.asJava.containsKey(sftKey)) {
         connector.tableOperations().removeIterator(table, CombinerName, java.util.EnumSet.allOf(classOf[IteratorScope]))
         if (existingSfts.size > 1) {
@@ -137,7 +138,7 @@ object StatsCombiner {
   }
 
   private def options(separator: String): Map[String, String] =
-    Map(StatsCombiner.SeparatorOption -> separator, "all" -> "true")
+    Map(SeparatorOption -> separator, "all" -> "true")
 
   private def getSftKey(sft: SimpleFeatureType): String = s"$SftOption${sft.getTypeName}"
 
@@ -146,5 +147,20 @@ object StatsCombiner {
     val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
     options.foreach { case (k, v) => is.addOption(k, v) }
     connector.tableOperations().attachIterator(table, is)
+  }
+
+  /**
+   * Code copied from org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata,
+   * just kept around for back compatibility
+   */
+  private object SingleRowMetadata {
+
+    private val MetadataTag = "~METADATA"
+    private val MetadataRowKeyRegex = (MetadataTag + """_(.*)""").r
+
+    def getTypeName(row: Text): String = {
+      val MetadataRowKeyRegex(typeName) = row.toString
+      typeName
+    }
   }
 }

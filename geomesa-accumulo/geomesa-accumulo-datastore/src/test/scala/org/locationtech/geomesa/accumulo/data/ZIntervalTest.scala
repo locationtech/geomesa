@@ -22,8 +22,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ZIntervalTest extends Specification with TestWithMultipleSfts {
 
-  sequential
-
   val key = SimpleFeatureTypes.Configs.IndexZ3Interval
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
 

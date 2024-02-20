@@ -8,18 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.iterators
 
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
+import org.locationtech.geomesa.accumulo.{AccumuloContainer, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -101,14 +101,16 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
   }
 
   // Scans all GeoMesa Accumulo tables directly and verifies the number of records that the `root` user can see.
-  private def scanDirect(expected: Int) = {
-    val conn = MiniCluster.cluster.createAccumuloClient(MiniCluster.Users.root.name, new PasswordToken(MiniCluster.Users.root.password))
-    conn.tableOperations().list().asScala.filter(t => t.contains("DtgAgeOffTest_DtgAgeOffTest")).forall { tableName =>
-      val scanner = conn.createScanner(tableName, MiniCluster.Users.root.auths)
-      val count = scanner.asScala.size
-      scanner.close()
-      count mustEqual expected
+  private def scanDirect(expected: Int): Unit = {
+    WithClose(AccumuloContainer.Container.client()) { conn =>
+      val tables = conn.tableOperations().list().asScala.filter(_.contains("DtgAgeOffTest_DtgAgeOffTest"))
+      tables must not(beEmpty)
+      forall(tables) { tableName =>
+        val scanner = conn.createScanner(tableName, AccumuloContainer.Users.root.auths)
+        val count = scanner.asScala.size
+        scanner.close()
+        count mustEqual expected
+      }
     }
-    conn.close()
   }
 }

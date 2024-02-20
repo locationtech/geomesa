@@ -12,8 +12,6 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.user.ReqVisFilter
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 
 object VisibilityIterator {
 
@@ -23,17 +21,9 @@ object VisibilityIterator {
   def set(tableOps: TableOperations, table: String): Unit =
     tableOps.attachIterator(table, new IteratorSetting(Priority, Name, classOf[ReqVisFilter]))
 
-  def set(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach(set(tableOps, _))
-  }
-
-  def clear(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
-      if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
-        tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
-      }
+  def clear(tableOps: TableOperations, table: String): Unit = {
+    if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
+      tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
     }
   }
 }

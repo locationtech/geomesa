@@ -29,8 +29,6 @@ import java.util.{Collections, Date, TimeZone}
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexIteratorTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   val spec = "name:String:index=join,age:Integer:index=join,scars:List[String]:index=join,dtg:Date:index=join," +
       "*geom:Point:srid=4326;override.index.dtg.join=true"
 
@@ -67,149 +65,146 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
 
   "AttributeIndexIterator" should {
 
-    "return correct results" >> {
+    "work for string equals" >> {
+      val filter = "name = 'b'"
+      val results = query(filter, Array("geom", "dtg", "name"))
 
-      "for string equals" >> {
-        val filter = "name = 'b'"
-        val results = query(filter, Array("geom", "dtg", "name"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("b"))
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("b"))
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work for string less than" >> {
+      val filter = "name < 'b'"
+      val results = query(filter, Array("geom", "dtg", "name"))
 
-      "for string less than" >> {
-        val filter = "name < 'b'"
-        val results = query(filter, Array("geom", "dtg", "name"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("a"))
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("a"))
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work for string greater than" >> {
+      val filter = "name > 'b'"
+      val results = query(filter, Array("geom", "dtg", "name"))
 
-      "for string greater than" >> {
-        val filter = "name > 'b'"
-        val results = query(filter, Array("geom", "dtg", "name"))
+      results must haveSize(8)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+      results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(8)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work for string greater than or equals" >> {
+      val filter = "name >= 'b'"
+      val results = query(filter, Array("geom", "dtg", "name"))
 
-      "for string greater than or equals" >> {
-        val filter = "name >= 'b'"
-        val results = query(filter, Array("geom", "dtg", "name"))
+      results must haveSize(12)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("b")).exactly(4)
+      results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+      results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(12)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("b")).exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work for date tequals" >> {
+      val filter = "dtg TEQUALS 2014-01-02T00:00:00.000Z"
+      val results = query(filter, Array("geom", "dtg"))
 
-      "for date tequals" >> {
-        val filter = "dtg TEQUALS 2014-01-02T00:00:00.000Z"
-        val results = query(filter, Array("geom", "dtg"))
+      results must haveSize(20)
+      results.map(_.getAttributeCount) must contain(2).foreach
+    }
 
-        results must haveSize(20)
-        results.map(_.getAttributeCount) must contain(2).foreach
-      }
+    "work for date equals" >> {
+      val filter = "dtg = '2014-01-02T00:00:00.000Z'"
+      val results = query(filter, Array("geom", "dtg"))
 
-      "for date equals" >> {
-        val filter = "dtg = '2014-01-02T00:00:00.000Z'"
-        val results = query(filter, Array("geom", "dtg"))
+      results must haveSize(20)
+      results.map(_.getAttributeCount) must contain(2).foreach
+    }
 
-        results must haveSize(20)
-        results.map(_.getAttributeCount) must contain(2).foreach
-      }
+    "work for date between" >> {
+      val filter = "dtg BETWEEN '2014-01-01T00:00:00.000Z' AND '2014-01-03T00:00:00.000Z'"
+      val results = query(filter, Array("geom", "dtg"))
 
-      "for date between" >> {
-        val filter = "dtg BETWEEN '2014-01-01T00:00:00.000Z' AND '2014-01-03T00:00:00.000Z'"
-        val results = query(filter, Array("geom", "dtg"))
+      results must haveSize(20)
+      results.map(_.getAttributeCount) must contain(2).foreach
+    }
 
-        results must haveSize(20)
-        results.map(_.getAttributeCount) must contain(2).foreach
-      }
+    "work for int less than" >> {
+      val filter = "age < 2"
+      val results = query(filter, Array("geom", "dtg", "age"))
 
-      "for int less than" >> {
-        val filter = "age < 2"
-        val results = query(filter, Array("geom", "dtg", "age"))
+      results must haveSize(5)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(1).foreach
+      foreach(results.map(_.getAttribute("geom").toString))(_ must contain("POINT (45 45)"))
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(5)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(1).foreach
-        foreach(results.map(_.getAttribute("geom").toString))(_ must contain("POINT (45 45)"))
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work for int greater than or equals" >> {
+      val filter = "age >= 3"
+      val results = query(filter, Array("geom", "dtg", "age"))
 
-      "for int greater than or equals" >> {
-        val filter = "age >= 3"
-        val results = query(filter, Array("geom", "dtg", "age"))
+      results must haveSize(10)
+      results.map(_.getAttributeCount) must contain(3).foreach
+      results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(3).exactly(5)
+      results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(4).exactly(5)
+      results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (47 47)")).exactly(5)
+      results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (48 48)")).exactly(5)
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(10)
-        results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(3).exactly(5)
-        results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(4).exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (47 47)")).exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (48 48)")).exactly(5)
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work not including attribute queried on" >> {
+      val filter = "name = 'b'"
+      val results = query(filter, Array("geom", "dtg"))
 
-      "not including attribute queried on" >> {
-        val filter = "name = 'b'"
-        val results = query(filter, Array("geom", "dtg"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(2).foreach
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+      forall(results.map(_.getAttribute("dtg").asInstanceOf[Date]))(_ mustEqual dateToIndex)
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(2).foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-        forall(results.map(_.getAttribute("dtg").asInstanceOf[Date]))(_ mustEqual dateToIndex)
-      }
+    "work not including geom" >> {
+      val filter = "name = 'b'"
+      val results = query(filter, Array("dtg"))
 
-      "not including geom" >> {
-        val filter = "name = 'b'"
-        val results = query(filter, Array("dtg"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(1).foreach
+      results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(1).foreach
-        results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
-      }
+    "work not including dtg" >> {
+      val filter = "name = 'b'"
+      val results = query(filter, Array("geom"))
 
-      "not including dtg" >> {
-        val filter = "name = 'b'"
-        val results = query(filter, Array("geom"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(1).foreach
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(1).foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
-      }
+    "work not including geom or dtg" >> {
+      val filter = "name = 'b'"
+      val results = query(filter, Array("name"))
 
-      "not including geom or dtg" >> {
-        val filter = "name = 'b'"
-        val results = query(filter, Array("name"))
+      results must haveSize(4)
+      results.map(_.getAttributeCount) must contain(1).foreach
+      foreach(results.map(_.getAttribute("name").toString))(_ must contain("b"))
+    }
 
-        results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(1).foreach
-        foreach(results.map(_.getAttribute("name").toString))(_ must contain("b"))
-      }
+    "work with additional filter applied" >> {
+      val filter = "name = 'b' AND BBOX(geom, 44.5, 44.5, 45.5, 45.5)"
+      val results = query(filter, Array("geom", "dtg", "name"))
 
-      "with additional filter applied" >> {
-        val filter = "name = 'b' AND BBOX(geom, 44.5, 44.5, 45.5, 45.5)"
-        val results = query(filter, Array("geom", "dtg", "name"))
-
-        results must haveSize(1)
-        results.map(_.getAttributeCount) must contain(3).foreach // geom gets added back in
-        results.map(_.getAttribute("name").toString) must contain("b")
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)")
-      }
+      results must haveSize(1)
+      results.map(_.getAttributeCount) must contain(3).foreach // geom gets added back in
+      results.map(_.getAttribute("name").toString) must contain("b")
+      results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)")
     }
   }
 }

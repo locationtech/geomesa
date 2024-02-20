@@ -21,8 +21,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   override val spec = "json:String:json=true,*geom:Point:srid=4326"
 
   def getJson(x: Double, y: Double, props: String = "{}"): String = {
@@ -49,7 +47,9 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
   sf4.setAttribute(0, """["a1","a2","a3"]""")
   sf4.setAttribute(1, "POINT(45 63)")
 
-  addFeatures(Seq(sf0, sf1, sf2, sf3, sf4))
+  step {
+    addFeatures(Seq(sf0, sf1, sf2, sf3, sf4))
+  }
 
   "AccumuloDataStore" should {
     "support json attributes" in {

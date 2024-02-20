@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, GEOMESA_AUTH_PROVIDER_IMPL, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.runner.JUnitRunner
@@ -31,8 +31,6 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
   import org.locationtech.geomesa.security.AuthProviderParam
 
   import scala.collection.JavaConverters._
-
-  sequential
 
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
@@ -79,12 +77,12 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
       }
 
       "fail when auth provider system property does not match an actual class" >> {
-        System.setProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY, "my.fake.Clas")
+        GEOMESA_AUTH_PROVIDER_IMPL.threadLocalValue.set("my.fake.Clas")
         try {
           val params = dsParams ++ Map(AuthsParam.key -> "user,admin,system")
           DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore] must throwAn[IllegalArgumentException]
         } finally {
-          System.clearProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
+          GEOMESA_AUTH_PROVIDER_IMPL.threadLocalValue.remove()
         }
       }
 

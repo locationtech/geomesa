@@ -50,10 +50,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
-  addFeature(ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
+
+  step {
+    addFeature(ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
+  }
 
   "AccumuloDataStore" should {
     "return an empty iterator correctly" in {

@@ -16,7 +16,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
-import org.locationtech.geomesa.accumulo.index.{AccumuloJoinIndex, JoinIndex}
+import org.locationtech.geomesa.accumulo.index.{AttributeJoinIndex, JoinIndex}
 import org.locationtech.geomesa.accumulo.iterators.ArrowIterator.AccumuloArrowResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.AccumuloBinResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
@@ -178,8 +178,8 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     }
 
     index match {
-      case i: AccumuloJoinIndex =>
-        i.createQueryPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
+      case i: AttributeJoinIndex =>
+        AccumuloJoinIndexAdapter.createQueryPlan(ds, i, filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
 
       case _ =>
         val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {

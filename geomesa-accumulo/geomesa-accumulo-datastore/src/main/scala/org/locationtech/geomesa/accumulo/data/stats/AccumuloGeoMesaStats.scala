@@ -11,7 +11,9 @@ package org.locationtech.geomesa.accumulo.data.stats
 import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.accumulo.combiners.StatsCombiner
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
@@ -75,6 +77,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
   def configureStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit = {
     import MetadataBackedStats._
 
+    TableUtils.createTableIfNeeded(connector, metadata.table)
     StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
     val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
@@ -149,12 +152,10 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
 
 object AccumuloGeoMesaStats {
 
-  val CombinerName = "stats-combiner"
-
   def apply(ds: AccumuloDataStore): AccumuloGeoMesaStats = {
     val table = s"${ds.config.catalog}_stats"
     new AccumuloGeoMesaStats(ds, new AccumuloBackedMetadata(ds.connector, table, new StatsMetadataSerializer(ds)))
   }
 
-  private [stats] val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(3), force = true)
+  private[stats] val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(3), force = true)
 }

@@ -20,6 +20,8 @@
         <module>geomesa-accumulo-dist</module>
         <module>geomesa-accumulo-distributed-runtime</module>
         <module>geomesa-accumulo-gs-plugin</module>
+        <module>geomesa-accumulo-indices</module>
+        <module>geomesa-accumulo-iterators</module>
         <module>geomesa-accumulo-jobs</module>
         <module>geomesa-accumulo-spark</module>
         <module>geomesa-accumulo-spark-runtime-accumulo20</module>

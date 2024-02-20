@@ -31,8 +31,6 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
 
   import org.locationtech.geomesa.filter.ff
 
-  sequential
-
   override val spec = s"name:String:index=join,age:Integer:index=join,dtg:Date,*geom:Point:srid=4326"
 
   val features = List("a", "b", "c", "d").flatMap { name =>
@@ -46,7 +44,9 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithFea
     }
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   def checkStrategies[T](query: Query, strategy: NamedIndex, explain: Explainer = ExplainNull): MatchResult[Any] = {
     val plan = ds.getQueryPlan(query, explainer = explain)
