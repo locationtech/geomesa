@@ -41,7 +41,7 @@ First, set the version to use:
     mkdir -p ~/gm-nifi-quickstart/extensions
     cd ~/gm-nifi-quickstart
     export NARS="geomesa-fs-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
-    for nar in $NARS; do wget -O "extensions/$nar_$VERSION.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$TAG/$nar_$VERSION.nar"; done
+    for nar in $NARS; do wget -O "extensions/${nar}_$VERSION.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$TAG/${nar}_$VERSION.nar"; done
 
 Obtain GDELT data
 -----------------
@@ -57,8 +57,8 @@ Run the following commands to download a recent GDELT file:
 
     cd ~/gm-nifi-quickstart
     mkdir gdelt
-    export GDELT_URL="$(wget -O - 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt' | head -n 1 | awk '{ print $3 }')"
-    wget "$GDELT_URL" -O "gdelt/$(basename $GDELT_URL)"
+    export GDELT_URL="$(wget -qO- 'http://data.gdeltproject.org/gdeltv2/masterfilelist.txt' | head -n 1 | awk '{ print $3 }')"
+    wget "$GDELT_URL" -qO- "gdelt/$(basename $GDELT_URL)"
     unzip -d gdelt gdelt/*.zip
     rm gdelt/*.zip
 
@@ -72,7 +72,7 @@ Next, we will run NiFi through Docker, mounting in our NARs and a directory for 
     cd ~/gm-nifi-quickstart
     mkdir fs
     docker run --rm \
-      -p 8443:8443
+      -p 8443:8443 \
       -e SINGLE_USER_CREDENTIALS_USERNAME=nifi \
       -e SINGLE_USER_CREDENTIALS_PASSWORD=nifipassword \
       -v "$(pwd)/extensions:/opt/nifi/nifi-current/extensions:ro" \

@@ -199,7 +199,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>4.0.4</geomesa.release.version>
+        <geomesa.release.version>4.0.5</geomesa.release.version>
         <geomesa.devel.version>5.0.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2024</copyright.year>
 
@@ -2774,8 +2774,7 @@
                 <filtering>false</filtering>
             </testResource>
             <testResource>
-                <!-- user.dir points to the directory mvn was executed in, i.e. the top-level folder -->
-                <directory>${user.dir}/build/test/resources</directory>
+                <directory>src/test/shared-resources</directory>
                 <filtering>false</filtering>
             </testResource>
         </testResources>

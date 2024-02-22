@@ -24,8 +24,14 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
-case class DateTimeScheme(formatter: DateTimeFormatter, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int)
-    extends PartitionScheme {
+case class DateTimeScheme(
+    formatter: DateTimeFormatter,
+    pattern: String,
+    stepUnit: ChronoUnit,
+    step: Int,
+    dtg: String,
+    dtgIndex: Int
+  ) extends PartitionScheme {
 
   import FilterHelper.ff
   import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
@@ -51,9 +57,7 @@ case class DateTimeScheme(formatter: DateTimeFormatter, stepUnit: ChronoUnit, st
 
   // TODO This may not be the best way to calculate max depth...
   // especially if we are going to use other separators
-  override val depth: Int = formatter.toString.count(_ == '/') + 1
-
-  override val pattern: String = formatter.toString
+  override val depth: Int = pattern.count(_ == '/') + 1
 
   override def getPartitionName(feature: SimpleFeature): String =
     formatter.format(toInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date]).atZone(ZoneOffset.UTC))
@@ -162,7 +166,11 @@ object DateTimeScheme {
   val Name = "datetime"
 
   def apply(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
-    DateTimeScheme(DateTimeFormatter.ofPattern(format), stepUnit, step, dtg, dtgIndex)
+    DateTimeScheme(DateTimeFormatter.ofPattern(format), format, stepUnit, step, dtg, dtgIndex)
+
+  @deprecated("Pattern is not correct when using this constructor")
+  def apply(formatter: DateTimeFormatter, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
+    DateTimeScheme(formatter, formatter.toString, stepUnit, step, dtg, dtgIndex)
 
   object Config {
     val DateTimeFormatOpt: String = "datetime-format"
@@ -175,11 +183,11 @@ object DateTimeScheme {
 
     def apply(name: String): Option[Format] = all.find(_.name.equalsIgnoreCase(name))
 
-    case class Format private[Formats] (name: String, formatter: DateTimeFormatter, unit: ChronoUnit)
+    case class Format private[Formats](name: String, formatter: DateTimeFormatter, pattern: String, unit: ChronoUnit)
 
     private[Formats] object Format {
       def apply(name: String, format: String, unit: ChronoUnit): Format =
-        Format(name, DateTimeFormatter.ofPattern(format), unit)
+        Format(name, DateTimeFormatter.ofPattern(format), format, unit)
     }
 
     val Minute       : Format = Format("minute",        "yyyy/MM/dd/HH/mm", ChronoUnit.MINUTES)
@@ -200,7 +208,7 @@ object DateTimeScheme {
           .appendValue(WeekFields.ISO.weekOfWeekBasedYear(), 2)
           .parseDefaulting(ChronoField.DAY_OF_WEEK, 1)
           .toFormatter()
-      Format("weekly", formatter, ChronoUnit.WEEKS)
+      Format("weekly", formatter, "YYYY/'W'ww", ChronoUnit.WEEKS)
     }
 
     private val all = Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)
@@ -228,9 +236,9 @@ object DateTimeScheme {
         val formatter = try { DateTimeFormatter.ofPattern(format) } catch {
           case NonFatal(e) => throw new IllegalArgumentException(s"Invalid date format '$format':", e)
         }
-        Some(DateTimeScheme(formatter, unit, step, dtg, dtgIndex))
+        Some(DateTimeScheme(formatter, format, unit, step, dtg, dtgIndex))
       } else {
-        Formats(config.name).map(f => DateTimeScheme(f.formatter, f.unit, step, dtg, dtgIndex))
+        Formats(config.name).map(f => DateTimeScheme(f.formatter, f.pattern, f.unit, step, dtg, dtgIndex))
       }
     }
   }

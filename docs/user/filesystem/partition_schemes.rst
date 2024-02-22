@@ -86,6 +86,21 @@ Julian Schemes
 Julian schemes partition data by Julian day, instead of month/day. They use the patterns ``yyyy/DDD/HH/mm``,
 ``yyyy/DDD/HH``, and ``yyyy/DDD`` respectively
 
+Receipt Time Scheme
+^^^^^^^^^^^^^^^^^^^
+
+**Name:** ``receipt-time``
+
+**Configuration:**
+
+* ``datetime-scheme`` - The name of another date-time scheme describing the layout of the data, e.g. ``weekly`` or
+``hourly``. Additional options may be required to configure the date-time scheme selected.
+* ``buffer`` - The amount of time to buffer queries by, expressed as a duration, e.g. ``30 minutes``. This represents
+the latency in the system.
+
+The receipt time scheme partitions data based on when a message is received. Generally this is useful
+only for reading existing data that may have been aggregated and stored by an external process.
+
 Spatial Schemes
 ---------------
 
