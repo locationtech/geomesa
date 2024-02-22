@@ -14,11 +14,11 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.partitions.ReceiptTimeScheme.BufferingFilterVisitor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal, PropertyName}
-import org.opengis.filter.temporal.{After, Before, During, TEquals}
-import org.opengis.temporal.{Instant, Period}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, Literal, PropertyName}
+import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
+import org.geotools.api.temporal.{Instant, Period}
 
 import java.util.Date
 import java.util.concurrent.TimeUnit
