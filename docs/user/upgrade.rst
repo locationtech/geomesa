@@ -147,7 +147,7 @@ The following dependencies have been upgraded:
 * com.typesafe:config ``1.4.2`` -> ``1.4.3``
 * commons-cli ``1.2`` -> ``1.6.0``
 * commons-codec ``1.15`` -> ``1.16.0``
-* commons-compress ``1.22`` -> ``1.25.0``
+* commons-compress ``1.22`` -> ``1.26.0``
 * commons-configuration2 ``2.5`` -> ``2.9.0``
 * commons-csv ``1.9.0`` -> ``1.10.0``
 * commons-dbcp2 ``2.6.0`` -> ``2.11.0``

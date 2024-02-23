@@ -71,7 +71,7 @@
         <caffeine.version>3.1.8</caffeine.version>
         <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
         <commons.codec.version>1.16.0</commons.codec.version>
-        <commons.compress.version>1.25.0</commons.compress.version>
+        <commons.compress.version>1.26.0</commons.compress.version>
         <commons.csv.version>1.10.0</commons.csv.version>
         <commons.dbcp.version>2.11.0</commons.dbcp.version>
         <commons.io.version>2.15.1</commons.io.version>
