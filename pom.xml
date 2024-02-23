@@ -91,7 +91,7 @@
         <parboiled.version>1.4.1</parboiled.version>
         <parboiled.scala.version>1.3.1</parboiled.scala.version>
         <parquet.version>1.13.1</parquet.version>
-        <postgres.version>42.7.1</postgres.version>
+        <postgres.version>42.7.2</postgres.version>
         <pureconfig.version>0.17.4</pureconfig.version>
         <s2.geometry.version>1.0.1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>

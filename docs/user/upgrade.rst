@@ -180,7 +180,7 @@ The following dependencies have been upgraded:
 * org.eclipse.emf.ecore.xmi ``2.15.0`` -> ``2.36.0``
 * org.ehcache:sizeof ``0.4.0`` -> ``0.4.3``
 * parboiled ``1.3.1`` -> ``1.4.1``
-* postgresql ``42.5.1`` -> ``42.7.1``
+* postgresql ``42.5.1`` -> ``42.7.2``
 * pureconfig ``0.17.2`` -> ``0.17.4``
 * saxon ``11.4`` -> ``12.4``
 * scala ``2.12.17`` -> ``2.12.18``
