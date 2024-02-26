@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.filters
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.time.{Duration, ZonedDateTime}
 

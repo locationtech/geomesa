@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.spark.sql
 
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.index.sweepline.{SweepLineInterval, SweepLineOverlapAction}
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ListBuffer
 

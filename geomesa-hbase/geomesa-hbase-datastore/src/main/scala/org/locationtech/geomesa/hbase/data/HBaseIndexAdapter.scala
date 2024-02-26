@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter, MultiRowRangeFilter, Filter => HFilter}
 import org.apache.hadoop.hbase.io.compress.Compression
@@ -29,6 +28,7 @@ import java.util.regex.Pattern
 import java.util.{Collections, Locale, UUID}
 import scala.util.Try
 // noinspection ScalaDeprecation
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
@@ -42,7 +42,7 @@ import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
-import org.locationtech.geomesa.index.api.{WritableFeature, _}
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -55,7 +55,6 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionary
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.TimeUnit
 import scala.util.Random
@@ -109,8 +108,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
             }
           }
-          // if the coprocessors are installed site-wide don't register them in the table descriptor
-          val installed = Option(conf.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY))
+          // if the coprocessors are installed site-wide don't register them in the table descriptor.
+          // this key is CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY - but don't want to pull in
+          // a dependency on hbase-server just for this constant
+          val installed = Option(conf.get("hbase.coprocessor.user.region.classes"))
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
           if (names.contains(CoprocessorClass)) { None } else {
             logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")

@@ -54,11 +54,11 @@
         <!-- Spark SQL support powered by Apache Sedona -->
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-core-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-${sedona.spark.version}_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-sql-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-common-${sedona.spark.version}_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- test -->
@@ -91,12 +91,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

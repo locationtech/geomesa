@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFo
 import org.apache.hadoop.mapreduce.lib.partition.InputSampler.{RandomSampler, Sampler, SplitSampler}
 import org.apache.hadoop.mapreduce.lib.partition.{InputSampler, TotalOrderPartitioner}
 import org.apache.hadoop.mapreduce.security.TokenCache
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -30,7 +31,6 @@ import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Expor
 import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExporter}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.File
 import java.text.NumberFormat

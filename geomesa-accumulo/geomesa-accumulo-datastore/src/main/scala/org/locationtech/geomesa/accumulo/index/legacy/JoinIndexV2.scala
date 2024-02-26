@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.index.legacy
 
 import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.geotools.api.feature.simple.SimpleFeatureType
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder.IndexValueEncoderImpl
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV2
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV2.AttributeIndexKeySpaceV2
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndexKey, AttributeIndexKeySpace}
-import org.opengis.feature.simple.SimpleFeatureType
 
 class JoinIndexV2(ds: GeoMesaDataStore[_],
                   sft: SimpleFeatureType,

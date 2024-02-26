@@ -12,16 +12,16 @@ import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{BaseRepeatedValueVector, FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.holders._
 import org.apache.arrow.vector.types.Types.MinorType
-import org.locationtech.geomesa.arrow.jts.impl.{AbstractLineStringVector, AbstractPointVector}
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.arrow.jts._
+import org.locationtech.geomesa.arrow.jts.impl.{AbstractLineStringVector, AbstractPointVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom._
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicLong

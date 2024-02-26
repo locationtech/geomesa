@@ -10,8 +10,8 @@ package org.locationtech.geomesa.features.avro.serialization
 
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumWriter, Encoder}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Datum writer for simple features

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.data.{DataStore, Query}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.data.{DataStore, Query}
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 /**
   * Routes queries to one of a set of stores

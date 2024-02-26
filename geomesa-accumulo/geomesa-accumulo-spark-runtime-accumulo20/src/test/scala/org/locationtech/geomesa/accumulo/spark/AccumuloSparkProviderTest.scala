@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.spark.SparkSQLTestUtils

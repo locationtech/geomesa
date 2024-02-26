@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.ejml.data.DMatrixRMaj
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
 import org.locationtech.geomesa.utils.clearspring.{HyperLogLog, StreamSummary}
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.utils.stats.MinMax.MinMaxDefaults
 import org.locationtech.geomesa.utils.stats.Stat.ImmutableStat
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date

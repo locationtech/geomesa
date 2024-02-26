@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.utils.iterators
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.api.data.{DataStore, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortOrder
 
 import java.util.Date
 import java.util.concurrent.{Executors, LinkedBlockingQueue}
@@ -175,6 +175,6 @@ class PlaybackIterator(
 }
 
 object PlaybackIterator {
-  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val ff = CommonFactoryFinder.getFilterFactory
   private val terminal = new SimpleFeatureImpl(null, null, null, false, null)
 }

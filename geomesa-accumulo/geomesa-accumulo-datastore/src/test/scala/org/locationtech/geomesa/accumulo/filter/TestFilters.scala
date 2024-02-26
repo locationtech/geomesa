@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.filter
 
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.opengis.filter.Filter
 
 object TestFilters {
 

@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExp
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayInputStream

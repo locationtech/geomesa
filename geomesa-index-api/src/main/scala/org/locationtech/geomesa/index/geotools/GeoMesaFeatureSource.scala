@@ -9,18 +9,18 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data._
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortBy
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortBy
-import org.opengis.referencing.crs.CoordinateReferenceSystem
 
 import java.awt.RenderingHints.Key
 import java.net.URI
@@ -37,7 +37,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
 
   /**
     * The default behavior for getCount is to use estimated statistics if available, or -1 to indicate
-    * that the operation would be expensive (@see org.geotools.data.FeatureSource#getCount(org.geotools.data.Query)).
+    * that the operation would be expensive (@see org.geotools.api.data.FeatureSource#getCount(org.geotools.api.data.Query)).
     *
     * Since users may want <b>exact</b> counts, there are two ways to force exact counts:
     *   1. use the system property "geomesa.force.count"

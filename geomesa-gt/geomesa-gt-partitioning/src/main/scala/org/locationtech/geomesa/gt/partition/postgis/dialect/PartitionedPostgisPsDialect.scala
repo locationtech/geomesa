@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.JDBCDataStore
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale

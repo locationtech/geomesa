@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util
 import scala.collection.JavaConverters._

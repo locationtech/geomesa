@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OptCqIndex
-import org.opengis.feature.simple.SimpleFeatureType
 
 object CQIndexType extends Enumeration {
 

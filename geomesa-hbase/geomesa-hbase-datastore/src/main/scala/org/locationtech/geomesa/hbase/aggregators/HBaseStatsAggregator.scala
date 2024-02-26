@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.hbase.aggregators
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.iterators.StatsScan.StatsResultsToFeatures
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 object HBaseStatsAggregator {
 

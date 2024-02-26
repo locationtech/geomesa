@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.index.legacy._
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.utils.conf.IndexId
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * Feature index factory that provides attribute join indices

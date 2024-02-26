@@ -11,7 +11,8 @@ package org.locationtech.geomesa.accumulo.jobs
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.conf.Configuration
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.index._
@@ -20,7 +21,6 @@ import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.filter.Filter
 
 import java.io.File
 import scala.io.Source

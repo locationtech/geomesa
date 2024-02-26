@@ -69,6 +69,12 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-protocol</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.htrace</groupId>
+            <artifactId>htrace-core4</artifactId>
+            <version>${hbase.htrace.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- test deps -->
         <dependency>
@@ -82,26 +88,39 @@
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-testing-util</artifactId>
-            <version>${hbase.version}</version>
+        </dependency>
+        <!-- pull in the coprocessor implementation for tests -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-server-hbase2_2.12</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>${snappy.java.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- hard coded by hbase minicluster -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.19.0</version><!-- latest version as of 2023/01 -->
+            <version>2.22.1</version><!-- latest version as of 2023/01 -->
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.19.0</version>
+            <version>2.22.1</version>
             <scope>test</scope>
         </dependency>
         <!-- used by hadoop minicluster -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <artifactId>mockito-core</artifactId>
+            <version>${hadoop.minicluster.mockito.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
@@ -126,36 +145,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <!-- pull in the coprocessor implementation for tests -->
-    <profiles>
-        <profile>
-            <id>hbase2</id>
-            <activation>
-                <!-- this will be deactivated if another profile in this block (i.e. hbase1) is activated -->
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-server-hbase2_2.12</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>hbase1</id>
-            <properties>
-                <hbase.version>${hbase-1.version}</hbase.version>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-server-hbase1_2.12</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
 </project>

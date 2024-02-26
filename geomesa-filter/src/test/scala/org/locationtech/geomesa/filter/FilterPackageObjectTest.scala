@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.filter._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
@@ -22,8 +22,9 @@ import org.specs2.specification.core.Fragments
 @RunWith(classOf[JUnitRunner])
 class FilterPackageObjectTest extends Specification with LazyLogging {
 
-  import scala.collection.JavaConverters._
   import TestFilters._
+
+  import scala.collection.JavaConverters._
 
   "The partitionGeom function" should {
     val sft = SimpleFeatureTypes.createType("filterPackageTest", "g:Geometry,*geom:Geometry")
@@ -72,7 +73,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
 
   "the mergeFilters function" should {
 
-    val ff  = CommonFactoryFinder.getFilterFactory2
+    val ff  = CommonFactoryFinder.getFilterFactory
     val f1 = ff.equals(ff.property("test"), ff.literal("a"))
 
     "ignore Filter.INCLUDE" >> {
@@ -214,7 +215,7 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
   }
 
   "The function 'checkOrder'" should {
-    val ff  = CommonFactoryFinder.getFilterFactory2
+    val ff  = CommonFactoryFinder.getFilterFactory
 
     "handle function expressions correctly" >> {
       val f1 = ff.function("min", ff.property("f0"), ff.literal(10))

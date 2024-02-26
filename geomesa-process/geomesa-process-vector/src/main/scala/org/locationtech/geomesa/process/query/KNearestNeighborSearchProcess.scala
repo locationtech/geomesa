@@ -9,8 +9,12 @@
 package org.locationtech.geomesa.process.query
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data.{Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.PropertyName
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -28,13 +32,6 @@ import org.locationtech.geomesa.utils.geometry.DistanceCalculator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
-import org.opengis.feature.Feature
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.PropertyName
-
-import java.util.concurrent.Future
-import scala.collection.mutable.ArrayBuffer
 
 @DescribeProcess(
   title = "Geomesa-enabled K Nearest Neighbor Search",

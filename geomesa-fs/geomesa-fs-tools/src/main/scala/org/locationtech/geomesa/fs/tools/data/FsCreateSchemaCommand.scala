@@ -17,6 +17,7 @@
 package org.locationtech.geomesa.fs.tools.data
 
 import com.beust.jcommander.{ParameterException, Parameters}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.utils.PartitionSchemeArgResolver
@@ -25,7 +26,6 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalE
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ListBuffer
 

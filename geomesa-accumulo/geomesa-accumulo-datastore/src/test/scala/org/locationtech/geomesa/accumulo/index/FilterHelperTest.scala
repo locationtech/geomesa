@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.accumulo.index
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.expression.Expression
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
@@ -16,8 +18,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.filter.FilterHelper._
 import org.locationtech.geomesa.filter.andFilters
-import org.opengis.filter.Filter
-import org.opengis.filter.expression.Expression
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

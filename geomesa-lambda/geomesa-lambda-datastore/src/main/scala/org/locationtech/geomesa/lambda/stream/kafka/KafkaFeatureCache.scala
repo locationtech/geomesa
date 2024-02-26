@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache._
-import org.opengis.feature.simple.SimpleFeature
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.concurrent.ConcurrentHashMap

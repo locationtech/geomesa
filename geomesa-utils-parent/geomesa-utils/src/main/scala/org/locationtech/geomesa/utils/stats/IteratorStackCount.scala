@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * The IteratorStackCount keeps track of the number of times Accumulo sets up an iterator stack

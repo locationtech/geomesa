@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.index.index
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.geotools.util.factory.Hints
@@ -27,7 +28,6 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

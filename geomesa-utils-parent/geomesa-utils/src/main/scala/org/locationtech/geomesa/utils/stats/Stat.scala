@@ -10,12 +10,12 @@ package org.locationtech.geomesa.utils.stats
 
 import com.google.gson._
 import org.apache.commons.text.StringEscapeUtils
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}

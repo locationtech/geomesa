@@ -13,9 +13,11 @@ import org.apache.hadoop.hbase.HBaseTestingUtility
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 
+import scala.util.Try
+
 case object MiniCluster extends LazyLogging {
 
-  lazy val cluster: HBaseTestingUtility = {
+  private lazy val tryCluster: Try[HBaseTestingUtility] = Try {
     val cluster = new HBaseTestingUtility()
     logger.info("Starting embedded hbase")
     cluster.getConfiguration.set("hbase.superuser", "admin")
@@ -26,6 +28,7 @@ case object MiniCluster extends LazyLogging {
     cluster
   }
 
+  lazy val cluster: HBaseTestingUtility = tryCluster.get
   lazy val connection: Connection = cluster.getConnection
 
   sys.addShutdownHook({

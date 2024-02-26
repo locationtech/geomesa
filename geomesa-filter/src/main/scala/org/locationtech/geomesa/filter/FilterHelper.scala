@@ -9,6 +9,12 @@
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
+import org.geotools.api.temporal.Period
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
@@ -17,12 +23,6 @@ import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom._
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.spatial._
-import org.opengis.filter.temporal.{After, Before, During, TEquals}
-import org.opengis.temporal.Period
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
@@ -38,7 +38,7 @@ object FilterHelper {
     private [FilterHelper] def log = logger
   }
 
-  val ff: FilterFactory2 = org.locationtech.geomesa.filter.ff
+  val ff: FilterFactory = org.locationtech.geomesa.filter.ff
 
   def isFilterWholeWorld(f: Filter): Boolean = f match {
       case op: BBOX       => isOperationGeomWholeWorld(op)

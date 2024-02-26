@@ -11,8 +11,9 @@ package org.locationtech.geomesa.kafka.data
 import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang3.StringUtils
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.DataStoreFactorySpi
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.DataStoreFactorySpi
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
@@ -27,7 +28,6 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAud
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
-import org.opengis.filter.Filter
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
 

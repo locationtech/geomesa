@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.data.Key
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragments
 

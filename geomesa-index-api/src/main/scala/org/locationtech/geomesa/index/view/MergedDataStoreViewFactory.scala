@@ -9,14 +9,14 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.config._
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
-import org.opengis.filter.Filter
 
 import java.awt.RenderingHints
 import scala.util.control.NonFatal

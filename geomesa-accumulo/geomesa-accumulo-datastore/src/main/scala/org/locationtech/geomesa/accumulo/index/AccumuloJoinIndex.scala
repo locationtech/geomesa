@@ -11,6 +11,8 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
@@ -31,8 +33,6 @@ import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.Stat
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.util.Map.Entry
 import scala.util.Try

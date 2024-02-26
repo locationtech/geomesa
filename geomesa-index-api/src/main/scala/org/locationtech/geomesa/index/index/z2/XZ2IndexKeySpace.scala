@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index.z2
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
@@ -20,8 +22,6 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 

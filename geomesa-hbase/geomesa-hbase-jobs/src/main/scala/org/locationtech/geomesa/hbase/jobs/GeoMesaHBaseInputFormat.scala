@@ -17,7 +17,8 @@ import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputForma
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore}
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat.GeoMesaHBaseRecordReader
@@ -25,7 +26,6 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithStore
-import org.opengis.feature.simple.SimpleFeature
 
 import java.util.Base64
 

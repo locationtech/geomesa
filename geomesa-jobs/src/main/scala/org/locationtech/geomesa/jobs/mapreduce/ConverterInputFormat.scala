@@ -10,7 +10,7 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
@@ -19,6 +19,7 @@ import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.input.{CombineFileInputFormat, CombineFileRecordReader, CombineFileRecordReaderWrapper, CombineFileSplit}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.ReTypeFeatureReader
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
@@ -31,7 +32,6 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, InputStream}
 import java.util.Locale
@@ -112,7 +112,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val streams: CloseableIterator[(Option[String], InputStream)] =
       PathUtils.getUncompressedExtension(filePath.getName).toLowerCase(Locale.US) match {
         case ArchiveStreamFactory.TAR =>
-          val archive = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
+          val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+            new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
           new ArchiveFileIterator(archive, filePath.toString)
 
         case ArchiveStreamFactory.ZIP | ArchiveStreamFactory.JAR =>

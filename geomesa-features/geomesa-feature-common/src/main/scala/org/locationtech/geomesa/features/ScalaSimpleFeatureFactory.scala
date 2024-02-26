@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.features
 
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.util.factory.Hints
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConverters._
 
 class ScalaSimpleFeatureFactory extends AbstractFeatureFactoryImpl {
 

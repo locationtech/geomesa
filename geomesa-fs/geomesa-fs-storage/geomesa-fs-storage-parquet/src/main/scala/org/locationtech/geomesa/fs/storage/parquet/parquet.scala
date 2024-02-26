@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.fs.storage
 
 import org.apache.parquet.filter2.predicate.FilterPredicate
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 package object parquet {
 

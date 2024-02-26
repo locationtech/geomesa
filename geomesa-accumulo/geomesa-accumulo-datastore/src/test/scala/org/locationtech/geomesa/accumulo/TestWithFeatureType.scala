@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 

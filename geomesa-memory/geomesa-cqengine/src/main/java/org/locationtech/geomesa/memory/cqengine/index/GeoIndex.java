@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.memory.cqengine.index;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.locationtech.geomesa.memory.cqengine.index.param.BucketIndexParam;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 @Deprecated
 public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends BucketGeoIndex<A, O> {

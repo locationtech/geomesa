@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.security;
 
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeature;
 
 /**
  * Utilities for accessing and modifying visibility on <tt>SimpleFeature</tt>s.

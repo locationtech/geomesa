@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{InterruptedIOException, _}
+import java.io._
 import java.util.concurrent._
 
 /**

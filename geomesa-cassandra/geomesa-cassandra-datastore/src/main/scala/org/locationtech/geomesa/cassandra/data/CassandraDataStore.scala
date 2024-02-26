@@ -10,7 +10,8 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core._
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -26,7 +27,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.simple.SimpleFeatureType
 
 class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
     extends GeoMesaDataStore[CassandraDataStore](config) with LocalLocking {

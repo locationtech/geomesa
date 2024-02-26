@@ -41,7 +41,7 @@ You will also need:
 
 -  a `Spark <https://spark.apache.org/>`__ |spark_required_version| distribution
 -  an Accumulo user that has appropriate permissions to query your data
--  `Java JDK 8 <https://adoptium.net/temurin/releases/>`__,
+-  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
 -  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
 -  a `git <https://git-scm.com/>`__ client
 

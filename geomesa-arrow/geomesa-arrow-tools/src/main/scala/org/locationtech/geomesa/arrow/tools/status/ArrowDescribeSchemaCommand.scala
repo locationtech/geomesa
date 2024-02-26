@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.arrow.tools.status
 
 import com.beust.jcommander.{Parameter, Parameters}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.status.ArrowDescribeSchemaCommand.ArrowDescribeSchemaParams
 import org.locationtech.geomesa.tools.status.DescribeSchemaCommand
-import org.opengis.feature.simple.SimpleFeatureType
 
 class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] with ArrowDataStoreCommand {
 

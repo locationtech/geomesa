@@ -11,7 +11,7 @@ package org.locationtech.geomesa
 package object tools {
 
   import com.beust.jcommander.ParameterException
-  import org.geotools.data.{DataStore, DataStoreFinder}
+  import org.geotools.api.data.{DataStore, DataStoreFinder}
   import org.locationtech.geomesa.tools.utils.Prompt
   import org.locationtech.geomesa.utils.classpath.ClassPathUtils
   import org.slf4j.{Logger, LoggerFactory}

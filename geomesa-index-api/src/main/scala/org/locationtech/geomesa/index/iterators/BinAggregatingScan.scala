@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.iterators
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -17,8 +19,6 @@ import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date

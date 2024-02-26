@@ -11,12 +11,12 @@ package org.locationtech.geomesa.fs.storage.orc
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.orc.OrcFile
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
 

@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.utils.geotools.converters
 
 import com.typesafe.scalalogging.StrictLogging
+import org.geotools.api.filter.expression.Expression
 import org.geotools.data.util.InterpolationConverterFactory
 import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
-import org.opengis.filter.expression.Expression
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.reflect.ClassTag

@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.filter.expression
 
+import org.geotools.api.filter.FilterVisitor
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
+import org.geotools.api.filter.expression.{Expression, Literal}
+import org.geotools.api.filter.temporal.{After, Before, BinaryTemporalOperator, During}
+import org.geotools.api.temporal.Period
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.filter.FilterVisitor
-import org.opengis.filter.MultiValuedFilter.MatchAction
-import org.opengis.filter.expression.{Expression, Literal}
-import org.opengis.filter.temporal.{After, Before, BinaryTemporalOperator, During}
-import org.opengis.temporal.Period
 
 import java.util.Date
 

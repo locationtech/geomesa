@@ -10,10 +10,10 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.{Config, ConfigRenderOptions}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
-import org.opengis.feature.simple.SimpleFeatureType
 
 class EnvironmentCommand extends Command {
 

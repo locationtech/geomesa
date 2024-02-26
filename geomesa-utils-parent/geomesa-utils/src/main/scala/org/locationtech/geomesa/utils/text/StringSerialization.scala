@@ -11,9 +11,9 @@ package org.locationtech.geomesa.utils.text
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.nio.charset.StandardCharsets
 import java.time.format.DateTimeFormatter

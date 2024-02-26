@@ -10,6 +10,7 @@ package org.locationtech.geomesa.features.kryo.json
 
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
 import com.jayway.jsonpath.{Configuration, JsonPath}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute
 import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.{pathConfig, pathFor}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.lang.ref.SoftReference
 import scala.util.control.NonFatal

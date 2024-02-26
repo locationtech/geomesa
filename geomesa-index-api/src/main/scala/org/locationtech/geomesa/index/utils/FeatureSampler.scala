@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.utils
 
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 object FeatureSampler {
   /**

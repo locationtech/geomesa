@@ -76,6 +76,16 @@
             <version>${thrift-accumulo-21.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper-jute</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- bring in guava and relocate it -->
         <dependency>

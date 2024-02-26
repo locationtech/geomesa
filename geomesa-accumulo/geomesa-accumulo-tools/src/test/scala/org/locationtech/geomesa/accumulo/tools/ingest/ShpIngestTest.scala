@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
-import org.geotools.data.Transaction
+import org.geotools.api.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.referencing.CRS

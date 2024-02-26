@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common.metadata
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.dbcp2.{PoolingDataSource, _}
+import org.apache.commons.dbcp2._
 import org.apache.commons.pool2.impl.{GenericObjectPool, GenericObjectPoolConfig}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}

@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.filter.expression.PropertyName
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, arrayIndexProperty}
 import org.locationtech.geomesa.convert2.transforms.Expression.Literal
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
-import org.opengis.filter.expression.PropertyName
 
 class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
@@ -49,12 +49,12 @@ class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
 object CqlFunctionFactory {
 
-  private val ff = CommonFactoryFinder.getFilterFactory2
+  private val ff = CommonFactoryFinder.getFilterFactory
 
   // use alphas for the array indices, as used by the ArrayPropertyAccessor, below
   private def arrayIndexProperty(i: Int): PropertyName = ff.property(('a' + i).toChar.toString)
 
-  class CqlTransformerFunction(name: String, expressions: Array[_ <: org.opengis.filter.expression.Expression])
+  class CqlTransformerFunction(name: String, expressions: Array[_ <: org.geotools.api.filter.expression.Expression])
       extends NamedTransformerFunction(Seq(s"cql:$name")) {
 
     private val fn = ff.function(name, expressions: _*)

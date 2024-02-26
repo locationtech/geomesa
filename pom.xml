@@ -50,110 +50,154 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- *** main dependency versions *** -->
-
-        <scala.version>2.12.17</scala.version>
+        <!-- java/scala -->
+        <jdk.version>11</jdk.version>
+        <scala.version>2.12.18</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
+        <scala.xml.version>2.2.0</scala.xml.version>
+        <scala.parsers.version>2.3.0</scala.parsers.version>
 
-        <scala.xml.version>2.1.0</scala.xml.version>
-        <scala.parsers.version>2.1.1</scala.parsers.version>
-
-        <gt.version>28.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.22.2</geoserver.version>
+        <!-- geotools -->
+        <gt.version>30.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.24.2</geoserver.version>
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
-        <postgres.version>42.5.1</postgres.version>
-        <avro.version>1.11.1</avro.version> <!-- see also confluent.avro.version -->
-        <parquet.version>1.12.3</parquet.version>
-        <orc.version>1.8.2</orc.version>
-        <fasterxml.jackson.version>2.14.1</fasterxml.jackson.version> <!-- used by geoserver (2.13.2), spark (2.6.7) and arrow (2.7.1) -->
-        <fasterxml.jackson.databind.version>2.14.1</fasterxml.jackson.databind.version> <!-- used by geoserver (2.13.4.1), spark (2.6.7.1) and arrow (2.7.1) -->
-        <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
-        <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.3 -->
-        <kryo.version>4.0.2</kryo.version>
-        <arrow.version>11.0.0</arrow.version>
-        <netty.version>4.1.85.Final</netty.version>
-        <metrics.version>3.2.6</metrics.version>
-        <aws.sdk.version>1.11.421</aws.sdk.version>
-        <hsql.version>2.4.1</hsql.version> <!-- newer versions (at least 2.7+) require java 11 -->
-        <h2.version>2.2.220</h2.version>
-        <curator.version>4.3.0</curator.version> <!-- last version that supports zk 3.4 -->
-        <json.smart.version>2.4.8</json.smart.version> <!-- used by json-path (2.2.1) and hadoop-auth (2.3)-->
-        <json.path.version>2.7.0</json.path.version>
-        <spring.security.version>5.8.3</spring.security.version> <!-- geoserver ships with 5.1.13.RELEASE but that has several CVEs against it -->
-        <gson.version>2.10</gson.version>
-        <caffeine.version>2.9.3</caffeine.version> <!-- version 3+ requires java 11 -->
+
+        <!-- direct dependencies -->
+        <arrow.version>15.0.0</arrow.version>
+        <avro.version>1.11.3</avro.version> <!-- see also confluent.avro.version -->
+        <aws.sdk.version>1.12.625</aws.sdk.version>
+        <caffeine.version>3.1.8</caffeine.version>
+        <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
+        <commons.codec.version>1.16.0</commons.codec.version>
+        <commons.compress.version>1.26.0</commons.compress.version>
+        <commons.csv.version>1.10.0</commons.csv.version>
+        <commons.dbcp.version>2.11.0</commons.dbcp.version>
+        <commons.io.version>2.15.1</commons.io.version>
+        <commons.lang3.version>3.14.0</commons.lang3.version>
+        <commons.pool2.version>2.12.0</commons.pool2.version>
+        <commons.text.version>1.11.0</commons.text.version>
+        <cqengine.version>3.6.0</cqengine.version>
+        <curator.version>5.6.0</curator.version>
+        <gson.version>2.10.1</gson.version>
+        <jedis.version>5.1.0</jedis.version>
+        <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.5 -->
+        <json.path.version>2.8.0</json.path.version>
+        <kryo.version>4.0.3</kryo.version>
         <mango.version>3.0.0</mango.version>
-        <typesafe.config.version>1.4.2</typesafe.config.version>
-        <pureconfig.version>0.17.2</pureconfig.version>
-        <commons.csv.version>1.9.0</commons.csv.version>
-        <commons.io.version>2.8.0</commons.io.version> <!-- This should match what Hadoop uses (and thus Hbase and Accumulo) -->
-        <commons.compress.version>1.22</commons.compress.version>
-        <commons.cli.version>1.2</commons.cli.version>
-        <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.8.1</commons.lang3.version>
+        <metrics.version>3.2.6</metrics.version>
+        <orc.version>1.9.2</orc.version>
+        <parboiled.version>1.4.1</parboiled.version>
+        <parboiled.scala.version>1.3.1</parboiled.scala.version>
+        <parquet.version>1.13.1</parquet.version>
+        <postgres.version>42.7.2</postgres.version>
+        <pureconfig.version>0.17.4</pureconfig.version>
+        <s2.geometry.version>1.0.1</s2.geometry.version>
+        <sizeof.version>0.4.3</sizeof.version>
+        <spring.security.version>5.8.9</spring.security.version> <!-- geoserver is still on 5.x -->
+        <typesafe.config.version>1.4.3</typesafe.config.version>
+
+        <!-- standardized transitive dependencies -->
+        <aircompressor.version>0.25</aircompressor.version>
+        <fasterxml.jackson.version>2.16.1</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
+        <fasterxml.jackson.databind.version>2.16.1</fasterxml.jackson.databind.version> <!-- used by geoserver, spark and arrow -->
+        <h2.version>2.2.224</h2.version>
+        <hsql.version>2.7.2</hsql.version>
+        <json.smart.version>2.5.0</json.smart.version> <!-- used by json-path and hadoop-auth -->
+        <netty.version>4.1.106.Final</netty.version>
+        <commons.cli.version>1.6.0</commons.cli.version>
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.4</commons.collections4.version>
-        <commons.text.version>1.10.0</commons.text.version>
+        <commons.lang.version>2.6</commons.lang.version>
 
-        <specs2.version>4.9.2</specs2.version>
-        <junit.version>4.13.1</junit.version>
+        <!-- test dependencies -->
+        <specs2.version>4.20.4</specs2.version>
+        <junit.version>4.13.2</junit.version>
         <testcontainers.version>1.19.3</testcontainers.version>
+        <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
+        <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
 
-        <!-- *** provided artifacts, not bundled to support multiple environments *** -->
-
+        <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.0.1</accumulo.version>
         <accumulo-21.version>2.1.1</accumulo-21.version>
-        <zookeeper.version>3.5.10</zookeeper.version>
+        <zookeeper.version>3.9.1</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
         <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
-        <hadoop.version>2.10.2</hadoop.version>
-        <spark.version>3.3.1</spark.version>
-        <hbase.version>2.5.2</hbase.version>
-        <hbase-1.version>1.4.14</hbase-1.version>
+        <hadoop.version>3.3.6</hadoop.version>
+        <spark.version>3.5.0</spark.version>
+        <hbase.version>2.5.7-hadoop3</hbase.version>
+        <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <protobuf.version>2.5.0</protobuf.version>
-        <cassandra.version>3.11.3</cassandra.version>
+        <cassandra.version>3.11.5</cassandra.version>
         <kafka.version>2.8.2</kafka.version>
         <zkclient.version>0.11</zkclient.version>
         <kafka.jopt.version>5.0.4</kafka.jopt.version>
         <confluent.version>6.2.7</confluent.version> <!-- corresponds to kafka 2.8 -->
         <confluent.recommended.version>6.2.7</confluent.recommended.version>
-        <confluent.avro.version>1.11.1</confluent.avro.version>
-        <sedona.version>1.3.1-incubating</sedona.version>
-        <sedona.spark.version>3.0</sedona.spark.version>
+        <confluent.avro.version>1.11.3</confluent.avro.version>
+        <sedona.version>1.5.0</sedona.version>
+        <sedona.spark.version>3.4</sedona.spark.version>
+        <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
+        <snappy.java.version>1.1.10.5</snappy.java.version>
 
         <!-- guava - versions vary across environments -->
         <guava.version>${geotools.guava.version}</guava.version>
-        <geotools.guava.version>30.1-jre</geotools.guava.version>
+        <geotools.guava.version>32.0.0-jre</geotools.guava.version>
         <accumulo.guava.version>28.0-jre</accumulo.guava.version>
-        <hbase.guava.version>11.0.2</hbase.guava.version>
+        <hbase.guava.version>27.0-jre</hbase.guava.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
-        <hadoop.guava.version>11.0.2</hadoop.guava.version>
+        <hadoop.guava.version>27.0-jre</hadoop.guava.version>
 
+        <!-- logging -->
         <slf4j.version>1.7.36</slf4j.version> <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
         <scalalogging.version>3.9.5</scalalogging.version>
-        <reload4j.version>1.2.22</reload4j.version>
+        <reload4j.version>1.2.25</reload4j.version>
 
-        <!-- *** maven build configuration *** -->
+        <!-- plugins -->
+        <!-- note: plugin versions are generally set to the latest available -->
+        <cyclonedx.maven.plugin.version>2.7.10</cyclonedx.maven.plugin.version>
+        <maven.clean.plugin.version>3.3.2</maven.clean.plugin.version>
+        <maven.compiler.plugin.version>3.12.1</maven.compiler.plugin.version>
+        <exec.maven.plugin.version>3.1.1</exec.maven.plugin.version>
+        <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+        <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
+        <maven.dependency.plugin.version>3.6.1</maven.dependency.plugin.version>
+        <maven.assembly.plugin.version>3.6.0</maven.assembly.plugin.version>
+        <maven.shade.plugin.version>3.5.1</maven.shade.plugin.version>
+        <!-- note: we use an older version that still supports using zinc compile server -->
+        <scala.maven.plugin.version>3.4.4</scala.maven.plugin.version>
+        <maven.surefire.plugin.version>3.2.3</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.2.3</maven.failsafe.plugin.version>
+        <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+        <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+        <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
+        <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
+        <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
+        <git.commit.id.plugin.version>4.9.10</git.commit.id.plugin.version>
+        <license.maven.plugin.version>4.3</license.maven.plugin.version>
+        <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
+        <build.helper.maven.plugin.version>3.5.0</build.helper.maven.plugin.version>
+        <maven.checkstyle.plugin.version>3.3.1</maven.checkstyle.plugin.version>
+        <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
-        <maven.test.jvmargs>${maven.test.memory}</maven.test.jvmargs> <!--for java 11+: &#45;&#45;add-opens=java.base/java.nio=ALL-UNNAMED-->
+        <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
-        <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.enable.assertions>false</test.enable.assertions>
+        <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.postgis.docker.tag>15-3.3</test.postgis.docker.tag>
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
 
-        <!-- *** documentation *** -->
-
+        <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>4.0.5</geomesa.release.version>
         <geomesa.devel.version>5.0.0-SNAPSHOT</geomesa.devel.version>
@@ -161,15 +205,22 @@
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.1.1</accumulo.version.recommended>
-        <hbase.version.recommended>2.5.2</hbase.version.recommended>
-        <hbase.thirdparty.version.recommended>4.1.3</hbase.thirdparty.version.recommended>
+        <hbase.version.recommended>2.5.7</hbase.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.5</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>3.11.3</cassandra.driver.version.recommended>
-        <hadoop.version.recommended>3.3.4</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.5.10</zookeeper.version.recommended>
+        <hadoop.version.recommended>3.3.6</hadoop.version.recommended>
+        <zookeeper.version.recommended>3.9.1</zookeeper.version.recommended>
     </properties>
 
     <profiles>
+
+        <profile>
+            <id>debug-tests</id>
+            <properties>
+                <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens} ${maven.test.debug}</maven.test.jvmargs>
+            </properties>
+        </profile>
 
         <profile>
             <id>zinc</id>
@@ -187,13 +238,6 @@
                     </plugins>
                 </pluginManagement>
             </build>
-        </profile>
-
-        <profile>
-            <id>debug-tests</id>
-            <properties>
-                <maven.test.jvmargs>${maven.test.memory} ${maven.test.debug}</maven.test.jvmargs>
-            </properties>
         </profile>
 
         <profile>
@@ -277,16 +321,6 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </pluginRepository>
-                <pluginRepository>
-                    <id>dash-licenses-snapshots</id>
-                    <url>https://repo.eclipse.org/content/repositories/dash-licenses-snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </pluginRepository>
             </pluginRepositories>
         </profile>
 
@@ -297,7 +331,7 @@
                     <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
-                        <version>2.7.10</version>
+                        <version>${cyclonedx.maven.plugin.version}</version>
                         <configuration>
                             <schemaVersion>1.4</schemaVersion>
                             <projectType>library</projectType>
@@ -325,7 +359,7 @@
                 <dependency>
                     <groupId>jdk.tools</groupId>
                     <artifactId>jdk.tools</artifactId>
-                    <version>1.8</version>
+                    <version>${jdk.version}</version>
                     <scope>system</scope>
                     <systemPath>${java.home}/../lib/tools.jar</systemPath>
                 </dependency>
@@ -466,11 +500,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-convert-parquet_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-convert-osm_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -622,16 +651,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-hbase-server-hbase1_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-hbase-distributed-runtime-hbase1_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-distributed-runtime-hbase2_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -716,11 +735,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-metrics-cloudwatch_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-ganglia_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -846,6 +860,8 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- direct dependencies -->
+
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
@@ -887,13 +903,6 @@
                 <artifactId>scala-logging_${scala.binary.version}</artifactId>
                 <version>${scalalogging.version}</version>
             </dependency>
-            <!-- we've removed our direct joda dependency, but it still gets pulled in
-                 transitively by osm4j -->
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>2.8.1</version>
-            </dependency>
             <dependency>
                 <groupId>org.locationtech.jts.io</groupId>
                 <artifactId>jts-io-common</artifactId>
@@ -909,27 +918,6 @@
                 <artifactId>spatial4j</artifactId>
                 <version>${spatial4j.version}</version>
             </dependency>
-            <dependency>
-                <!-- 'works with' due to license issues -->
-                <groupId>javax.media</groupId>
-                <artifactId>jai_core</artifactId>
-                <version>1.1.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <!-- 'works with' due to license issues -->
-                <groupId>javax.media</groupId>
-                <artifactId>jai_codec</artifactId>
-                <version>1.1.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <!-- 'works with' due to license issues -->
-                <groupId>javax.media</groupId>
-                <artifactId>jai_imageio</artifactId>
-                <version>1.1</version>
-                <scope>provided</scope>
-            </dependency>
 
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -939,7 +927,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -951,19 +939,19 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-opengis</artifactId>
+                <artifactId>gt-api</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -975,7 +963,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -987,7 +975,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -999,7 +987,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1012,18 +1000,6 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imagemosaic</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.ejml</groupId>
@@ -1061,17 +1037,12 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1083,17 +1054,12 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1105,17 +1071,12 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift-core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1127,40 +1088,17 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>org.jaitools</groupId>
-                        <artifactId>jt-zonalstats</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>org.jaitools</groupId>
-                        <artifactId>jt-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1168,41 +1106,17 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-jdbc</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.jdbc</groupId>
                 <artifactId>gt-jdbc-h2</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
@@ -1217,16 +1131,6 @@
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -1236,13 +1140,6 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1252,7 +1149,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1269,7 +1166,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1281,7 +1178,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1293,21 +1190,12 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>org.jaitools</groupId>
-                        <artifactId>jt-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1324,21 +1212,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
@@ -1355,21 +1229,12 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.locationtech.jts</groupId>
-                        <artifactId>jts-example</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1381,7 +1246,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1393,7 +1258,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1401,147 +1266,47 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-arcgrid</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-complex</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-app-schema-resolver</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson-core</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geopkg</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-gml-geometry-streaming</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
-            <!--
-                `org.eclipse.emf` is a transitive dependency of gt-xsd-wfs, however the version number is
-                specified as `[2.15.0,3.0.0)`, which seems to intermittently trigger a maven bug.
-                geotools 28 uses 2.15.0, so we peg to that version here.
-            -->
-            <dependency>
-                <groupId>org.eclipse.emf</groupId>
-                <artifactId>org.eclipse.emf.common</artifactId>
-                <version>2.15.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.emf</groupId>
-                <artifactId>org.eclipse.emf.ecore</artifactId>
-                <version>2.15.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.emf</groupId>
-                <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-                <version>2.15.0</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-beanutils</groupId>
-                <artifactId>commons-beanutils</artifactId>
-                <version>1.9.4</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-configuration</groupId>
-                <artifactId>commons-configuration</artifactId>
-                <version>1.6</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- exclude commons-beanutils-core, which doesn't exist in 1.9.3 -->
-                        <groupId>commons-beanutils</groupId>
-                        <artifactId>commons-beanutils-core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>commons-pool</groupId>
-                <artifactId>commons-pool</artifactId>
-                <version>1.6</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-pool2</artifactId>
-                <version>2.6.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-dbcp2</artifactId>
-                <version>2.6.0</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>1.15</version>
-            </dependency>
-            <dependency>
-                <!-- managed from jts 1.1.1 and geotools 1.1 -->
-                <groupId>com.googlecode.json-simple</groupId>
-                <artifactId>json-simple</artifactId>
-                <version>1.1.1</version>
-            </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo-shaded</artifactId>
                 <version>${kryo.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-csv</artifactId>
-                <version>${commons.csv.version}</version>
+                <groupId>com.googlecode.cqengine</groupId>
+                <artifactId>cqengine</artifactId>
+                <version>${cqengine.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ehcache</groupId>
+                <artifactId>sizeof</artifactId>
+                <version>${sizeof.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.calrissian.mango</groupId>
@@ -1563,86 +1328,13 @@
                 <artifactId>json-path</artifactId>
                 <version>${json.path.version}</version>
             </dependency>
-            <!-- used by json-path (1.1) and hadoop-auth (1.2)-->
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>accessors-smart</artifactId>
-                <version>1.1</version>
-                <exclusions>
-                    <!--
-                        excluded due to spark conflicts. note:
-                        net.minidev:accessors-smart:jar:1.1 shades in asm, but does not relocate it
-                        net.minidev:accessors-smart:jar:1.2-SNAPSHOT removes shaded asm, but still requires it
-                        thus, if we update json-path versions, this exclusions will likely have to be removed
-                    -->
-                    <exclusion>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>${json.smart.version}</version>
-            </dependency>
-            <!-- used by hbase -->
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java</artifactId>
-                <version>${protobuf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.googlecode.cqengine</groupId>
-                <artifactId>cqengine</artifactId>
-                <version>3.0.0</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons.io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${commons.compress.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-cli</groupId>
-                <artifactId>commons-cli</artifactId>
-                <version>${commons.cli.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons.lang.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons.lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-collections</groupId>
-                <artifactId>commons-collections</artifactId>
-                <version>${commons.collections.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>${commons.collections4.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-text</artifactId>
-                <version>${commons.text.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
                 <version>${avro.version}</version>
                 <exclusions>
                     <exclusion>
+                        <!-- excluded due to license issues -->
                         <groupId>org.xerial.snappy</groupId>
                         <artifactId>snappy-java</artifactId>
                     </exclusion>
@@ -1659,6 +1351,7 @@
                 <version>${parquet.version}</version>
                 <exclusions>
                     <exclusion>
+                        <!-- excluded due to license issues -->
                         <groupId>org.xerial.snappy</groupId>
                         <artifactId>snappy-java</artifactId>
                     </exclusion>
@@ -1694,31 +1387,10 @@
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-shims</artifactId>
                 <version>${orc.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>com.google.guava</groupId>
-                        <artifactId>listenablefuture</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.checkerframework</groupId>
-                        <artifactId>checker-qual</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.j2objc</groupId>
-                        <artifactId>j2objc-annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.errorprone</groupId>
-                        <artifactId>error_prone_annotations</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>animal-sniffer-annotations</artifactId>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1750,17 +1422,12 @@
             <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
-                <version>1.3.1</version>
+                <version>${parboiled.scala.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-core</artifactId>
-                <version>1.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.luben</groupId>
-                <artifactId>zstd-jni</artifactId>
-                <version>1.5.0-1</version>
+                <version>${parboiled.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -1771,37 +1438,6 @@
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hsqldb</groupId>
-                <artifactId>hsqldb</artifactId>
-                <version>${hsql.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>log4j-over-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <!-- transitive dependency versioned due to license issues -->
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-                <version>1.4.01</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-core</artifactId>
-                <version>2.2.11</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <version>2.2.11</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
@@ -1818,31 +1454,10 @@
                 <artifactId>curator-recipes</artifactId>
                 <version>${curator.version}</version>
             </dependency>
-            <!-- standardize httpcomponents version, used by various libraries including hadoop and thrift -->
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient</artifactId>
-                <version>4.5.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpclient-cache</artifactId>
-                <version>4.5.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpcore</artifactId>
-                <version>4.4.15</version>
-            </dependency>
-            <dependency>
-                <groupId>com.thoughtworks.paranamer</groupId>
-                <artifactId>paranamer</artifactId>
-                <version>2.8</version>
-            </dependency>
             <dependency>
                 <groupId>com.clearspring.analytics</groupId>
                 <artifactId>stream</artifactId>
-                <version>2.9.2</version>
+                <version>${clearspring.analytics.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>it.unimi.dsi</groupId>
@@ -1889,7 +1504,7 @@
             <dependency>
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
-                <version>4.3.1</version>
+                <version>${jedis.version}</version>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issue -->
@@ -1898,6 +1513,281 @@
                         <artifactId>json</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.sgr</groupId>
+                <artifactId>s2-geometry-library-java</artifactId>
+                <version>${s2.geometry.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-core</artifactId>
+                <version>${aws.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${aws.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-cloudwatch</artifactId>
+                <version>${aws.sdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${commons.csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons.codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons.compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-dbcp2</artifactId>
+                <version>${commons.dbcp.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons.lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons.text.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${commons.pool2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+
+            <!-- transitive dependencies with standardized versions -->
+
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.12.6</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>1.3.5</version>
+            </dependency>
+            <!--
+                `org.eclipse.emf` is a transitive dependency of gt-xsd-wfs, however the version number is
+                specified as `[2.15.0,3.0.0)`, which seems to intermittently trigger a maven bug.
+                we peg to the 2.15.0, which is the version shipped with geoserver 2.24
+            -->
+            <dependency>
+                <groupId>org.eclipse.emf</groupId>
+                <artifactId>org.eclipse.emf.common</artifactId>
+                <version>2.15.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.emf</groupId>
+                <artifactId>org.eclipse.emf.ecore</artifactId>
+                <version>2.15.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.emf</groupId>
+                <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+                <version>2.15.0</version>
+            </dependency>
+            <!-- 2.2 fixes Accumulo classloading GEOMESA-3292 -->
+            <dependency>
+                <groupId>tech.units</groupId>
+                <artifactId>indriya</artifactId>
+                <version>2.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.9.4</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>1.10</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- exclude commons-beanutils-core, which doesn't exist in 1.9.3 -->
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-configuration2</artifactId>
+                <version>2.9.0</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-pool</groupId>
+                <artifactId>commons-pool</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.json-simple</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>1.1.1</version>
+            </dependency>
+            <!-- used by json-path and hadoop-auth -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>accessors-smart</artifactId>
+                <version>2.5.0</version>
+                <exclusions>
+                    <!--
+                        excluded due to spark conflicts. note:
+                        net.minidev:accessors-smart:jar:1.1 shades in asm, but does not relocate it
+                        net.minidev:accessors-smart:jar:1.2-SNAPSHOT removes shaded asm, but still requires it
+                        thus, if we update json-path versions, this exclusions will likely have to be removed
+                    -->
+                    <exclusion>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json.smart.version}</version>
+            </dependency>
+            <!-- used by hbase -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-cli</groupId>
+                <artifactId>commons-cli</artifactId>
+                <version>${commons.cli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons.lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons.collections.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons.collections4.version}</version>
+            </dependency>
+            <!-- shared dependency between parquet and orc -->
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>aircompressor</artifactId>
+                <version>${aircompressor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>listenablefuture</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.j2objc</groupId>
+                        <artifactId>j2objc-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>animal-sniffer-annotations</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.github.luben</groupId>
+                <artifactId>zstd-jni</artifactId>
+                <version>1.5.5-11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hsqldb</groupId>
+                <artifactId>hsqldb</artifactId>
+                <version>${hsql.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <!-- transitive dependency versioned due to license issues -->
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>1.4.01</version> <!-- note, version 2 is actually _older_ than 1.4-->
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-core</artifactId>
+                <version>4.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>4.0.4</version>
+            </dependency>
+            <!-- standardize httpcomponents version, used by various libraries including hadoop and thrift -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.14</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient-cache</artifactId>
+                <version>4.5.14</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.4.16</version>
+            </dependency>
+            <dependency>
+                <groupId>com.thoughtworks.paranamer</groupId>
+                <artifactId>paranamer</artifactId>
+                <version>2.8</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -1939,21 +1829,6 @@
                 <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
                 <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope> <!-- from spark -->
-            </dependency>
-            <dependency>
-                <groupId>org.ehcache</groupId>
-                <artifactId>sizeof</artifactId>
-                <version>0.4.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.h2database</groupId>
-                <artifactId>h2</artifactId>
-                <version>${h2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.sgr</groupId>
-                <artifactId>s2-geometry-library-java</artifactId>
-                <version>1.0.1</version>
             </dependency>
 
             <!-- provided dependencies -->
@@ -2318,7 +2193,7 @@
                     </exclusion>
                     <exclusion>
                         <groupId>io.netty</groupId>
-                        <artifactId>netty</artifactId>
+                        <artifactId>netty-tcnative-boringssl-static</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>com.github.spotbugs</groupId>
@@ -2332,7 +2207,17 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>ch.qos.logback</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper-jute</artifactId>
+                <version>${zookeeper.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -2434,27 +2319,11 @@
                 <version>${hbase.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-testing-util</artifactId>
-                <version>${hbase.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <!-- pulled in by hbase but version is incorrect... -->
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>javax.el</artifactId>
-                <version>3.0.1-b11</version>
+                <version>3.0.1-b12</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -2468,48 +2337,6 @@
                 <artifactId>cassandra-driver-mapping</artifactId>
                 <version>${cassandra.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_${scala.binary.version}</artifactId>
-                <version>${kafka.version}</version>
-                <classifier>test</classifier>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.xerial.snappy</groupId>
-                        <artifactId>snappy-java</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.sf.jopt-simple</groupId>
-                        <artifactId>jopt-simple</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka-clients</artifactId>
-                <version>${kafka.version}</version>
-                <classifier>test</classifier>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.xerial.snappy</groupId>
-                        <artifactId>snappy-java</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka-streams-test-utils</artifactId>
-                <version>${kafka.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.xerial.snappy</groupId>
-                        <artifactId>snappy-java</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
@@ -2552,54 +2379,14 @@
                 <version>${spark.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <!-- needs to be provided due to license issues -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-math3</artifactId>
-                <version>3.6.1</version>
-                <scope>provided</scope>
-            </dependency>
 
             <!-- Netty 4.x used by arrow, hadoop, hbase, and c* -->
             <dependency>
                 <groupId>io.netty</groupId>
-                <artifactId>netty-buffer</artifactId>
+                <artifactId>netty-bom</artifactId>
                 <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-codec</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-common</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-handler</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport-classes-epoll</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- specific to hadoop not to be confused with above-->
@@ -2622,29 +2409,21 @@
                 <version>${spring.security.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <!-- needs to be provided due to license issues -->
             <dependency>
-                <!-- marked provided due to license issues -->
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
-                <version>2.0.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <!-- marked provided due to license issues -->
-                <groupId>jline</groupId>
-                <artifactId>jline</artifactId>
-                <version>2.11</version>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.6.1</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
-                <version>1.78</version>
+                <version>1.82</version>
             </dependency>
-            <!-- apache sedona -->
             <dependency>
                 <groupId>org.apache.sedona</groupId>
-                <artifactId>sedona-core-${sedona.spark.version}_${scala.binary.version}</artifactId>
+                <artifactId>sedona-spark-${sedona.spark.version}_${scala.binary.version}</artifactId>
                 <version>${sedona.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -2656,7 +2435,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.sedona</groupId>
-                <artifactId>sedona-sql-${sedona.spark.version}_${scala.binary.version}</artifactId>
+                <artifactId>sedona-spark-common-${sedona.spark.version}_${scala.binary.version}</artifactId>
                 <version>${sedona.version}</version>
                 <scope>provided</scope>
                 <exclusions>
@@ -2665,6 +2444,56 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.sedona</groupId>
+                <artifactId>sedona-common</artifactId>
+                <version>${sedona.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.uber</groupId>
+                <artifactId>h3</artifactId>
+                <version>${sedona.h3.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- dependencies excluded due to license issues -->
+            <dependency>
+                <groupId>javax.media</groupId>
+                <artifactId>jai_core</artifactId>
+                <version>1.1.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.media</groupId>
+                <artifactId>jai_codec</artifactId>
+                <version>1.1.3</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.media</groupId>
+                <artifactId>jai_imageio</artifactId>
+                <version>1.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jline</groupId>
+                <artifactId>jline</artifactId>
+                <version>2.11</version>
+                <scope>provided</scope>
             </dependency>
 
             <!-- test dependencies -->
@@ -2733,6 +2562,11 @@
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
                     </exclusion>
+                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
+                    <exclusion>
+                        <groupId>org.openjfx</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2762,6 +2596,11 @@
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
                     </exclusion>
+                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
+                    <exclusion>
+                        <groupId>org.openjfx</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2774,6 +2613,22 @@
                     <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hbase</groupId>
+                <artifactId>hbase-testing-util</artifactId>
+                <version>${hbase.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2818,6 +2673,55 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <!-- 'works with' due to license issues -->
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>${snappy.java.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka_${scala.binary.version}</artifactId>
+                <version>${kafka.version}</version>
+                <classifier>test</classifier>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>net.sf.jopt-simple</groupId>
+                        <artifactId>jopt-simple</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.version}</version>
+                <classifier>test</classifier>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-streams-test-utils</artifactId>
+                <version>${kafka.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>${curator.version}</version>
@@ -2839,7 +2743,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
-                <version>1.8.5</version>
+                <version>1.10.19</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -2880,43 +2784,39 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <!-- 3.8.0 was released 2018-07-26. -->
-                    <version>3.8.0</version>
+                    <version>${maven.compiler.plugin.version}</version>
                     <configuration>
                         <!-- Turn off 'useIncrementalCompilation' to keep this plugin
                              from recompiling Java files that the scala-maven-plugin
-                             already compiled.  The scala-maven-plugin generates .class
-                             files from Java sources when its 'incremental' option is
-                             turned on (as it is in the 'zinc' profile).  In this case,
-                             maven-compiler-plugin 3.0 to current (3.8.0) erroneously
-                             detects changes and re-compiles the Java files unless this
-                             option is turned off.  -->
+                             already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>${jdk.version}</source>
+                        <target>${jdk.version}</target>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <!-- 3.1.0 was released 2018-04-14. -->
-                    <version>3.1.0</version>
+                    <version>${maven.clean.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.6.0</version>
+                    <version>${exec.maven.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <!-- 3.1.0 was released 2018-04-23. -->
-                    <version>3.1.0</version>
+                    <version>${maven.resources.plugin.version}</version>
+                    <configuration>
+                        <!-- when using java.util.Properties, props files should be ISO-8859-1 -->
+                        <propertiesEncoding>ISO-8859-1</propertiesEncoding>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.3.0</version> <!-- released 2022-09-12 -->
+                    <version>${maven.jar.plugin.version}</version>
                     <configuration>
                         <archive>
                             <!-- automatic module config for java 9+ compatibility -->
@@ -2945,20 +2845,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <!-- 3.0.0-M1 was released 2018-09-23. -->
-                    <version>3.0.0-M1</version>
+                    <version>${maven.install.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <!-- 3.1.1 was released 2018-05-19. -->
-                    <version>3.1.1</version>
+                    <version>${maven.dependency.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <!-- 3.3.0 was released 2020-04-27. -->
-                    <version>3.3.0</version>
+                    <version>${maven.assembly.plugin.version}</version>
                     <configuration>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
@@ -2966,7 +2863,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.4.1</version><!-- published 2022-10-21 -->
+                    <version>${maven.shade.plugin.version}</version>
                     <configuration>
                         <artifactSet>
                             <excludes combine.children="append">
@@ -3005,9 +2902,7 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <!-- we use an older version that still supports using zinc compile server-->
-                    <version>3.4.4</version> <!-- published 2018-11-01 -->
-                    <!--<version>4.8.0</version>&lt;!&ndash; published 2022-11-29 &ndash;&gt;-->
+                    <version>${scala.maven.plugin.version}</version>
                     <configuration>
                         <dependencies>
                             <dependency>
@@ -3027,21 +2922,19 @@
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
                         </args>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                        <scalaVersion>${scala.version}</scalaVersion>
+                        <source>${jdk.version}</source>
+                        <target>${jdk.version}</target>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <!-- 3.0.0-M4 was released 2019-11-13 -->
-                    <version>3.0.0-M4</version>
+                    <version>${maven.surefire.plugin.version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit4</artifactId>
-                            <version>3.0.0-M4</version>
+                            <version>${maven.surefire.plugin.version}</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -3081,7 +2974,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M3</version>
+                    <version>${maven.failsafe.plugin.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -3091,6 +2984,8 @@
                         </execution>
                     </executions>
                     <configuration>
+                        <argLine>${maven.test.opens}</argLine>
+                        <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
                         <systemProperties>
                             <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
@@ -3099,12 +2994,10 @@
                         </systemProperties>
                     </configuration>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <!-- 3.0.0-M2 was released 2021-12-27. -->
-                    <version>3.0.0-M2</version>
+                    <version>${maven.deploy.plugin.version}</version>
                     <configuration>
                         <deployAtEnd>true</deployAtEnd>
                     </configuration>
@@ -3112,25 +3005,22 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <!-- 3.2.1 was latest as of 2022-02-18 -->
-                    <version>3.2.1</version>
+                    <version>${maven.source.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.4.1</version><!-- published 2022-08-10 -->
+                    <version>${maven.javadoc.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <!-- 3.7.1 was released 2018-04-27. -->
-                    <version>3.7.1</version>
+                    <version>${maven.site.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <!-- 2.5.3 was released 2015-10-17 and is the latest as of 2018-11-29. -->
-                    <version>2.5.3</version>
+                    <version>${maven.release.plugin.version}</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <tagNameFormat>geomesa-@{project.version}</tagNameFormat>
@@ -3139,7 +3029,7 @@
                 <plugin>
                     <groupId>pl.project13.maven</groupId>
                     <artifactId>git-commit-id-plugin</artifactId>
-                    <version>4.9.10</version> <!-- version 4.x is latest to support java 8 -->
+                    <version>${git.commit.id.plugin.version}</version>
                     <configuration>
                         <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                         <runOnlyOnce>false</runOnlyOnce>
@@ -3168,8 +3058,7 @@
                 <plugin>
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <!-- 3.0 was released 2016-08-20 and is the latest as of 2018-11-30. -->
-                    <version>3.0</version>
+                    <version>${license.maven.plugin.version}</version>
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
@@ -3204,19 +3093,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <!-- 3.0.0-M2 was released 2018-06-16. -->
-                    <version>3.0.0-M2</version>
+                    <version>${maven.enforcer.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.3.0</version> <!-- released 2022-01-04 -->
+                    <version>${build.helper.maven.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
-                    <!-- 3.0.0 was released 2018-01-07. -->
-                    <version>3.0.0</version>
+                    <version>${maven.checkstyle.plugin.version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.slf4j</groupId>
@@ -3233,8 +3120,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <!-- 1.6 was released 2015-01-19 and is the latest as of 2018-11-29. -->
-                    <version>1.6</version>
+                    <version>${maven.gpg.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -3469,7 +3355,7 @@
                                     <regex>2.12</regex>
                                 </requireProperty>
                                 <requireMavenVersion>
-                                    <version>[3.5.2,)</version>
+                                    <version>[3.6.3,)</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>

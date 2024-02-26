@@ -77,7 +77,7 @@ rst_epilog = """
 
 .. _GeoServer: https://geoserver.org/
 
-.. |maven_version| replace:: 3.6 or later
+.. |maven_version| replace:: 3.6.3 or later
 
 .. |geoserver_version| replace:: %(geoserver_version)s
 
@@ -87,9 +87,9 @@ rst_epilog = """
 
 .. |accumulo_required_version| replace:: %(accumulo_version)s or %(accumulo_version_recommended)s
 
-.. |hbase_required_version| replace:: %(hbase_version)s or %(hbase_1_version)s
+.. |hbase_required_version| replace:: %(hbase_version)s
 
-.. |hbase_supported_versions| replace:: versions %(hbase_version)s and %(hbase_1_version)s
+.. |hbase_supported_versions| replace:: versions %(hbase_version)s
 
 .. |hadoop_version| replace:: 2.8 or later
 
@@ -113,6 +113,8 @@ rst_epilog = """
 
 .. |scala_release_version| replace:: ``%(scala_binary_version)s-%(release_version)s``
 
+.. |java_supported_versions| replace:: 11 and 17
+
 """ % {"release": target.versions.release,
        "release_version": target.versions.release_version,
        "scala_binary_version": target.versions.scala_binary_version,
@@ -121,7 +123,6 @@ rst_epilog = """
        "accumulo_version": target.versions.accumulo_version,
        "accumulo_version_recommended": target.versions.accumulo_version_recommended,
        "hbase_version": target.versions.hbase_version,
-       "hbase_1_version": target.versions.hbase_1_version,
        "kafka_version": target.versions.kafka_version,
        "spark_version": target.versions.spark_version,
        "url_github_archive": url_github_archive}

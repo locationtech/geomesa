@@ -11,8 +11,8 @@ package observer
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.Closeable
 

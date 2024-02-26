@@ -10,10 +10,10 @@ package org.locationtech.geomesa.features.serialization
 
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.Writer
 import java.util.regex.Pattern

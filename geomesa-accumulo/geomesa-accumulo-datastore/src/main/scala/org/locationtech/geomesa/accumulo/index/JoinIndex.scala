@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloWritableFeature
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, Attribute
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.opengis.feature.simple.SimpleFeatureType
 
 class JoinIndex(ds: GeoMesaDataStore[_],
                 sft: SimpleFeatureType,

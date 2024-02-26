@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.hbase.aggregators
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.ArrowScan
 import org.locationtech.geomesa.index.iterators.ArrowScan.{ArrowResultsToFeatures, ArrowScanConfig}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 object HBaseArrowAggregator {
 

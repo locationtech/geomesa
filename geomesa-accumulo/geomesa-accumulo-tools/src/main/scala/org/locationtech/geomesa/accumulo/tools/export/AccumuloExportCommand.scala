@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.tools.export
 
 import com.beust.jcommander.Parameters
 import org.apache.hadoop.mapreduce.Job
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat

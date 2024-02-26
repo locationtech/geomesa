@@ -10,11 +10,11 @@ package org.locationtech.geomesa.features.avro
 package io
 
 import org.apache.avro.file.{CodecFactory, DataFileWriter}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.util.zip.Deflater

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import org.apache.arrow.vector.{IntVector, VarCharVector}
 import org.apache.arrow.vector.ipc.message.IpcOption
+import org.apache.arrow.vector.{IntVector, VarCharVector}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature

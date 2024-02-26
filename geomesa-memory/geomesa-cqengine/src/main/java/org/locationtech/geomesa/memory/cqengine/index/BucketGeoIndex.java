@@ -9,6 +9,10 @@
 package org.locationtech.geomesa.memory.cqengine.index;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
 import org.locationtech.geomesa.memory.cqengine.index.param.BucketIndexParam;
 import org.locationtech.geomesa.utils.index.BucketIndex;
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex;
@@ -17,9 +21,6 @@ import org.locationtech.geomesa.utils.index.SpatialIndex;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

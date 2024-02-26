@@ -8,16 +8,16 @@
 
 package org.locationtech.geomesa.filter.expression
 
+import org.geotools.api.filter.FilterVisitor
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
+import org.geotools.api.filter.expression.{Expression, Literal}
+import org.geotools.api.filter.spatial.DWithin
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.filter.GeometryProcessing
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.operation.distance.DistanceOp
-import org.opengis.filter.FilterVisitor
-import org.opengis.filter.MultiValuedFilter.MatchAction
-import org.opengis.filter.expression.{Expression, Literal}
-import org.opengis.filter.spatial.DWithin
 
 object FastDWithin {
 

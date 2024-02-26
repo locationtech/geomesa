@@ -13,9 +13,9 @@ import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval}
-import org.opengis.feature.simple.SimpleFeature
 
 // A special case relation that is built when a join happens across two identically partitioned relations
 // Uses the sweepline algorithm to lower the complexity of the join
@@ -25,7 +25,7 @@ case class GeoMesaJoinRelation(
     rightRel: GeoMesaRelation,
     schema: StructType,
     condition: Expression,
-    filt: org.opengis.filter.Filter = org.opengis.filter.Filter.INCLUDE,
+    filt: org.geotools.api.filter.Filter = org.geotools.api.filter.Filter.INCLUDE,
     props: Option[Seq[String]] = None
   ) extends BaseRelation with PrunedFilteredScan {
 

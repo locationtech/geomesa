@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.api
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.Objects
 import scala.util.Try

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.geotools.tools
 
 import com.beust.jcommander.{Parameter, ParameterException}
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}

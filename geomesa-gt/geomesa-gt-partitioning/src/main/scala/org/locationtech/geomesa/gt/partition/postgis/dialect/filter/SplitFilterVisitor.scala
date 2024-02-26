@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect.filter
 
+import org.geotools.api.filter.expression.Function
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.{And, Filter, Or}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FilterAttributeExtractor
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
-import org.opengis.filter.{And, Filter, Or}
-import org.opengis.filter.expression.Function
-import org.opengis.filter.spatial._
 
 /**
  * Filter visitor we use for processing filters in the dialect's `splitFilter`method.
@@ -103,7 +103,7 @@ class SplitFilterVisitor(removeWholeWorldFilters: Boolean = true) extends Duplic
 
 object SplitFilterVisitor {
 
-  private val ff = CommonFactoryFinder.getFilterFactory2()
+  private val ff = CommonFactoryFinder.getFilterFactory()
 
   def apply(filter: Filter, removeWholeWorldFilters: Boolean): Filter =
     filter.accept(new SplitFilterVisitor(removeWholeWorldFilters), null).asInstanceOf[Filter]

@@ -18,8 +18,9 @@ import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONE
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, SimpleFeatureStore, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.FlushableFeatureWriter
@@ -48,8 +49,6 @@ import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
@@ -267,7 +266,7 @@ class KafkaDataStore(
   }
 
   /**
-    * @see org.geotools.data.DataStore#getFeatureSource(org.opengis.feature.type.Name)
+    * @see org.geotools.api.data.DataStore#getFeatureSource(org.geotools.api.feature.type.Name)
     * @param typeName simple feature type name
     * @return featureStore, suitable for reading and writing
     */

@@ -11,6 +11,8 @@ package org.locationtech.geomesa.fs.storage.converter
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.hadoop.fs.{FileContext, Path}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
@@ -18,8 +20,6 @@ import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.File
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.hadoop.HadoopDelegate.{HadoopFileHandle, HadoopTarHandle, HadoopZipHandle}
 import org.locationtech.geomesa.utils.io.PathUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.util.Locale
 import scala.util.control.NonFatal

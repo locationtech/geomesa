@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.view
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
+import org.geotools.api.data.{DataStore, FeatureReader, Query, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.arrow.io.FormatVersion
@@ -27,8 +29,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 /**
  * Query runner for merging results from multiple stores

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
 import org.geotools.data.store.{ContentFeatureSource, ContentFeatureStore}
 
 /** Parent for any trait adding support to a [[ContentFeatureSource]] such as 'retype', 'sort', 'offset',

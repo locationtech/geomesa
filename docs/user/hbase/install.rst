@@ -53,46 +53,21 @@ distribution. If you have built from source, the distribution is created in the 
 Installing the GeoMesa Distributed Runtime JAR
 ----------------------------------------------
 
-GeoMesa uses custom HBase filters and coprocessors to speed up queries. There are two distributed runtime JARs
-provided by GeoMesa, one for HBase 1.x and one for HBase 2.x.
-
-.. warning::
-
-  Make sure that you use the correct GeoMesa distributed JAR for your HBase version
+GeoMesa uses custom HBase filters and coprocessors to speed up queries.
 
 You must deploy the distributed runtime jar to the directory specified by the HBase configuration variable
 ``hbase.dynamic.jars.dir``.  This is set to ``${hbase.rootdir}/lib`` by default. Copy the distribute runtime jar to
 this directory as follows:
 
-.. tabs::
+.. code-block:: bash
 
-  .. group-tab:: HBase 2.x
-
-    .. code-block:: bash
-
-      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
-
-  .. group-tab:: HBase 1.x
-
-    .. code-block:: bash
-
-      $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar ${hbase.dynamic.jars.dir}/
+  $ hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar ${hbase.dynamic.jars.dir}/
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
-.. tabs::
+.. code-block:: bash
 
-  .. group-tab:: HBase 2.x
-
-    .. code-block:: bash
-
-      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
-
-  .. group-tab:: HBase 1.x
-
-    .. code-block:: bash
-
-      $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
+  $ aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_${VERSION}.jar s3://${hbase.dynamic.jars.dir}/
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -302,4 +277,4 @@ the GeoMesa JAR there:
 .. code-block:: shell
 
     hadoop fs -mkdir /hbase/lib
-    hadoop fs -put geomesa-hbase-distributed-runtime-hbase1-$VERSION.jar /hbase/lib/
+    hadoop fs -put geomesa-hbase-distributed-runtime-hbase2-$VERSION.jar /hbase/lib/

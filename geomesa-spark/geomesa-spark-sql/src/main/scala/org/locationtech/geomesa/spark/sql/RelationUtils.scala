@@ -10,12 +10,12 @@ package org.locationtech.geomesa.spark.sql
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.rdd.RDD
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.FilterFactory
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry}
 import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.FilterFactory2
 
 import scala.collection.mutable.ListBuffer
 
@@ -23,7 +23,7 @@ object RelationUtils extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  @transient val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
+  @transient val ff: FilterFactory = CommonFactoryFinder.getFilterFactory
 
   implicit val CoordinateOrdering: Ordering[Coordinate] = Ordering.by {_.x}
 

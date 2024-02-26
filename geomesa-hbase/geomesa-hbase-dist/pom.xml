@@ -40,10 +40,6 @@
         <!-- distributed runtime -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-distributed-runtime-hbase1_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-distributed-runtime-hbase2_${scala.binary.version}</artifactId>
         </dependency>
 
@@ -72,11 +68,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-spark-runtime-hbase1_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

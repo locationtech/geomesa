@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.filter.function
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.expression.VolatileFunction
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.expression.VolatileFunction
 
 import scala.util.hashing.MurmurHash3
 

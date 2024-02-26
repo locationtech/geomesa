@@ -93,12 +93,106 @@ Compatibility Matrix
 Version 5.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Version Compatibility
+---------------------
+
+GeoMesa 5.0.x is generally compatible with versions 4.0.x and 3.5.x across different environments. This means that
+it is possible to upgrade in parts; i.e. upgrade GeoServer to 5.0.0 but keep NiFi at 3.5.2. Please note that
+previously deprecated functionality (see below) may no longer work once any part of the environment is upgraded to
+5.0.0.
+
+Java Version
+------------
+
+GeoMesa no longer supports Java 8. The Java ecosystem is slowly moving on from Java 8, and it is no longer
+possible to support Java 8 while staying up-to-date with dependencies and security patches. GeoMesa now
+supports Java versions 11 and 17.
+
+GeoTools Upgrade
+----------------
+
+GeoTools has been updated to version 30.1. This version contains
+`extensive package changes <https://geotoolsnews.blogspot.com/2023/10/geotools-300-released.html>`__. In addition to
+the Ant migration script provided by GeoTools, GeoMesa provides a ``sed``
+`script <https://github.com/locationtech/geomesa/blob/geomesa-5.0.0/build/gt-30-api-changes.sed>`__ to help migrate Scala projects.
+Use the following ``bash`` script to upgrade a project from an earlier version of GeoTools to version 30:
+
+.. code::
+
+    # run the following from the root directory of your project:
+    wget 'https://raw.githubusercontent.com/locationtech/geomesa/geomesa-5.0.0/build/remove-opengis.xml'
+    ant -f remove-opengis.xml
+    # for Scala projects, also run:
+    wget 'https://raw.githubusercontent.com/locationtech/geomesa/geomesa-5.0.0/build/gt-30-api-changes.sed'
+    find . -name "*.scala" -not -exec grep -q "import org.geotools.api.data._" {} \; -exec sed -E -i -f gt-30-api-changes.sed {} \;
+
+HBase Versions
+--------------
+
+Support for HBase 1.4 has been dropped, as HBase 1.4 does not support Java 11.
+
 Dependency Version Upgrades
 ---------------------------
 
 The following dependencies have been upgraded:
 
-* Spring security ``5.8.0`` -> ``5.8.3``
+* aircompressor ``0.21`` -> ``0.25``
+* antlr ``4.7.1`` -> ``4.7.2``
+* aws-java-sdk ``1.11.179`` -> ``1.12.625``
+* caffeine ``2.9.3`` -> ``3.1.8``
+* cassandra-driver ``3.11.3`` -> ``3.11.5``
+* com.clearspring.analytics ``2.9.2`` -> ``2.9.8``
+* com.fasterxml.jackson ``2.14.1`` -> ``2.16.1``
+* com.jayway.jsonpath ``2.7.0`` -> ``2.8.0``
+* com.typesafe:config ``1.4.2`` -> ``1.4.3``
+* commons-cli ``1.2`` -> ``1.6.0``
+* commons-codec ``1.15`` -> ``1.16.0``
+* commons-compress ``1.22`` -> ``1.26.0``
+* commons-configuration2 ``2.5`` -> ``2.9.0``
+* commons-csv ``1.9.0`` -> ``1.10.0``
+* commons-dbcp2 ``2.6.0`` -> ``2.11.0``
+* commons-io ``2.8.0`` -> ``2.15.1``
+* commons-lang3 ``3.8.1`` -> ``3.14.0``
+* commons-pool2 ``2.6.1`` -> ``2.12.0``
+* commons-text ``1.10.0`` -> ``1.11.0``
+* cqengine ``3.0.0`` -> ``3.6.0``
+* org.apache.curator ``4.3.0`` -> ``5.6.0``
+* geotools ``28.2`` -> ``30.2``
+* gson ``2.10`` -> ``2.10.1``
+* guava ``30.1-jre`` -> ``32.0.0-jre``
+* hadoop ``2.10.2`` -> ``3.3.6``
+* hbase ``2.5.2`` -> ``2.5.7``
+* httpclient ``4.5.13`` -> ``4.5.14``
+* httpcore ``4.4.15`` -> ``4.4.16``
+* io.netty ``4.1.85.Final`` -> ``4.1.106.Final``
+* javax.measure:unit-api ``2.0`` -> ``2.1.2``
+* jcommander ``1.78`` -> ``1.82``
+* jedis ``4.3.1`` -> ``5.1.0``
+* kryo ``4.0.2`` -> ``4.0.3``
+* org.apache.arrow ``11.0.0`` -> ``15.0.0``
+* org.apache.avro ``1.11.1`` -> ``1.11.3``
+* org.apache.orc ``1.8.2`` -> ``1.9.2``
+* org.apache.parquet ``1.12.3`` -> ``1.13.1``
+* org.apache.sedona ``1.3.1-incubating`` -> ``1.5.0``
+* org.apache.spark ``3.3.1`` -> ``3.5.0``
+* org.eclipse.emf.common ``2.15.0`` -> ``2.29.0``
+* org.eclipse.emf.ecore ``2.15.0`` -> ``2.35.0``
+* org.eclipse.emf.ecore.xmi ``2.15.0`` -> ``2.36.0``
+* org.ehcache:sizeof ``0.4.0`` -> ``0.4.3``
+* parboiled ``1.3.1`` -> ``1.4.1``
+* postgresql ``42.5.1`` -> ``42.7.2``
+* pureconfig ``0.17.2`` -> ``0.17.4``
+* saxon ``11.4`` -> ``12.4``
+* scala ``2.12.17`` -> ``2.12.18``
+* scala-parser-combinators ``2.1.1`` -> ``2.3.0``
+* scala-xml ``2.1.0`` -> ``2.2.0``
+* si.uom ``2.0.1`` -> ``2.1``
+* spring-security ``5.8.0`` -> ``5.8.9``
+* systems.uom ``2.0.2`` -> ``2.1``
+* tech.units:indriya ``2.0.2`` -> ``2.2``
+* tech.uom.lib ``2.0`` -> ``2.1``
+* xmlresolver ``4.4.3`` -> ``5.2.2``
+* zookeeper ``3.5.10`` -> ``3.9.1``
 
 Deprecated Classes and Methods
 ------------------------------
@@ -106,6 +200,20 @@ Deprecated Classes and Methods
 The following classes have been deprecated and will be removed in a future version:
 
 * org.locationtech.geomesa.kafka.confluent.SchemaParser.GeoMesaAvroDeserializableEnumProperty
+
+Removed Modules
+---------------
+
+The ``geomesa-metrics-ganglia`` module has been removed, and Ganglia is no longer supported as a destination for
+metrics.
+
+As part of dropping support for HBase 1.x, the ``geomesa-hbase-distributed-runtime-hbase1``,
+``geomesa-hbase-server-hbase1`` and ``geomesa-hbase-spark-runtime-hbase1`` modules have been removed.
+
+GeoMesa Convert OSM
+-------------------
+
+The ``geomesa-convert-osm`` module has been relocated to https://github.com/geomesa/geomesa-convert-osm.
 
 Partitioned PostGIS Prepared Statements
 ---------------------------------------

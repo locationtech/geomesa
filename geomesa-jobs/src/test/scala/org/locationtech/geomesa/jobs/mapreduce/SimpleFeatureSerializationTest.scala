@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.jobs.mapreduce
 
 import org.apache.hadoop.conf.Configuration
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

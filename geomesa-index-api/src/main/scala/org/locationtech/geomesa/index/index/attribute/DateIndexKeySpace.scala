@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
@@ -16,8 +18,6 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.time.ZonedDateTime
 import java.util.Date

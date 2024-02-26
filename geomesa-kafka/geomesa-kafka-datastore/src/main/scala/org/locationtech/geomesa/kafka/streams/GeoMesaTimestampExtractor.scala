@@ -10,11 +10,11 @@ package org.locationtech.geomesa.kafka.streams
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.streams.processor.TimestampExtractor
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.expression.Expression
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.expression.Expression
 
 import java.util.concurrent.ConcurrentHashMap
 

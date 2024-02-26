@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.index.stats
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.api.data.{DataStore, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.filterToString
@@ -19,8 +21,6 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal

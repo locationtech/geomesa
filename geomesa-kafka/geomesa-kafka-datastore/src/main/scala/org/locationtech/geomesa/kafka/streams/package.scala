@@ -9,18 +9,17 @@
 package org.locationtech.geomesa.kafka
 
 import org.apache.kafka.streams.processor.StreamPartitioner
-import org.geotools.data.DataStoreFinder
+import org.geotools.api.data.DataStoreFinder
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.{GeometryAttribute, Property}
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.api.geometry.BoundingBox
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.streams.MessageAction.MessageAction
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap

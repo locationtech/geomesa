@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.spark
 
 import org.apache.spark.sql.SparkSession
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStore, DataUtilities}
+import org.geotools.api.data.{DataStore, SimpleFeatureStore}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.data.DataUtilities
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.Random
 

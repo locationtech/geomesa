@@ -29,17 +29,15 @@ Installing OSM Converter
 
 The OSM converter does not ship with the GeoMesa tools by default, due to some dependency conflicts. To install
 it currently requires the source distribution and Maven. Download or clone the project from
-`Github <https://github.com/locationtech/geomesa>`__. Ensure that the version matches your GeoMesa tools
+`Github <https://github.com/geomesa/geomesa-convert-osm>`__. Ensure that the version matches your GeoMesa tools
 version, either by checking out the correct Git branch, or by downloading the appropriate tag. Run the following
 commands:
 
 ::
 
     mvn clean install -DskipTests
-    mvn dependency:copy-dependencies -pl geomesa-convert/geomesa-convert-osm/ \
-      -DincludeScope=compile -DoutputDirectory=$GEOMESA_HOME/lib
-    cp geomesa-convert/geomesa-convert-osm/target/geomesa-convert-osm_2.12-$version.jar \
-      $GEOMESA_HOME/lib
+    mvn dependency:copy-dependencies -DincludeScope=compile -DoutputDirectory=$GEOMESA_HOME/lib
+    cp target/geomesa-convert-osm_2.12-$version.jar $GEOMESA_HOME/lib
 
 
 Check that the ``osm-nodes`` and ``osm-ways`` simple feature types are available on the GeoMesa

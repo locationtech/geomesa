@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.TemporalIndexCheck
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

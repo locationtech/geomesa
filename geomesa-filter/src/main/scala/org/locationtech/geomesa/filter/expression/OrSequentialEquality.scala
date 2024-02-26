@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import org.opengis.filter.expression.PropertyName
-import org.opengis.filter.{Filter, FilterVisitor, Or}
+import org.geotools.api.filter.expression.PropertyName
+import org.geotools.api.filter.{Filter, FilterVisitor, Or}
 
 import java.util.Collections
 

@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.time.ZonedDateTime
 

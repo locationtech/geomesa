@@ -13,6 +13,7 @@ import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.api.Metadata
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
@@ -28,7 +29,6 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, TempPathParam}
-import org.opengis.feature.simple.SimpleFeatureType
 
 class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {
 

@@ -9,10 +9,9 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.data.simple.SimpleFeatureSource
-import org.geotools.data.{FeatureEvent, FeatureListener}
+import org.geotools.api.data.{FeatureEvent, FeatureListener, SimpleFeatureSource}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent
-import org.opengis.feature.simple.SimpleFeature
 
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap

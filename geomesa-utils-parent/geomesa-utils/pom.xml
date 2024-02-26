@@ -62,7 +62,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-opengis</artifactId>
+            <artifactId>gt-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

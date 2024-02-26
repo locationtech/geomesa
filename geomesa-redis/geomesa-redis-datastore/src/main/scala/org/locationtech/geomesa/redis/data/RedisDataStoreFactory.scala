@@ -10,8 +10,8 @@ package org.locationtech.geomesa.redis.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff

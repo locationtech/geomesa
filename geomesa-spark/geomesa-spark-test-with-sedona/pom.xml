@@ -44,6 +44,12 @@
             <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- for testing Apache Sedona integration -->
         <dependency>
@@ -54,12 +60,27 @@
         </dependency>
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-core-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-${sedona.spark.version}_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-sql-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <artifactId>sedona-spark-common-${sedona.spark.version}_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sedona</groupId>
+            <artifactId>sedona-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.uber</groupId>
+            <artifactId>h3</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

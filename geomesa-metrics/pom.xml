@@ -15,7 +15,6 @@
     <modules>
         <module>geomesa-metrics-core</module>
         <module>geomesa-metrics-cloudwatch</module>
-        <module>geomesa-metrics-ganglia</module>
         <module>geomesa-metrics-graphite</module>
         <module>geomesa-metrics-prometheus</module>
     </modules>

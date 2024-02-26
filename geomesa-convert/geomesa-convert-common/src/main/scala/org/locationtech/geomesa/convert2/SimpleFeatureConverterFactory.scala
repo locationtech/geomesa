@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert2
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 

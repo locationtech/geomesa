@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.geotools.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
-import org.geotools.data.{DataStore, DefaultTransaction}
+import org.geotools.api.data.DataStore
+import org.geotools.data.DefaultTransaction
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.jdbc.JDBCDataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand

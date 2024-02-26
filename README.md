@@ -176,8 +176,8 @@ libraryDependencies ++= Seq(
 Requirements:
 
 * [Git](https://git-scm.com/)
-* [Java JDK 8](https://adoptium.net/temurin/releases/)
-* [Apache Maven](https://maven.apache.org/) 3.6 or later
+* [Java JDK 11](https://adoptium.net/temurin/releases/)
+* [Apache Maven](https://maven.apache.org/) 3.6.3 or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
 Use Git to download the source code. Navigate to the destination directory, then run:

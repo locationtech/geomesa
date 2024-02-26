@@ -11,13 +11,13 @@ package org.locationtech.geomesa.jobs
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.serializer.WritableSerialization
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * Common place for setting and getting values out of the mapreduce config

@@ -10,12 +10,12 @@ package org.locationtech.geomesa.index.planning
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.{DataStore, Query}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.util.concurrent.TimeUnit

@@ -10,6 +10,8 @@ package org.locationtech.geomesa.tools.ingest
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -25,7 +27,6 @@ import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.Flushable
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}

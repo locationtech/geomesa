@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api._
@@ -16,8 +18,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.index.EmptyIndex.EmptyKeySpace
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 /**
  * Placeholder index for scans that won't return any results (i.e. Filter.EXCLUDE)

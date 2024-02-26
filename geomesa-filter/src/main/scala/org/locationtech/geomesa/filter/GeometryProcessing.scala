@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.spatial._
+import org.geotools.api.filter.{Filter, FilterFactory}
 import org.geotools.filter.spatial.BBOXImpl
 import org.locationtech.geomesa.filter.FilterHelper.trimToWorld
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils.distanceDegrees
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.{Geometry, GeometryCollection}
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.spatial._
-import org.opengis.filter.{Filter, FilterFactory2}
 
 import java.util.Locale
 import scala.util.{Failure, Success}
@@ -35,7 +35,7 @@ trait GeometryProcessing {
     * @param factory filter factory
     * @return
     */
-  def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter
+  def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory): Filter
 
   /**
     * Extract geometries from a filter, to use for querying
@@ -59,7 +59,7 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
       Spatial4jStrategy
   }
 
-  override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter =
+  override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory): Filter =
     processor.process(op, sft, factory)
 
   override def extract(op: BinarySpatialOperator, attribute: String): Seq[Geometry] =
@@ -101,7 +101,7 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
 
     protected def split(geom: Geometry, op: BinarySpatialOperator): Geometry
 
-    override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter = {
+    override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory): Filter = {
       val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
       val geom = FastConverter.evaluate(prop.literal, classOf[Geometry])
       if (geom.getUserData == SafeGeomString) {

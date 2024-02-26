@@ -10,9 +10,11 @@ package org.locationtech.geomesa.fs.data
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, RemovalCause, RemovalListener}
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWrite
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.io.{Closeable, Flushable}
 import java.util.concurrent.TimeUnit

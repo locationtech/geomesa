@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.accumulo.data.stats
 
 import org.apache.accumulo.core.conf.ClientProperty
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 import java.time.temporal.ChronoUnit

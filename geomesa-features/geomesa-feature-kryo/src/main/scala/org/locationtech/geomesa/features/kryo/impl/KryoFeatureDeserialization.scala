@@ -11,6 +11,8 @@ package impl
 
 import com.esotericsoftware.kryo.io.Input
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.`type`.AttributeDescriptor
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoAttributeReader
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
@@ -20,8 +22,6 @@ import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import java.util.{Date, UUID}

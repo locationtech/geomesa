@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.features.avro.serde
 
 import org.apache.avro.io.DecoderFactory
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, SimpleFeatureDatumReader}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

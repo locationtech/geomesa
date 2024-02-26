@@ -8,6 +8,13 @@
 
 package org.locationtech.geomesa.filter.factory
 
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.spatial.DWithin
+import org.geotools.api.filter.temporal.{After, Before, During}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.DuplicatingFilterVisitor
@@ -21,14 +28,7 @@ import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequent
 import org.locationtech.geomesa.filter.expression._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.MultiValuedFilter.MatchAction
-import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, PropertyName}
-import org.opengis.filter.spatial.DWithin
-import org.opengis.filter.temporal.{After, Before, During}
-import org.opengis.geometry.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
 /**
@@ -37,7 +37,7 @@ import org.xml.sax.helpers.NamespaceSupport
   * Note: usage expects the sft to be set in FastFilterFactory.sfts
   * FastFilterFactory.toFilter will handle this for you
  */
-class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl with FilterFactory2 {
+class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl with FilterFactory {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 

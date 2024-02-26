@@ -8,16 +8,16 @@
 
 package org.locationtech.geomesa.index.stats
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.PropertyName
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.zorder.sfcurve.IndexRange
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
-import org.opengis.filter.expression.PropertyName
+import org.locationtech.jts.geom.Geometry
 
 import java.time.ZonedDateTime
 import java.util.Date

@@ -80,4 +80,4 @@ Deploying GeoMesa HBase on Cloudera CDH 5.X
 .. code-block:: shell
 
   $GEOMESA_HBASE_HOME/bin/geomesa-hbase ingest -c example-csv -s example-csv \
-    -C example-csv $GEOMESA_HBASE_HOME/examples/ingest/csv/example.csv
+    -C example-csv $GEOMESA_HBASE_HOME/examples/csv/example.csv

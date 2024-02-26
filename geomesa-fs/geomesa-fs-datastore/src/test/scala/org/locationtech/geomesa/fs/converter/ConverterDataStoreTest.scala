@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.fs.converter
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
