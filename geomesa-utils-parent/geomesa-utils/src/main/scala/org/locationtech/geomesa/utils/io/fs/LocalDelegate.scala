@@ -15,6 +15,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{LocalFileHandle, LocalTarHandle, LocalZipHandle}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.CopyingInputStream
 
 import java.io._
 import java.net.URL
@@ -163,12 +164,44 @@ object LocalDelegate {
     override def length: Long = Try(System.in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
     override def open: CloseableIterator[(Option[String], InputStream)] = CloseableIterator.single(None -> System.in)
     override def write(mode: CreateMode, createParents: Boolean): OutputStream = System.out
-    override def delete(recusive: Boolean): Unit = {}
+    override def delete(recursive: Boolean): Unit = {}
   }
 
   object StdInHandle {
     // avoid hanging if there isn't any input
     def available(): Option[FileHandle] = if (isAvailable) { Some(new StdInHandle) } else { None }
+    def isAvailable: Boolean = System.in.available() > 0
+  }
+
+  private class NonClosingCopyingInputStream(s: InputStream, initialBuffer: Int) extends CopyingInputStream(s, initialBuffer) {
+    override def close(): Unit = {}
+  }
+
+  // A class that caches any bytes read from the stdin input stream
+  class CachingStdInHandle extends StdInHandle {
+    private val is = new NonClosingCopyingInputStream(System.in, 1024)
+    private var cachedBytes: Array[Byte] = Array.empty
+
+    override def length: Long = Try(System.in.available().toLong).getOrElse(0L) + cachedBytes.length
+
+    // .available will throw if stream is closed
+    override def open: CloseableIterator[(Option[String], InputStream)] = {
+      if (is.copied > 0) {
+        cachedBytes ++= is.replay(is.copied)
+      }
+      CloseableIterator.single(None -> new SequenceInputStream(new ByteArrayInputStream(cachedBytes), is))
+    }
+  }
+
+  // Need an object so we can call it in IngestCommandTest
+  object CachingStdInHandle {
+    // avoid hanging if there isn't any input
+    def available(): Option[FileHandle] = if (isAvailable) {
+      Some(new CachingStdInHandle)
+    } else {
+      None
+    }
+
     def isAvailable: Boolean = System.in.available() > 0
   }
 }

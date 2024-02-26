@@ -37,6 +37,7 @@ class DelimitedTextConverterFactory
 
   import scala.collection.JavaConverters._
 
+  // @param path is unused in this class
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],

@@ -34,7 +34,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
-import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{CachingStdInHandle, StdInHandle}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -104,7 +104,7 @@ trait IngestCommand[DS <: DataStore]
 
     withDataStore { ds =>
       // use .get to re-throw the exception if we fail
-      IngestCommand.getSftAndConverter(params, inputs.paths, format, Some(ds)).get.foreach { case (sft, converter) =>
+      IngestCommand.getSftAndConverter(params, inputs, format, Some(ds)).get.foreach { case (sft, converter) =>
         val start = System.currentTimeMillis()
         // create schema for the feature prior to ingest
         val existing = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
@@ -228,7 +228,7 @@ object IngestCommand extends LazyLogging {
     */
   def getSftAndConverter(
       params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
-      inputs: Seq[String],
+      inputs: Inputs,
       format: Option[String],
       ds: Option[_ <: DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
@@ -238,52 +238,111 @@ object IngestCommand extends LazyLogging {
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
-    if (converter == null && inputs.nonEmpty) {
-      // ingesting from stdin without specifying a converter is not supported
-      if (inputs == Inputs.StdInInputs) {
-        throw new ParameterException("Cannot infer types from stdin - please specify a converter/sft or ingest from a file")
-      }
+    // if there is no converter passed in
+    if (converter == null && inputs.paths.nonEmpty) {
+      var open: () => InputStream = null
+      var file: FileHandle = null
+      var opened = ListBuffer.empty[CloseableIterator[InputStream]]
 
-      // if there is no converter passed in, try to infer the schema from the input files themselves
-      Command.user.info("No converter defined - will attempt to detect schema from input files")
-      val file = inputs.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
-        throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
+      // try to infer the schema from stdin
+      if (inputs.paths == Inputs.StdInInputs) {
+        Command.user.info("No converter defined - will attempt to detect schema from stdin")
+
+        // Mark the beginning of the stdin stream so we can return to it later
+        System.in.mark(8192)
+
+        // Function that returns an input stream containing the cached bytes and any bytes remaining on stdin
+        def openStdin(): InputStream = {
+          try {
+            // Get the CachingStdInHandle that gives us access to our custom-made input stream
+            val handle = inputs.handles.headOption.getOrElse {
+              throw new RuntimeException("Unable to obtain handle for stdin")
+            }
+
+            // Use the handle to get the stream
+            val (_, stream) = handle.open.next()
+            opened += CloseableIterator.single(stream)
+            stream
+          } catch {
+            case e: Exception => throw new RuntimeException("Unable to read from stdin", e)
+          }
+        }
+
+        open = openStdin
       }
-      val opened = ListBuffer.empty[CloseableIterator[InputStream]]
-      def open(): InputStream = {
-        val streams = file.open.map(_._2)
-        opened += streams
-        if (streams.hasNext) { streams.next } else {
+      // try to infer the schema from the input files themselves
+      else {
+        Command.user.info("No converter defined - will attempt to detect schema from input files")
+        file = inputs.handles.headOption.getOrElse {
           throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
         }
+
+        def openFile(): InputStream = {
+          val streams = file.open.map(_._2)
+          opened += streams
+          if (streams.hasNext) {
+            streams.next
+          } else {
+            throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
+          }
+        }
+
+        open = openFile
       }
+
       val (inferredSft, inferredConverter) = try {
         val opt = format match {
-          case None      => SimpleFeatureConverter.infer(open, Option(sft), Option(file.path))
-          case Some(fmt) => TypeAwareInference.infer(fmt, open, Option(sft), Option(file.path))
+          case None => if (inputs.paths == Inputs.StdInInputs) {
+              SimpleFeatureConverter.infer(open, Option(sft))
+            } else {
+              SimpleFeatureConverter.infer(open, Option(sft), Option(file.path))
+            }
+
+          case Some(fmt) => if (inputs.paths == Inputs.StdInInputs) {
+            TypeAwareInference.infer(fmt, open, Option(sft), None)
+          } else {
+            TypeAwareInference.infer(fmt, open, Option(sft), Option(file.path))
+          }
         }
+
+        // Make stdin point back to the beginning
+        open()
+        System.in.reset()
+
+        // Return the inferred sft and converter
         opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
         }
       } finally {
         CloseWithLogging(opened)
       }
+
       val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
       var inferredSftString: Option[String] = None
 
       if (sft == null) {
-        val typeName = Option(params.featureName).getOrElse {
-          val existing = ds.toSet[DataStore].flatMap(_.getTypeNames)
-          val fileName = Option(FilenameUtils.getBaseName(file.path))
-          val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse("geomesa")
-          var name = base
-          var i = 0
-          while (existing.contains(name)) {
-            name = s"${base}_$i"
-            i += 1
+        val typeName = if (inputs.paths == Inputs.StdInInputs) {
+          // Throw an error if the user doesn't specify an SFT name
+          Option(params.featureName).getOrElse {
+            throw new ParameterException("SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set.")
           }
-          name
+        } else {
+          Option(params.featureName).getOrElse {
+            val existing = ds.toSet[DataStore].flatMap(_.getTypeNames)
+            val fileName = Option(FilenameUtils.getBaseName(file.path))
+            val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse {
+              throw new RuntimeException("Unable to infer SimpleFeatureType name from file name. Please specify a name manually by setting the -f or --feature-name flag.")
+            }
+            var name = base
+            var i = 0
+            while (existing.contains(name)) {
+              name = s"${base}_$i"
+              i += 1
+            }
+            name
+          }
         }
+
         sft = SimpleFeatureTypes.renameSft(inferredSft, typeName)
         inferredSftString = Some(SimpleFeatureTypes.toConfig(sft, includePrefix = false).root().render(renderOptions))
         if (!params.force) {
@@ -294,9 +353,11 @@ object IngestCommand extends LazyLogging {
 
       if (!params.force) {
         val converterString = inferredConverter.root().render(renderOptions)
+
         def persist(): Unit = if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
           writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
         }
+
         Command.user.info(s"Inferred converter:\n$converterString")
         if (Prompt.confirm("Use inferred converter (y/n)? ")) {
           persist()
@@ -357,8 +418,8 @@ object IngestCommand extends LazyLogging {
      * Interprets the input paths into actual files, handling wildcards, etc
      */
     lazy val handles: List[FileHandle] = paths match {
-      case Nil         => StdInHandle.available().toList
-      case StdInInputs => List(new StdInHandle())
+      case Nil         => if (StdInHandle.isAvailable) { List(new CachingStdInHandle()) } else { List.empty }
+      case StdInInputs => List(new CachingStdInHandle())
       case _           => paths.flatMap(PathUtils.interpretPath).toList
     }
 

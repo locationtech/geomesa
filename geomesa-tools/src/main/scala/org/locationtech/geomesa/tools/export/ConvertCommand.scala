@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.stats.RunnableStats
 import org.locationtech.geomesa.tools.export.ConvertCommand.ConvertParameters
 import org.locationtech.geomesa.tools.export.ExportCommand.{ChunkedExporter, ExportOptions, ExportParams, Exporter}
 import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
@@ -52,14 +53,13 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
       throw new ParameterException("Missing option: <files>... is required")
     }
 
-    val inputs = params.files.asScala
-    val format = IngestCommand.getDataFormat(params, inputs.toSeq)
+    val inputs = Inputs(params.files.asScala.toSeq)
+    val format = IngestCommand.getDataFormat(params, inputs.paths)
 
     // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs.toSeq, format, None).get.flatMap { case (sft: SimpleFeatureType, config: com.typesafe.config.Config) =>
-      val files = if (inputs.isEmpty) { StdInHandle.available().iterator } else {
-        inputs.iterator.flatMap(PathUtils.interpretPath)
-      }
+    IngestCommand.getSftAndConverter(params, inputs, format, None).get.flatMap { case (sft: SimpleFeatureType, config: com.typesafe.config.Config) =>
+      val files = inputs.handles.iterator
+
       WithClose(SimpleFeatureConverter(sft, config)) { converter =>
         val ec = converter.createEvaluationContext()
         val query = ExportCommand.createQuery(sft, params)

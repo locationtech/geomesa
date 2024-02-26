@@ -24,7 +24,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
-import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{CachingStdInHandle, StdInHandle}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -65,9 +65,9 @@ class LocalConverterIngest(
           IngestCommand.LocalBatchSize.get)
   }
 
-  if (inputs.stdin && !StdInHandle.isAvailable) {
+  if (inputs.stdin && !CachingStdInHandle.isAvailable) {
     Command.user.info("Waiting for input...")
-    while (!StdInHandle.isAvailable) {
+    while (!CachingStdInHandle.isAvailable) {
       Thread.sleep(10)
     }
   }

@@ -15,6 +15,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -84,7 +85,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
       forall(inFormats) { inFmt =>
         forall(outFormats) { outFmt =>
           val command = createCommand(inFmt, outFmt)
-          val sftAndConverter = IngestCommand.getSftAndConverter(command.params, Seq.empty, None, None)
+          val sftAndConverter = IngestCommand.getSftAndConverter(command.params, Inputs(Seq.empty), None, None)
           sftAndConverter must beASuccessfulTry(beSome[(SimpleFeatureType, Config)])
         }
       }
