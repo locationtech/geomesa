@@ -16,19 +16,15 @@ import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.io.fs.LocalDelegate
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{BufferedInputStream, ByteArrayInputStream, File, IOException, InputStream}
+import java.io.{BufferedInputStream, ByteArrayInputStream, File}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class IngestCommandTest extends Specification {
-
-  // This prevents different values of System.in across different tests from interfering with each other
-  sequential
 
   private val sftCounter = new AtomicInteger(0)
 
@@ -86,7 +82,7 @@ class IngestCommandTest extends Specification {
       }
     }
 
-    "fail to ingest from stdin if no sft, converter, and sft name are specified" in {
+    "require sft or sft name to be specified during ingest from stdin with type inference" in {
       val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
         IOUtils.toByteArray(in)
       }
@@ -96,56 +92,15 @@ class IngestCommandTest extends Specification {
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute() must throwA[ParameterException].like {
-            case e => e.getMessage mustEqual "SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set."
-          }
-        } finally {
-          System.setIn(in)
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute() must throwA[ParameterException].like { case e =>
+          e.getMessage mustEqual
+              "SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set."
         }
+      } finally {
+        StdInHandle.SystemIns.remove()
       }
-    }
-
-    "cache bytes when reading from stdin" in {
-      @throws[IOException]
-      def readNBytes(stream: InputStream, n: Int): Array[Byte] = {
-        val buffer = new Array[Byte](n)
-        var totalBytesRead = 0
-
-        while (totalBytesRead < n) {
-          val bytesRead = stream.read(buffer, totalBytesRead, n - totalBytesRead)
-          if (bytesRead == -1) {
-            throw new IOException("End of stream reached before reading 'n' bytes.")
-          }
-          totalBytesRead += bytesRead
-        }
-
-        buffer
-      }
-
-      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
-        IOUtils.toByteArray(in)
-      }
-
-      // Feed all the bytes to stdin
-      val input = new BufferedInputStream(new ByteArrayInputStream(dataFile))
-      System.setIn(input)
-      val inputSize = input.available()
-
-      // Read some bytes
-      val handle = LocalDelegate.CachingStdInHandle.available().getOrElse(throw new RuntimeException("StdInHandle not available"))
-      val (_, stream) = handle.open.next()
-      val numBytesToRead = 3
-      readNBytes(stream, numBytesToRead)
-
-      // Open the handle again, which will create a new stream that has the cached bytes in it
-      handle.open.next()
-      input.available() mustEqual inputSize - numBytesToRead
-      handle.length - Try(System.in.available().toLong).getOrElse(0L) mustEqual numBytesToRead
-      handle.length mustEqual dataFile.length
     }
 
     "ingest from stdin if no sft and converter are specified" in {
@@ -160,14 +115,11 @@ class IngestCommandTest extends Specification {
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute()
-        } finally {
-          System.setIn(in)
-        }
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute()
+      } finally {
+        StdInHandle.SystemIns.remove()
       }
 
       command.withDataStore { ds =>
@@ -192,14 +144,11 @@ class IngestCommandTest extends Specification {
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute()
-        } finally {
-          System.setIn(in)
-        }
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute()
+      } finally {
+        StdInHandle.SystemIns.remove()
       }
 
       command.withDataStore { ds =>
@@ -224,16 +173,13 @@ class IngestCommandTest extends Specification {
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute() must throwA[ParameterException].like {
-            case e => e.getMessage mustEqual "SimpleFeatureType name and/or specification argument is required"
-          }
-        } finally {
-          System.setIn(in)
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute() must throwA[ParameterException].like {
+          case e => e.getMessage mustEqual "SimpleFeatureType name and/or specification argument is required"
         }
+      } finally {
+          StdInHandle.SystemIns.remove()
       }
     }
 

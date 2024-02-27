@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.utils.io.fs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
+import org.apache.commons.io.input.CloseShieldInputStream
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{LocalFileHandle, LocalTarHandle, LocalZipHandle}
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.locationtech.geomesa.utils.io.CopyingInputStream
+import org.locationtech.geomesa.utils.io.{CopyingInputStream, PathUtils, WithClose}
 
 import java.io._
 import java.net.URL
@@ -158,50 +158,53 @@ object LocalDelegate {
       factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode, createParents))
   }
 
-  class StdInHandle extends FileHandle {
+  private class StdInHandle(in: InputStream) extends FileHandle {
     override def path: String = "<stdin>"
     override def exists: Boolean = false
-    override def length: Long = Try(System.in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
-    override def open: CloseableIterator[(Option[String], InputStream)] = CloseableIterator.single(None -> System.in)
+    override def length: Long = Try(in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
+    override def open: CloseableIterator[(Option[String], InputStream)] =
+      CloseableIterator.single(None -> CloseShieldInputStream.wrap(in))
     override def write(mode: CreateMode, createParents: Boolean): OutputStream = System.out
     override def delete(recursive: Boolean): Unit = {}
   }
 
   object StdInHandle {
+    // hook to allow for unit testing stdin
+    val SystemIns: ThreadLocal[InputStream] = new ThreadLocal[InputStream]() {
+      override def initialValue(): InputStream = System.in
+    }
+    def get(): FileHandle = new StdInHandle(SystemIns.get)
     // avoid hanging if there isn't any input
-    def available(): Option[FileHandle] = if (isAvailable) { Some(new StdInHandle) } else { None }
-    def isAvailable: Boolean = System.in.available() > 0
-  }
-
-  private class NonClosingCopyingInputStream(s: InputStream, initialBuffer: Int) extends CopyingInputStream(s, initialBuffer) {
-    override def close(): Unit = {}
+    def available(): Option[FileHandle] = if (isAvailable) { Some(get()) } else { None }
+    def isAvailable: Boolean = SystemIns.get.available() > 0
   }
 
   // A class that caches any bytes read from the stdin input stream
-  class CachingStdInHandle extends StdInHandle {
-    private val is = new NonClosingCopyingInputStream(System.in, 1024)
+  private class CachingStdInHandle(in: InputStream) extends StdInHandle(in) {
+    private val is = new CopyingInputStream(in, 1024)
     private var cachedBytes: Array[Byte] = Array.empty
 
-    override def length: Long = Try(System.in.available().toLong).getOrElse(0L) + cachedBytes.length
+    override def length: Long = super.length + cachedBytes.length
 
-    // .available will throw if stream is closed
-    override def open: CloseableIterator[(Option[String], InputStream)] = {
-      if (is.copied > 0) {
-        cachedBytes ++= is.replay(is.copied)
+    override def open: CloseableIterator[(Option[String], InputStream)] =
+      CloseableIterator.single(None -> new CopyOnClose())
+
+    private class CopyOnClose
+        extends SequenceInputStream(new ByteArrayInputStream(cachedBytes), CloseShieldInputStream.wrap(is)) {
+      override def close(): Unit = {
+        try { super.close() } finally {
+          if (is.copied > 0) {
+            cachedBytes ++= is.replay(is.copied)
+          }
+        }
       }
-      CloseableIterator.single(None -> new SequenceInputStream(new ByteArrayInputStream(cachedBytes), is))
     }
   }
 
-  // Need an object so we can call it in IngestCommandTest
   object CachingStdInHandle {
+    def get(): FileHandle = new CachingStdInHandle(StdInHandle.SystemIns.get)
     // avoid hanging if there isn't any input
-    def available(): Option[FileHandle] = if (isAvailable) {
-      Some(new CachingStdInHandle)
-    } else {
-      None
-    }
-
-    def isAvailable: Boolean = System.in.available() > 0
+    def available(): Option[FileHandle] = if (isAvailable) { Some(get()) } else { None }
+    def isAvailable: Boolean = StdInHandle.isAvailable
   }
 }

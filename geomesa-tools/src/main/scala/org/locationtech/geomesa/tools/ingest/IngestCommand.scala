@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.ingest
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.io.input.CloseShieldInputStream
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
@@ -56,12 +57,18 @@ trait IngestCommand[DS <: DataStore]
   override def libjarsFiles: Seq[String] = Seq("org/locationtech/geomesa/tools/ingest-libjars.list")
 
   override def execute(): Unit = {
-    if (params.files.isEmpty && !StdInHandle.isAvailable) {
-      throw new ParameterException("Missing option: <files>... is required, or use `-` to ingest from standard in")
-    }
-
     val inputs: Inputs = {
       val files = Inputs(params.files.asScala.toSeq)
+      if (files.stdin && !StdInHandle.isAvailable) {
+        if (files.paths.isEmpty) {
+          throw new ParameterException("Missing option: <files>... is required, or use `-` to ingest from standard in")
+        } else {
+          Command.user.info("Waiting for input...")
+          while (!StdInHandle.isAvailable) {
+            Thread.sleep(10)
+          }
+        }
+      }
       if (params.srcList) { files.asSourceList } else { files }
     }
 
@@ -231,107 +238,63 @@ object IngestCommand extends LazyLogging {
       inputs: Inputs,
       format: Option[String],
       ds: Option[_ <: DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     // try to load the sft, first check for an existing schema, then load from the params/environment
     var sft: SimpleFeatureType = loadSft(params, ds).orNull
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
     // if there is no converter passed in
-    if (converter == null && inputs.paths.nonEmpty) {
-      var open: () => InputStream = null
-      var file: FileHandle = null
-      var opened = ListBuffer.empty[CloseableIterator[InputStream]]
-
-      // try to infer the schema from stdin
-      if (inputs.paths == Inputs.StdInInputs) {
-        Command.user.info("No converter defined - will attempt to detect schema from stdin")
-
-        // Mark the beginning of the stdin stream so we can return to it later
-        System.in.mark(8192)
-
-        // Function that returns an input stream containing the cached bytes and any bytes remaining on stdin
-        def openStdin(): InputStream = {
-          try {
-            // Get the CachingStdInHandle that gives us access to our custom-made input stream
-            val handle = inputs.handles.headOption.getOrElse {
-              throw new RuntimeException("Unable to obtain handle for stdin")
-            }
-
-            // Use the handle to get the stream
-            val (_, stream) = handle.open.next()
-            opened += CloseableIterator.single(stream)
-            stream
-          } catch {
-            case e: Exception => throw new RuntimeException("Unable to read from stdin", e)
-          }
-        }
-
-        open = openStdin
+    if (converter == null && (inputs.stdin || inputs.paths.nonEmpty)) {
+      val errorMsg = if (inputs.stdin) { "Unable to read data from stdin" } else {
+        "Parameter <files> did not evaluate to something that could be read"
       }
-      // try to infer the schema from the input files themselves
-      else {
-        Command.user.info("No converter defined - will attempt to detect schema from input files")
-        file = inputs.handles.headOption.getOrElse {
-          throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
-        }
-
-        def openFile(): InputStream = {
+      // try to infer the schema from the inputs
+      Command.user.info(
+        s"No converter defined - will attempt to detect schema from ${if (inputs.stdin) "stdin" else "input files"}")
+      val file = inputs.handles.headOption.getOrElse(throw new ParameterException(errorMsg))
+      val opened = ListBuffer.empty[CloseableIterator[InputStream]]
+      def open(): InputStream = {
+        val is = try {
           val streams = file.open.map(_._2)
           opened += streams
-          if (streams.hasNext) {
-            streams.next
-          } else {
-            throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
-          }
+          if (streams.hasNext) { streams.next } else { null }
+        } catch {
+          case NonFatal(e) => throw new RuntimeException(errorMsg, e)
         }
-
-        open = openFile
+        if (is == null) {
+          throw new ParameterException(errorMsg)
+        } else {
+          is
+        }
       }
 
-      val (inferredSft, inferredConverter) = try {
-        val opt = format match {
-          case None => if (inputs.paths == Inputs.StdInInputs) {
-              SimpleFeatureConverter.infer(open, Option(sft))
-            } else {
-              SimpleFeatureConverter.infer(open, Option(sft), Option(file.path))
-            }
+      val path = if (inputs.stdin) { None } else { Option(file.path) }
+      val opt = format match {
+        case None => SimpleFeatureConverter.infer(open, Option(sft), path)
+        case Some(fmt) => TypeAwareInference.infer(fmt, open, Option(sft), path)
+      }
 
-          case Some(fmt) => if (inputs.paths == Inputs.StdInInputs) {
-            TypeAwareInference.infer(fmt, open, Option(sft), None)
-          } else {
-            TypeAwareInference.infer(fmt, open, Option(sft), Option(file.path))
-          }
-        }
-
-        // Make stdin point back to the beginning
-        open()
-        System.in.reset()
-
-        // Return the inferred sft and converter
-        opt.getOrElse {
-          throw new ParameterException("Could not determine converter from inputs - please specify a converter")
-        }
-      } finally {
-        CloseWithLogging(opened)
+      val (inferredSft, inferredConverter) = opt.getOrElse {
+        throw new ParameterException("Could not determine converter from inputs - please specify a converter")
       }
 
       val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
       var inferredSftString: Option[String] = None
 
       if (sft == null) {
-        val typeName = if (inputs.paths == Inputs.StdInInputs) {
+        val typeName = if (inputs.stdin) {
           // Throw an error if the user doesn't specify an SFT name
           Option(params.featureName).getOrElse {
-            throw new ParameterException("SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set.")
+            throw new ParameterException(
+              "SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set.")
           }
         } else {
           Option(params.featureName).getOrElse {
             val existing = ds.toSet[DataStore].flatMap(_.getTypeNames)
             val fileName = Option(FilenameUtils.getBaseName(file.path))
             val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse {
-              throw new RuntimeException("Unable to infer SimpleFeatureType name from file name. Please specify a name manually by setting the -f or --feature-name flag.")
+              throw new RuntimeException("Unable to infer SimpleFeatureType name from file name. " +
+                  "Please specify a name manually by setting the -f or --feature-name flag.")
             }
             var name = base
             var i = 0
@@ -418,8 +381,8 @@ object IngestCommand extends LazyLogging {
      * Interprets the input paths into actual files, handling wildcards, etc
      */
     lazy val handles: List[FileHandle] = paths match {
-      case Nil         => if (StdInHandle.isAvailable) { List(new CachingStdInHandle()) } else { List.empty }
-      case StdInInputs => List(new CachingStdInHandle())
+      case Nil         => CachingStdInHandle.available().toList
+      case StdInInputs => List(CachingStdInHandle.get())
       case _           => paths.flatMap(PathUtils.interpretPath).toList
     }
 
