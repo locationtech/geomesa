@@ -30,12 +30,12 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
