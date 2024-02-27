@@ -24,6 +24,7 @@ Argument                   Description
 ``--hints``                Query hints used to modify the query
 ``--gzip``                 Level of gzip compression to use for output, from 1-9
 ``--no-header``            Don't export the type header, for CSV and TSV formats
+``--src-list``             Input files are text files with lists of files, one per line, to ingest
 ``--suppress-empty``       If no features are converted, don't write any headers or other output
 ``--force``                Force execution without prompt
 ========================== ===================================================================================
