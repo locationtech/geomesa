@@ -23,26 +23,26 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <ant.version>1.10.13</ant.version>
-        <target>html</target>
+        <ant.target>html</ant.target>
     </properties>
 
     <profiles>
         <profile>
             <id>html</id>
             <properties>
-                <target>html</target>
+                <ant.target>html</ant.target>
             </properties>
         </profile>
         <profile>
             <id>singlehtml</id>
             <properties>
-                <target>singlehtml</target>
+                <ant.target>singlehtml</ant.target>
             </properties>
         </profile>
         <profile>
             <id>latex</id>
             <properties>
-                <target>latex</target>
+                <ant.target>latex</ant.target>
             </properties>
         </profile>
         <profile>
@@ -64,11 +64,10 @@
                                 <id>compile</id>
                                 <phase>compile</phase>
                                 <configuration>
-                                    <tasks>
-                                        <ant antfile="build.xml" dir="${basedir}" target="${target}">
-                                            <property name="build.directory" value="${project.build.directory}" />
-                                        </ant>
-                                    </tasks>
+                                    <target>
+                                        <property name="build.directory" value="${project.build.directory}" />
+                                        <ant antfile="build.xml" target="${ant.target}"/>
+                                    </target>
                                 </configuration>
                                 <goals>
                                     <goal>run</goal>

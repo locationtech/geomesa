@@ -16,10 +16,11 @@ import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.{BufferedInputStream, ByteArrayInputStream, File}
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
@@ -81,25 +82,73 @@ class IngestCommandTest extends Specification {
       }
     }
 
+    "require sft or sft name to be specified during ingest from stdin with type inference" in {
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
+        IOUtils.toByteArray(in)
+      }
+      val input = new BufferedInputStream(new ByteArrayInputStream(dataFile))
+
+      val args = baseArgs ++ Array("--force", "-")
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute() must throwA[ParameterException].like { case e =>
+          e.getMessage mustEqual
+              "SimpleFeatureType name not specified. Please ensure the -f or --feature-name flag is set."
+        }
+      } finally {
+        StdInHandle.SystemIns.remove()
+      }
+    }
+
+    "ingest from stdin if no sft and converter are specified" in {
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
+        IOUtils.toByteArray(in)
+      }
+      val input = new BufferedInputStream(new ByteArrayInputStream(dataFile))
+
+      val sftName = "test"
+
+      val args = baseArgs ++ Array("--force", "-f", sftName, "-")
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute()
+      } finally {
+        StdInHandle.SystemIns.remove()
+      }
+
+      command.withDataStore { ds =>
+        try {
+          val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures.features).toList
+          features.size mustEqual 3
+          features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
+        } finally {
+          ds.delete()
+        }
+      }
+    }
+
     "ingest from stdin" in {
       val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
       val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
         IOUtils.toByteArray(in)
       }
-      val input = new ByteArrayInputStream(dataFile)
+      val input = new BufferedInputStream(new ByteArrayInputStream(dataFile))
 
       val args = baseArgs ++ Array("--converter", confFile.getPath, "-s", confFile.getPath, "-")
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute()
-        } finally {
-          System.setIn(in)
-        }
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute()
+      } finally {
+        StdInHandle.SystemIns.remove()
       }
 
       command.withDataStore { ds =>
@@ -113,51 +162,24 @@ class IngestCommandTest extends Specification {
       }
     }
 
-    "fail to ingest from stdin if no converter is specified" in {
-      val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
-      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
-        IOUtils.toByteArray(in)
-      }
-      val input = new ByteArrayInputStream(dataFile)
-
-      val args = baseArgs ++ Array("-s", confFile.getPath, "-")
-
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
-
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute() must throwA[ParameterException].like {
-            case e => e.getMessage mustEqual "Cannot infer types from stdin - please specify a converter/sft or ingest from a file"
-          }
-        } finally {
-          System.setIn(in)
-        }
-      }
-    }
-
     "fail to ingest from stdin if no sft is specified" in {
       val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
       val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
         IOUtils.toByteArray(in)
       }
-      val input = new ByteArrayInputStream(dataFile)
+      val input = new BufferedInputStream(new ByteArrayInputStream(dataFile))
 
       val args = baseArgs ++ Array("--converter", confFile.getPath, "-")
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
 
-      val in = System.in
-      in.synchronized {
-        try {
-          System.setIn(input)
-          command.execute() must throwA[ParameterException].like {
-            case e => e.getMessage mustEqual "SimpleFeatureType name and/or specification argument is required"
-          }
-        } finally {
-          System.setIn(in)
+      StdInHandle.SystemIns.set(input)
+      try {
+        command.execute() must throwA[ParameterException].like {
+          case e => e.getMessage mustEqual "SimpleFeatureType name and/or specification argument is required"
         }
+      } finally {
+          StdInHandle.SystemIns.remove()
       }
     }
 

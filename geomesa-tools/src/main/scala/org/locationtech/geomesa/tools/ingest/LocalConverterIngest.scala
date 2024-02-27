@@ -24,7 +24,6 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
-import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 
@@ -63,13 +62,6 @@ class LocalConverterIngest(
     throw new IllegalArgumentException(
       s"Invalid batch size for property ${IngestCommand.LocalBatchSize.property}: " +
           IngestCommand.LocalBatchSize.get)
-  }
-
-  if (inputs.stdin && !StdInHandle.isAvailable) {
-    Command.user.info("Waiting for input...")
-    while (!StdInHandle.isAvailable) {
-      Thread.sleep(10)
-    }
   }
 
   private val es = Executors.newFixedThreadPool(threads)
