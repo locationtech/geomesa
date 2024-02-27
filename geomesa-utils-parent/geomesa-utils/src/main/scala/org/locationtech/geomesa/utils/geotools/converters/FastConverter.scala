@@ -69,7 +69,9 @@ object FastConverter extends StrictLogging {
       i += 1
     }
 
-    logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}", new Exception())
+    val msg = s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}"
+    logger.warn(msg)
+    logger.debug(msg, new Exception())
 
     null.asInstanceOf[T]
   }
