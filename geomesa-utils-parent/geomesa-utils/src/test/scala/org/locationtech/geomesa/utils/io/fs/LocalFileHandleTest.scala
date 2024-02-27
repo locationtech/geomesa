@@ -31,7 +31,7 @@ class LocalFileHandleTest extends Specification {
         while (totalBytesRead < n) {
           val bytesRead = stream.read(buffer, totalBytesRead, n - totalBytesRead)
           if (bytesRead == -1) {
-            throw new IOException("End of stream reached before reading 'n' bytes.")
+            throw new IOException(s"End of stream reached before reading $n bytes.")
           }
           totalBytesRead += bytesRead
         }
