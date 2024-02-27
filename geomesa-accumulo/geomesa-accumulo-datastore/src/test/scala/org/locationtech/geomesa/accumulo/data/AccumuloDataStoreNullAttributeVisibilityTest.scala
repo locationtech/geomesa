@@ -28,8 +28,6 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   override val spec = "some_id:String,dtg:Date,*geo_location:Point:srid=4326,number:Integer,text:String;geomesa.visibility.level='attribute'"
 
   val visibility = "admin,user,user,user,user"
@@ -100,6 +98,5 @@ class AccumuloDataStoreNullAttributeVisibilityTest extends TestWithFeatureType {
       val features = queryByAuths("user,admin", "INCLUDE")
       features must containTheSameElementsAs(Seq(complete_feature, null_string_feature))
     }
-
   }
 }

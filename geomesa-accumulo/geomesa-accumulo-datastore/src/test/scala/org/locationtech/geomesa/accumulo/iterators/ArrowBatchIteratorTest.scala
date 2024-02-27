@@ -41,8 +41,6 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
   lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
   lazy val listSft = createNewSchema("names:List[String],team:String,dtg:Date,*geom:Point:srid=4326")
@@ -80,9 +78,11 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
     "name IN('name0', 'name1')"
   ).map(ECQL.toFilter)
 
-  addFeatures(pointFeatures)
-  addFeatures(lineFeatures)
-  addFeatures(listFeatures)
+  step {
+    addFeatures(pointFeatures)
+    addFeatures(lineFeatures)
+    addFeatures(listFeatures)
+  }
 
   val sfts = Seq((pointSft, pointFeatures), (lineSft, lineFeatures))
 

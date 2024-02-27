@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.accumulo.tools.stats
 
 import com.beust.jcommander.Parameters
+import org.locationtech.geomesa.accumulo.combiners.StatsCombiner
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.data.stats.StatsCombiner
 import org.locationtech.geomesa.accumulo.tools.stats.AccumuloStatsConfigureCommand.AccumuloStatsConfigureParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.Command

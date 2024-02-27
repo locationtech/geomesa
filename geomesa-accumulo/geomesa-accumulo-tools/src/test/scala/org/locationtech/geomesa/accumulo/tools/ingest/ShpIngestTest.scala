@@ -14,7 +14,7 @@ import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.MiniCluster
+import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.Command.CommandException
@@ -49,11 +49,11 @@ class ShpIngestTest extends Specification {
 
   def createCommand(file: String): AccumuloIngestCommand = {
     val command = new AccumuloIngestCommand()
-    command.params.user        = MiniCluster.Users.root.name
-    command.params.instance    = MiniCluster.cluster.getInstanceName
-    command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
-    command.params.password    = MiniCluster.Users.root.password
-    command.params.catalog     = s"${MiniCluster.namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
+    command.params.user        = AccumuloContainer.user
+    command.params.instance    = AccumuloContainer.instanceName
+    command.params.zookeepers  = AccumuloContainer.zookeepers
+    command.params.password    = AccumuloContainer.password
+    command.params.catalog     = s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)
     command.params.compact     = false

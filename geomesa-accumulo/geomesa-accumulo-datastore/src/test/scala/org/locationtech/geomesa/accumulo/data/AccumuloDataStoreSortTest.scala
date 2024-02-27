@@ -23,8 +23,6 @@ class AccumuloDataStoreSortTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.filter.ff
 
-  sequential
-
   override val spec = "name:String:index=join,age:Int:index=full,weight:Double,dtg:Date,*geom:Point:srid=4326"
 
   lazy val features = Seq.tabulate(5) { i =>

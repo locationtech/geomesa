@@ -34,8 +34,6 @@ class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
 
   // note: using `Seq.foreach; ok` instead of `foreach(Seq)` shaves several seconds off the time to run this test
 
-  sequential
-
   override val spec: String =
     s"name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;${Configs.TablePartitioning}=${TimePartition.Name}"
 

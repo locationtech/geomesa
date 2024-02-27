@@ -18,7 +18,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
+import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -409,7 +409,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         // deleting the "name" index table to show that the QUERY_INDEX hint is being passed through
         ds.manager.indices(sft).collectFirst {
-          case i: AccumuloJoinIndex if i.attributes.head == "name" => i.getTableNames().head
+          case i: AttributeJoinIndex if i.attributes.head == "name" => i.getTableNames().head
         }.foreach { ds.connector.tableOperations().delete(_) }
 
         val filters = Seq("bbox(geom,0,0,10,5)", "name < '7'")

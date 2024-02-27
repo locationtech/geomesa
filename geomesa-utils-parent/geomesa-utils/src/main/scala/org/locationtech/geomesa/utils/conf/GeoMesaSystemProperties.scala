@@ -45,7 +45,7 @@ object GeoMesaSystemProperties extends LazyLogging {
       Suffixes.Memory.bytes(value) match {
         case Success(b) => Some(b)
         case Failure(e) =>
-          logger.warn(s"Invalid bytes for property $property=$value: $e")
+          logger.warn(s"Invalid bytes for property $property=$value: ${e.toString}")
           Option(default).flatMap(Suffixes.Memory.bytes(_).toOption)
       }
     }

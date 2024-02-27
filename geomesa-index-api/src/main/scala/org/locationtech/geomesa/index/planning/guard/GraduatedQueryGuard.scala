@@ -103,6 +103,10 @@ object GraduatedQueryGuard extends LazyLogging {
     }, "Graduated query guard percentages must be in range (0,1]")
 
     val percentageLimit: Option[Double] = samplePercent
+
+    override def toString: String =
+      s"SizeAndLimits(sizeLimit=$sizeLimit, durationLimit=$durationLimit, " +
+          s"percentageLimit=$percentageLimit, sampleAttribute=$sampleAttribute)"
   }
 
   def disabled(typeName: String): Boolean =

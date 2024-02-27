@@ -23,19 +23,19 @@ import java.{lang => jl}
 
 @RunWith(classOf[JUnitRunner])
 class DataFrameFunctionsTest extends Specification with LazyLogging with SpatialRelations {
-  type DFRelation = (Column, Column) => TypedColumn[Any, jl.Boolean]
+
   sequential
+
+  var spark: SparkSession = _
+  var dfBlank: DataFrame = _
 
   "DataFrame functions" should {
 
-    val spark = SparkSQLTestUtils.createSparkSession()
-    val sc = spark.sqlContext
-    sc.withJTS
-
-    var dfBlank: DataFrame = null
-
     // before
     step {
+      spark = SparkSQLTestUtils.createSparkSession()
+      val sc = spark.sqlContext
+      sc.withJTS
       dfBlank = spark.createDataFrame(spark.sparkContext.makeRDD(Seq(Row())), StructType(Seq.empty))
     }
 

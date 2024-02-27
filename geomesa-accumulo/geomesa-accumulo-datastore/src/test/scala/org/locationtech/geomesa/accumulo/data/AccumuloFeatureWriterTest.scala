@@ -43,7 +43,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
   lazy val sfts = Seq(/*logical, */millis)
 
   override def before: Any = {
-    sfts.foreach{ sft =>
+    sfts.foreach { sft =>
       ds.manager.indices(sft).flatMap(_.getTableNames()).foreach { name =>
         val deleter = ds.connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
         deleter.setRanges(Collections.singletonList(new org.apache.accumulo.core.data.Range()))

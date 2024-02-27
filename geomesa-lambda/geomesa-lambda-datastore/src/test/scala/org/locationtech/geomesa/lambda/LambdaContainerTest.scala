@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.lambda
 
-import org.locationtech.geomesa.accumulo.MiniCluster
+import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 
@@ -22,10 +22,10 @@ class LambdaContainerTest extends KafkaContainerTest {
   val offsetManager = new InMemoryOffsetManager
 
   lazy val dsParams = Map(
-    "lambda.accumulo.instance.id" -> MiniCluster.cluster.getInstanceName,
-    "lambda.accumulo.zookeepers"  -> MiniCluster.cluster.getZooKeepers,
-    "lambda.accumulo.user"        -> MiniCluster.Users.root.name,
-    "lambda.accumulo.password"    -> MiniCluster.Users.root.password,
+    "lambda.accumulo.instance.id" -> AccumuloContainer.instanceName,
+    "lambda.accumulo.zookeepers"  -> AccumuloContainer.zookeepers,
+    "lambda.accumulo.user"        -> AccumuloContainer.user,
+    "lambda.accumulo.password"    -> AccumuloContainer.password,
     // note the table needs to be different to prevent testing errors
     "lambda.accumulo.catalog"     -> sftName,
     "lambda.kafka.brokers"        -> brokers,

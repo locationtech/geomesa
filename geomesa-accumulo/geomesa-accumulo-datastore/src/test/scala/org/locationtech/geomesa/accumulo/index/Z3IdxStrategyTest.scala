@@ -34,8 +34,6 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  sequential // note: test doesn't need to be sequential but it actually runs faster this way
-
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='z3'"
 
   val features =
@@ -64,7 +62,10 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     }
-  addFeatures(features)
+
+  step {
+    addFeatures(features)
+  }
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms: _*))

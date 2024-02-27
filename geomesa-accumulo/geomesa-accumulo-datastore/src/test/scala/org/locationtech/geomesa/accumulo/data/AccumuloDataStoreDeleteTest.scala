@@ -30,8 +30,6 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   lazy val tableOps = ds.connector.tableOperations()
 
   def createFeature(schema: String = "name:String:index=join,*geom:Point:srid=4326,dtg:Date") = {

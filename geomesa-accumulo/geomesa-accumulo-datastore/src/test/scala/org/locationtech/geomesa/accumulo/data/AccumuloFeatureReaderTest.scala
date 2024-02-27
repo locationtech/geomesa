@@ -28,8 +28,6 @@ import scala.reflect.ClassTag
 @RunWith(classOf[JUnitRunner])
 class AccumuloFeatureReaderTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   override def spec = s"name:String,dtg:Date,*geom:Point"
 
   val features = (0 until 100).map { i =>
@@ -40,7 +38,9 @@ class AccumuloFeatureReaderTest extends Specification with TestWithFeatureType {
     sf
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   val filter = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z")
 

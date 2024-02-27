@@ -20,8 +20,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreFilterTest extends Specification with TestWithFeatureType {
 
-  sequential
-
   // note: index=full on the geometry tests a regression bug in stats (GEOMESA-1292)
   override val spec = "name:String,dtg:Date,*geom:Geometry:srid=4326:index=full;geomesa.mixed.geometries='true'"
 
@@ -39,7 +37,10 @@ class AccumuloDataStoreFilterTest extends Specification with TestWithFeatureType
     sf.setAttribute(2, "POLYGON((-120 45, -120 50, -125 50, -125 45, -120 45))")
     sf
   }
-  addFeatures(Seq(point, polygon))
+
+  step {
+    addFeatures(Seq(point, polygon))
+  }
 
   "AccumuloDataStore" should {
     "query by point type" in {

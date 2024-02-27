@@ -67,14 +67,14 @@ function dependencies() {
   # add accumulo 2.1 jars if needed
   if version_ge "${accumulo_version}" 2.1.0; then
     gavs+=(
-      "org.apache.thrift:libthrift:%%thrift-accumulo-21.version%%:jar"
+      "org.apache.thrift:libthrift:%%thrift.version%%:jar"
       "io.opentelemetry:opentelemetry-api:1.19.0:jar"
       "io.opentelemetry:opentelemetry-context:1.19.0:jar"
       "io.micrometer:micrometer-core:1.9.6:jar"
     )
   else
     gavs+=(
-      "org.apache.thrift:libthrift:%%thrift.version%%:jar"
+      "org.apache.thrift:libthrift:0.12.0:jar"
     )
   fi
 

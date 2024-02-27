@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.DataStoreFinder
+import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
@@ -23,24 +24,31 @@ class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogg
 
   import scala.collection.JavaConverters._
 
-  "sql geometric distance functions" should {
+  sequential
 
-    sequential
-    val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
+  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
 
-    val ds = DataStoreFinder.getDataStore(dsParams)
-    val spark = SparkSQLTestUtils.createSparkSession()
-    val sc = spark.sqlContext
+  var ds: DataStore = _
+  var spark: SparkSession = _
+  var sc: SQLContext = _
+
+  step {
+    ds = DataStoreFinder.getDataStore(dsParams)
+    spark = SparkSQLTestUtils.createSparkSession()
+    sc = spark.sqlContext
 
     SparkSQLTestUtils.ingestChicago(ds)
 
     val df = spark.read
-      .format("geomesa")
-      .options(dsParams)
-      .option("geomesa.feature", "chicago")
-      .load()
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .load()
     logger.debug(df.schema.treeString)
     df.createOrReplaceTempView("chicago")
+  }
+
+  "sql geometric distance functions" should {
 
     "st_aggregateDistanceSpheroid" >> {
       "should work with window functions" >> {
@@ -104,4 +112,8 @@ class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogg
     }
   }
 
+  step {
+    ds.dispose()
+    spark.close()
+  }
 }

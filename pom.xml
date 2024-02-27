@@ -83,7 +83,7 @@
         <gson.version>2.10.1</gson.version>
         <jedis.version>5.1.0</jedis.version>
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.5 -->
-        <json.path.version>2.8.0</json.path.version>
+        <json.path.version>2.9.0</json.path.version>
         <kryo.version>4.0.3</kryo.version>
         <mango.version>3.0.0</mango.version>
         <metrics.version>3.2.6</metrics.version>
@@ -112,18 +112,20 @@
         <commons.lang.version>2.6</commons.lang.version>
 
         <!-- test dependencies -->
-        <specs2.version>4.20.4</specs2.version>
+        <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
         <testcontainers.version>1.19.3</testcontainers.version>
+        <testcontainers.accumulo.version>1.0.0</testcontainers.accumulo.version>
         <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
         <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
-        <accumulo.version>2.0.1</accumulo.version>
-        <accumulo-21.version>2.1.1</accumulo-21.version>
+        <accumulo.version>2.1.2</accumulo.version>
+        <accumulo-20.version>2.0.1</accumulo-20.version>
         <zookeeper.version>3.9.1</zookeeper.version>
-        <thrift.version>0.12.0</thrift.version>
-        <thrift-accumulo-21.version>0.17.0</thrift-accumulo-21.version>
+        <thrift.version>0.17.0</thrift.version>
+        <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
+        <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.3.6</hadoop.version>
         <spark.version>3.5.0</spark.version>
         <hbase.version>2.5.7-hadoop3</hbase.version>
@@ -169,7 +171,7 @@
         <maven.shade.plugin.version>3.5.1</maven.shade.plugin.version>
         <!-- note: we use an older version that still supports using zinc compile server -->
         <scala.maven.plugin.version>3.4.4</scala.maven.plugin.version>
-        <maven.surefire.plugin.version>3.2.3</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.2.3</maven.failsafe.plugin.version>
         <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
         <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
@@ -188,9 +190,9 @@
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
-        <test.fork.count>4</test.fork.count>
-        <test.fork.reuse>true</test.fork.reuse>
+        <test.fork.count>2</test.fork.count>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
+        <test.accumulo.docker.tag>2.1.2</test.accumulo.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.postgis.docker.tag>15-3.3</test.postgis.docker.tag>
@@ -204,7 +206,7 @@
         <copyright.year>2024</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>2.1.1</accumulo.version.recommended>
+        <accumulo.version.recommended>2.1.2</accumulo.version.recommended>
         <hbase.version.recommended>2.5.7</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>4.1.5</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
@@ -397,6 +399,16 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-iterators_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-indices_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1838,7 +1850,7 @@
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
                 <exclusions>
-                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-api</artifactId>
@@ -1851,6 +1863,10 @@
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1859,7 +1875,7 @@
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
                 <exclusions>
-                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-api</artifactId>
@@ -1867,6 +1883,10 @@
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1876,7 +1896,7 @@
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
                 <exclusions>
-                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-api</artifactId>
@@ -1884,6 +1904,10 @@
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1899,7 +1923,7 @@
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
                 <exclusions>
-                    <!-- exclude hadoop 3 artifacts -->
+                    <!-- exclude hadoop 3+ only jars, and manage them separately -->
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-api</artifactId>
@@ -1907,6 +1931,10 @@
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
                         <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2570,40 +2598,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-minicluster</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                    <!-- exclude hadoop 3 artifacts -->
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-minicluster</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-runtime</artifactId>
-                    </exclusion>
-                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
-                    <exclusion>
-                        <groupId>org.openjfx</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-common</artifactId>
                 <version>${hbase.version}</version>
@@ -2764,6 +2758,12 @@
                 <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.geomesa.testcontainers</groupId>
+                <artifactId>testcontainers-accumulo</artifactId>
+                <version>${testcontainers.accumulo.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -2879,7 +2879,9 @@
                             <filter>
                                 <artifact>*:*</artifact>
                                 <excludes>
+                                    <exclude>module-info.class</exclude>
                                     <exclude>META-INF/MANIFEST.MF</exclude>
+                                    <exclude>META-INF/DEPENDENCIES</exclude>
                                     <exclude>META-INF/*.SF</exclude>
                                     <exclude>META-INF/*.DSA</exclude>
                                     <exclude>META-INF/*.RSA</exclude>
@@ -2896,6 +2898,8 @@
                                     <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
                                 </manifestEntries>
                             </transformer>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                         </transformers>
                     </configuration>
                 </plugin>
@@ -2933,13 +2937,13 @@
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
-                            <artifactId>surefire-junit4</artifactId>
+                            <artifactId>surefire-junit47</artifactId>
                             <version>${maven.surefire.plugin.version}</version>
                         </dependency>
                     </dependencies>
                     <configuration>
-                        <forkCount>${test.fork.count}</forkCount>
-                        <reuseForks>${test.fork.reuse}</reuseForks>
+                        <forkCount>${test.fork.count}</forkCount><!-- note: <parallel> doesn't work with specs2 -->
+                        <reuseForks>true</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
                         <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
@@ -2961,6 +2965,7 @@
                             <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
+                            <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>

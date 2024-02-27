@@ -10,11 +10,11 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
+import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Filter, IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.filters.AgeOffFilter
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.IngestTimeExpiration
@@ -68,9 +68,9 @@ object AgeOffIterator extends LazyLogging {
     is
   }
 
-  def expiry(ds: AccumuloDataStore, sft: SimpleFeatureType): Option[FeatureExpiration] = {
+  def expiry(tableOps: TableOperations, table: String): Option[FeatureExpiration] = {
     try {
-      list(ds, sft).map { is =>
+      list(tableOps, table).map { is =>
         val expiry = java.time.Duration.parse(is.getOptions.get(AgeOffFilter.Configuration.ExpiryOpt)).toMillis
         IngestTimeExpiration(Duration(expiry, TimeUnit.MILLISECONDS))
       }
@@ -79,29 +79,17 @@ object AgeOffIterator extends LazyLogging {
     }
   }
 
-  def list(ds: AccumuloDataStore, sft: SimpleFeatureType): Option[IteratorSetting] = {
+  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).iterator.filter(tableOps.exists).flatMap { table =>
-      IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
-    }.headOption
+    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
   }
 
-  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).foreach { table =>
-      if (tableOps.exists(table)) {
-        tableOps.attachIterator(table, configure(sft, expiry)) // all scopes
-      }
-    }
-  }
+  def set(tableOps: TableOperations, table: String, sft: SimpleFeatureType, expiry: Duration): Unit =
+    tableOps.attachIterator(table, configure(sft, expiry)) // all scopes
 
-  def clear(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
-      if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
-        tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
-      }
+  def clear(tableOps: TableOperations, table: String): Unit = {
+    if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
+      tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
     }
   }
 }

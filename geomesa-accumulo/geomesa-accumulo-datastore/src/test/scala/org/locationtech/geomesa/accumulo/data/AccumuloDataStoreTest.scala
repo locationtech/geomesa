@@ -47,17 +47,16 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   val defaultSpec = "name:String,geom:Point:srid=4326,dtg:Date"
 
-  val defaultSft = createNewSchema(defaultSpec)
-  val defaultTypeName = defaultSft.getTypeName
-
-  addFeature(defaultPoint(defaultSft))
-  addFeature(defaultPoint(defaultSft, id = "f2"))
-
+  lazy val defaultSft = createNewSchema(defaultSpec)
+  lazy val defaultTypeName = defaultSft.getTypeName
   val defaultGeom = WKTUtils.read("POINT(45.0 49.0)")
+
+  step {
+    addFeature(defaultPoint(defaultSft))
+    addFeature(defaultPoint(defaultSft, id = "f2"))
+  }
 
   def defaultPoint(sft: SimpleFeatureType,
                    id: String = "f1",
@@ -176,9 +175,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val results = ds.getFeatureSource(defaultTypeName).getFeatures(query)
       val features = SelfClosingIterator(results.features).toList
 
-      "results schema should match" >> { results.getSchema mustEqual defaultSft }
-      "geometry should be set" >> { forall(features)(_.getDefaultGeometry mustEqual defaultGeom) }
-      "result length should be 1" >> { features must haveLength(2) }
+      results.getSchema mustEqual defaultSft
+      features must haveLength(2)
+      forall(features)(_.getDefaultGeometry mustEqual defaultGeom)
     }
 
     "create a schema with custom record splitting options with table sharing off" in {
@@ -348,37 +347,26 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val originalSchema = "name:String,dtg:Date,*geom:Point:srid=4326"
       val sftName = createNewSchema(originalSchema).getTypeName
 
-      "prevent changing default geometry" >> {
-        val modified =
-          SimpleFeatureTypes.createType(sftName, "name:String,dtg:Date,geom:Point:srid=4326,*geom2:Point:srid=4326")
-        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwAn[UnsupportedOperationException]
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
-        retrievedSchema mustEqual originalSchema
-      }
-      "prevent changing attribute order" >> {
-        val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,name:String,*geom:Point:srid=4326")
-        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
-        retrievedSchema mustEqual originalSchema
-      }
-      "prevent removing attributes" >> {
-        val modified = SimpleFeatureTypes.createType(sftName, "dtg:Date,*geom:Point:srid=4326")
-        modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
-        ds.updateSchema(sftName, modified) should throwA[UnsupportedOperationException]
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
-        retrievedSchema mustEqual originalSchema
-      }
-      "allow adding attributes" >> {
-        // note: we actually modify the schema here so this check is last
-        val newSchema = "name:String,dtg:Date,*geom:Point:srid=4326,newField:String"
-        val modified = SimpleFeatureTypes.createType(sftName, newSchema)
+      def modify(spec: String): Unit = {
+        val modified = SimpleFeatureTypes.createType(sftName, spec)
         modified.getUserData.putAll(ds.getSchema(sftName).getUserData)
         ds.updateSchema(sftName, modified)
-        val retrievedSchema = SimpleFeatureTypes.encodeType(ds.getSchema(sftName))
-        retrievedSchema mustEqual newSchema
       }
+
+      // "prevent changing default geometry" >> {
+      modify("name:String,dtg:Date,geom:Point:srid=4326,*geom2:Point:srid=4326") must throwAn[UnsupportedOperationException]
+      SimpleFeatureTypes.encodeType(ds.getSchema(sftName)) mustEqual originalSchema
+      // "prevent changing attribute order" >> {
+      modify("dtg:Date,name:String,*geom:Point:srid=4326") must throwA[UnsupportedOperationException]
+      SimpleFeatureTypes.encodeType(ds.getSchema(sftName)) mustEqual originalSchema
+      // "prevent removing attributes" >> {
+      modify("dtg:Date,*geom:Point:srid=4326") must throwA[UnsupportedOperationException]
+      SimpleFeatureTypes.encodeType(ds.getSchema(sftName)) mustEqual originalSchema
+      // "allow adding attributes" >> {
+      // note: we actually modify the schema here so this check is last
+      val newSchema = "name:String,dtg:Date,*geom:Point:srid=4326,newField:String"
+      modify(newSchema)
+      SimpleFeatureTypes.encodeType(ds.getSchema(sftName)) mustEqual newSchema
     }
 
     "Provide a feature update implementation" in {
@@ -491,51 +479,43 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         sf
       })
 
-      "with out of order attributes" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
-        val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
-        features must haveSize(5)
-        (0 until 5).foreach { i =>
-          features(i).getID mustEqual s"f$i"
-          features(i).getAttributeCount mustEqual 3
-          features(i).getAttribute("label") mustEqual s"label$i"
-          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
-          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
-        }
-        success
+      def query(filter: Filter, transforms: String*): List[SimpleFeature] = {
+        var query = new Query(sftName, filter, transforms: _*)
+        SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
       }
 
-      "with only date and geom" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
-        val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
-        features must haveSize(5)
-        (0 until 5).foreach { i =>
-          features(i).getID mustEqual s"f$i"
-          features(i).getAttributeCount mustEqual 2
-          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
-          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
-        }
-        success
+      // "with out of order attributes" >> {
+      val features0 = query(ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label")
+      features0 must haveSize(5)
+      foreach(0 until 5) { i =>
+        features0(i).getID mustEqual s"f$i"
+        features0(i).getAttributeCount mustEqual 3
+        features0(i).getAttribute("label") mustEqual s"label$i"
+        features0(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
+        features0(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
       }
 
-      "with all attributes" >> {
-        val query = new Query(sftName, ECQL.toFilter("bbox(geom,49,49,60,60)"),
-          "geom", "dtg", "label", "score", "trackId")
-        val features =
-          SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
-        features must haveSize(5)
-        (0 until 5).foreach { i =>
-          features(i).getID mustEqual s"f$i"
-          features(i).getAttributeCount mustEqual 5
-          features(i).getAttribute("label") mustEqual s"label$i"
-          features(i).getAttribute("trackId") mustEqual s"trk$i"
-          features(i).getAttribute("score") mustEqual i.toDouble
-          features(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
-          features(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
-        }
-        success
+      // "with only date and geom" >> {
+      val features1 = query(ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg")
+      features1 must haveSize(5)
+      foreach(0 until 5) { i =>
+        features1(i).getID mustEqual s"f$i"
+        features1(i).getAttributeCount mustEqual 2
+        features1(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
+        features1(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
+      }
+
+      // "with all attributes" >> {
+      val features2 = query(ECQL.toFilter("bbox(geom,49,49,60,60)"), "geom", "dtg", "label", "score", "trackId")
+      features2 must haveSize(5)
+      foreach(0 until 5) { i =>
+        features2(i).getID mustEqual s"f$i"
+        features2(i).getAttributeCount mustEqual 5
+        features2(i).getAttribute("label") mustEqual s"label$i"
+        features2(i).getAttribute("trackId") mustEqual s"trk$i"
+        features2(i).getAttribute("score") mustEqual i.toDouble
+        features2(i).getAttribute("dtg") mustEqual java.util.Date.from(java.time.LocalDateTime.parse(s"2014-01-01T0$i:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
+        features2(i).getAttribute("geom") mustEqual WKTUtils.read(s"POINT(5$i 50)")
       }
     }
 

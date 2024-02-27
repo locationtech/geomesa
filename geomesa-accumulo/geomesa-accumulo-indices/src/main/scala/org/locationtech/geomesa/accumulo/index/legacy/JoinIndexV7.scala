@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.accumulo.index.legacy
 
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloWritableFeature
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
+import org.locationtech.geomesa.accumulo.index.{AttributeJoinIndex, ReducedIndexValues}
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -24,7 +23,7 @@ class JoinIndexV7(ds: GeoMesaDataStore[_],
                   attribute: String,
                   secondaries: Seq[String],
                   mode: IndexMode)
-    extends AttributeIndexV7(ds, sft, attribute, secondaries, mode) with AccumuloJoinIndex {
+    extends AttributeIndexV7(ds, sft, attribute, secondaries, mode) with AttributeJoinIndex {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -35,7 +34,7 @@ class JoinIndexV7(ds: GeoMesaDataStore[_],
                               id: Array[Byte],
                               lenient: Boolean): RowKeyValue[AttributeIndexKey] = {
         val kv = super.toIndexKey(writable, tier, id, lenient)
-        kv.copy(values = writable.asInstanceOf[AccumuloWritableFeature].indexValues)
+        kv.copy(values = writable.asInstanceOf[ReducedIndexValues].indexValues)
       }
     }
 }

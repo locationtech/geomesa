@@ -10,12 +10,11 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
+import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.filters.{AgeOffFilter, DtgAgeOffFilter}
 import org.locationtech.geomesa.utils.conf.FeatureExpiration
@@ -74,9 +73,9 @@ object DtgAgeOffIterator extends LazyLogging {
     is
   }
 
-  def expiry(ds: AccumuloDataStore, sft: SimpleFeatureType): Option[FeatureExpiration] = {
+  def expiry(tableOps: TableOperations, sft: SimpleFeatureType, table: String): Option[FeatureExpiration] = {
     try {
-      list(ds, sft).map { is =>
+      list(tableOps, table).map { is =>
         val attribute = sft.getDescriptor(is.getOptions.get(DtgAgeOffFilter.Configuration.DtgOpt).toInt).getLocalName
         val expiry = java.time.Duration.parse(is.getOptions.get(AgeOffFilter.Configuration.ExpiryOpt)).toMillis
         FeatureTimeExpiration(attribute, sft.indexOf(attribute), Duration(expiry, TimeUnit.MILLISECONDS))
@@ -86,35 +85,25 @@ object DtgAgeOffIterator extends LazyLogging {
     }
   }
 
-  def list(ds: AccumuloDataStore, sft: SimpleFeatureType): Option[IteratorSetting] = {
+  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).iterator.filter(tableOps.exists).flatMap { table =>
-      IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
-    }.headOption
+    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
   }
 
-  def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration, dtg: String): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.manager.indices(sft).foreach { index =>
-      val indexSft = index match {
-        case joinIndex: AccumuloJoinIndex => joinIndex.indexSft
-        case _ => sft
-      }
-      index.getTableNames(None).foreach { table =>
-        if (tableOps.exists(table)) {
-          tableOps.attachIterator(table, configure(indexSft, index, expiry, Option(dtg))) // all scopes
-        }
-      }
+  def set(
+      tableOps: TableOperations,
+      sft: SimpleFeatureType,
+      index: GeoMesaFeatureIndex[_, _],
+      expiry: Duration,
+      dtg: String): Unit = {
+    index.getTableNames(None).foreach { table =>
+      tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
     }
   }
 
-  def clear(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
-    val tableOps = ds.connector.tableOperations()
-    ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
-      if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
-        tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
-      }
+  def clear(tableOps: TableOperations, table: String): Unit = {
+    if (IteratorScope.values.exists(scope => tableOps.getIteratorSetting(table, Name, scope) != null)) {
+      tableOps.removeIterator(table, Name, java.util.EnumSet.allOf(classOf[IteratorScope]))
     }
   }
 }

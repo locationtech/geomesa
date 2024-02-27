@@ -16,7 +16,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 package object security {
 
   val GEOMESA_AUDIT_PROVIDER_IMPL: SystemProperty = SystemProperty("geomesa.audit.provider.impl")
-  val GEOMESA_AUTH_PROVIDER_IMPL : SystemProperty = SystemProperty("geomesa.auth.provider.impl")
+  val GEOMESA_AUTH_PROVIDER_IMPL : SystemProperty = SystemProperty(AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY)
 
   val AuthsParam =
     new GeoMesaParam[String](

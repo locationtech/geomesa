@@ -34,8 +34,6 @@ class DensityIteratorTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
   override val spec: String =
     "an_id:Int,attr:Double,dtg:Date," +
         "*geom:Point:srid=4326," +

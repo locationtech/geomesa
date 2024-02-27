@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index.legacy
 
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
+import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.geotools.api.feature.simple.SimpleFeatureType
 // noinspection ScalaDeprecation
@@ -24,7 +24,7 @@ class JoinIndexV2(ds: GeoMesaDataStore[_],
                   attribute: String,
                   dtg: Option[String],
                   mode: IndexMode)
-    extends AttributeIndexV2(ds, sft, attribute, dtg, mode) with AccumuloJoinIndex {
+    extends AttributeIndexV2(ds, sft, attribute, dtg, mode) with AttributeJoinIndex {
 
   override val keySpace: AttributeIndexKeySpace = new AttributeIndexKeySpaceV2(sft, attribute) {
 

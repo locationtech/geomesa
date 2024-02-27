@@ -39,7 +39,7 @@ class ProjectVersionIterator extends SortedKeyValueIterator[Key, Value] {
                     columnFamilies: util.Collection[ByteSequence],
                     inclusive: Boolean): Unit = {}
 
-  override def deepCopy(env: IteratorEnvironment) = throw new NotImplementedError()
+  override def deepCopy(env: IteratorEnvironment): ProjectVersionIterator = throw new NotImplementedError()
 }
 
 object ProjectVersionIterator {
