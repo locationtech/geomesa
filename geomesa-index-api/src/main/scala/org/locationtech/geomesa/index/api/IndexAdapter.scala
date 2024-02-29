@@ -70,9 +70,11 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
     * @param partition partition to write, if any
     * @return
     */
-  def createWriter(sft: SimpleFeatureType,
-                   indices: Seq[GeoMesaFeatureIndex[_, _]],
-                   partition: Option[String] = None): IndexWriter
+  def createWriter(
+      sft: SimpleFeatureType,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      partition: Option[String] = None,
+      atomic: Boolean = false): IndexWriter
 
   /**
     * Create a query plan
@@ -110,9 +112,17 @@ object IndexAdapter {
       * validating that all of the indices can index it successfully
       *
       * @param feature feature
-      * @param update true if this is an update to an existing feature
       */
-    def write(feature: SimpleFeature, update: Boolean): Unit
+    def append(feature: SimpleFeature): Unit
+
+    /**
+     * Write the feature, replacing a previous version. This method should ensure that the feature is
+     * not partially written, by first validating that all of the indices can index it successfully
+     *
+     * @param updated new feature
+     * @param previous old feature that should be replaced
+     */
+    def update(updated: SimpleFeature, previous: SimpleFeature): Unit
 
     /**
       * Delete the feature
@@ -135,8 +145,9 @@ object IndexAdapter {
 
     private val converters = indices.map(_.createConverter()).toArray
     private val values = Array.ofDim[RowKeyValue[_]](indices.length)
+    private val previousValues = Array.ofDim[RowKeyValue[_]](indices.length)
 
-    override def write(feature: SimpleFeature, update: Boolean): Unit = {
+    override def append(feature: SimpleFeature): Unit = {
       val writable = wrapper.wrap(feature)
 
       try {
@@ -150,7 +161,26 @@ object IndexAdapter {
         case NonFatal(e) => throw new IllegalArgumentException("Error creating keys for insert:", e)
       }
 
-      write(writable, values, update)
+      append(writable, values)
+    }
+
+    override def update(updated: SimpleFeature, previous: SimpleFeature): Unit = {
+      val writable = wrapper.wrap(updated)
+      val removable = wrapper.wrap(previous)
+
+      try {
+        var i = 0
+        // calculate all the mutations up front to ensure that there aren't any validation errors
+        while (i < converters.length) {
+          values(i) = converters(i).convert(writable)
+          previousValues(i) = converters(i).convert(removable)
+          i +=1
+        }
+      } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Error creating keys for insert:", e)
+      }
+
+      update(writable, values, removable, previousValues)
     }
 
     override def delete(feature: SimpleFeature): Unit = {
@@ -175,9 +205,18 @@ object IndexAdapter {
       *
       * @param feature feature being written
       * @param values derived values, one per index
-      * @param update true if this is an update to an existing feature
       */
-    protected def write(feature: T, values: Array[RowKeyValue[_]], update: Boolean): Unit
+    protected def append(feature: T, values: Array[RowKeyValue[_]]): Unit
+
+    /**
+     * Write values derived from the feature
+     *
+     * @param feature feature being written
+     * @param values derived values, one per index
+     * @param previous the previous feature being updated/replaced
+     * @param previousValues derived values for the previous feature
+     */
+    protected def update(feature: T, values: Array[RowKeyValue[_]], previous: T, previousValues: Array[RowKeyValue[_]]): Unit
 
     /**
       * Delete values derived from the feature
@@ -192,9 +231,13 @@ object IndexAdapter {
    * Mixin trait to require visibilities on write
    */
   trait RequiredVisibilityWriter extends IndexWriter with VisibilityChecker {
-    abstract override def write(feature: SimpleFeature, update: Boolean): Unit = {
+    abstract override def append(feature: SimpleFeature): Unit = {
       requireVisibilities(feature)
-      super.write(feature, update)
+      super.append(feature)
+    }
+    abstract override def update(feature: SimpleFeature, previous: SimpleFeature): Unit = {
+      requireVisibilities(feature)
+      super.update(feature, previous)
     }
     abstract override def delete(feature: SimpleFeature): Unit = {
       requireVisibilities(feature)

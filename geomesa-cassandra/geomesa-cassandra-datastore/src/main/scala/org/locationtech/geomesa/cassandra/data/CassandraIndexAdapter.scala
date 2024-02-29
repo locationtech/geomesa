@@ -105,7 +105,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createWriter(
       sft: SimpleFeatureType,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
-      partition: Option[String]): CassandraIndexWriter = {
+      partition: Option[String],
+      atomic: Boolean): CassandraIndexWriter = {
+    require(!atomic, "Cassandra data store does not currently support atomic writes")
     val wrapper = WritableFeature.wrapper(sft, groups)
     if (sft.isVisibilityRequired) {
       new CassandraIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
@@ -198,7 +200,7 @@ object CassandraIndexAdapter extends LazyLogging {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
+    override protected def append(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
       i = 0
       while (i < values.length) {
         val (mapper, statement, _) = mappers(i)
@@ -217,6 +219,15 @@ object CassandraIndexAdapter extends LazyLogging {
         }
         i += 1
       }
+    }
+
+    override protected def update(
+        feature: WritableFeature,
+        values: Array[RowKeyValue[_]],
+        previous: WritableFeature,
+        previousValues: Array[RowKeyValue[_]]): Unit = {
+      delete(previous, previousValues)
+      append(feature, values)
     }
 
     override protected def delete(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {

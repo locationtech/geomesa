@@ -115,7 +115,7 @@
         <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
         <testcontainers.version>1.19.3</testcontainers.version>
-        <testcontainers.accumulo.version>1.0.0</testcontainers.accumulo.version>
+        <testcontainers.accumulo.version>1.1.0</testcontainers.accumulo.version>
         <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
         <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
 
@@ -2958,7 +2958,6 @@
                             <user.language>en</user.language>
                             <user.region>US</user.region>
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
-                            <geomesa.accumulo.test.tablet.servers>1</geomesa.accumulo.test.tablet.servers>
                             <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
                             <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
                                  We need to disable it for the mini clusters to work in unit tests -->

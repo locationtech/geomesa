@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.{LazyOutputFormat, MultipleOutputs
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper, Reducer}
 import org.geotools.api.data.DataStoreFinder
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.VisibilityCache
+import org.locationtech.geomesa.accumulo.data.writer.VisibilityCache
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloWritableFeature}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
