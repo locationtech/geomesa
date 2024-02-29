@@ -8,7 +8,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 jobs:
