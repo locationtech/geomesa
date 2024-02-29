@@ -138,7 +138,7 @@ class AccumuloAtomicIndexWriter(
         // note: if these are rejected, some other update has come through and we don't want to overwrite it
         writers(i).write(m.invert())
       }
-      throw ConditionalWriteException(id, errors)
+      throw ConditionalWriteException(id, errors.toSeq)
     }
   }
 
