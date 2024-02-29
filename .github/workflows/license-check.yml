@@ -12,7 +12,7 @@ env:
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 jobs:
-  license-check:
+  check-headers:
     runs-on: ubuntu-latest
     # avoid duplicate jobs on PRs from the main repo
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
