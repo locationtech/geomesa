@@ -1,3 +1,11 @@
+/***********************************************************************
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
 package org.locationtech.geomesa.accumulo.data;
 
 import org.geotools.api.data.DataStore;
@@ -23,6 +31,7 @@ import java.util.Collections;
  * the only thing being tested is that it compiles.
  */
 public class AtomicWriteJavaTest {
+
     public void testJavaApi() {
         try {
             DataStore ds = DataStoreFinder.getDataStore(Collections.emptyMap());
