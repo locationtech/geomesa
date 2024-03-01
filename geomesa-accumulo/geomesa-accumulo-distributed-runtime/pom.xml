@@ -69,12 +69,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                                    <resource>geomesa-accumulo-distributed-runtime.properties</resource>
-                                    <file>src/main/resources/geomesa-accumulo-distributed-runtime.properties</file>
-                                </transformer>
-                            </transformers>
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>

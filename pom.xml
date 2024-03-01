@@ -2867,7 +2867,6 @@
                     <configuration>
                         <artifactSet>
                             <excludes combine.children="append">
-                                <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
                                 <exclude>org.slf4j:*</exclude>
                                 <exclude>org.geotools:gt-render:*</exclude>
                                 <exclude>org.geotools:gt-coverage:*</exclude>
