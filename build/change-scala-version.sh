@@ -20,7 +20,7 @@
 set -e
 
 VALID_VERSIONS=("2.12" "2.13")
-FULL_VERSIONS=("2.12.19" "2.13.13")
+FULL_VERSIONS=("2.12.19" "2.13.12") # note: 2.13.13 breaks the zinc compile server
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>
