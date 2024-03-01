@@ -52,7 +52,7 @@
 
         <!-- java/scala -->
         <jdk.version>11</jdk.version>
-        <scala.version>2.12.18</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+        <scala.version>2.12.19</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
