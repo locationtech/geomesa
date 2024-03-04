@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.fs.storage.common.s3
 
 import com.amazonaws.services.s3.AmazonS3
+import org.apache.accumulo.access.AccessExpression
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.security.VisibilityEvaluator.VisibilityAnd
-import org.locationtech.geomesa.security.{SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.security.SecurityUtils
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -37,14 +37,10 @@ class S3VisibilityObserver(s3: AmazonS3, path: Path, tag: String) extends S3Obje
 
   override protected def tags(): Iterable[(String, String)] = {
     if (visibilities.isEmpty) { Seq.empty } else {
-      val expressions = visibilities.flatMap { v =>
-        VisibilityEvaluator.parse(v) match {
-          case VisibilityAnd(clauses) => clauses
-          case e => Seq(e)
-        }
-      }
-      val vis = VisibilityAnd(expressions.toSeq).expression
-      Seq(tag -> Base64.getEncoder.encodeToString(vis.getBytes(StandardCharsets.UTF_8)))
+      val vis = visibilities.mkString("(", ")&(", ")")
+      // this call simplifies and de-duplicates the expression
+      val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
+      Seq(tag -> Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8)))
     }
   }
 }

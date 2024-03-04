@@ -8,26 +8,24 @@
 
 package org.locationtech.geomesa.security.filter
 
+import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.capability.FunctionName
 import org.geotools.api.filter.expression.Expression
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
-import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils}
 
-import java.nio.charset.StandardCharsets
 import java.util.Collections
 import scala.util.Try
 
 class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFunction.Name) {
 
-  import scala.collection.JavaConverters._
-
   private val cache = scala.collection.mutable.Map.empty[String, java.lang.Boolean]
 
-  private val auths =
-    VisibilityFilterFunction.provider.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8))
+  private val auths = Authorizations.of(VisibilityFilterFunction.provider.getAuthorizations)
+  private val access = AccessEvaluator.of(auths)
 
   private var expression: Expression = _
 
@@ -46,8 +44,7 @@ class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFu
         expression.evaluate(obj).asInstanceOf[String]
       }
       if (vis == null || vis.isEmpty) { java.lang.Boolean.FALSE } else {
-        cache.getOrElseUpdate(vis,
-          Try(Boolean.box(VisibilityEvaluator.parse(vis).evaluate(auths.toSeq))).getOrElse(java.lang.Boolean.FALSE))
+        cache.getOrElseUpdate(vis, Try(Boolean.box(access.canAccess(vis))).getOrElse(java.lang.Boolean.FALSE))
       }
 
     case _ => java.lang.Boolean.FALSE
