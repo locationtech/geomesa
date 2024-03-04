@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -25,7 +26,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryH
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
+import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
@@ -36,7 +37,7 @@ import org.locationtech.geomesa.utils.stats.Stat
 import org.locationtech.jts.geom.Envelope
 
 import java.io.ByteArrayOutputStream
-import java.nio.charset.StandardCharsets
+import scala.util.control.NonFatal
 
 /**
   * Query runner that handles transforms, visibilities and analytic queries locally. Subclasses are responsible
@@ -122,8 +123,6 @@ object LocalQueryRunner extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  import scala.collection.JavaConverters._
-
   case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
 
   /**
@@ -135,7 +134,7 @@ object LocalQueryRunner extends LazyLogging {
   def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = {
     provider match {
       case None    => noAuthVisibilityCheck
-      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8)).toSeq)
+      case Some(p) => new AuthVisibilityCheck(p.getAuthorizations)
     }
   }
 
@@ -425,14 +424,24 @@ object LocalQueryRunner extends LazyLogging {
   }
 
   /**
-    * Parses any visibilities in the feature and compares with the user's authorizations
-    *
-    * @param f simple feature to check
-    * @param auths authorizations for the current user
-    * @return true if feature is visible to the current user, otherwise false
-    */
-  private def authVisibilityCheck(f: SimpleFeature, auths: Seq[Array[Byte]]): Boolean = {
-    val vis = SecurityUtils.getVisibility(f)
-    vis == null || VisibilityEvaluator.parse(vis).evaluate(auths)
+   * Parses any visibilities in the feature and compares with the user's authorizations
+   *
+   * @param auths authorizations for the current user
+   */
+  private class AuthVisibilityCheck(auths: java.util.List[String]) extends (SimpleFeature => Boolean) {
+
+    private val access = AccessEvaluator.of(Authorizations.of(auths))
+    private val cache = scala.collection.mutable.Map.empty[String, Boolean]
+
+    /**
+     * Checks auths against the feature's visibility
+     *
+     * @param f feature
+     * @return true if feature is visible to the current user, otherwise false
+     */
+    override def apply(f: SimpleFeature): Boolean = {
+      val vis = SecurityUtils.getVisibility(f)
+      vis == null || cache.getOrElseUpdate(vis, try { access.canAccess(vis) } catch { case NonFatal(_) => false })
+    }
   }
 }

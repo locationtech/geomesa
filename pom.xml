@@ -65,6 +65,7 @@
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
 
         <!-- direct dependencies -->
+        <accumulo.access.version>1.0.0-beta</accumulo.access.version>
         <arrow.version>15.0.0</arrow.version>
         <avro.version>1.11.3</avro.version> <!-- see also confluent.avro.version -->
         <aws.sdk.version>1.12.625</aws.sdk.version>
@@ -1305,6 +1306,11 @@
                 <version>${gt.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>accumulo-access</artifactId>
+                <version>${accumulo.access.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo-shaded</artifactId>
