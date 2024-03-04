@@ -316,7 +316,7 @@ org.apache.logging.log4j:log4j-core	2.22.1	test
 org.apache.sedona:sedona-common	1.5.0	test
 org.cassandraunit:cassandra-unit	3.7.1.0	test
 org.codehaus.groovy:groovy-jsr223	3.0.20	test
-org.geomesa.testcontainers:testcontainers-accumulo	1.0.0	test
+org.geomesa.testcontainers:testcontainers-accumulo	1.1.0	test
 org.geotools:gt-epsg-hsql	30.2	test
 org.jruby:jruby	9.4.5.0	test
 org.mockito:mockito-core	2.28.2	test
