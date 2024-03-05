@@ -196,7 +196,7 @@
         <test.accumulo.docker.tag>2.1.2</test.accumulo.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
-        <test.postgis.docker.tag>15-3.3</test.postgis.docker.tag>
+        <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
 
