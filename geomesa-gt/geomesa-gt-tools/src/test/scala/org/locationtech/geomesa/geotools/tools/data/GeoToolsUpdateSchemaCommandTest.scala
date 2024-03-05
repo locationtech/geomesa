@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.geotools.tools.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
 import org.geotools.api.data._
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -21,13 +21,12 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{Partiti
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.images.builder.ImageFromDockerfile
+import org.testcontainers.utility.DockerImageName
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -72,9 +71,8 @@ class GeoToolsUpdateSchemaCommandTest extends Specification with BeforeAfterAll 
 
   override def beforeAll(): Unit = {
     val image =
-      new ImageFromDockerfile("testcontainers/postgis_cron", false)
-          .withFileFromClasspath(".", "testcontainers")
-          .withBuildArg("FROM_TAG", sys.props.getOrElse("postgis.docker.tag", "15-3.3"))
+      DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
+          .withTag(sys.props.getOrElse("postgis.docker.tag", "15-3.4"))
     container = new GenericContainer(image)
     container.addEnv("POSTGRES_HOST_AUTH_METHOD", "trust")
     container.addExposedPort(5432)
