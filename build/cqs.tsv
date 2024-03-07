@@ -181,7 +181,6 @@ org.apache.yetus:audience-annotations	0.12.0	compile
 org.apache.yetus:audience-annotations	0.13.0	compile
 org.apache.zookeeper:zookeeper	3.9.1	compile
 org.apache.zookeeper:zookeeper-jute	3.9.1	compile
-org.apiguardian:apiguardian-api	1.1.0	compile
 org.apiguardian:apiguardian-api	1.1.2	compile
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.37.0	compile
@@ -261,12 +260,11 @@ tech.units:indriya	2.2	compile
 tech.uom.lib:uom-lib-common	2.2	compile
 
 ch.qos.reload4j:reload4j	1.2.25	provided
-com.101tec:zkclient	0.11	provided
 com.amazonaws:aws-java-sdk-s3	1.12.625	provided
 com.datastax.cassandra:cassandra-driver-core	3.11.5	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.11.5	provided
-io.confluent:kafka-avro-serializer	6.2.7	provided
-io.confluent:kafka-schema-registry-client	6.2.7	provided
+io.confluent:kafka-avro-serializer	7.6.0	provided
+io.confluent:kafka-schema-registry-client	7.6.0	provided
 javax.media:jai_core	1.1.3	provided
 org.apache.accumulo:accumulo-start	2.1.2	provided
 org.apache.commons:commons-text	1.10.0	provided
@@ -281,10 +279,10 @@ org.apache.hadoop:hadoop-yarn-api	3.3.6	provided
 org.apache.hadoop:hadoop-yarn-common	3.3.6	provided
 org.apache.hbase:hbase-server	2.5.7-hadoop3	provided
 org.apache.htrace:htrace-core4	4.1.0-incubating	provided
-org.apache.kafka:kafka-clients	2.8.2	provided
-org.apache.kafka:kafka-streams-scala_2.12	2.8.2	provided
-org.apache.kafka:kafka-streams	2.8.2	provided
-org.apache.kafka:kafka_2.12	2.8.2	provided
+org.apache.kafka:kafka-clients	3.7.0	provided
+org.apache.kafka:kafka-streams-scala_2.12	3.7.0	provided
+org.apache.kafka:kafka-streams	3.7.0	provided
+org.apache.kafka:kafka_2.12	3.7.0	provided
 org.apache.sedona:sedona-spark-3.4_2.12	1.5.0	provided
 org.apache.sedona:sedona-spark-common-3.4_2.12	1.5.0	provided
 org.apache.spark:spark-catalyst_2.12	3.5.0	provided
@@ -294,12 +292,9 @@ org.scala-lang:scala-compiler	2.12.19	provided
 org.slf4j:slf4j-reload4j	1.7.36	provided
 org.springframework.security:spring-security-core	5.8.9	provided
 
-com.kjetland:mbknor-jackson-jsonschema_2.12	1.0.39	test
 com.sun.xml.bind:jaxb-impl	2.2.3	test
 com.uber:h3	4.1.1	test
 commons-lang:commons-lang	2.6	test
-io.confluent:kafka-schema-registry	6.2.7	test
-io.confluent:kafka-schema-registry	tests:6.2.7	test
 junit:junit	4.13.2	test
 org.apache.accumulo:accumulo-test	2.1.2	test
 org.apache.arrow:arrow-vector	tests:15.0.0	test
@@ -308,9 +303,9 @@ org.apache.cassandra:cassandra-thrift	3.11.14	test
 org.apache.curator:curator-test	5.6.0	test
 org.apache.hadoop:hadoop-minicluster	3.3.6	test
 org.apache.hbase:hbase-testing-util	2.5.7-hadoop3	test
-org.apache.kafka:kafka-clients	test:2.8.2	test
-org.apache.kafka:kafka-streams-test-utils	2.8.2	test
-org.apache.kafka:kafka_2.12	test:2.8.2	test
+org.apache.kafka:kafka-clients	test:3.7.0	test
+org.apache.kafka:kafka-streams-test-utils	3.7.0	test
+org.apache.kafka:kafka_2.12	test:3.7.0	test
 org.apache.logging.log4j:log4j-api	2.22.1	test
 org.apache.logging.log4j:log4j-core	2.22.1	test
 org.apache.sedona:sedona-common	1.5.0	test

@@ -67,7 +67,7 @@
         <!-- direct dependencies -->
         <accumulo.access.version>1.0.0-beta</accumulo.access.version>
         <arrow.version>15.0.0</arrow.version>
-        <avro.version>1.11.3</avro.version> <!-- see also confluent.avro.version -->
+        <avro.version>1.11.3</avro.version>
         <aws.sdk.version>1.12.625</aws.sdk.version>
         <caffeine.version>3.1.8</caffeine.version>
         <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
@@ -115,6 +115,7 @@
         <!-- test dependencies -->
         <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <testcontainers.version>1.19.3</testcontainers.version>
         <testcontainers.accumulo.version>1.0.0</testcontainers.accumulo.version>
         <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
@@ -131,14 +132,11 @@
         <spark.version>3.5.0</spark.version>
         <hbase.version>2.5.7-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
-        <protobuf.version>2.5.0</protobuf.version>
+        <protobuf.version>2.5.0</protobuf.version> <!-- see also confluent.protobuf.version-->
         <cassandra.version>3.11.5</cassandra.version>
-        <kafka.version>2.8.2</kafka.version>
-        <zkclient.version>0.11</zkclient.version>
-        <kafka.jopt.version>5.0.4</kafka.jopt.version>
-        <confluent.version>6.2.7</confluent.version> <!-- corresponds to kafka 2.8 -->
-        <confluent.recommended.version>6.2.7</confluent.recommended.version>
-        <confluent.avro.version>1.11.3</confluent.avro.version>
+        <kafka.version>3.7.0</kafka.version> <!-- needs to align with confluent version -->
+        <confluent.version>7.6.0</confluent.version> <!-- corresponds to kafka 3.6 -->
+        <confluent.protobuf.version>3.19.6</confluent.protobuf.version>
         <sedona.version>1.5.0</sedona.version>
         <sedona.spark.version>3.4</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
@@ -197,7 +195,7 @@
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
-        <test.confluent.docker.tag>7.3.1</test.confluent.docker.tag> <!-- confluent 7.3.x corresponds to kafka 3.3.x -->
+        <test.confluent.docker.tag>7.6.0</test.confluent.docker.tag> <!-- confluent 7.6.x corresponds to kafka 3.6.x -->
         <test.zookeeper.docker.tag>3.6.4</test.zookeeper.docker.tag>
 
         <!-- documentation -->
@@ -214,6 +212,7 @@
         <cassandra.driver.version.recommended>3.11.3</cassandra.driver.version.recommended>
         <hadoop.version.recommended>3.3.6</hadoop.version.recommended>
         <zookeeper.version.recommended>3.9.1</zookeeper.version.recommended>
+        <confluent.version.recommended>7.6.0</confluent.version.recommended>
     </properties>
 
     <profiles>
@@ -2199,12 +2198,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>com.101tec</groupId>
-                <artifactId>zkclient</artifactId>
-                <version>${zkclient.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
@@ -2571,6 +2564,12 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

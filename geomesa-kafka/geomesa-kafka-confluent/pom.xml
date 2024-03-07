@@ -14,8 +14,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <avro.version>${confluent.avro.version}</avro.version>
         <kafka.scala.version>${scala.binary.version}</kafka.scala.version> <!-- try to override the confluent pom -->
+        <protobuf.version>${confluent.protobuf.version}</protobuf.version>
     </properties>
 
     <dependencies>
@@ -88,64 +88,6 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <classifier>test</classifier>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-schema-registry</artifactId>
-            <version>${confluent.version}</version>
-            <scope>test</scope>
-            <exclusions>
-                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
-                <exclusion>
-                    <groupId>org.apache.kafka</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.kjetland</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-schema-registry</artifactId>
-            <version>${confluent.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-            <exclusions>
-                <!-- exclude scala jars so that we can bring in 2.12 or 2.11 as appropriate -->
-                <exclusion>
-                    <groupId>org.apache.kafka</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.kjetland</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <!-- from kafka-schema-registry, above -->
-            <groupId>com.kjetland</groupId>
-            <artifactId>mbknor-jackson-jsonschema_${scala.binary.version}</artifactId>
-            <version>1.0.39</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
