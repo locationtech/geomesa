@@ -139,6 +139,8 @@ The following dependencies have been upgraded:
 * accumulo ``2.0.1`` -> ``2.1.2``
 * aircompressor ``0.21`` -> ``0.25``
 * antlr ``4.7.1`` -> ``4.7.2``
+* arrow ``11.0.0`` -> ``15.0.0``
+* avro ``1.11.1`` -> ``1.11.3``
 * aws-java-sdk ``1.11.179`` -> ``1.12.625``
 * caffeine ``2.9.3`` -> ``3.1.8``
 * cassandra-driver ``3.11.3`` -> ``3.11.5``
@@ -156,6 +158,7 @@ The following dependencies have been upgraded:
 * commons-lang3 ``3.8.1`` -> ``3.14.0``
 * commons-pool2 ``2.6.1`` -> ``2.12.0``
 * commons-text ``1.10.0`` -> ``1.11.0``
+* confluent ``6.2.7`` -> ``7.6.0``
 * cqengine ``3.0.0`` -> ``3.6.0``
 * org.apache.curator ``4.3.0`` -> ``5.6.0``
 * geotools ``28.2`` -> ``30.2``
@@ -169,17 +172,14 @@ The following dependencies have been upgraded:
 * javax.measure:unit-api ``2.0`` -> ``2.1.2``
 * jcommander ``1.78`` -> ``1.82``
 * jedis ``4.3.1`` -> ``5.1.0``
+* kafka ``2.8.2`` -> ``3.7.0``
 * kryo ``4.0.2`` -> ``4.0.3``
-* org.apache.arrow ``11.0.0`` -> ``15.0.0``
-* org.apache.avro ``1.11.1`` -> ``1.11.3``
-* org.apache.orc ``1.8.2`` -> ``1.9.2``
-* org.apache.parquet ``1.12.3`` -> ``1.13.1``
-* org.apache.sedona ``1.3.1-incubating`` -> ``1.5.0``
-* org.apache.spark ``3.3.1`` -> ``3.5.0``
+* orc ``1.8.2`` -> ``1.9.2``
 * org.eclipse.emf.common ``2.15.0`` -> ``2.29.0``
 * org.eclipse.emf.ecore ``2.15.0`` -> ``2.35.0``
 * org.eclipse.emf.ecore.xmi ``2.15.0`` -> ``2.36.0``
 * org.ehcache:sizeof ``0.4.0`` -> ``0.4.3``
+* parquet ``1.12.3`` -> ``1.13.1``
 * parboiled ``1.3.1`` -> ``1.4.1``
 * postgresql ``42.5.1`` -> ``42.7.2``
 * pureconfig ``0.17.2`` -> ``0.17.4``
@@ -187,7 +187,9 @@ The following dependencies have been upgraded:
 * scala ``2.12.17`` -> ``2.12.18``
 * scala-parser-combinators ``2.1.1`` -> ``2.3.0``
 * scala-xml ``2.1.0`` -> ``2.2.0``
+* sedona ``1.3.1-incubating`` -> ``1.5.0``
 * si.uom ``2.0.1`` -> ``2.1``
+* spark ``3.3.1`` -> ``3.5.0``
 * spring-security ``5.8.0`` -> ``5.8.9``
 * systems.uom ``2.0.2`` -> ``2.1``
 * tech.units:indriya ``2.0.2`` -> ``2.2``

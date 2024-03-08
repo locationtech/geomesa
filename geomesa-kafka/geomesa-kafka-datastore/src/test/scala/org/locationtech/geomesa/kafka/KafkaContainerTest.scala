@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.kafka
 
 import com.typesafe.scalalogging.LazyLogging
+import org.slf4j.LoggerFactory
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.KafkaContainer
+import org.testcontainers.containers.{KafkaContainer, Network}
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
@@ -19,16 +20,18 @@ class KafkaContainerTest extends Specification with BeforeAfterAll with LazyLogg
 
   private var container: KafkaContainer = _
 
+  protected val network = Network.newNetwork()
+
   lazy val zookeepers = s"${container.getHost}:${container.getMappedPort(KafkaContainer.ZOOKEEPER_PORT)}"
   lazy val brokers = container.getBootstrapServers
 
   override def beforeAll(): Unit = {
-    val image =
-      DockerImageName.parse("confluentinc/cp-kafka")
-          .withTag(sys.props.getOrElse("confluent.docker.tag", "7.3.1"))
-    container = new KafkaContainer(image)
+    container =
+      new KafkaContainer(KafkaContainerTest.KafkaImage)
+          .withNetwork(network)
+          .withNetworkAliases("kafka")
+          .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
     container.start()
-    container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
 
   override def afterAll(): Unit = {
@@ -36,4 +39,10 @@ class KafkaContainerTest extends Specification with BeforeAfterAll with LazyLogg
       container.stop()
     }
   }
+}
+
+object KafkaContainerTest {
+  val KafkaImage =
+    DockerImageName.parse("confluentinc/cp-kafka")
+        .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
 }
