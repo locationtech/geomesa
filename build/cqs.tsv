@@ -282,7 +282,6 @@ org.apache.htrace:htrace-core4	4.1.0-incubating	provided
 org.apache.kafka:kafka-clients	3.7.0	provided
 org.apache.kafka:kafka-streams-scala_2.12	3.7.0	provided
 org.apache.kafka:kafka-streams	3.7.0	provided
-org.apache.kafka:kafka_2.12	3.7.0	provided
 org.apache.sedona:sedona-spark-3.4_2.12	1.5.0	provided
 org.apache.sedona:sedona-spark-common-3.4_2.12	1.5.0	provided
 org.apache.spark:spark-catalyst_2.12	3.5.0	provided
@@ -305,7 +304,6 @@ org.apache.hadoop:hadoop-minicluster	3.3.6	test
 org.apache.hbase:hbase-testing-util	2.5.7-hadoop3	test
 org.apache.kafka:kafka-clients	test:3.7.0	test
 org.apache.kafka:kafka-streams-test-utils	3.7.0	test
-org.apache.kafka:kafka_2.12	test:3.7.0	test
 org.apache.logging.log4j:log4j-api	2.22.1	test
 org.apache.logging.log4j:log4j-core	2.22.1	test
 org.apache.sedona:sedona-common	1.5.0	test

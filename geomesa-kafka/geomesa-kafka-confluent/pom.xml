@@ -35,10 +35,6 @@
         <!-- provided -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
         </dependency>
         <dependency>
@@ -78,11 +74,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_${scala.binary.version}</artifactId>
-            <classifier>test</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
