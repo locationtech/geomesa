@@ -11,7 +11,7 @@
 # Usually these dependencies will be provided by the environment (e.g. KAFKA_HOME).
 # Update the versions as required to match the target environment.
 
-confluent_install_version="%%confluent.recommended.version%%"
+confluent_install_version="%%confluent.version.recommended%%"
 
 function dependencies() {
   # local classpath="$1"

@@ -13,7 +13,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <avro.version>${confluent.avro.version}</avro.version>
     </properties>
 
     <dependencies>
