@@ -9,12 +9,10 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
-import kafka.admin.ConfigCommand.{ConfigEntity, Entity}
-import kafka.zk.{AdminZkClient, KafkaZkClient}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
-import org.apache.kafka.common.utils.Time
+import org.apache.kafka.common.config.ConfigResource
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -50,7 +48,7 @@ import org.specs2.runner.JUnitRunner
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date}
+import java.util.{Collections, Date, Properties}
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
@@ -1019,13 +1017,16 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         sft.getUserData.put("kafka.topic.config", "cleanup.policy=compact\nretention.ms=86400000")
         ds.createSchema(sft)
         val topic = KafkaDataStore.topic(ds.getSchema(sft.getTypeName))
-        WithClose(KafkaZkClient(zookeepers, isSecure = false, 30000, 30000, Int.MaxValue, Time.SYSTEM)) { zkClient =>
-          val admin = new AdminZkClient(zkClient)
-          val entity = ConfigEntity(Entity("topics", Some(topic)), None)
-          val configs = entity.getAllEntities(zkClient).flatMap { e =>
-            admin.fetchEntityConfig(e.root.entityType, e.fullSanitizedName).asScala
-          }
-          configs.toMap mustEqual Map("cleanup.policy" -> "compact", "retention.ms" -> "86400000")
+        val props = new Properties()
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+
+        WithClose(AdminClient.create(props)) { admin =>
+          val configs =
+            admin.describeConfigs(Collections.singletonList(new ConfigResource(ConfigResource.Type.TOPIC, topic)))
+          val config = configs.values().get(new ConfigResource(ConfigResource.Type.TOPIC, topic)).get()
+          config must not(beNull)
+          config.entries().asScala.map(e => e.name() -> e.value()).toMap must
+              containAllOf(Seq("cleanup.policy" -> "compact", "retention.ms" -> "86400000"))
         }
       } finally {
         ds.dispose()

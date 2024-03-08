@@ -16,9 +16,6 @@
     <category name="org.apache.thrift">
         <priority value="error"/>
     </category>
-    <category name="kafka">
-        <priority value="error"/>
-    </category>
     <category name="org.apache.kafka">
         <priority value="error"/>
     </category>

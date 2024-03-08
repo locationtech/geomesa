@@ -12,7 +12,6 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
-import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
 import org.apache.kafka.clients.producer.ProducerConfig.{ACKS_CONFIG, PARTITIONER_CLASS_CONFIG}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
@@ -463,11 +462,10 @@ object KafkaDataStore extends LazyLogging {
 
     Seq.fill(config.count) {
       val consumer = KafkaDataStore.consumer(brokers, props)
-      val listener = config.readBack match {
-        case None    => new NoOpConsumerRebalanceListener()
-        case Some(d) => new ReadBackRebalanceListener(consumer, partitions, d)
+      config.readBack match {
+        case None    => KafkaConsumerVersions.subscribe(consumer, topic)
+        case Some(d) => KafkaConsumerVersions.subscribe(consumer, topic, new ReadBackRebalanceListener(consumer, partitions, d))
       }
-      KafkaConsumerVersions.subscribe(consumer, topic, listener)
       consumer
     }
   }

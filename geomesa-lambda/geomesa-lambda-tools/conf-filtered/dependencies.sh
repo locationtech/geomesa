@@ -15,7 +15,6 @@ accumulo_install_version="%%accumulo.version.recommended%%"
 hadoop_install_version="%%hadoop.version.recommended%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 kafka_install_version="%%kafka.version%%"
-zkclient_install_version="%%zkclient.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%accumulo.guava.version%%"
 
@@ -31,14 +30,12 @@ function dependencies() {
   local hadoop_version="$hadoop_install_version"
   local zk_version="$zookeeper_install_version"
   local kafka_version="$kafka_install_version"
-  local zkclient_version="$zkclient_install_version"
 
   if [[ -n "$classpath" ]]; then
     accumulo_version="$(get_classpath_version accumulo-core "$classpath" $accumulo_version)"
     hadoop_version="$(get_classpath_version hadoop-common "$classpath" $hadoop_version)"
     zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
     kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
   fi
 
   declare -a gavs=(
@@ -58,7 +55,6 @@ function dependencies() {
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
     "org.apache.kafka:kafka_%%scala.binary.version%%:${kafka_version}:jar"
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
-    "com.101tec:zkclient:${zkclient_version}:jar"
     "commons-logging:commons-logging:1.1.3:jar"
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
@@ -66,7 +62,7 @@ function dependencies() {
     "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
     "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
-    "net.sf.jopt-simple:jopt-simple:%%kafka.jopt.version%%:jar"
+    "net.sf.jopt-simple:jopt-simple:5.0.4:jar"
     "io.netty:netty-codec:%%netty.version%%:jar"
     "io.netty:netty-handler:%%netty.version%%:jar"
     "io.netty:netty-resolver:%%netty.version%%:jar"
