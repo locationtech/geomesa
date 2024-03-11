@@ -144,7 +144,8 @@ object StatsCombiner {
 
   private def attach(connector: AccumuloClient, table: String, options: Map[String, String]): Unit = {
     // priority needs to be less than the versioning iterator at 20
-    val is = new IteratorSetting(10, CombinerName, classOf[StatsCombiner])
+    // note: we use the old class name to allow full interop between gm versions
+    val is = new IteratorSetting(10, CombinerName, "org.locationtech.geomesa.accumulo.data.stats.StatsCombiner")
     options.foreach { case (k, v) => is.addOption(k, v) }
     connector.tableOperations().attachIterator(table, is)
   }
