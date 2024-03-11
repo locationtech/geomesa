@@ -66,7 +66,7 @@
 
         <!-- direct dependencies -->
         <accumulo.access.version>1.0.0-beta</accumulo.access.version>
-        <arrow.version>15.0.0</arrow.version>
+        <arrow.version>15.0.1</arrow.version>
         <avro.version>1.11.3</avro.version>
         <aws.sdk.version>1.12.625</aws.sdk.version>
         <caffeine.version>3.1.8</caffeine.version>

@@ -139,7 +139,7 @@ The following dependencies have been upgraded:
 * accumulo ``2.0.1`` -> ``2.1.2``
 * aircompressor ``0.21`` -> ``0.25``
 * antlr ``4.7.1`` -> ``4.7.2``
-* arrow ``11.0.0`` -> ``15.0.0``
+* arrow ``11.0.0`` -> ``15.0.1``
 * avro ``1.11.1`` -> ``1.11.3``
 * aws-java-sdk ``1.11.179`` -> ``1.12.625``
 * caffeine ``2.9.3`` -> ``3.1.8``
