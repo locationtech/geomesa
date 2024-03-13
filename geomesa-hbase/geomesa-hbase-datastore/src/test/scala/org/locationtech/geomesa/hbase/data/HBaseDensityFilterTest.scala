@@ -9,7 +9,9 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{Query, _}
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -23,8 +25,6 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -223,8 +223,8 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   def getDensity(typeName: String, query: String, ds: DataStore): List[(Double, Double, Double)] = {
     val filter = ECQL.toFilter(query)
     val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
-      case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-      case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
+      case None    => ReferencedEnvelope.envelope(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+      case Some(g) => ReferencedEnvelope.envelope(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
     }
     val q = new Query(typeName, filter)
     q.getHints.put(QueryHints.DENSITY_BBOX, envelope)

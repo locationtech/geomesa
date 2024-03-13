@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.filter.expression
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.expression.{Expression, ExpressionVisitor, PropertyName}
 import org.geotools.filter.expression.PropertyAccessor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.expression.{Expression, ExpressionVisitor, PropertyName}
 import org.xml.sax.helpers.NamespaceSupport
 
 abstract class FastPropertyName(name: String) extends PropertyName with Expression {

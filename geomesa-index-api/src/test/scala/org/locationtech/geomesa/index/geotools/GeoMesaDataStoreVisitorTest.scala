@@ -8,11 +8,14 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import org.geotools.api.data.{DataStore, Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.util.NullProgressListener
-import org.geotools.data.{DataStore, Query}
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.visitor._
@@ -26,9 +29,6 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Envelope, Geometry}
-import org.opengis.feature.Feature
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -103,7 +103,7 @@ class GeoMesaDataStoreVisitorTest extends Specification {
       listener.warning must beNone
     }
     "optimize groupBy count visitors" in {
-      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val prop = CommonFactoryFinder.getFilterFactory.property("age")
       val listener = new TestProgressListener()
       val visitor = new GroupByVisitor(Aggregate.COUNT, prop, Collections.singletonList(prop), listener)
       ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
@@ -115,7 +115,7 @@ class GeoMesaDataStoreVisitorTest extends Specification {
       listener.warning must beNone
     }
     "optimize groupBy max visitors" in {
-      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val prop = CommonFactoryFinder.getFilterFactory.property("age")
       val listener = new TestProgressListener()
       val visitor = new GroupByVisitor(Aggregate.MAX, prop, Collections.singletonList(prop), listener)
       ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
@@ -127,7 +127,7 @@ class GeoMesaDataStoreVisitorTest extends Specification {
       listener.warning must beNone
     }
     "optimize groupBy min visitors" in {
-      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val prop = CommonFactoryFinder.getFilterFactory.property("age")
       val listener = new TestProgressListener()
       val visitor = new GroupByVisitor(Aggregate.MIN, prop, Collections.singletonList(prop), listener)
       ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)

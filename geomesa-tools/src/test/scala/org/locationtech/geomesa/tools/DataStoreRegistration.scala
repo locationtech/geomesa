@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.tools
 
-import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.geotools.api.data.DataAccessFactory.Param
+import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.geotools.util.factory.FactoryIteratorProvider
 
 import java.awt.RenderingHints

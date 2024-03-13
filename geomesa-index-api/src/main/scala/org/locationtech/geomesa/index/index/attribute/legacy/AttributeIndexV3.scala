@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
@@ -19,8 +21,6 @@ import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV3.Le
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import java.nio.charset.StandardCharsets
 import java.time.{ZoneOffset, ZonedDateTime}

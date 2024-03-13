@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
-import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

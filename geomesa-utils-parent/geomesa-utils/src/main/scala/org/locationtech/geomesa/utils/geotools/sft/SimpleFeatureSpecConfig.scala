@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.geotools.sft
 
 import com.typesafe.config._
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.ConfigSftParsing
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Keywords
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KeywordsDelimiter
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * SimpleFeatureSpec parsing from/to typesafe config

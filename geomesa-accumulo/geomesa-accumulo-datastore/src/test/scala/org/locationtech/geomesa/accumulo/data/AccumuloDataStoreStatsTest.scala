@@ -9,15 +9,16 @@
 package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureReader
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.AccumuloJoinIndex
+import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -26,8 +27,6 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelop
 import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -410,7 +409,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         // deleting the "name" index table to show that the QUERY_INDEX hint is being passed through
         ds.manager.indices(sft).collectFirst {
-          case i: AccumuloJoinIndex if i.attributes.head == "name" => i.getTableNames().head
+          case i: AttributeJoinIndex if i.attributes.head == "name" => i.getTableNames().head
         }.foreach { ds.connector.tableOperations().delete(_) }
 
         val filters = Seq("bbox(geom,0,0,10,5)", "name < '7'")

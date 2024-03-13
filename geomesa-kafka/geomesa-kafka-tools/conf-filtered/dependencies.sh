@@ -12,9 +12,7 @@
 # Update the versions as required to match the target environment.
 
 kafka_install_version="%%kafka.version%%"
-zkclient_install_version="%%zkclient.version%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
-jopt_install_version="%%kafka.jopt.version%%"
 
 function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
@@ -25,22 +23,25 @@ function dependencies() {
   local classpath="$1"
 
   local kafka_version="$kafka_install_version"
-  local zkclient_version="$zkclient_install_version"
   local zk_version="$zookeeper_install_version"
 
   if [[ -n "$classpath" ]]; then
     kafka_version="$(get_classpath_version kafka-clients "$classpath" $kafka_version)"
-    zkclient_version="$(get_classpath_version zkclient "$classpath" $zkclient_version)"
     zk_version="$(get_classpath_version zookeeper "$classpath" $zk_version)"
   fi
 
   declare -a gavs=(
-    "org.apache.kafka:kafka_%%scala.binary.version%%:${kafka_version}:jar"
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
-    "com.101tec:zkclient:${zkclient_version}:jar"
-    "net.sf.jopt-simple:jopt-simple:${jopt_install_version}:jar"
+    "net.sf.jopt-simple:jopt-simple:5.0.4:jar"
     "com.yammer.metrics:metrics-core:2.2.0:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
   )
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)

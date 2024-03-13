@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import org.apache.commons.compress.utils.CountingOutputStream
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteCounter
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.CreateMode
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{BufferedOutputStream, ByteArrayOutputStream, Closeable, OutputStream}
 import java.util.zip.GZIPOutputStream

@@ -11,9 +11,9 @@ package org.locationtech.geomesa.spark
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, TaskContext}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.StringWriter
 

@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.index.api
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal

@@ -8,26 +8,23 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.locationtech.geomesa.accumulo.index.{AccumuloJoinIndex, IndexValueEncoder}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.accumulo.index.{AttributeJoinIndex, IndexValueEncoder, ReducedIndexValues}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.index.api.WritableFeature.{AttributeLevelWritableFeature, FeatureWrapper}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, KeyValue, WritableFeature}
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.utils.index.VisibilityLevel
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Writable feature with support for 'index-values' used in attribute join indices
   *
   * @param delegate base writable feature
   */
-abstract class AccumuloWritableFeature(delegate: WritableFeature) extends WritableFeature {
-
+abstract class AccumuloWritableFeature(delegate: WritableFeature) extends WritableFeature with ReducedIndexValues {
   override val feature: SimpleFeature = delegate.feature
   override val values: Seq[KeyValue] = delegate.values
   override val id: Array[Byte] = delegate.id
-
-  def indexValues: Seq[KeyValue]
 }
 
 object AccumuloWritableFeature {
@@ -40,7 +37,7 @@ object AccumuloWritableFeature {
       indices: Seq[GeoMesaFeatureIndex[_, _]]): FeatureWrapper[WritableFeature] = {
     // make sure to provide our index values for attribute join indices if we need them
     val base = WritableFeature.wrapper(sft, groups)
-    if (indices.forall(i => !i.isInstanceOf[AccumuloJoinIndex])) { base } else {
+    if (indices.forall(i => !i.isInstanceOf[AttributeJoinIndex])) { base } else {
       val serializer = IndexValueEncoder(sft)
       if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
         new AccumuloAttributeLevelFeatureWrapper(base, serializer)

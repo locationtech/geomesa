@@ -10,8 +10,15 @@ package org.locationtech.geomesa.kafka.index
 
 <<<<<<< HEAD
 import com.codahale.metrics.{Gauge, Histogram}
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+=======
+>>>>>>> locatelli-main
 =======
 import com.codahale.metrics.Gauge
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -66,10 +73,20 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 =======
 import com.codahale.metrics.MetricRegistry.MetricSupplier
+>>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+>>>>>>> a9de98d0ef9 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -104,22 +121,46 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+>>>>>>> 5e885404c30 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
+=======
 =======
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> d014210d195 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> cf457d8543 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> ae76dae421d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 642891ac8f (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 72207855ca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> cd74249075 (GEOMESA-3100 Kafka layer views (#2784))
@@ -136,6 +177,9 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -155,6 +199,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 =======
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -185,10 +230,17 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 >>>>>>> 846e61d5c9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+>>>>>>> 846e61d5c9 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
+>>>>>>> 5c7acfc0f0e (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> af0a88eb17 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> cd74249075 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -210,6 +262,12 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 4f588ffc458 (GEOMESA-3100 Kafka layer views (#2784))
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -217,6 +275,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> c860f21098 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> cf457d8543 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -250,11 +309,14 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 =======
 >>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locatelli-main
+=======
+>>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c618e8f8812 (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locatelli-main
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCacheWithMetrics.SizeGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 <<<<<<< HEAD
 import java.util.Date

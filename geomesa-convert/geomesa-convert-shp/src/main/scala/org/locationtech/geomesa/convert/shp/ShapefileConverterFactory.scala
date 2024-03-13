@@ -10,13 +10,13 @@ package org.locationtech.geomesa.convert.shp
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory.TypeToProcess
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.InputStream
 import scala.util.control.NonFatal

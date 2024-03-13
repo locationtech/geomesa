@@ -20,8 +20,16 @@ import org.specs2.runner.JUnitRunner
  */
 @RunWith(classOf[JUnitRunner])
 class JTSDocsTest extends Specification with TestEnvironment {
+
+  sequential
+
+  // before
+  step {
+    // Trigger initialization of spark session
+    val _ = spark
+  }
+
   "jts documentation example" should {
-    sequential
 
     import org.apache.spark.sql.types._
     import org.locationtech.geomesa.spark.jts._
@@ -68,14 +76,19 @@ class JTSDocsTest extends Specification with TestEnvironment {
       df.as[Point].first shouldEqual point
     }
 
-    val chicagoDF = dfBlank.withColumn("geom", st_makePoint(10.0, 10.0))
-
     "should search chicago" >> {
       import org.locationtech.geomesa.spark.jts._
       import spark.implicits._
+
+      val chicagoDF = dfBlank.withColumn("geom", st_makePoint(10.0, 10.0))
       chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
 
       chicagoDF.count() shouldEqual 1
     }
+  }
+
+  // after
+  step {
+    spark.stop()
   }
 }

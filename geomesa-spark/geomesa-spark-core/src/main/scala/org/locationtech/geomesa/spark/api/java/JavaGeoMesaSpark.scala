@@ -12,9 +12,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.api.java.JavaRDD._
 import org.apache.spark.api.java._
 import org.apache.spark.rdd.RDD
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util
 import java.util.AbstractMap.SimpleEntry

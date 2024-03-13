@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import com.typesafe.config.{Config, ConfigRenderOptions, ConfigValue, ConfigValueFactory}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.metadata.PartitionAction.PartitionAction
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigReader.Result
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}

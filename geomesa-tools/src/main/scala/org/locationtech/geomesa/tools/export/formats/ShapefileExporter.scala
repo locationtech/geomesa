@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import org.geotools.data.Transaction
+import org.geotools.api.data.Transaction
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.shapefile.files.ShpFiles
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.util.URLs
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.File
 import java.net.URL

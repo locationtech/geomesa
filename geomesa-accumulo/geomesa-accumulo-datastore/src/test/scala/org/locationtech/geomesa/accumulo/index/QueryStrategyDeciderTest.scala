@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.filter.{And, Filter}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -24,7 +25,6 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
-import org.opengis.filter.{And, Filter}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

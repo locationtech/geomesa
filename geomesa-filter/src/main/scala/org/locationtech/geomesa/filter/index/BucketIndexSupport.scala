@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.index
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.index.BucketIndex
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BucketIndexSupport(override val sft: SimpleFeatureType, override val index: BucketIndex[SimpleFeature])
     extends SpatialIndexSupport {

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.{And, Filter, Or, PropertyIsEqualTo}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.{And, Filter, Or, PropertyIsEqualTo}
 
 /**
   * Lexicoded attribute partitioning

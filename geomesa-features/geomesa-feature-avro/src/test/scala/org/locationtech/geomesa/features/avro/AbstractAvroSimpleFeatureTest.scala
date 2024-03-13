@@ -10,15 +10,14 @@ package org.locationtech.geomesa.features.avro
 
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Point, Polygon}
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io.{File, FileInputStream}
 import java.nio.charset.StandardCharsets

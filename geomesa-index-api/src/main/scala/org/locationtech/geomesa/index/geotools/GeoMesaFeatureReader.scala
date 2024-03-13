@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import org.geotools.data.simple.SimpleFeatureReader
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, SimpleFeatureReader, Transaction}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.audit.QueryEvent
@@ -20,8 +21,6 @@ import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 

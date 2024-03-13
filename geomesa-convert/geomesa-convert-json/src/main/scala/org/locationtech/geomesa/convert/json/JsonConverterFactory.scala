@@ -11,8 +11,9 @@ package org.locationtech.geomesa.convert.json
 import com.google.gson.stream.{JsonReader, JsonToken}
 import com.google.gson.{JsonElement, JsonParser}
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
-import org.locationtech.geomesa.convert.json.JsonConverter.{JsonField, _}
+import org.locationtech.geomesa.convert.json.JsonConverter._
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, FieldConvert, OptionConvert}
@@ -21,7 +22,6 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType}
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 

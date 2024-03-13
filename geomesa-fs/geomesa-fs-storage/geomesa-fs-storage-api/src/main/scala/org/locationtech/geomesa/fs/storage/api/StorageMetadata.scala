@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.fs.storage.api
 
 import org.apache.hadoop.fs.Path
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.Closeable
 

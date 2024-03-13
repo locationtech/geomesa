@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.filter.expression
 
+import org.geotools.api.filter._
+import org.geotools.api.filter.expression.{Expression, Literal}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.filter._
-import org.opengis.filter.expression.{Expression, Literal}
 
 
 object FastComparisonOperator {

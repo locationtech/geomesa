@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.filter.text.ecql.ECQL
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.runner.JUnitRunner
 
 import java.io.{File, FileInputStream, FileWriter}

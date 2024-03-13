@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.data._
+import org.geotools.api.data._
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
@@ -31,8 +33,6 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureType
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -42,8 +42,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexStrategyTest extends Specification with TestWithFeatureType {
-
-  sequential
 
   override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
       "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
@@ -917,7 +915,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
   }
 
   "AttributeIdxStrategy merging" should {
-    val ff = CommonFactoryFinder.getFilterFactory2
+    val ff = CommonFactoryFinder.getFilterFactory
 
     "merge PropertyIsEqualTo primary filters" >> {
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))

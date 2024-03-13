@@ -12,7 +12,10 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
+import org.geotools.api.filter.sort.SortOrder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -26,9 +29,6 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.LineString
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
-import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
@@ -40,8 +40,6 @@ import scala.util.Try
 class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   import scala.collection.JavaConverters._
-
-  sequential
 
   lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
   lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
@@ -80,9 +78,11 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
     "name IN('name0', 'name1')"
   ).map(ECQL.toFilter)
 
-  addFeatures(pointFeatures)
-  addFeatures(lineFeatures)
-  addFeatures(listFeatures)
+  step {
+    addFeatures(pointFeatures)
+    addFeatures(lineFeatures)
+    addFeatures(listFeatures)
+  }
 
   val sfts = Seq((pointSft, pointFeatures), (lineSft, lineFeatures))
 

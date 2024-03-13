@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.features
 
+import org.geotools.api.feature.Property
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.Property
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -69,7 +69,7 @@ class ScalaSimpleFeatureTest extends Specification {
 
       f.getProperties must beAnInstanceOf[util.Collection[Property]]
       f.getProperties("a") must beAnInstanceOf[util.Collection[Property]]
-      f.getProperties("a").iterator().next.getValue must not(throwA [org.opengis.feature.IllegalAttributeException])
+      f.getProperties("a").iterator().next.getValue must not(throwA [org.geotools.api.feature.IllegalAttributeException])
 
       val prop = f.getProperty("a")
       prop must not beNull;
@@ -85,7 +85,7 @@ class ScalaSimpleFeatureTest extends Specification {
       f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
       f.setAttribute(2,"POINT(45.0 49.0)")
 
-      f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
+      f.validate must not(throwA [org.geotools.api.feature.IllegalAttributeException])
     }
 
     "properly validate multiple KryoSimpleFeature Objects with odd names and unicode characters, including colons" in {
@@ -98,7 +98,7 @@ class ScalaSimpleFeatureTest extends Specification {
         f.setAttribute(0,"1")
         f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
         f.setAttribute(2,"POINT(45.0 49.0)")
-        f.validate must not(throwA[org.opengis.feature.IllegalAttributeException])
+        f.validate must not(throwA[org.geotools.api.feature.IllegalAttributeException])
       }
 
       true must beTrue
@@ -109,7 +109,7 @@ class ScalaSimpleFeatureTest extends Specification {
 
       val f = new ScalaSimpleFeature(sft, "fakeid", Array("1", "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)"))
 
-      f.validate must throwA [org.opengis.feature.IllegalAttributeException]  //should throw it
+      f.validate must throwA [org.geotools.api.feature.IllegalAttributeException]  //should throw it
     }
 
     "properly convert empty strings to null" in {
@@ -138,7 +138,7 @@ class ScalaSimpleFeatureTest extends Specification {
 
       f.getAttributes.asScala.foreach { v => v must beNull}
 
-      f.validate must not(throwA [org.opengis.feature.IllegalAttributeException])
+      f.validate must not(throwA [org.geotools.api.feature.IllegalAttributeException])
     }
 
     "give back a null when an attribute doesn't exist" in {

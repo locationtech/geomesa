@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.{DataStore, Query}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.planning.QueryInterceptor
-import org.opengis.feature.simple.SimpleFeatureType
 
 class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
 

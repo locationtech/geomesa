@@ -15,7 +15,8 @@ import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
@@ -32,7 +33,7 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
-import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -43,6 +44,7 @@ import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, 
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -105,6 +107,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -119,6 +125,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -138,6 +147,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -188,6 +198,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -200,9 +214,12 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -236,6 +253,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -253,7 +273,6 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> locatelli-main
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.Locale
 import scala.util.control.NonFatal
@@ -418,9 +437,24 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       stats.configureStatCombiner(connector, sft)
     }
     sft.getFeatureExpiration.foreach {
-      case IngestTimeExpiration(ttl) => AgeOffIterator.set(this, sft, ttl)
-      case FeatureTimeExpiration(dtg, _, ttl) => DtgAgeOffIterator.set(this, sft, ttl, dtg)
-      case e => throw new IllegalArgumentException(s"Unexpected feature expiration: $e")
+      case IngestTimeExpiration(ttl) =>
+        val tableOps = connector.tableOperations()
+        getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
+          AgeOffIterator.set(tableOps, table, sft, ttl)
+        }
+
+      case FeatureTimeExpiration(dtg, _, ttl) =>
+        val tableOps = connector.tableOperations()
+        manager.indices(sft).foreach { index =>
+          val indexSft = index match {
+            case joinIndex: AttributeJoinIndex => joinIndex.indexSft
+            case _ => sft
+          }
+          DtgAgeOffIterator.set(tableOps, indexSft, index, ttl, dtg)
+        }
+
+      case e =>
+        throw new IllegalArgumentException(s"Unexpected feature expiration: $e")
     }
   }
 
@@ -447,7 +481,16 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
     // check any previous age-off - previously age-off wasn't tied to the sft metadata
     if (!sft.isFeatureExpirationEnabled && !previous.isFeatureExpirationEnabled) {
       // explicitly set age-off in the feature type if found
-      val configured = AgeOffIterator.expiry(this, previous).orElse(DtgAgeOffIterator.expiry(this, previous))
+      val tableOps = connector.tableOperations()
+      val tables = getAllIndexTableNames(previous.getTypeName).filter(tableOps.exists)
+      val ageOff = tables.foldLeft[Option[FeatureExpiration]](None) { (res, table) =>
+        res.orElse(AgeOffIterator.expiry(tableOps, table))
+      }
+      val configured = ageOff.orElse {
+        tables.foldLeft[Option[FeatureExpiration]](None) { (res, table) =>
+          res.orElse(DtgAgeOffIterator.expiry(tableOps, previous, table))
+        }
+      }
       configured.foreach(sft.setFeatureExpiration)
     }
 
@@ -464,19 +507,35 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       stats.configureStatCombiner(connector, sft)
     }
 
+    val tableOps = connector.tableOperations()
+    val previousTables = getAllIndexTableNames(previous.getTypeName).filter(tableOps.exists)
+    val tables = getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists)
+
     if (previous.isVisibilityRequired != sft.isVisibilityRequired) {
-      VisibilityIterator.clear(this, previous)
+      previousTables.foreach(VisibilityIterator.clear(tableOps, _))
       if (sft.isVisibilityRequired) {
-        VisibilityIterator.set(this, sft)
+        tables.foreach(VisibilityIterator.set(tableOps, _))
       }
     }
 
-    AgeOffIterator.clear(this, previous)
-    DtgAgeOffIterator.clear(this, previous)
+    previousTables.foreach { table =>
+      AgeOffIterator.clear(tableOps, table)
+      DtgAgeOffIterator.clear(tableOps, table)
+    }
 
     sft.getFeatureExpiration.foreach {
-      case IngestTimeExpiration(ttl) => AgeOffIterator.set(this, sft, ttl)
-      case FeatureTimeExpiration(dtg, _, ttl) => DtgAgeOffIterator.set(this, sft, ttl, dtg)
+      case IngestTimeExpiration(ttl) =>
+        tables.foreach(AgeOffIterator.set(tableOps, _, sft, ttl))
+
+      case FeatureTimeExpiration(dtg, _, ttl) =>
+        manager.indices(sft).foreach { index =>
+          val indexSft = index match {
+            case joinIndex: AttributeJoinIndex => joinIndex.indexSft
+            case _ => sft
+          }
+          DtgAgeOffIterator.set(tableOps, indexSft, index, ttl, dtg)
+        }
+
       case e => throw new IllegalArgumentException(s"Unexpected feature expiration: $e")
     }
   }

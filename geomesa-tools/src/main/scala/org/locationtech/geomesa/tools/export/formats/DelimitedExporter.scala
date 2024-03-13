@@ -10,12 +10,12 @@ package org.locationtech.geomesa.tools.export.formats
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.OutputStreamWriter
 import java.nio.charset.StandardCharsets

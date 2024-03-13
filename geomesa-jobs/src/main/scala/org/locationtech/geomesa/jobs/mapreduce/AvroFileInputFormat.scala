@@ -10,10 +10,10 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.mapreduce.{Job, TaskAttemptContext}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io.{Closeable, InputStream}
 

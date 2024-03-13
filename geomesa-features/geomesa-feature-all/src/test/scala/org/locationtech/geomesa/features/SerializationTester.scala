@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.features
 
 import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.avro.serialization.{SimpleFeatureDatumReader, SimpleFeatureDatumWriter}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Point, Polygon}
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.text.SimpleDateFormat

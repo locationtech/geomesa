@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.index.view
 
-import org.geotools.data._
-import org.geotools.data.simple.{EmptySimpleFeatureReader, SimpleFeatureSource}
+import org.geotools.api.data._
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
+import org.geotools.data.simple.EmptySimpleFeatureReader
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
@@ -18,9 +21,6 @@ import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Noop
 import org.locationtech.geomesa.index.view.RoutedDataStoreView.RoutedStats
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.`type`.Name
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 /**
   * Routed querying against multiple data stores

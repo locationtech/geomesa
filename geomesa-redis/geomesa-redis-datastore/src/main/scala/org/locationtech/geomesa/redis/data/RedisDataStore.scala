@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.redis.data
 
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
@@ -18,7 +19,6 @@ import org.locationtech.geomesa.redis.data.index.{RedisAgeOff, RedisIndexAdapter
 import org.locationtech.geomesa.redis.data.util.{RedisBackedMetadata, RedisGeoMesaStats, RedisLocking}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.simple.SimpleFeatureType
 import redis.clients.jedis.JedisPool
 
 /**

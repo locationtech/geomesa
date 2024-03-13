@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools.filter
 
-import org.opengis.parameter.Parameter
+import org.geotools.api.parameter.Parameter
 
 import scala.reflect.ClassTag
 
@@ -36,6 +36,6 @@ object FilterFunctions {
     val clas = implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]]
     val min = if (required) { 1 } else { 0 }
     val meta = if (metadata.isEmpty) { null } else { metadata.asJava }
-    new org.geotools.data.Parameter[T](name, clas, null, null, required, min, max, sample, meta)
+    new org.geotools.api.data.Parameter[T](name, clas, null, null, required, min, max, sample, meta)
   }
 }

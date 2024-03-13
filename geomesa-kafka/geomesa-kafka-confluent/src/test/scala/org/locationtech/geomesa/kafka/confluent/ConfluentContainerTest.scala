@@ -8,28 +8,51 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import io.confluent.kafka.schemaregistry.RestApp
-import org.apache.curator.test.InstanceSpec
 import org.locationtech.geomesa.kafka.KafkaContainerTest
+import org.locationtech.geomesa.kafka.confluent.ConfluentContainerTest.SchemaRegistryContainer
+import org.slf4j.LoggerFactory
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.utility.DockerImageName
 
 class ConfluentContainerTest extends KafkaContainerTest {
 
-  private var schemaRegistryApp: RestApp = _
+  private var container: SchemaRegistryContainer = _
 
-  lazy val schemaRegistryUrl: String = schemaRegistryApp.restConnect
+  lazy val schemaRegistryUrl: String = s"http://${container.getHost}:${container.getFirstMappedPort}"
 
-  override def beforeAll(): Unit = { super.beforeAll()
-    schemaRegistryApp = new RestApp(InstanceSpec.getRandomPort, zookeepers, brokers, "_schemas", "NONE", true, null)
-    schemaRegistryApp.start()
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    container =
+      new SchemaRegistryContainer("kafka:9092")
+          .withNetwork(network)
+          .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
+    container.start()
   }
 
   override def afterAll(): Unit = {
     try {
-      if (schemaRegistryApp != null) {
-        schemaRegistryApp.stop()
+      if (container != null) {
+        container.stop()
       }
     } finally {
       super.afterAll()
     }
+  }
+}
+
+object ConfluentContainerTest {
+
+  val SchemaRegistryImage =
+    DockerImageName.parse("confluentinc/cp-schema-registry")
+        .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
+
+  class SchemaRegistryContainer(brokers: String, name: DockerImageName) extends GenericContainer[SchemaRegistryContainer](name) {
+
+    def this(brokers: String) = this(brokers, SchemaRegistryImage)
+
+    withExposedPorts(8081)
+    withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", brokers)
+    withEnv("SCHEMA_REGISTRY_HOST_NAME", "localhost")
   }
 }

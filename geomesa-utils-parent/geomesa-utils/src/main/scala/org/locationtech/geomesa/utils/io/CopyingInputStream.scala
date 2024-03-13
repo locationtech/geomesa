@@ -108,6 +108,30 @@ class CopyingInputStream(wrapped: InputStream, initialBuffer: Int = 16) extends 
     }
   }
 
+  override def readNBytes(len: Int): Array[Byte] = {
+    val buf = super.readNBytes(len)
+    if (buf.nonEmpty) {
+      copy.enqueue(buf, 0, buf.length)
+    }
+    buf
+  }
+
+  override def readNBytes(b: Array[Byte], off: Int, len: Int): Int = {
+    val count = super.readNBytes(b, off, len)
+    if (count > 0) {
+      copy.enqueue(b, off, len)
+    }
+    count
+  }
+
+  override def readAllBytes(): Array[Byte] = {
+    val buf = super.readAllBytes()
+    if (buf.nonEmpty) {
+      copy.enqueue(buf, 0, buf.length)
+    }
+    buf
+  }
+
   override def available(): Int = wrapped.available()
 
   // note: mark/reset not supported, defer to default implementation that throws IllegalArgumentExceptions

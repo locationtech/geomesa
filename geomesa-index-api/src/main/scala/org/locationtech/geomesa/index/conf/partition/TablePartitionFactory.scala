@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
-import org.opengis.feature.simple.SimpleFeatureType
 
 trait TablePartitionFactory {
 

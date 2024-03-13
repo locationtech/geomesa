@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.curve
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.zorder.sfcurve.CoveredRange
-import org.locationtech.geomesa.zorder.sfcurve.{Z2, ZRange}
+import org.locationtech.geomesa.zorder.sfcurve.{CoveredRange, Z2, ZRange}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

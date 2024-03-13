@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.utils.uuid
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.{Date, UUID}
 import scala.util.hashing.MurmurHash3

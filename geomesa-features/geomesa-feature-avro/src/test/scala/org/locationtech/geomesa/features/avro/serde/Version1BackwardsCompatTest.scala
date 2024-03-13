@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.features.avro.serde
 
 import org.apache.avro.io.DecoderFactory
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.features.avro.serialization.{AvroSerialization, 
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.{Geometry, GeometryFactory}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

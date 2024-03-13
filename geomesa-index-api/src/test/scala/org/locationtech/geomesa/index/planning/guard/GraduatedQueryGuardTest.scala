@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.config.ConfigFactory
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore

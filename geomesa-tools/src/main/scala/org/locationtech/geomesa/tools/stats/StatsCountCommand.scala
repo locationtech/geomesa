@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.ParameterException
-import org.geotools.data.{DataStore, FileDataStore}
+import org.geotools.api.data.{DataStore, FileDataStore}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam}
-import org.opengis.filter.Filter
 
 trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 

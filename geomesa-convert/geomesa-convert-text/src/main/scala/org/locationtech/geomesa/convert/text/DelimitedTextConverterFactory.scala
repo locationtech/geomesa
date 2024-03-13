@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert.text
 import com.typesafe.config.Config
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
@@ -37,6 +37,7 @@ class DelimitedTextConverterFactory
 
   import scala.collection.JavaConverters._
 
+  // @param path is unused in this class
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],

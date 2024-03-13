@@ -11,12 +11,12 @@ package org.locationtech.geomesa.arrow.vector
 import org.apache.arrow.vector.FieldVector
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.opengis.feature.`type`.AttributeDescriptor
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger

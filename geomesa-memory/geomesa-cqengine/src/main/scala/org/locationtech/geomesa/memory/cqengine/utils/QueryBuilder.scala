@@ -10,7 +10,7 @@ package org.locationtech.geomesa.memory.cqengine.utils
 
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.simple.{Between, GreaterThan, LessThan, SimpleQuery}
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.SimpleFeature
 
 import java.lang
 import java.util.Date

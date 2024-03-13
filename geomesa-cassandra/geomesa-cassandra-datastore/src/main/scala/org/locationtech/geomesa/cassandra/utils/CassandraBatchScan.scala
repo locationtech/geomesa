@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.cassandra.utils
 
 import com.datastax.driver.core._
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.filter.Filter
 
 import java.nio.ByteBuffer
 

@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.index.utils
 
 import com.typesafe.scalalogging.Logger
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
-import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
 
 import java.io.Closeable

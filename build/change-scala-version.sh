@@ -32,6 +32,7 @@ VALID_VERSIONS=("2.12" "2.13")
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
 FULL_VERSIONS=("2.12.13" "2.13.10")
@@ -65,6 +66,98 @@ FULL_VERSIONS=("2.12.13" "2.13.10")
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+FULL_VERSIONS=("2.12.19" "2.13.12") # note: 2.13.13 breaks the zinc compile server
+=======
+=======
+>>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+FULL_VERSIONS=("2.12.17" "2.13.10")
+=======
+FULL_VERSIONS=("2.12.13" "2.13.10")
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -398,11 +491,38 @@ FULL_VERSIONS=("2.12.13" "2.13.10")
 FULL_VERSIONS=("2.12.17" "2.13.10")
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+FULL_VERSIONS=("2.12.17" "2.13.10")
+>>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
+=======
 FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
 FULL_VERSIONS=("2.12.13" "2.13.10")
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -455,10 +575,30 @@ FULL_VERSIONS=("2.12.13" "2.13.10")
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 FULL_VERSIONS=("2.12.17" "2.13.10")
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -492,18 +632,59 @@ FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
+<<<<<<< HEAD
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 FULL_VERSIONS=("2.12.17" "2.13.10")
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+<<<<<<< HEAD
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -515,6 +696,7 @@ FULL_VERSIONS=("2.12.17" "2.13.10")
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -529,6 +711,9 @@ FULL_VERSIONS=("2.12.17" "2.13.10")
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 
 usage() {

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import net.opengis.wfs.WfsFactory
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
 import org.geotools.data.store.{DataFeatureCollection, ReTypingFeatureCollection}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -18,7 +19,6 @@ import org.geotools.xsd.Encoder
 import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.tools.export.formats.GmlExporter.AsyncFeatureCollection
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean

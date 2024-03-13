@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.conf;
 
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 public interface TableSplitter {
 

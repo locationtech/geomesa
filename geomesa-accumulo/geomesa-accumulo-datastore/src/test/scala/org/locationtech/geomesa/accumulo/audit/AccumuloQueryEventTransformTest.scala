@@ -9,11 +9,9 @@
 package org.locationtech.geomesa.accumulo.audit
 
 import org.apache.accumulo.core.client.BatchWriterConfig
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.MiniCluster
-import org.locationtech.geomesa.accumulo.MiniCluster.Users
+import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -24,7 +22,7 @@ class AccumuloQueryEventTransformTest extends Specification {
 
   import scala.collection.JavaConverters._
 
-  lazy val connector = MiniCluster.cluster.createAccumuloClient(Users.root.name, new PasswordToken(Users.root.password))
+  lazy val connector = AccumuloContainer.Container.client()
 
   "AccumuloQueryEventTransform" should {
     "Convert from and to mutations" in {

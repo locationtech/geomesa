@@ -61,12 +61,13 @@ function dependencies() {
     "org.apache.commons:commons-configuration2:2.8.0:jar"
     "javax.servlet:servlet-api:2.4:jar"
     "io.netty:netty-buffer:%%netty.version%%:jar"
-    "io.netty:netty-resolver:%%netty.version%%:jar"
     "io.netty:netty-codec:%%netty.version%%:jar"
-    "io.netty:netty-transport:%%netty.version%%:jar"
     "io.netty:netty-common:%%netty.version%%:jar"
-    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar"
     "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
     "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
     "io.netty:netty:3.6.2.Final:jar"
     # htrace 3 required for hadoop before 2.8
@@ -95,6 +96,7 @@ function dependencies() {
       "io.opentelemetry:opentelemetry-context:1.15.0:jar"
       "io.opentelemetry:opentelemetry-semconv:1.15.0-alpha:jar"
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -157,6 +159,10 @@ function dependencies() {
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -171,6 +177,9 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -190,6 +199,7 @@ function dependencies() {
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -240,6 +250,10 @@ function dependencies() {
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -252,9 +266,12 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -288,6 +305,9 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -38,7 +38,10 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
     sf.setAttribute(2, s"POINT(4$i 5$i)")
     sf
   }
-  addFeatures(features)
+
+  step {
+    addFeatures(features)
+  }
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.process.transform
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayInputStream

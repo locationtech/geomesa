@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.redis.data.index
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.data.Transaction
+import org.geotools.api.data.Transaction
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.identity.Identifier
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.{AgeOffExecutor, AgeOffWriter}
 import org.locationtech.geomesa.redis.data.util.RedisLocking
 import org.locationtech.geomesa.redis.data.{RedisDataStore, RedisSystemProperties}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.identity.Identifier
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.ZAddParams
 

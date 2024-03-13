@@ -9,14 +9,14 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.Parameters
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.tools._
-import org.opengis.filter.Filter
 
 trait ExplainCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
 

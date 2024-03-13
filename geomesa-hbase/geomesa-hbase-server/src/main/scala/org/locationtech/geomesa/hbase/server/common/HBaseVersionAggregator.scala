@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.hbase.server.common
 
 import org.apache.hadoop.hbase.regionserver.RegionScanner
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.hbase.server.common.HBaseVersionAggregator.VersionAggregator
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallback
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.nio.charset.StandardCharsets
 

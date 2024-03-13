@@ -10,10 +10,10 @@ package org.locationtech.geomesa.convert2.metrics
 
 import com.codahale.metrics._
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * Provides namespaced access to reporting metrics

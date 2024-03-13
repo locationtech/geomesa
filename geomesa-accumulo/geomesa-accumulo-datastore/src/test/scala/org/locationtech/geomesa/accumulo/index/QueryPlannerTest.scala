@@ -10,7 +10,8 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.data.Query
+import org.geotools.api.data.Query
+import org.geotools.api.filter.sort.SortBy
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
-import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -86,7 +86,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
     }
 
     "sort with a projected SFT" >> {
-      val ff = CommonFactoryFinder.getFilterFactory2
+      val ff = CommonFactoryFinder.getFilterFactory
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.NATURAL_ORDER)
       query.setProperties(Collections.singletonList(ff.property("s")))

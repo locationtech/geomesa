@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.index
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class SizeSeparatedBucketIndexSupport
     (override val sft: SimpleFeatureType,

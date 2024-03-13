@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.utils.interop;
 
 import com.typesafe.config.Config;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes$;
-import org.opengis.feature.simple.SimpleFeatureType;
 import scala.Option$;
 
 public class SimpleFeatureTypes {

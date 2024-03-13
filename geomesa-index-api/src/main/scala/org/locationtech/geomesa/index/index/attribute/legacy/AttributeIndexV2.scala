@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.attribute.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api.{RowKeyValue, WritableFeature}
@@ -16,7 +17,6 @@ import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV2.At
 import org.locationtech.geomesa.index.index.attribute.legacy.AttributeIndexV7.AttributeIndexKeySpaceV7
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndexKey, AttributeIndexKeySpace}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 // value serialized with id
 class AttributeIndexV2(ds: GeoMesaDataStore[_],

@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.security.Authorizations
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -33,8 +33,6 @@ import java.util.Date
 class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
-
-  sequential // note: test doesn't need to be sequential but it actually runs faster this way
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indexes.enabled='z3'"
 
@@ -64,7 +62,10 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     }
-  addFeatures(features)
+
+  step {
+    addFeatures(features)
+  }
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms: _*))

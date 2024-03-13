@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -19,7 +20,6 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-import org.opengis.feature.simple.SimpleFeature
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date

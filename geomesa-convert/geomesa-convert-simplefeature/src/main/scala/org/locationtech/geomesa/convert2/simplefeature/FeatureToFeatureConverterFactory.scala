@@ -10,15 +10,15 @@ package org.locationtech.geomesa.convert2.simplefeature
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.{FeatureToFeatureConfig, FeatureToFeatureConfigConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
-import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.{ConfigObjectCursor, ConfigSource}
 import pureconfig.error.ConfigReaderFailures
+import pureconfig.{ConfigObjectCursor, ConfigSource}
 
 import scala.util.control.NonFatal
 

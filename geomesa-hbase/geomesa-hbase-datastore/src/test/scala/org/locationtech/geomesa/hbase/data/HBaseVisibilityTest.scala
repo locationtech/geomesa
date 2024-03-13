@@ -14,9 +14,10 @@ import org.apache.hadoop.hbase.client.security.SecurityCapability
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
+import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureStore, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
@@ -31,12 +32,9 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
-import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.Serializable
 import java.security.PrivilegedExceptionAction
 
 @RunWith(classOf[JUnitRunner])
@@ -299,8 +297,8 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       def getDensity(typeName: String, query: String, fs: SimpleFeatureStore): Double = {
         val filter = ECQL.toFilter(query)
         val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
-          case None => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-          case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal, DefaultGeographicCRS.WGS84)
+          case None => ReferencedEnvelope.envelope(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+          case Some(g) => ReferencedEnvelope.envelope(g.getEnvelopeInternal, DefaultGeographicCRS.WGS84)
         }
         val q = new Query(typeName, filter)
         q.getHints.put(QueryHints.DENSITY_BBOX, envelope)

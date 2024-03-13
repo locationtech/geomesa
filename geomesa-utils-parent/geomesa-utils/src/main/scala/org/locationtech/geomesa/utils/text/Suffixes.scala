@@ -68,7 +68,7 @@ object Suffixes {
             Failure(new ArithmeticException(s"Arithmetic overflow parsing '$s'"))
           }
         } recoverWith {
-          case e => Failure(new NumberFormatException(s"Error parsing memory property from input '$s': $e"))
+          case e => Failure(new NumberFormatException(s"Error parsing memory property from input '$s': ${e.toString}"))
         }
       } else {
         Failure(new NumberFormatException(s"Unable to match memory pattern from input '$s'"))

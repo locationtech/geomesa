@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.process.transform
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data.{Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -21,8 +23,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_IND
 import org.locationtech.geomesa.utils.bin.{AxisOrder, BinaryOutputEncoder}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.Feature
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.Locale
 

@@ -10,13 +10,13 @@ package org.locationtech.geomesa.tools.utils
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{IValueValidator, ParameterException}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.DurationParsing
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
-import org.opengis.filter.Filter
 
 import java.util.Date
 import scala.concurrent.duration.Duration

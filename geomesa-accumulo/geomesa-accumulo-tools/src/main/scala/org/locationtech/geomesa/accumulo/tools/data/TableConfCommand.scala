@@ -10,10 +10,10 @@ package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
 import org.apache.accumulo.core.client.TableNotFoundException
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.regex.Pattern
 import scala.collection.JavaConverters._

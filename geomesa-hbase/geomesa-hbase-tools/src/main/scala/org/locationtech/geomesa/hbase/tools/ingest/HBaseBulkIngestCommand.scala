@@ -13,6 +13,7 @@ import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.jobs.HBaseIndexFileMapper
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseDistributedCommand
@@ -27,7 +28,6 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.io.File
 

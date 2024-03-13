@@ -11,9 +11,9 @@ package org.locationtech.geomesa.spark
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStore, Query}
+import org.geotools.api.data.{DataStore, Query}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.io.WithStore
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
   * Provider trait for loading spatial RDDs, generally backed by GeoTools data store implementations

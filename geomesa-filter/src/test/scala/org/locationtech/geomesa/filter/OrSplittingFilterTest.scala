@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.filter
 
+import org.geotools.api.filter._
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

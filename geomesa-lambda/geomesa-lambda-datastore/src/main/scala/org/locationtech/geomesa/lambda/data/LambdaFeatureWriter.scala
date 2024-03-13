@@ -8,12 +8,12 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import org.geotools.data.simple.SimpleFeatureWriter
+import org.geotools.api.data.SimpleFeatureWriter
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.util.concurrent.atomic.AtomicLong
 

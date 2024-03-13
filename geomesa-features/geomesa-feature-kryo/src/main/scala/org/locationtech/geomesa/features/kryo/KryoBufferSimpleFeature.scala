@@ -9,10 +9,15 @@
 package org.locationtech.geomesa.features.kryo
 
 import com.esotericsoftware.kryo.io.{Input, Output}
+import org.geotools.api.feature.`type`.{AttributeDescriptor, Name}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.{GeometryAttribute, Property}
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.api.geometry.BoundingBox
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature.{KryoBufferV3, _}
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature._
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoLongReader
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureDeserializationV2}
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
@@ -21,11 +26,6 @@ import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, Ren
 import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, Transform}
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
 
 class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature {
 

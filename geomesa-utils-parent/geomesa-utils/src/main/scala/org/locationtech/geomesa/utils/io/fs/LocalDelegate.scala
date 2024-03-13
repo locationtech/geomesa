@@ -9,17 +9,19 @@
 package org.locationtech.geomesa.utils.io.fs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
+import org.apache.commons.io.input.CloseShieldInputStream
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{LocalFileHandle, LocalTarHandle, LocalZipHandle}
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CopyingInputStream, PathUtils, WithClose}
 
 import java.io._
 <<<<<<< HEAD:geomesa-utils-parent/geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/LocalDelegate.scala
 import java.net.URL
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -82,6 +84,10 @@ import java.net.URL
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -96,6 +102,9 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -115,6 +124,7 @@ import java.net.URL
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/LocalDelegate.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -165,6 +175,10 @@ import java.net.URL
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/LocalDelegate.scala
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -177,9 +191,12 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -213,6 +230,9 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -359,25 +379,61 @@ object LocalDelegate {
   class LocalTarHandle(file: File) extends LocalFileHandle(file) {
     override def open: CloseableIterator[(Option[String], InputStream)] = {
       val uncompressed = PathUtils.handleCompression(new FileInputStream(file), file.getName)
-      val archive = factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+      val archive: ArchiveInputStream[_ <: ArchiveEntry] =
+        factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
       new ArchiveFileIterator(archive, file.getAbsolutePath)
     }
     override def write(mode: CreateMode, createParents: Boolean): OutputStream =
       factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode, createParents))
   }
 
-  class StdInHandle extends FileHandle {
+  private class StdInHandle(in: InputStream) extends FileHandle {
     override def path: String = "<stdin>"
     override def exists: Boolean = false
-    override def length: Long = Try(System.in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
-    override def open: CloseableIterator[(Option[String], InputStream)] = CloseableIterator.single(None -> System.in)
+    override def length: Long = Try(in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
+    override def open: CloseableIterator[(Option[String], InputStream)] =
+      CloseableIterator.single(None -> CloseShieldInputStream.wrap(in))
     override def write(mode: CreateMode, createParents: Boolean): OutputStream = System.out
-    override def delete(recusive: Boolean): Unit = {}
+    override def delete(recursive: Boolean): Unit = {}
   }
 
   object StdInHandle {
+    // hook to allow for unit testing stdin
+    val SystemIns: ThreadLocal[InputStream] = new ThreadLocal[InputStream]() {
+      override def initialValue(): InputStream = System.in
+    }
+    def get(): FileHandle = new StdInHandle(SystemIns.get)
     // avoid hanging if there isn't any input
-    def available(): Option[FileHandle] = if (isAvailable) { Some(new StdInHandle) } else { None }
-    def isAvailable: Boolean = System.in.available() > 0
+    def available(): Option[FileHandle] = if (isAvailable) { Some(get()) } else { None }
+    def isAvailable: Boolean = SystemIns.get.available() > 0
+  }
+
+  // A class that caches any bytes read from the stdin input stream
+  private class CachingStdInHandle(in: InputStream) extends StdInHandle(in) {
+    private val is = new CopyingInputStream(in, 1024)
+    private var cachedBytes: Array[Byte] = Array.empty
+
+    override def length: Long = super.length + cachedBytes.length
+
+    override def open: CloseableIterator[(Option[String], InputStream)] =
+      CloseableIterator.single(None -> new CopyOnClose())
+
+    private class CopyOnClose
+        extends SequenceInputStream(new ByteArrayInputStream(cachedBytes), CloseShieldInputStream.wrap(is)) {
+      override def close(): Unit = {
+        try { super.close() } finally {
+          if (is.copied > 0) {
+            cachedBytes ++= is.replay(is.copied)
+          }
+        }
+      }
+    }
+  }
+
+  object CachingStdInHandle {
+    def get(): FileHandle = new CachingStdInHandle(StdInHandle.SystemIns.get)
+    // avoid hanging if there isn't any input
+    def available(): Option[FileHandle] = if (isAvailable) { Some(get()) } else { None }
+    def isAvailable: Boolean = StdInHandle.isAvailable
   }
 }

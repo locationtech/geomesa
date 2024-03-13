@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.utils
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -17,7 +18,6 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseQuietly, Sizable, WithClose}
-import org.opengis.feature.simple.SimpleFeature
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.file.Files

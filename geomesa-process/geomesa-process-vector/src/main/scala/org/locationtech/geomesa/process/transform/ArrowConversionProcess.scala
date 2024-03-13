@@ -10,8 +10,10 @@ package org.locationtech.geomesa.process.transform
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
-import org.geotools.data.Query
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
+import org.geotools.api.data.{Query, SimpleFeatureSource}
+import org.geotools.api.feature.Feature
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.arrow.ArrowProperties
@@ -28,8 +30,6 @@ import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVi
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.opengis.feature.Feature
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.ByteArrayOutputStream
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}

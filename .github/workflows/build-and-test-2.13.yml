@@ -21,6 +21,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -47,6 +48,9 @@ permissions:  # added using https://github.com/step-security/secure-repo
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> locatelli-main
@@ -63,6 +67,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -89,6 +94,8 @@ permissions:  # added using https://github.com/step-security/secure-repo
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6bd72b0c69 (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
@@ -99,6 +106,16 @@ permissions:  # added using https://github.com/step-security/secure-repo
 =======
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
 <<<<<<< HEAD
+=======
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
+
+=======
+>>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -118,12 +135,20 @@ permissions:  # added using https://github.com/step-security/secure-repo
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+=======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> locatelli-main
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
   MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
+<<<<<<< HEAD
 =======
 >>>>>>> 3f7d76fd96 (Pin github actions to specific hash and make them read-only)
 <<<<<<< HEAD
@@ -219,6 +244,9 @@ env:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -231,6 +259,9 @@ env:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -258,12 +289,15 @@ env:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -289,8 +323,11 @@ env:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -333,6 +370,9 @@ env:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -369,6 +409,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -395,6 +436,9 @@ jobs:
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
 >>>>>>> locatelli-main
@@ -419,9 +463,12 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -453,6 +500,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -484,6 +534,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -529,6 +580,9 @@ jobs:
 >>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 1ea467d89c (Pin github actions to specific hash and make them read-only)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6bd72b0c69 (Pin github actions to specific hash and make them read-only)
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
@@ -543,6 +597,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -573,6 +630,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -587,6 +645,9 @@ jobs:
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3b843f2be5 (Pin github actions to specific hash and make them read-only)
 >>>>>>> locatelli-main
@@ -617,9 +678,12 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -651,6 +715,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -668,7 +735,7 @@ jobs:
 >>>>>>> locatelli-main
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '11'
           cache: 'maven'
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -679,6 +746,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -710,6 +778,9 @@ jobs:
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b974491523 (Fix duplicate CI build)
+>>>>>>> locatelli-main
 =======
 >>>>>>> b974491523 (Fix duplicate CI build)
 >>>>>>> locatelli-main
@@ -734,9 +805,12 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -768,6 +842,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -789,6 +866,9 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
+<<<<<<< HEAD
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+=======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -798,6 +878,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -846,6 +927,9 @@ jobs:
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
 =======
+>>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
@@ -860,6 +944,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -889,15 +976,28 @@ jobs:
 <<<<<<< HEAD
         run: mvn surefire:test -o -B -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
+<<<<<<< HEAD
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
+=======
+<<<<<<< HEAD
+>>>>>>> ce7c87cd883 (Update github actions to latest versions)
+=======
+=======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+>>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
+>>>>>>> 7b87d0240e7 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -946,6 +1046,23 @@ jobs:
 >>>>>>> locatelli-main
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b57cf3bc89 (Update github actions to latest versions)
+>>>>>>> 6210584cfb9 (Update github actions to latest versions)
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
@@ -964,11 +1081,14 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -993,13 +1113,26 @@ jobs:
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
 <<<<<<< HEAD
 >>>>>>> 9796c943ef (Update github actions to latest versions)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 579f9595dac (Update github actions to latest versions)
+=======
+>>>>>>> locatelli-main
 =======
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 3bd67b47128 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1026,6 +1159,12 @@ jobs:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
 =======
       - name: Build with Maven
         run: mvn clean install -B -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
@@ -1043,13 +1182,30 @@ jobs:
 >>>>>>> 2219fefbbf (Update github actions to latest versions)
 <<<<<<< HEAD
 >>>>>>> 318648dd37 (Update github actions to latest versions)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
+=======
+>>>>>>> locatelli-main
 =======
 =======
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 =======
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+<<<<<<< HEAD
+>>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -1070,6 +1226,12 @@ jobs:
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 <<<<<<< HEAD
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 6210584cfb9 (Update github actions to latest versions)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -1077,6 +1239,7 @@ jobs:
 >>>>>>> 0741686e65 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 <<<<<<< HEAD
@@ -1101,6 +1264,14 @@ jobs:
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 55ead99ff4f (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
@@ -1117,13 +1288,23 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+=======
+=======
+>>>>>>> 7b87d0240e7 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> ce69a697516 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
@@ -1172,8 +1353,34 @@ jobs:
 >>>>>>> locatelli-main
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
+>>>>>>> 579f9595dac (Update github actions to latest versions)
+=======
+=======
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
+=======
+>>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> 6210584cfb9 (Update github actions to latest versions)
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+=======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> 55ead99ff4f (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
+>>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -1211,11 +1418,51 @@ jobs:
 =======
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
+<<<<<<< HEAD
+>>>>>>> 3bd67b47128 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> 55ead99ff4f (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> b345d185175 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+=======
+>>>>>>> 318648dd37 (Update github actions to latest versions)
+<<<<<<< HEAD
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
+>>>>>>> 28ba3c60832 (Add Eclipse license scanning to CI (#2949))
+=======
+=======
+>>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
+>>>>>>> 8a20d811a7c (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+<<<<<<< HEAD
 =======
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+=======
+<<<<<<< HEAD
+>>>>>>> 6210584cfb9 (Update github actions to latest versions)
+=======
+=======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+<<<<<<< HEAD
+>>>>>>> 55ead99ff4f (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -1227,6 +1474,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1241,6 +1489,9 @@ jobs:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 30bf28c51fe (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
         run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS -o
       - name: HBase 1.4 unit tests
@@ -1262,6 +1513,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1307,6 +1559,9 @@ jobs:
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> locatelli-main
 =======
+>>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 65c1e17fde (Add Eclipse license scanning to CI (#2949))
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
@@ -1321,6 +1576,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1352,6 +1610,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1397,6 +1656,9 @@ jobs:
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
 =======
+>>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
 >>>>>>> f01f17feca (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
@@ -1411,6 +1673,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1443,6 +1708,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1457,6 +1723,9 @@ jobs:
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
@@ -1489,6 +1758,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1497,6 +1767,8 @@ jobs:
 <<<<<<< HEAD
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1532,6 +1804,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1567,6 +1842,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1617,6 +1893,11 @@ jobs:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9796c943ef (Update github actions to latest versions)
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
@@ -1624,6 +1905,7 @@ jobs:
 <<<<<<< HEAD
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1638,6 +1920,8 @@ jobs:
 <<<<<<< HEAD
 =======
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1673,6 +1957,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1695,6 +1982,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1711,9 +1999,19 @@ jobs:
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
 >>>>>>> locatelli-main
 =======
+>>>>>>> ce7c87cd883 (Update github actions to latest versions)
+=======
+<<<<<<< HEAD
+>>>>>>> 579f9595dac (Update github actions to latest versions)
+=======
+<<<<<<< HEAD
+>>>>>>> b3675c6f5e1 (Update github actions to latest versions)
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
@@ -1732,6 +2030,9 @@ jobs:
 >>>>>>> locatelli-main
 =======
 >>>>>>> b57cf3bc89 (Update github actions to latest versions)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 6210584cfb9 (Update github actions to latest versions)
 >>>>>>> locatelli-main
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
@@ -1749,6 +2050,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1787,6 +2089,11 @@ jobs:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
@@ -1816,8 +2123,11 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1856,11 +2166,15 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
@@ -1895,9 +2209,12 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1959,6 +2276,9 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1988,9 +2308,14 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> locationtech-main
+=======
+>>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))
+>>>>>>> locatelli-main
 =======
 >>>>>>> ab4e4d07e5 (Add Eclipse license scanning to CI (#2949))
 >>>>>>> 8303dbbf54 (Add Eclipse license scanning to CI (#2949))

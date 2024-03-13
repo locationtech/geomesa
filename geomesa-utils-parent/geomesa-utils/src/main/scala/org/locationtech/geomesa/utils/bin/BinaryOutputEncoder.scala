@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.utils.bin
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.ToValues
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -16,7 +17,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.ListAttributeSpec
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.jts.geom.{Geometry, LineString, Point}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.charset.StandardCharsets

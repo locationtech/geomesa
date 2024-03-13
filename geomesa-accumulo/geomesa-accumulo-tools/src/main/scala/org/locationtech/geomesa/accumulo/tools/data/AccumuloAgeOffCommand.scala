@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import org.apache.accumulo.core.client.IteratorSetting
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator}
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloAgeOffCommand.AccumuloAgeOffParams
@@ -45,8 +46,16 @@ class AccumuloAgeOffCommand extends AccumuloDataStoreCommand {
     }
     lazy val mutable = SimpleFeatureTypes.mutable(sft)
     if (params.list) {
-      Command.user.info(s"Attribute age-off: ${DtgAgeOffIterator.list(ds, sft).getOrElse("None")}")
-      Command.user.info(s"Timestamp age-off: ${AgeOffIterator.list(ds, sft).getOrElse("None")}")
+      val tableOps = ds.connector.tableOperations()
+      val tables = ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists)
+      val dtgAgeOff = tables.foldLeft[Option[IteratorSetting]](None) { (res, table) =>
+        res.orElse(DtgAgeOffIterator.list(tableOps, table))
+      }
+      val ageOff = tables.foldLeft[Option[IteratorSetting]](None) { (res, table) =>
+        res.orElse(AgeOffIterator.list(tableOps, table))
+      }
+      Command.user.info(s"Attribute age-off: ${dtgAgeOff.getOrElse("None")}")
+      Command.user.info(s"Timestamp age-off: ${ageOff.getOrElse("None")}")
     } else if (params.set && params.dtgField == null) {
       if (Prompt.confirm(s"Configuring ingest-time-based age-off for schema '${params.featureName}' " +
           s"with expiry ${params.expiry}. Continue (y/n)? ")) {
@@ -64,8 +73,11 @@ class AccumuloAgeOffCommand extends AccumuloDataStoreCommand {
       // clear the iterator configs if expiration wasn't configured in the schema,
       // as we can't detect that in updateSchema
       if (mutable.getUserData.remove(Configs.FeatureExpiration) == null) {
-        AgeOffIterator.clear(ds, sft)
-        DtgAgeOffIterator.clear(ds, sft)
+        val tableOps = ds.connector.tableOperations()
+        ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
+          AgeOffIterator.clear(tableOps, table)
+          DtgAgeOffIterator.clear(tableOps, table)
+        }
       } else {
         ds.updateSchema(sft.getTypeName, mutable)
       }

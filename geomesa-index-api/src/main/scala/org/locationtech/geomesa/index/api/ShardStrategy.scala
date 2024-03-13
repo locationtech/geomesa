@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.index.api
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.utils.SplitArrays
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.concurrent.ConcurrentHashMap
 

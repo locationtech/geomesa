@@ -14,6 +14,7 @@ import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorageFactory, StorageMetadataFactory}
 import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
@@ -21,7 +22,6 @@ import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.Sin
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FileSizeEstimator}
 import org.locationtech.jts.geom.{Envelope, Geometry}
-import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ArrayBuffer
 

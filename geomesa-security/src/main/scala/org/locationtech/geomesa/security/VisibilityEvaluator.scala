@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
   * Evaluates visibilities against authorizations. Abstracted from Accumulo visibility code
   */
+@deprecated("Replaced with org.apache.accumulo:accumulo-access")
 object VisibilityEvaluator {
 
   private val Parser = new VisibilityEvaluator()
@@ -63,6 +64,7 @@ object VisibilityEvaluator {
   /**
     * Parsed visibility that can be evaluated
     */
+  @deprecated("Replaced with org.apache.accumulo:accumulo-access")
   sealed trait VisibilityExpression {
 
     /**
@@ -153,6 +155,7 @@ object VisibilityEvaluator {
   private def isValidAuthChar(b: Byte): Boolean = validAuthChars(0xff & b)
 }
 
+@deprecated("Replaced with org.apache.accumulo:accumulo-access")
 class VisibilityEvaluator private extends BasicParser {
 
   import org.locationtech.geomesa.security.VisibilityEvaluator._

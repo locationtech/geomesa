@@ -8,21 +8,19 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.data.{Query, Transaction}
+import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ZIntervalTest extends Specification with TestWithMultipleSfts {
-
-  sequential
 
   val key = SimpleFeatureTypes.Configs.IndexZ3Interval
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"

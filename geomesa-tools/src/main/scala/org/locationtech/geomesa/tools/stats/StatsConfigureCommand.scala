@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.{Parameter, ParameterException}
-import org.geotools.data.DataStore
+import org.geotools.api.data.DataStore
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.stats.StatsConfigureCommand._

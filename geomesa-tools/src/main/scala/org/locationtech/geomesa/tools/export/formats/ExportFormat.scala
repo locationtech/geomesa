@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.opengis.feature.simple.SimpleFeatureType
 
 import java.util.Locale
 

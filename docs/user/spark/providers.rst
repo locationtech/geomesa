@@ -31,6 +31,7 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -83,6 +84,10 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -97,6 +102,9 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -116,6 +124,7 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -166,6 +175,10 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -178,9 +191,12 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -214,6 +230,9 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -259,15 +278,11 @@ HBase RDD Provider
 
 The ``HBaseSpatialRDDProvider`` is a spatial RDD provider for HBase data stores. The core code is in
 the ``geomesa-hbase-spark`` module, and the shaded JAR-with-dependencies (which contains all the required
-dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase1`` and
-``geomesa-hbase-spark-runtime-hbase2`` modules.
+dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase2`` module.
 
 .. note::
 
     The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
-    There are two HBase Spark runtime JARs, one for HBase 1.x (``geomesa-hbase-spark-runtime-hbase1``)
-    and one for HBase 2.x (``geomesa-hbase-spark-runtime-hbase2``). Make sure that you use the JAR
-    corresponding to your HBase version.
 
 This provider can read from and write to a GeoMesa ``HBaseDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hbase_parameters` for details.
@@ -279,7 +294,7 @@ are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hb
 
     .. code-block:: bash
 
-        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
     Alternatively, you may specify the zookeepers in the data store parameter map. However, this may not work
     for every HBase setup.

@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.data.{DelegatingFeatureReader, FeatureReader, ReTypeFeatureReader}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.data.{DelegatingFeatureReader, FeatureReader}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.data.ReTypeFeatureReader
 
 /** A [[DelegatingFeatureReader]] that re-types simple features.  Unlike [[ReTypeFeatureReader]] this
   * feature reader will preserve user data.

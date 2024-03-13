@@ -12,13 +12,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
+import org.geotools.api.data.{DataStore, DataStoreFinder, Query, Transaction}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
-import org.opengis.feature.simple.SimpleFeature
 
 /**
   * Spatial RDD provider for arbitrary geotools data stores. If available, prefer a GeoMesa-specific

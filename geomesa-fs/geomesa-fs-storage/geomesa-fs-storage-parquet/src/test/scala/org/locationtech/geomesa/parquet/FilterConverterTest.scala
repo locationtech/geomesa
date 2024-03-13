@@ -10,12 +10,12 @@ package org.locationtech.geomesa.parquet
 
 import org.apache.parquet.filter2.predicate.{FilterPredicate, Operators}
 import org.apache.parquet.io.api.Binary
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.parquet.FilterConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations

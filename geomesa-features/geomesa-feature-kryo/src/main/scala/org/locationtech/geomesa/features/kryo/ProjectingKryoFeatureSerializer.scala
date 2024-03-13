@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.features.kryo
 
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.{InputStream, OutputStream}
 

@@ -18,7 +18,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class DeduplicatingSimpleFeatureIteratorTest extends Specification {
 
-  private val filterFactory = CommonFactoryFinder.getFilterFactory2
+  private val filterFactory = CommonFactoryFinder.getFilterFactory
 
   "DeDuplicatingIterator" should {
     "filter on unique elements" in {

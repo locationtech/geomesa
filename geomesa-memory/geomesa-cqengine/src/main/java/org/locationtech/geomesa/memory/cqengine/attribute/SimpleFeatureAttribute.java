@@ -10,8 +10,8 @@ package org.locationtech.geomesa.memory.cqengine.attribute;
 
 import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 
 public class SimpleFeatureAttribute<A> extends SimpleNullableAttribute<SimpleFeature, A> {
     String fieldName;

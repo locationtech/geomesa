@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z2.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.ShardStrategy.Z2ShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -16,7 +17,6 @@ import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexKeySpace}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.Point
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 

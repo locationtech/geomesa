@@ -10,6 +10,7 @@ package org.locationtech.geomesa.redis.data
 package index
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
@@ -23,7 +24,6 @@ import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWr
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import redis.clients.jedis.JedisPool
 
 import java.nio.charset.StandardCharsets

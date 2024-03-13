@@ -8,10 +8,10 @@
 
 package org.locationtech.geomesa.index.index.id.legacy
 
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.LegacyTableNaming
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 
 class IdIndexV2 protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, mode: IndexMode)
     extends IdIndexV3(ds, sft, version, mode) with LegacyTableNaming[Set[Array[Byte]], Array[Byte]] {

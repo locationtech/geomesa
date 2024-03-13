@@ -23,8 +23,6 @@ class GeoMesaBatchWriterConfigTest extends Specification {
 
   import AccumuloProperties.BatchWriterProperties
 
-  sequential
-
   "GeoMesaBatchWriterConfig" should {
     "have defaults set" in {
       bwc.getMaxMemory                         must be equalTo BatchWriterProperties.WRITER_MEMORY_BYTES.toBytes.get
