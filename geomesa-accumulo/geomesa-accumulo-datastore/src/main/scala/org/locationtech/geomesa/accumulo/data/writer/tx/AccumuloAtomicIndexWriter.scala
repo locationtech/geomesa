@@ -160,7 +160,7 @@ class AccumuloAtomicIndexWriter(
             !compare(entry.getKey.getColumnFamily, update.getColumnFamily) ||
                 !compare(entry.getKey.getColumnQualifier, update.getColumnQualifier) ||
                 !compare(entry.getKey.getColumnVisibility, update.getColumnVisibility) ||
-                entry.getValue.getSize > 0
+                entry.getKey.isDeleted
           }
         } else {
           found.exists { entry =>
