@@ -53,7 +53,6 @@ function dependencies() {
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "org.apache.kafka:kafka_%%scala.binary.version%%:${kafka_version}:jar"
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
     "commons-logging:commons-logging:1.1.3:jar"
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
