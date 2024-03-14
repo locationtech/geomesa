@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>5.0.0-SNAPSHOT</version>
+    <version>5.0.0-m.0</version>
 
     <licenses>
         <license>
@@ -2902,8 +2902,8 @@
                                     <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
                                 </manifestEntries>
                             </transformer>
-                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
-                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
                         </transformers>
                     </configuration>
                 </plugin>
@@ -3377,7 +3377,7 @@
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
-        <tag>geomesa_2.11-3.1.0</tag>
+        <tag>geomesa-5.0.0-m.0</tag>
     </scm>
 
     <issueManagement>
