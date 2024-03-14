@@ -21,6 +21,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.data.writer.ColumnFamilyMapper
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob.{AttributeIndexArgs, AttributeMapper}
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat
@@ -109,7 +110,7 @@ object AttributeIndexJob {
         }
         wrapper = AccumuloWritableFeature.wrapper(sft, ds.adapter.groups, indices)
         converters = indices.map(_.createConverter()).zipWithIndex
-        colFamilyMappings = indices.map(AccumuloIndexAdapter.mapColumnFamily).toIndexedSeq
+        colFamilyMappings = indices.map(ColumnFamilyMapper.apply).toIndexedSeq
         defaultVis = new ColumnVisibility()
         tables = TablePartition(ds, sft) match {
           case Some(tp) =>

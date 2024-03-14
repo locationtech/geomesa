@@ -9,13 +9,14 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.conf.Property
-import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
+import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
-import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
+import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloResultsToFeatures, ZIterPriority}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
+import org.locationtech.geomesa.accumulo.data.writer.tx.AccumuloAtomicIndexWriter
+import org.locationtech.geomesa.accumulo.data.writer.{AccumuloIndexWriter, ColumnFamilyMapper}
 import org.locationtech.geomesa.accumulo.index.{AttributeJoinIndex, JoinIndex}
 import org.locationtech.geomesa.accumulo.iterators.ArrowIterator.AccumuloArrowResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.AccumuloBinResultsToFeatures
@@ -23,17 +24,15 @@ import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensi
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.TableUtils
-import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
+import org.locationtech.geomesa.index.api.IndexAdapter.{IndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
-import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
 import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
-import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index, Z2IndexValues}
-import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues}
+import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
+import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.security.SecurityUtils
@@ -41,7 +40,6 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.Map.Entry
 
@@ -166,7 +164,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     val tables = index.getTablesForQuery(filter.filter)
     val (colFamily, schema) = {
       val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
-      (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
+      (Some(new Text(ColumnFamilyMapper(index)(cf))), s)
     }
     // used when remote processing is disabled
     lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
@@ -279,12 +277,14 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   override def createWriter(
       sft: SimpleFeatureType,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
-      partition: Option[String]): AccumuloIndexWriter = {
+      partition: Option[String],
+      atomic: Boolean): IndexWriter = {
     val wrapper = AccumuloWritableFeature.wrapper(sft, groups, indices)
-    if (sft.isVisibilityRequired) {
-      new AccumuloIndexWriter(ds, indices, wrapper, partition) with RequiredVisibilityWriter
-    } else {
-      new AccumuloIndexWriter(ds, indices, wrapper, partition)
+    (atomic, sft.isVisibilityRequired) match {
+      case (false, false) => new AccumuloIndexWriter(ds, indices, wrapper, partition)
+      case (false, true)  => new AccumuloIndexWriter(ds, indices, wrapper, partition)  with RequiredVisibilityWriter
+      case (true, false)  => new AccumuloAtomicIndexWriter(ds, sft, indices, wrapper, partition)
+      case (true, true)   => new AccumuloAtomicIndexWriter(ds, sft, indices, wrapper, partition)  with RequiredVisibilityWriter
     }
   }
 }
@@ -292,153 +292,6 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
 object AccumuloIndexAdapter {
 
   val ZIterPriority = 23
-
-  /**
-    * Set visibility in a feature based on the row key visibility
-    *
-    * @param sf feature
-    * @param key row key
-    */
-  def applyVisibility(sf: SimpleFeature, key: Key): Unit = {
-    val visibility = key.getColumnVisibility
-    if (visibility.getLength > 0) {
-      SecurityUtils.setFeatureVisibility(sf, visibility.toString)
-    }
-  }
-
-  /**
-    * Maps columns families from the default index implementation to the accumulo-specific values
-    * that were used
-    *
-    * @param index feature index
-    * @return
-    */
-  def mapColumnFamily(index: GeoMesaFeatureIndex[_, _]): Array[Byte] => Array[Byte] = {
-    // last version before col families start matching up with index-api
-    val flip = index.name match {
-      case Z3Index.name  => 5
-      case Z2Index.name  => 4
-      case XZ3Index.name => 1
-      case XZ2Index.name => 1
-      case IdIndex.name  => 3
-      case AttributeIndex.name | JoinIndex.name => 7
-      case _ => 0
-    }
-
-    if (index.version > flip) {
-      colFamily => colFamily
-    } else if (index.version < 2 && index.name == IdIndex.name) {
-      val bytes = "SFT".getBytes(StandardCharsets.UTF_8)
-      _ => bytes
-    } else if (index.version < 3 && (index.name == AttributeIndex.name || index.name == JoinIndex.name)) {
-      _ => Array.empty
-    } else if (index.name == JoinIndex.name) {
-      val bytes = "I".getBytes(StandardCharsets.UTF_8)
-      _ => bytes
-    } else {
-      val f = "F".getBytes(StandardCharsets.UTF_8)
-      val a = "A".getBytes(StandardCharsets.UTF_8)
-      colFamily => {
-        if (java.util.Arrays.equals(colFamily, ColumnGroups.Default)) {
-          f
-        } else if (java.util.Arrays.equals(colFamily, ColumnGroups.Attributes)) {
-          a
-        } else {
-          colFamily
-        }
-      }
-    }
-  }
-
-  /**
-    * Accumulo index writer implementation
-    *
-    * @param ds data store
-    * @param indices indices to write to
-    * @param wrapper feature wrapper
-    * @param partition partition to write to (if partitioned schema)
-    */
-  class AccumuloIndexWriter(
-      ds: AccumuloDataStore,
-      indices: Seq[GeoMesaFeatureIndex[_, _]],
-      wrapper: FeatureWrapper[WritableFeature],
-      partition: Option[String]
-    ) extends BaseIndexWriter[WritableFeature](indices, wrapper) {
-
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    private val multiWriter = ds.connector.createMultiTableBatchWriter()
-    private val writers = indices.toArray.map { index =>
-      val table = index.getTableNames(partition) match {
-        case Seq(t) => t // should always be writing to a single table here
-        case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-      }
-      multiWriter.getBatchWriter(table)
-    }
-
-    private val colFamilyMappings = indices.map(mapColumnFamily).toArray
-    private val timestamps = indices.exists(i => !i.sft.isLogicalTime)
-    private val visCache = new VisibilityCache()
-
-    private var i = 0
-
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
-      if (timestamps && update) {
-        // for updates, ensure that our timestamps don't clobber each other
-        multiWriter.flush()
-        Thread.sleep(1)
-      }
-      i = 0
-      while (i < values.length) {
-        values(i) match {
-          case kv: SingleRowKeyValue[_] =>
-            val mutation = new Mutation(kv.row)
-            kv.values.foreach { v =>
-              mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
-            }
-            writers(i).addMutation(mutation)
-
-          case mkv: MultiRowKeyValue[_] =>
-            mkv.rows.foreach { row =>
-              val mutation = new Mutation(row)
-              mkv.values.foreach { v =>
-                mutation.put(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis), v.value)
-              }
-              writers(i).addMutation(mutation)
-            }
-        }
-        i += 1
-      }
-    }
-
-    override protected def delete(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
-      i = 0
-      while (i < values.length) {
-        values(i) match {
-          case SingleRowKeyValue(row, _, _, _, _, _, vals) =>
-            val mutation = new Mutation(row)
-            vals.foreach { v =>
-              mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
-            }
-            writers(i).addMutation(mutation)
-
-          case MultiRowKeyValue(rows, _, _, _, _, _, vals) =>
-            rows.foreach { row =>
-              val mutation = new Mutation(row)
-              vals.foreach { v =>
-                mutation.putDelete(colFamilyMappings(i)(v.cf), v.cq, visCache(v.vis))
-              }
-              writers(i).addMutation(mutation)
-            }
-        }
-        i += 1
-      }
-    }
-
-    override def flush(): Unit = multiWriter.flush()
-
-    override def close(): Unit = multiWriter.close()
-  }
 
   /**
     * Accumulo entries to features
@@ -459,6 +312,19 @@ object AccumuloIndexAdapter {
       }
     }
 
+    /**
+     * Set visibility in a feature based on the row key visibility
+     *
+     * @param sf feature
+     * @param key row key
+     */
+    private def applyVisibility(sf: SimpleFeature, key: Key): Unit = {
+      val visibility = key.getColumnVisibility
+      if (visibility.getLength > 0) {
+        SecurityUtils.setFeatureVisibility(sf, visibility.toString)
+      }
+    }
+
     class AccumuloIndexResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
         extends AccumuloResultsToFeatures(_index, _sft) {
 
@@ -468,7 +334,7 @@ object AccumuloIndexAdapter {
         val row = result.getKey.getRow
         val id = index.getIdFromRow(row.getBytes, 0, row.getLength, null)
         val sf = serializer.deserialize(id, result.getValue.get)
-        AccumuloIndexAdapter.applyVisibility(sf, result.getKey)
+        applyVisibility(sf, result.getKey)
         sf
       }
     }
@@ -480,45 +346,9 @@ object AccumuloIndexAdapter {
 
       override def apply(result: Entry[Key, Value]): SimpleFeature = {
         val sf = serializer.deserialize(result.getValue.get)
-        AccumuloIndexAdapter.applyVisibility(sf, result.getKey)
+        applyVisibility(sf, result.getKey)
         sf
       }
     }
-  }
-
-  /**
-   * Cache for storing column visibilities - not thread safe
-   */
-  class VisibilityCache {
-
-    private val defaultVisibility = new ColumnVisibility()
-    private val visibilities = new java.util.HashMap[VisHolder, ColumnVisibility]()
-
-    def apply(vis: Array[Byte]): ColumnVisibility = {
-      if (vis.isEmpty) { defaultVisibility } else {
-        val lookup = new VisHolder(vis)
-        var cached = visibilities.get(lookup)
-        if (cached == null) {
-          cached = new ColumnVisibility(vis)
-          visibilities.put(lookup, cached)
-        }
-        cached
-      }
-    }
-  }
-
-  /**
-    * Wrapper for byte array to use as a key in the cached visibilities map
-    *
-    * @param vis vis
-    */
-  class VisHolder(val vis: Array[Byte]) {
-
-    override def equals(other: Any): Boolean = other match {
-      case that: VisHolder => java.util.Arrays.equals(vis, that.vis)
-      case _ => false
-    }
-
-    override def hashCode(): Int = java.util.Arrays.hashCode(vis)
   }
 }

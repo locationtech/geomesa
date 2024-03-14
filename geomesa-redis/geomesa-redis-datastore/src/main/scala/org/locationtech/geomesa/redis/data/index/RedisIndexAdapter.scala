@@ -88,7 +88,9 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
   override def createWriter(
       sft: SimpleFeatureType,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
-      partition: Option[String]): RedisIndexWriter = {
+      partition: Option[String],
+      atomic: Boolean): RedisIndexWriter = {
+    require(!atomic, "Redis data store does not currently support atomic writes")
     val aging = ds.aging.writer(sft)
     val wrapper = RedisWritableFeature.wrapper(sft)
     if (sft.isVisibilityRequired) {
@@ -242,10 +244,7 @@ object RedisIndexAdapter extends LazyLogging {
 
     private val errors = ArrayBuffer.empty[Throwable]
 
-    override protected def write(
-        feature: RedisWritableFeature,
-        values: Array[RowKeyValue[_]],
-        update: Boolean): Unit = {
+    override protected def append(feature: RedisWritableFeature, values: Array[RowKeyValue[_]]): Unit = {
       i = 0
       while (i < values.length) {
         val insert = inserts(i)
@@ -265,6 +264,15 @@ object RedisIndexAdapter extends LazyLogging {
       } else {
         flush()
       }
+    }
+
+    override protected def update(
+        feature: RedisWritableFeature,
+        values: Array[RowKeyValue[_]],
+        previous: RedisWritableFeature,
+        previousValues: Array[RowKeyValue[_]]): Unit = {
+      delete(previous, previousValues)
+      append(feature, values)
     }
 
     override protected def delete(feature: RedisWritableFeature, values: Array[RowKeyValue[_]]): Unit = {

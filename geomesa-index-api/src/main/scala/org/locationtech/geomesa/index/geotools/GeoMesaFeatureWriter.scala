@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.WriteException
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
@@ -43,19 +44,31 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   protected def getWriter(feature: SimpleFeature): IndexWriter
 
-  protected def writeFeature(feature: SimpleFeature, update: Boolean = false): Unit = {
+  protected def updateFeature(update: SimpleFeature, previous: SimpleFeature): Unit = {
+    // see if there's a suggested ID to use for this feature, else create one based on the feature
+    val writable = GeoMesaFeatureWriter.featureWithFid(update)
+    try {
+      val writer = getWriter(writable)
+      val remover = getWriter(previous)
+      if (writer.eq(remover)) {
+        // `update` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
+        writer.update(writable, previous)
+      } else {
+        remover.delete(previous)
+        writer.append(writable)
+      }
+    } catch {
+      case NonFatal(e) => throwWriteErrors(e, writable)
+    }
+    statUpdater.add(writable)
+  }
+
+  protected def appendFeature(feature: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val writable = GeoMesaFeatureWriter.featureWithFid(feature)
-    // `write` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
-    try { getWriter(writable).write(writable, update) } catch {
-      case NonFatal(e) =>
-        val msg = s"Error indexing feature '${writable.getID}:${DataUtilities.encodeFeature(writable, false)}'"
-        if (e.isInstanceOf[IllegalArgumentException]) {
-          throw new IllegalArgumentException(msg, e)
-        } else {
-          throw new RuntimeException(msg, e)
-        }
-
+    // `append` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
+    try { getWriter(writable).append(writable) } catch {
+      case NonFatal(e) => throwWriteErrors(e, writable)
     }
     statUpdater.add(writable)
   }
@@ -79,6 +92,16 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   // returns a temporary id - we will replace it just before write
   protected def nextFeatureId: String = GeoMesaFeatureWriter.tempFeatureIds.getAndIncrement().toString
+
+  @throws[Exception]
+  private def throwWriteErrors(e: Throwable, feature: SimpleFeature): Unit = {
+    val msg = s"Error indexing feature '${feature.getID}:${DataUtilities.encodeFeature(feature, false)}'"
+    e match {
+      case _: WriteException => throw e
+      case _: IllegalArgumentException => throw new IllegalArgumentException(msg, e)
+      case _ => throw new RuntimeException(msg, e)
+    }
+  }
 }
 
 object GeoMesaFeatureWriter extends LazyLogging {
@@ -97,19 +120,38 @@ object GeoMesaFeatureWriter extends LazyLogging {
     }
   }
 
-  def apply[DS <: GeoMesaDataStore[DS]](ds: DS,
-                                        sft: SimpleFeatureType,
-                                        indices: Seq[GeoMesaFeatureIndex[_, _]],
-                                        filter: Option[Filter]): GeoMesaFeatureWriter[DS] = {
+  /**
+   * Create a feature writer
+   *
+   * @param ds datastore
+   * @param sft simple feature type
+   * @param indices indices to write
+   * @param filter filter for selecting features for updating writes, or None for appending writes
+   * @param atomic enforce atomic writes
+   * @tparam DS datastore type
+   * @return feature writer
+   */
+  def apply[DS <: GeoMesaDataStore[DS]](
+      ds: DS,
+      sft: SimpleFeatureType,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      filter: Option[Filter],
+      atomic: Boolean): GeoMesaFeatureWriter[DS] = {
     if (TablePartition.partitioned(sft)) {
       filter match {
-        case None    => new PartitionFeatureWriter(ds, sft, indices, null) with GeoMesaAppendFeatureWriter[DS]
-        case Some(f) => new PartitionFeatureWriter(ds, sft, indices, f) with GeoMesaModifyFeatureWriter[DS]
+        case None => new PartitionFeatureWriter(ds, sft, indices, atomic) with GeoMesaAppendFeatureWriter[DS]
+        case Some(f) =>
+          new PartitionFeatureWriter(ds, sft, indices, atomic) with GeoMesaModifyFeatureWriter[DS] {
+            override def filter: Filter = f
+          }
       }
     } else {
       filter match {
-        case None    => new TableFeatureWriter(ds, sft, indices, null) with GeoMesaAppendFeatureWriter[DS]
-        case Some(f) => new TableFeatureWriter(ds, sft, indices, f) with GeoMesaModifyFeatureWriter[DS]
+        case None => new TableFeatureWriter(ds, sft, indices, atomic) with GeoMesaAppendFeatureWriter[DS]
+        case Some(f) =>
+          new TableFeatureWriter(ds, sft, indices, atomic) with GeoMesaModifyFeatureWriter[DS] {
+            override def filter: Filter = f
+          }
       }
     }
   }
@@ -127,6 +169,16 @@ object GeoMesaFeatureWriter extends LazyLogging {
     } else {
       withFid(feature, idGenerator.createId(feature.getFeatureType, feature))
     }
+  }
+
+  /**
+   * Marker class to allow specific exceptions to bubble up
+   *
+   * @param msg error message
+   * @param cause cause (may be null)
+   */
+  class WriteException(msg: String, cause: Throwable) extends RuntimeException(msg, cause) {
+    def this(msg: String) = this(msg, null)
   }
 
   private def withFid(feature: SimpleFeature, fid: String): SimpleFeature = {
@@ -148,13 +200,14 @@ object GeoMesaFeatureWriter extends LazyLogging {
   /**
     * Writes to a single table per index
     */
-  abstract class TableFeatureWriter[DS <: GeoMesaDataStore[DS]](val ds: DS,
-                                                                val sft: SimpleFeatureType,
-                                                                val indices: Seq[GeoMesaFeatureIndex[_, _]],
-                                                                val filter: Filter)
-      extends GeoMesaFeatureWriter[DS] {
+  private abstract class TableFeatureWriter[DS <: GeoMesaDataStore[DS]](
+      val ds: DS,
+      val sft: SimpleFeatureType,
+      val indices: Seq[GeoMesaFeatureIndex[_, _]],
+      val atomic: Boolean
+    ) extends GeoMesaFeatureWriter[DS] {
 
-    private val writer = ds.adapter.createWriter(sft, indices, None)
+    private val writer = ds.adapter.createWriter(sft, indices, None, atomic)
 
     override protected def getWriter(feature: SimpleFeature): IndexWriter = writer
 
@@ -175,11 +228,12 @@ object GeoMesaFeatureWriter extends LazyLogging {
     * Support for writing to partitioned tables
     *
     */
-  abstract class PartitionFeatureWriter[DS <: GeoMesaDataStore[DS]](val ds: DS,
-                                                                    val sft: SimpleFeatureType,
-                                                                    val indices: Seq[GeoMesaFeatureIndex[_, _]],
-                                                                    val filter: Filter)
-      extends GeoMesaFeatureWriter[DS] {
+  private abstract class PartitionFeatureWriter[DS <: GeoMesaDataStore[DS]](
+      val ds: DS,
+      val sft: SimpleFeatureType,
+      val indices: Seq[GeoMesaFeatureIndex[_, _]],
+      val atomic: Boolean
+    ) extends GeoMesaFeatureWriter[DS] {
 
     import scala.collection.JavaConverters._
 
@@ -199,7 +253,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
         def createOne(index: GeoMesaFeatureIndex[_, _]): Unit =
           ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
         indices.toList.map(i => CachedThreadPool.submit(() => createOne(i))).foreach(_.get)
-        writer = ds.adapter.createWriter(sft, indices, Some(p))
+        writer = ds.adapter.createWriter(sft, indices, Some(p), atomic)
         cache.put(p, writer)
       }
       writer
@@ -221,7 +275,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
   /**
     * Appends new features - can't modify or delete existing features
     */
-  trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
+  private trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
     private var currentFeature: SimpleFeature = _
 
@@ -236,7 +290,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       if (currentFeature == null) {
         throw new IllegalStateException("next() must be called before write()")
       }
-      writeFeature(currentFeature)
+      appendFeature(currentFeature)
       currentFeature = null
     }
 
@@ -247,7 +301,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
   /**
     * Modifies or deletes existing features. Per the data store api, does not allow appending new features.
     */
-  trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
+  private trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
     import org.locationtech.geomesa.security.SecureSimpleFeature
 
@@ -281,8 +335,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) || live.visibility != original.visibility) {
-        removeFeature(original)
-        writeFeature(live, update = true)
+        updateFeature(live, original)
       }
       original = null
       live = null
