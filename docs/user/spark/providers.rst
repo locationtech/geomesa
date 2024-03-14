@@ -29,7 +29,7 @@ from the ``geomesa`` Accumulo table:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(
@@ -77,7 +77,7 @@ from the ``geomesa`` HBase table:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map("hbase.zookeepers" -> "zoo1,zoo2,zoo3", "hbase.catalog" -> "geomesa")
@@ -103,7 +103,7 @@ from an s3 bucket:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map("fs.path" -> "s3a://mybucket/geomesa/datastore")
@@ -137,7 +137,7 @@ converter, the following Scala code can be used to load this data into an ``RDD`
 
     import com.typesafe.config.ConfigFactory
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val exampleConf = ConfigFactory.load("example.conf").root().render()
@@ -175,7 +175,7 @@ GeoMesa Spark, do the following:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(

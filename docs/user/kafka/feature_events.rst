@@ -42,8 +42,8 @@ following listener simply prints out the events it receives:
 
 .. code-block:: java
 
-    import org.geotools.data.FeatureEvent;
-    import org.geotools.data.FeatureListener;
+    import org.geotools.api.data.FeatureEvent;
+    import org.geotools.api.data.FeatureListener;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureRemoved;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureCleared;
@@ -81,7 +81,7 @@ be used to mark the method that does the deregistration:
         // other cleanup
     }
 
-.. _FeatureEvent: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.html
-.. _FeatureEvent.Type: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureEvent.Type.html
-.. _FeatureListener: https://docs.geotools.org/stable/javadocs/org/geotools/data/FeatureListener.html
-.. _SimpleFeatureSource: https://docs.geotools.org/stable/javadocs/org/geotools/data/simple/SimpleFeatureSource.html
+.. _FeatureEvent: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureEvent.html
+.. _FeatureEvent.Type: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureEvent.Type.html
+.. _FeatureListener: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureListener.html
+.. _SimpleFeatureSource: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/SimpleFeatureSource.html

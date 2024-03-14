@@ -11,9 +11,6 @@ To enabled layer views, use the ``kafka.layer.views`` data store parameter when 
 
 .. code-block:: java
 
-    import org.geotools.data.DataStore;
-    import org.geotools.data.DataStoreFinder;
-
     String views =
       "{" +
       "  type1 = [" +
@@ -24,11 +21,12 @@ To enabled layer views, use the ``kafka.layer.views`` data store parameter when 
       "    { type-name = \"filterTransformView\", filter = \"bbox(geom,0,0,10,10)\", transform = [ \"dtg\", \"geom\" ] }" +
       "  ]" +
       "}";
-    Map<String, Serializable> parameters = new HashMap<>();
+    Map<String, String> parameters = new HashMap<>();
     parameters.put("kafka.zookeepers", "localhost:2181");
     parameters.put("kafka.brokers", "localhost:9092");
     parameters.put("kafka.layer.views", views);
-    DataStore dataStore = DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 The views parameter accepts a TypeSafe config string containing the view definitions. In the above example, assuming
 there are existing schemas named ``type1`` and ``type2``, three additional schemas will be exposed with the names

@@ -46,7 +46,7 @@ API Compatibility
 ^^^^^^^^^^^^^^^^^
 
 The GeoMesa public API is not currently well defined, so API compatibility is only guaranteed at the GeoTools
-`DataStore <https://docs.geotools.org/stable/javadocs/org/geotools/data/DataStore.html>`__ level. In the future,
+`DataStore <https://docs.geotools.org/stable/javadocs/org/geotools/api/data/DataStore.html>`__ level. In the future,
 GeoMesa will clearly indicate which classes and methods are part of the public API. Non-public classes may change
 without warning between minor versions.
 
@@ -111,7 +111,7 @@ supports Java versions 11 and 17.
 GeoTools Upgrade
 ----------------
 
-GeoTools has been updated to version 30.1. This version contains
+GeoTools has been updated to version 30.2. This version contains
 `extensive package changes <https://geotoolsnews.blogspot.com/2023/10/geotools-300-released.html>`__. In addition to
 the Ant migration script provided by GeoTools, GeoMesa provides a ``sed``
 `script <https://github.com/locationtech/geomesa/blob/geomesa-5.0.0/build/gt-30-api-changes.sed>`__ to help migrate Scala projects.

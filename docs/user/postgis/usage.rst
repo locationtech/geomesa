@@ -9,14 +9,15 @@ assuming that the GeoMesa code is on the classpath.
 
 .. code-block:: java
 
-    Map<String, Serializable> parameters = new HashMap<>();
+    Map<String, Object> parameters = new HashMap<>();
     parameters.put("dbtype", "postgis-partitioned");
     parameters.put("host", "localhost");
+    parameters.put("port", "5432");
     parameters.put("database", "geomesa");
     parameters.put("user", "postgres");
     parameters.put("passwd", "postgres");
-    org.geotools.data.DataStore dataStore =
-        org.geotools.data.DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 .. _pg_partition_parameters:
 

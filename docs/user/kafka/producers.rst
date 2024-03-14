@@ -12,7 +12,7 @@ First, create the data store:
 
 .. code-block:: java
 
-    import org.geotools.data.DataStoreFinder;
+    import org.geotools.api.data.DataStoreFinder;
 
     String brokers = ...
     String zookeepers = ...
@@ -62,7 +62,7 @@ Delete simple features:
 .. code-block:: java
 
     SimpleFeatureStore store = (SimpleFeatureStore) ds.getFeatureSource(typeName);
-    FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+    FilterFactory ff = CommonFactoryFinder.getFilterFactory();
 
     String id = ...
     store.removeFeatures(ff.id(ff.featureId(id)));

@@ -53,7 +53,7 @@ GeoTools
 
 The ``GeoToolsDataStoreService`` controller services can be used to ingest data into arbitrary GeoTools data stores.
 For a list of stores provided by GeoTools, see the GeoTools
-`documentation <https://docs.geotools.org/latest/javadocs/org/geotools/data/DataStoreFactorySpi.html>`_.
+`documentation <https://docs.geotools.org/stable/javadocs/org/geotools/api/data/DataStoreFactorySpi.html>`_.
 The data store and its dependencies need to be made available to the controller service through the ``ExtraClasspaths``
 property. Once available, the data store should appear in the ``DataStoreName`` property drop-down. Selecting the
 data store will display its configuration parameters.

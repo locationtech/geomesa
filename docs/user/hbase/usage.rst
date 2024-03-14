@@ -19,8 +19,8 @@ parameter ``hbase.zookeepers``. However, this method is not recommended, as othe
 
     Map<String, Serializable> parameters = new HashMap<>();
     parameters.put("hbase.catalog", "geomesa");
-    org.geotools.data.DataStore dataStore =
-        org.geotools.data.DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 .. _hbase_parameters:
 

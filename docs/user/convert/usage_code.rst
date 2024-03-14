@@ -40,14 +40,14 @@ Converters and SimpleFeatureTypes can be imported through maven and used directl
 
         import com.typesafe.config.Config;
         import com.typesafe.config.ConfigFactory;
+        import org.geotools.api.feature.simple.SimpleFeature;
+        import org.geotools.api.feature.simple.SimpleFeatureType;
         import org.locationtech.geomesa.convert.ConverterConfigLoader;
         import org.locationtech.geomesa.convert.EvaluationContext;
         import org.locationtech.geomesa.convert2.SimpleFeatureConverter;
         import org.locationtech.geomesa.convert2.interop.SimpleFeatureConverterLoader;
         import org.locationtech.geomesa.utils.collection.CloseableIterator;
         import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader;
-        import org.opengis.feature.simple.SimpleFeature;
-        import org.opengis.feature.simple.SimpleFeatureType;
 
         import java.util.Collections;
 

@@ -196,7 +196,7 @@ Following this, we can create the schema in the data store, then safely write th
 
 .. code-block:: scala
 
-    import org.geotools.data.DataStoreFinder
+    import org.geotools.api.data.DataStoreFinder
     DataStoreFinder.getDataStore(taxiParams).createSchema(aggregateSft)
     aggregateDF.write.format("geomesa").options(taxiParams).option("geomesa.feature", "aggregate").save()
 
