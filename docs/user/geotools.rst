@@ -35,7 +35,7 @@ used or supported.
 Getting a Data Store Instance
 -----------------------------
 
-Data stores are accessed through ``org.geotools.data.DataStoreFinder#getDataStore``. The function takes a parameter
+Data stores are accessed through ``org.geotools.api.data.DataStoreFinder#getDataStore``. The function takes a parameter
 map, which is used to dynamically load a data store. For example, to load a GeoMesa HBase data store include the
 parameter key ``"hbase.catalog"``. Data stores are dynamically loaded; the appropriate data store implementation
 and all of its required dependencies must be on the classpath.
@@ -51,8 +51,8 @@ See the links in :ref:`geomesa_data_stores` for an explanation of the parameters
 
     .. code-tab:: java
 
-        import org.geotools.data.DataStore;
-        import org.geotools.data.DataStoreFinder;
+        import org.geotools.api.data.DataStore;
+        import org.geotools.api.data.DataStoreFinder;
         import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams;
 
         Map<String, String> parameters = new HashMap<>();
@@ -72,7 +72,7 @@ See the links in :ref:`geomesa_data_stores` for an explanation of the parameters
 
     .. code-tab:: scala
 
-        import org.geotools.data.DataStoreFinder
+        import org.geotools.api.data.DataStoreFinder
         import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams
 
         import scala.collection.JavaConverters._
@@ -98,7 +98,7 @@ See :ref:`attribute_types` for a list of the attribute type bindings available.
     .. code-tab:: java
 
         import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
-        import org.opengis.feature.simple.SimpleFeatureType;
+        import org.geotools.api.feature.simple.SimpleFeatureType;
 
         try {
             String[] types = store.getTypeNames();
@@ -168,11 +168,11 @@ user data, as shown below.
 
     .. code-tab:: java
 
-        import org.geotools.data.FeatureWriter;
-        import org.geotools.data.Transaction;
+        import org.geotools.api.data.FeatureWriter;
+        import org.geotools.api.data.Transaction;
+        import org.geotools.api.feature.simple.SimpleFeature;
+        import org.geotools.api.feature.simple.SimpleFeatureType;
         import org.geotools.util.factory.Hints;
-        import org.opengis.feature.simple.SimpleFeature;
-        import org.opengis.feature.simple.SimpleFeatureType;
 
         // use try-with-resources to close the writer when done
         try (FeatureWriter<SimpleFeatureType, SimpleFeature> writer =
@@ -220,8 +220,8 @@ a runtime cast.
     .. code-tab:: java
 
         import org.geotools.data.simple.SimpleFeatureCollection;
-        import org.geotools.data.simple.SimpleFeatureSource;
-        import org.geotools.data.simple.SimpleFeatureStore;
+        import org.geotools.api.data.SimpleFeatureSource;
+        import org.geotools.api.data.SimpleFeatureStore;
         import org.geotools.feature.DefaultFeatureCollection;
 
         try {
@@ -239,7 +239,7 @@ a runtime cast.
 
     .. code-tab:: scala
 
-          import org.geotools.data.simple.SimpleFeatureStore
+          import org.geotools.api.data.SimpleFeatureStore
           import org.geotools.feature.DefaultFeatureCollection
 
           store.getFeatureSource("purchases") match {
@@ -267,12 +267,12 @@ on CQL filters.
 
     .. code-tab:: java
 
-        import org.geotools.data.FeatureWriter;
-        import org.geotools.data.Transaction;
+        import org.geotools.api.data.FeatureWriter;
+        import org.geotools.api.data.Transaction;
+        import org.geotools.api.feature.simple.SimpleFeature;
+        import org.geotools.api.feature.simple.SimpleFeatureType;
         import org.geotools.filter.text.cql2.CQLException;
         import org.geotools.filter.text.ecql.ECQL;
-        import org.opengis.feature.simple.SimpleFeature;
-        import org.opengis.feature.simple.SimpleFeatureType;
 
         try (FeatureWriter<SimpleFeatureType, SimpleFeature> writer =
                      store.getFeatureWriter("purchases", ECQL.toFilter("IN ('id-01')"), Transaction.AUTO_COMMIT)) {
@@ -287,7 +287,7 @@ on CQL filters.
 
     .. code-tab:: scala
 
-        import org.geotools.data.Transaction
+        import org.geotools.api.data.Transaction
         import org.geotools.filter.text.ecql.ECQL
 
         val filter = ECQL.toFilter("IN ('id-01')")
@@ -319,14 +319,14 @@ on CQL filters.
 
     .. code-tab:: java
 
+        import org.geotools.api.data.FeatureReader;
+        import org.geotools.api.data.Query;
+        import org.geotools.api.data.Transaction;
         import org.geotools.data.DataUtilities;
-        import org.geotools.data.FeatureReader;
-        import org.geotools.data.Query;
-        import org.geotools.data.Transaction;
         import org.geotools.filter.text.cql2.CQLException;
         import org.geotools.filter.text.ecql.ECQL;
-        import org.opengis.feature.simple.SimpleFeature;
-        import org.opengis.feature.simple.SimpleFeatureType;
+        import org.geotools.api.feature.simple.SimpleFeature;
+        import org.geotools.api.feature.simple.SimpleFeatureType;
 
         try {
             Query query = new Query("purchases", ECQL.toFilter("bbox(location,-85,30,-80,35)"));
@@ -343,7 +343,8 @@ on CQL filters.
 
     .. code-tab:: scala
 
-        import org.geotools.data.{DataUtilities, Query, Transaction}
+        import org.geotools.api.data.{Query, Transaction}
+        import org.geotools.data.DataUtilities
         import org.geotools.filter.text.ecql.ECQL
 
         val query = new Query("purchases", ECQL.toFilter("bbox(location,-85,30,-80,35)"))

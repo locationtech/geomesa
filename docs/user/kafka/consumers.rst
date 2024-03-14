@@ -15,7 +15,7 @@ First, create the data store. For example:
 
 .. code-block:: java
 
-   import org.geotools.data.DataStoreFinder;
+   import org.geotools.api.data.DataStoreFinder;
 
     String brokers = ...
     String zookeepers = ...

@@ -13,13 +13,11 @@ a default path will be used. Configuration parameters are described fully below.
 
 .. code-block:: java
 
-    import org.geotools.data.DataStore;
-    import org.geotools.data.DataStoreFinder;
-
     Map<String, Serializable> parameters = new HashMap<>();
     parameters.put("kafka.brokers", "localhost:9092");
     parameters.put("kafka.zookeepers", "localhost:2181");
-    DataStore dataStore = DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 .. _kafka_parameters:
 

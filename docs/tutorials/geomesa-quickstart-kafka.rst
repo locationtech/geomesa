@@ -244,9 +244,9 @@ Listening for Feature Events (optional)
 ---------------------------------------
 
 The GeoTools API also includes a mechanism to fire off a
-`FeatureEvent <https://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
+`FeatureEvent <https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureEvent.Type.html>`__
 each time there is an event in a ``DataStore`` (typically when the data is changed). A client may implement a
-`FeatureListener <https://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
+`FeatureListener <https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureListener.html>`__,
 which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 
