@@ -3068,21 +3068,31 @@
                     <artifactId>license-maven-plugin</artifactId>
                     <version>${license.maven.plugin.version}</version>
                     <configuration>
-                        <header>build/copyright/ccri.txt</header>
-                        <validHeaders>
-                            <validHeader>build/copyright/ccri-azavea.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
-                            <validHeader>build/copyright/dstl.txt</validHeader>
-                            <validHeader>build/copyright/ibm.txt</validHeader>
-                            <validHeader>build/copyright/ibm-ccri.txt</validHeader>
-                            <validHeader>build/copyright/mitre.txt</validHeader>
-                            <validHeader>build/copyright/ccri-mitre.txt</validHeader>
-                        </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>
                             <owner>Commonwealth Computer Research, Inc.</owner>
                         </properties>
+                        <licenseSets>
+                            <licenseSet>
+                                <header>build/copyright/ccri.txt</header>
+                                <validHeaders>
+                                    <validHeader>build/copyright/ccri-azavea.txt</validHeader>
+                                    <validHeader>build/copyright/ccri-dstl.txt</validHeader>
+                                    <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
+                                    <validHeader>build/copyright/dstl.txt</validHeader>
+                                    <validHeader>build/copyright/ibm.txt</validHeader>
+                                    <validHeader>build/copyright/ibm-ccri.txt</validHeader>
+                                    <validHeader>build/copyright/mitre.txt</validHeader>
+                                    <validHeader>build/copyright/ccri-mitre.txt</validHeader>
+                                </validHeaders>
+                                <includes>
+                                    <include>src/main/java/**</include>
+                                    <include>src/main/scala*/**</include>
+                                    <include>src/test/java/**</include>
+                                    <include>src/test/scala/**</include>
+                                </includes>
+                            </licenseSet>
+                        </licenseSets>
                         <headerDefinitions>
                             <definitions>build/copyright/geomesa-header.xml</definitions>
                         </headerDefinitions>
@@ -3090,12 +3100,6 @@
                             <java>GEOMESA_JAVA</java>
                             <scala>GEOMESA_JAVA</scala>
                         </mapping>
-                        <includes>
-                            <include>src/main/java/**</include>
-                            <include>src/main/scala*/**</include>
-                            <include>src/test/java/**</include>
-                            <include>src/test/scala/**</include>
-                        </includes>
                     </configuration>
                 </plugin>
                 <plugin>
