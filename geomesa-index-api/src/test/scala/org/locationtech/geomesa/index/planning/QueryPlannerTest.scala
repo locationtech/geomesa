@@ -14,6 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -25,7 +26,7 @@ class QueryPlannerTest extends Specification {
   import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  val sft = SimpleFeatureTypes.createType("query-planner", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("query-planner", "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
 
   val ds = new TestGeoMesaDataStore(true)
   ds.createSchema(sft)
@@ -62,6 +63,18 @@ class QueryPlannerTest extends Specification {
       val query = new Query(sft.getTypeName, filter)
 
       ds.getQueryPlan(query) must throwA[IllegalArgumentException]
+    }
+
+    "plan 'attribute is null' filter" in {
+      val filter = ECQL.toFilter("name IS NULL")
+      val query = new Query(sft.getTypeName, filter)
+
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      val plan = plans.head
+      plan.filter.index.name must not(beEqualTo(AttributeIndex.name))
+      plan.filter.primary must beNone
+      plan.filter.secondary must beSome(filter)
     }
 
     "be able to sort by id asc" >> {
