@@ -158,7 +158,7 @@ The following dependencies have been upgraded:
 * commons-lang3 ``3.8.1`` -> ``3.14.0``
 * commons-pool2 ``2.6.1`` -> ``2.12.0``
 * commons-text ``1.10.0`` -> ``1.11.0``
-* confluent ``6.2.7`` -> ``7.6.0``
+* confluent ``6.2.7`` -> ``6.2.9``
 * cqengine ``3.0.0`` -> ``3.6.0``
 * org.apache.curator ``4.3.0`` -> ``5.6.0``
 * geotools ``28.2`` -> ``30.2``
