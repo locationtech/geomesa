@@ -94,6 +94,7 @@
         <parquet.version>1.13.1</parquet.version>
         <postgres.version>42.7.2</postgres.version>
         <pureconfig.version>0.17.4</pureconfig.version>
+        <rhino.js.version>1.7.14</rhino.js.version>
         <s2.geometry.version>1.0.1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>
         <spring.security.version>5.8.9</spring.security.version> <!-- geoserver is still on 5.x -->
@@ -1339,6 +1340,16 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.js.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino-engine</artifactId>
+                <version>${rhino.js.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>

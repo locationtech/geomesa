@@ -48,6 +48,14 @@
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino-engine</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>
