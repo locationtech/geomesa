@@ -81,7 +81,6 @@
         <commons.text.version>1.11.0</commons.text.version>
         <cqengine.version>3.6.0</cqengine.version>
         <curator.version>5.6.0</curator.version>
-        <graalvm.js.version>20.3.13</graalvm.js.version>
         <gson.version>2.10.1</gson.version>
         <jedis.version>5.1.0</jedis.version>
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.5 -->
@@ -95,6 +94,7 @@
         <parquet.version>1.13.1</parquet.version>
         <postgres.version>42.7.2</postgres.version>
         <pureconfig.version>0.17.4</pureconfig.version>
+        <rhino.js.version>1.7.14</rhino.js.version>
         <s2.geometry.version>1.0.1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>
         <spring.security.version>5.8.9</spring.security.version> <!-- geoserver is still on 5.x -->
@@ -1342,14 +1342,14 @@
                 <version>${gson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js</artifactId>
-                <version>${graalvm.js.version}</version>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.js.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js-scriptengine</artifactId>
-                <version>${graalvm.js.version}</version>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino-engine</artifactId>
+                <version>${rhino.js.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
