@@ -28,6 +28,7 @@ import scala.util.{Failure, Success, Try}
 class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import MergedDataStoreViewFactory._
+  import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
 
   import scala.collection.JavaConverters._
 
@@ -60,13 +61,15 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
     try {
       configs.foreach { config =>
-        lazy val error = new IllegalArgumentException(s"Could not load store using configuration:\n" +
-            config.root().render(ConfigRenderOptions.concise().setFormatted(true)))
+        lazy val error =
+          new IllegalArgumentException(s"Could not load store using configuration:\n" +
+              config.root().render(ConfigRenderOptions.concise().setFormatted(true)))
         // inject the namespace into the underlying stores
-        val storeParams = nsConfig.map(config.withValue(NamespaceParam.key, _)).getOrElse(config).root().unwrapped()
-        val filter = try {
-          StoreFilterParam.lookupOpt(storeParams.asInstanceOf[java.util.Map[String, Serializable]]).map(ECQL.toFilter)
-        } catch {
+        val paramConf = nsConfig.map(config.withValue(NamespaceParam.key, _)).getOrElse(config)
+        val storeParams = new java.util.HashMap[String, AnyRef](paramConf.root().unwrapped())
+        // allow for unquoted keys
+        storeParams.putAll(paramConf.toStringMap().asJava)
+        val filter = try { StoreFilterParam.lookupOpt(storeParams).map(ECQL.toFilter) } catch {
           case NonFatal(e) =>
             throw new IllegalArgumentException(s"Invalid store filter '${storeParams.get(StoreFilterParam.key)}'", e)
         }
