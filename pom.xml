@@ -81,7 +81,8 @@
         <commons.text.version>1.11.0</commons.text.version>
         <cqengine.version>3.6.0</cqengine.version>
         <curator.version>5.6.0</curator.version>
-        <graalvm.js.version>20.3.13</graalvm.js.version>
+        <graalvm.version>23.1.2</graalvm.version>
+        <graalvm.js.version>20.3.13</graalvm.js.version> <!-- version 20 is the jdk 11 compiled version -->
         <gson.version>2.10.1</gson.version>
         <jedis.version>5.1.0</jedis.version>
         <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.5 -->
@@ -1342,9 +1343,15 @@
                 <version>${gson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js</artifactId>
-                <version>${graalvm.js.version}</version>
+                <groupId>org.graalvm.polyglot</groupId>
+                <artifactId>polyglot</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.polyglot</groupId>
+                <artifactId>js-community</artifactId>
+                <version>${graalvm.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.js</groupId>

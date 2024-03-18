@@ -34,7 +34,6 @@ com.google.re2j:re2j	1.6	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
 com.googlecode.cqengine:cqengine	3.6.0	compile
 com.googlecode.json-simple:json-simple	1.1.1	compile
-com.ibm.icu:icu4j	71.1	compile
 com.jayway.jsonpath:json-path	2.9.0	compile
 com.thoughtworks.paranamer:paranamer	2.8	compile
 com.typesafe.scala-logging:scala-logging_2.12	3.9.5	compile
@@ -225,11 +224,13 @@ org.geotools:gt-render	30.2	compile
 org.geotools:gt-shapefile	30.2	compile
 org.geotools:gt-transform	30.2	compile
 org.geotools:gt-xml	30.2	compile
-org.graalvm.js:js	20.3.13	compile
 org.graalvm.js:js-scriptengine	20.3.13	compile
-org.graalvm.regex:regex	20.3.13	compile
+org.graalvm.polyglot:js-community:pom:23.1.2:compile
+org.graalvm.polyglot:polyglot	23.1.2	compile
+org.graalvm.sdk:collections	23.1.2	compile
 org.graalvm.sdk:graal-sdk	20.3.13	compile
-org.graalvm.truffle:truffle-api	20.3.13	compile
+org.graalvm.sdk:nativeimage	23.1.2	compile
+org.graalvm.sdk:word	23.1.2	compile
 org.huldra.math:bigint	0.7.1	compile
 org.jetbrains:annotations	17.0.0	compile
 org.jruby.jcodings:jcodings	1.0.55	compile
