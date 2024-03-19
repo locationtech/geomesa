@@ -28,12 +28,12 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS | tee test.log
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa

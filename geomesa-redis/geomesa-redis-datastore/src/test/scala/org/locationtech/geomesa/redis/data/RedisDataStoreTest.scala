@@ -23,7 +23,6 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, Sim
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.Retries
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
@@ -32,11 +31,9 @@ import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
-class RedisDataStoreTest extends Specification with Retries with LazyLogging {
+class RedisDataStoreTest extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
-
-  sequential // intended to improve CI test stability
 
   var container: GenericContainer[_] = _
 
