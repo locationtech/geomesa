@@ -28,7 +28,7 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS | tee test.log
+        run: (set -o pipefail && mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS | tee test.log)
         continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
