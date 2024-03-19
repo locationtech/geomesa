@@ -1,4 +1,4 @@
-name: build-and-test-2.12
+name: integration-tests-2.12
 
 on:
   push:
