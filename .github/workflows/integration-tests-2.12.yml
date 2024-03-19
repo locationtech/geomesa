@@ -1,4 +1,4 @@
-name: build-and-test-2.13
+name: integration-tests-2.12
 
 on:
   push:
@@ -24,18 +24,10 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
-      - name: Set Scala version
-        run: ./build/change-scala-version.sh 2.13
       - name: Build with Maven
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
-      - name: Unit tests
-        id: test
-        run: (set -o pipefail && mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS | tee test.log)
-        continue-on-error: true
-      - name: Unit tests (retry)
-        id: test-retry
-        if: steps.test.outcome=='failure'
-        run: mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')
+      - name: Integration Tests
+        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
