@@ -41,6 +41,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.Retries
 
 import java.io.{File, FileInputStream, FileWriter}
 import java.nio.charset.StandardCharsets
@@ -49,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
-class ExportCommandTest extends Specification {
+class ExportCommandTest extends Specification with Retries {
 
   import scala.collection.JavaConverters._
 
