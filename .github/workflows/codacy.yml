@@ -32,6 +32,23 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     name: Codacy Security Scan
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tool:
+          - bandit
+          - csslint
+          - hadolint
+          - jacksonlinter
+          - jshint
+          - prospector
+          - pylint
+          - pylintpython3
+          - remark-lint
+          - sQLint
+          - scalastyle
+          - shellcheck
+          - stylelint
+          - tsqllint
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
@@ -45,17 +62,17 @@ jobs:
           # You can also omit the token and run the tools that support default configurations
           # project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           verbose: true
-          output: results.sarif
+          output: results-${{ matrix.tool }}.sarif
           format: sarif
           # Adjust severity of non-security issues
           gh-code-scanning-compat: true
           # Force 0 exit code to allow SARIF file generation
           # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
-          tool: bandit,csslint,hadolint,jacksonlinter,jshint,prospector,pylint,pylintpython3,remark-lint,sQLint,scalastyle,shellcheck,stylelint,tsqllint
+          tool: ${{ matrix.tool }}
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
         uses: github/codeql-action/upload-sarif@17573ee1cc1b9d061760f3a006fc4aac4f944fd5 # v2.2.4
         with:
-          sarif_file: results.sarif
+          sarif_file: results-${{ matrix.tool }}.sarif
