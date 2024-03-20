@@ -23,14 +23,18 @@ import scala.reflect.ClassTag
 
 object FilterConverter {
 
-  def convert(sft: SimpleFeatureType, filter: Filter): (Option[FilterPredicate], Option[Filter]) = {
-    if (filter == Filter.INCLUDE) { (None, None) } else {
-      FilterHelper.propertyNames(filter).foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft))
+  def convert(sft: SimpleFeatureType, filter: Filter): (Int => (Option[FilterPredicate], Option[Filter])) = {
+    def thunk(version: Int): (Option[FilterPredicate], Option[Filter]) = {
+      if (filter == Filter.INCLUDE) { (None, None) } else {
+        FilterHelper.propertyNames(filter).foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft, version))
+      }
     }
+    thunk
   }
 
   private def reduce(
-      sft: SimpleFeatureType
+      sft: SimpleFeatureType,
+      version: Int
     )(result: (Option[FilterPredicate], Option[Filter]),
       name: String): (Option[FilterPredicate], Option[Filter]) = {
     val (parquet, geotools) = result
@@ -44,7 +48,12 @@ object FilterConverter {
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates
-      case ObjectType.GEOMETRY if bindings.last == ObjectType.POINT => spatial(sft, name, filter, col)
+      case ObjectType.GEOMETRY if bindings.last == ObjectType.POINT => {
+        version match {
+          case 2 => spatial(filter)
+          case _ => spatialV0V1(sft, name, filter, col)
+        }
+      }
       case ObjectType.DATE    => temporal(sft, name, filter, FilterApi.longColumn(col))
       case ObjectType.STRING  => attribute(sft, name, filter, FilterApi.binaryColumn(col), Binary.fromString)
       case ObjectType.INT     => attribute(sft, name, filter, FilterApi.intColumn(col), identity[java.lang.Integer])
@@ -58,33 +67,32 @@ object FilterConverter {
     ((predicate.toSeq ++ parquet).reduceLeftOption(FilterApi.and), remaining)
   }
 
-  private def spatial(
+  private def spatial(filter: Filter): (Option[FilterPredicate], Option[Filter]) = (None, Some(filter))
+
+  // Backwards-compatible method for old parquet files
+  private def spatialV0V1(
       sft: SimpleFeatureType,
       name: String,
       filter: Filter,
       col: String): (Option[FilterPredicate], Option[Filter]) = {
-    // TODO: need backwards compatibility for old parquet files
-//    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
-//    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
-//      Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
-//        val xy = e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
-//          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
-//        }
-//        val xcol = FilterApi.doubleColumn(s"$col.x")
-//        val ycol = FilterApi.doubleColumn(s"$col.y")
-//        val filters = Seq[FilterPredicate](
-//          FilterApi.gtEq(xcol, Double.box(xy._1)),
-//          FilterApi.gtEq(ycol, Double.box(xy._2)),
-//          FilterApi.ltEq(xcol, Double.box(xy._3)),
-//          FilterApi.ltEq(ycol, Double.box(xy._4))
-//        )
-//        filters.reduce(FilterApi.and)
-//      }
-//    }
-//    (predicate, nonSpatial)
-
-    // For geoparquet files
-    (None, Some(filter))
+    val (spatial, nonSpatial) = FilterExtractingVisitor(filter, name, sft, SpatialFilterStrategy.spatialCheck)
+    val predicate = spatial.map(FilterHelper.extractGeometries(_, name)).flatMap { extracted =>
+      Some(extracted).filter(e => e.nonEmpty && !e.disjoint).map { e =>
+        val xy = e.values.map(GeometryUtils.bounds).reduce { (a, b) =>
+          (math.min(a._1, b._1), math.min(a._2, b._2), math.max(a._3, b._3), math.max(a._4, b._4))
+        }
+        val xcol = FilterApi.doubleColumn(s"$col.x")
+        val ycol = FilterApi.doubleColumn(s"$col.y")
+        val filters = Seq[FilterPredicate](
+          FilterApi.gtEq(xcol, Double.box(xy._1)),
+          FilterApi.gtEq(ycol, Double.box(xy._2)),
+          FilterApi.ltEq(xcol, Double.box(xy._3)),
+          FilterApi.ltEq(ycol, Double.box(xy._4))
+        )
+        filters.reduce(FilterApi.and)
+      }
+    }
+    (predicate, nonSpatial)
   }
 
   private def temporal(

@@ -88,7 +88,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   }
 
   def readFile(geoFilter: org.geotools.api.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
+    val pFilter = FilterConverter.convert(tsft, geoFilter)(2)._1.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val conf = transformConf(tsft)
 
     val geomAttributeName = tsft.getGeometryDescriptor.getName.toString

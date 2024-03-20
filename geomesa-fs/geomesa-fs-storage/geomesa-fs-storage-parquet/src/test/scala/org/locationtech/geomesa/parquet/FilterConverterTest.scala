@@ -27,8 +27,8 @@ class FilterConverterTest extends Specification with AllExpectations {
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
-  def convert(filter: String): (Option[FilterPredicate], Option[Filter]) =
-    FilterConverter.convert(sft, ECQL.toFilter(filter))
+  def convert(filter: String, version: Int = 2): (Option[FilterPredicate], Option[Filter]) =
+    FilterConverter.convert(sft, ECQL.toFilter(filter))(version)
 
   def flatten(and: Operators.And): Seq[FilterPredicate] = {
     val remaining = scala.collection.mutable.Queue[FilterPredicate](and)
@@ -43,7 +43,34 @@ class FilterConverterTest extends Specification with AllExpectations {
   }
 
   "FilterConverter" should {
-    "convert geo filter to min/max x/y" >> {
+    "convert geo filter to min/max x/y, for old parquet files" >> {
+      val (pFilter, gFilter) = convert("bbox(geom, -24.0, -25.0, -18.0, -19.0)", 1)
+
+      gFilter must beNone
+      pFilter must beSome(beAnInstanceOf[Operators.And])
+      val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      clauses must haveLength(4)
+
+      val xmin = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c
+      }
+      val ymin = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c
+      }
+      val xmax = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c
+      }
+      val ymax = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c
+      }
+
+      xmin.map(_.getValue.doubleValue()) must beSome(-24.0)
+      ymin.map(_.getValue.doubleValue()) must beSome(-25.0)
+      xmax.map(_.getValue.doubleValue()) must beSome(-18.0)
+      ymax.map(_.getValue.doubleValue()) must beSome(-19.0)
+    }
+
+    "put bounding box in the post-read filter, for geoparquet files" >> {
       val (pFilter, gFilter) = convert("bbox(geom, -24.0, -25.0, -18.0, -19.0)")
 
       pFilter must beNone
