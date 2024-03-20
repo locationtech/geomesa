@@ -49,7 +49,7 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
 
   def addBoundingBoxMetadata(bbox: Envelope): java.util.Map[String, String] = {
     val bboxString = s"[${bbox.getMinX}, ${bbox.getMaxX}, ${bbox.getMinY}, ${bbox.getMaxY}]"
-    val result = SimpleFeatureParquetSchema.geoParquetMetadata(sft) + s""","bbox":${bboxString}}}]}""""
+    val result = SimpleFeatureParquetSchema.geoParquetMetadata(sft) + s""","bbox":${bboxString}}}}""""
 
     // TODO: not an elegant way to do it
     //  somehow trying to mutate the map, e.g. by calling metadata.put(GeoParquetSchemaKey, result), causes empty parquet files to be written
@@ -104,7 +104,7 @@ object SimpleFeatureParquetSchema {
       val primaryColumn = alphaNumericSafeString(geomField)
       val columns = sft.getAttributeDescriptors.asScala.collect { case g: GeometryDescriptor => geoParquetMetadata(g) }.mkString(",")
 
-      s"""{"version":"1.0.0","primary_column":"$primaryColumn","columns":[$columns"""
+      s"""{"version":"1.1.0-dev","primary_column":"$primaryColumn","columns":$columns"""
     }
   }
 
@@ -112,13 +112,13 @@ object SimpleFeatureParquetSchema {
     // TODO "Z" for 3d, minz/maxz for bbox
     val geomTypes = {
       val types = ObjectType.selectType(geom).last match {
-        case ObjectType.POINT               => "Point"
-        case ObjectType.LINESTRING          => "LineString"
-        case ObjectType.POLYGON             => "Polygon"
-        case ObjectType.MULTILINESTRING     => "MultiLineString"
-        case ObjectType.MULTIPOLYGON        => "MultiPolygon"
-        case ObjectType.MULTIPOINT          => "MultiPoint"
-        case ObjectType.GEOMETRY_COLLECTION => "GeometryCollection"
+        case ObjectType.POINT               => """"Point""""
+        case ObjectType.LINESTRING          => """"LineString""""
+        case ObjectType.POLYGON             => """"Polygon""""
+        case ObjectType.MULTILINESTRING     => """"MultiLineString""""
+        case ObjectType.MULTIPOLYGON        => """"MultiPolygon""""
+        case ObjectType.MULTIPOINT          => """"MultiPoint""""
+        case ObjectType.GEOMETRY_COLLECTION => """"GeometryCollection""""
         case ObjectType.GEOMETRY            => null
       }
       Seq(types).filter(_ != null)

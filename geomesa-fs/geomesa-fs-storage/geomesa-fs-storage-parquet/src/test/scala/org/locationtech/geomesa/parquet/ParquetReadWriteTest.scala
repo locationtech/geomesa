@@ -10,8 +10,6 @@
 package org.locationtech.geomesa.parquet
 
 
-import com.google.gson.{JsonElement, JsonParser}
-import com.google.gson.stream.JsonReader
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -37,10 +35,14 @@ import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.index.BucketIndex
 import org.locationtech.jts.geom.Geometry
 
-import java.io.{RandomAccessFile, StringReader}
+import java.io.{File, RandomAccessFile}
 import java.nio.file.Files
 import java.nio.file.Paths
 import scala.collection.mutable.ArrayBuffer
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.networknt.schema.{JsonSchemaFactory, SpecVersion, ValidationMessage}
+
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class ParquetReadWriteTest extends Specification with AllExpectations with LazyLogging {
@@ -114,6 +116,20 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
     }
   }
 
+  // Helper method that validates the file metadata against the GeoParquet metadata json schema
+  def validateMetadata(metadataString: String): mutable.Set[ValidationMessage] = {
+    val schema = {
+      val schemaFile = new File(getClass.getClassLoader.getResource("geoparquet-metadata-schema.json").toURI)
+      val schemaReader = scala.io.Source.fromFile(schemaFile)
+      val schemaString = schemaReader.mkString
+      schemaReader.close()
+      JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4).getSchema(schemaString)
+    }
+    val metadata = new ObjectMapper().readTree(metadataString)
+
+    schema.validate(metadata).asScala
+  }
+
   "SimpleFeatureParquetWriter" should {
 
     "fail if a corrupt parquet file is written" >> {
@@ -136,24 +152,19 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
       }
     }
 
-    "write parquet files" >> {
+    "write geoparquet files" >> {
       val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()
       WithClose(writer) { writer =>
         features.foreach(writer.write)
       }
-
+      
       Files.size(f) must beGreaterThan(0L)
 
-      // Check that the metadata in the file is valid json
       val metadata = writer.getFooter.getFileMetaData.getKeyValueMetaData.get(GeoParquetSchemaKey)
-      val reader = new JsonReader(new StringReader(metadata))
-      reader.setLenient(true)
-      JsonParser.parseReader(reader) must beAnInstanceOf[JsonElement]
-
-      // TODO: check that the metadata validates against the GeoParquet json schema
+      validateMetadata(metadata) must beEmpty
     }
 
-    "read parquet files" >> {
+    "read geoparquet files" >> {
       val result = readFile(FilterCompat.NOOP, sftConf)
       result mustEqual features
     }
