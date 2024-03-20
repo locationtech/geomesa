@@ -39,6 +39,7 @@ import org.locationtech.jts.geom.Geometry
 
 import java.io.{RandomAccessFile, StringReader}
 import java.nio.file.Files
+import java.nio.file.Paths
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -217,6 +218,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   step {
     Files.deleteIfExists(f)
 
-    // TODO: delete the corresponding .crc file
+    val crcFilePath = Paths.get(s"${f.getParent}/.${f.getFileName}.crc")
+    Files.deleteIfExists(crcFilePath)
   }
 }
