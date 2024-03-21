@@ -44,7 +44,7 @@ class ParquetConverterTest extends Specification {
           |     { name = "name",     transform = "avroPath($0, '/name')" },
           |     { name = "age",      transform = "avroPath($0, '/age')" },
           |     { name = "dtg",      transform = "avroPath($0, '/dtg')" },
-          |     { name = "position", transform = "parquetPoint($0, '/position')" },
+          |     { name = "position", transform = "point(avroPath($0, '/position'))" },
           |   ]
           | }
         """.stripMargin)
