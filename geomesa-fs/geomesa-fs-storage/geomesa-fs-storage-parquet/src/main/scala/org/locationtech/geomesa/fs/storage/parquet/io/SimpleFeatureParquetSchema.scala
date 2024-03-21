@@ -19,10 +19,11 @@ import org.apache.parquet.schema._
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.CurrentSchemaVersion
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.{CurrentSchemaVersion, GeoParquetSchemaKey}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.jts.geom.Envelope
 
 /**
   * A paired simple feature type and parquet schema
@@ -39,12 +40,28 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
   /**
     * Parquet file metadata
     */
-  lazy val metadata: java.util.Map[String, String] = scala.collection.mutable.HashMap(
+  lazy val metadata: java.util.Map[String, String] = Map(
     StorageConfiguration.SftNameKey -> sft.getTypeName,
     StorageConfiguration.SftSpecKey -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
     SchemaVersionKey                -> version.toString,
-    GeoParquetSchemaKey             -> SimpleFeatureParquetSchema.geoParquetMetadata(sft)
+    GeoParquetSchemaKey             -> null
   ).asJava
+
+  def addBoundingBoxMetadata(bbox: Envelope): java.util.Map[String, String] = {
+    val bboxString = s"[${bbox.getMinX}, ${bbox.getMaxX}, ${bbox.getMinY}, ${bbox.getMaxY}]"
+    val result = SimpleFeatureParquetSchema.geoParquetMetadata(sft) + s""","bbox":${bboxString}}}]}""""
+
+    // TODO: not an elegant way to do it
+    //  somehow trying to mutate the map, e.g. by calling metadata.put(GeoParquetSchemaKey, result), causes empty parquet files to be written
+    val newMetadata: java.util.Map[String, String] = Map(
+      StorageConfiguration.SftNameKey -> metadata.get(StorageConfiguration.SftNameKey),
+      StorageConfiguration.SftSpecKey -> metadata.get(StorageConfiguration.SftSpecKey),
+      SchemaVersionKey -> metadata.get(SchemaVersionKey),
+      GeoParquetSchemaKey -> result
+    ).asJava
+
+    newMetadata
+  }
 
   /**
     * Gets the name of the parquet field for the given simple feature type attribute

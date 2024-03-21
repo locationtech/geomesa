@@ -141,6 +141,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
       WithClose(writer) { writer =>
         features.foreach(writer.write)
       }
+
       Files.size(f) must beGreaterThan(0L)
 
       // Check that the metadata in the file is valid json

@@ -49,13 +49,9 @@ class SimpleFeatureWriteSupport(observer: BoundsObserver) extends WriteSupport[S
       case _ => None
     }
     val bbox = envelope.getOrElse(throw new RuntimeException("Unable to get bounding box from observer"))
-    val bboxString = s"[${bbox.getMinX}, ${bbox.getMaxX}, ${bbox.getMinY}, ${bbox.getMaxY}]"
+    val newMetadata = schema.addBoundingBoxMetadata(bbox)
 
-    val currentMetadata = schema.metadata.get(SimpleFeatureParquetSchema.GeoParquetSchemaKey)
-    val newMetadata = currentMetadata + s""","bbox":${bboxString}}}]}""""
-    schema.metadata.put(SimpleFeatureParquetSchema.GeoParquetSchemaKey, newMetadata)
-
-    new FinalizedWriteContext(schema.metadata)
+    new FinalizedWriteContext(newMetadata)
   }
 
   // called per block
