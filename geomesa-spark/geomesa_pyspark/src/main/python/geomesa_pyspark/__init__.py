@@ -112,4 +112,10 @@ def zip_package(package_path, zip_path):
 
 
 def init_sql(spark):
-    spark._jvm.org.apache.spark.sql.SQLTypes.init(spark._jwrapped)
+    version = spark.version.split('.')
+    if version[0] == '3' and version[1] <= '2':
+        spark._jvm.org.locationtech.geomesa.spark.sql.SQLTypes.init(spark._jwrapped)
+    else:  # Spark 3.3 and up
+        spark._jvm.org.locationtech.geomesa.spark.sql.SQLTypes.init(
+            spark._jsparkSession.sqlContext()
+        )
