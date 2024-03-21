@@ -190,12 +190,12 @@ The following dependencies have been upgraded:
 * sedona ``1.3.1-incubating`` -> ``1.5.0``
 * si.uom ``2.0.1`` -> ``2.1``
 * spark ``3.3.1`` -> ``3.5.0``
-* spring-security ``5.8.0`` -> ``5.8.9``
+* spring-security ``5.8.0`` -> ``5.8.11``
 * systems.uom ``2.0.2`` -> ``2.1``
 * tech.units:indriya ``2.0.2`` -> ``2.2``
 * tech.uom.lib ``2.0`` -> ``2.1``
 * xmlresolver ``4.4.3`` -> ``5.2.2``
-* zookeeper ``3.5.10`` -> ``3.9.1``
+* zookeeper ``3.5.10`` -> ``3.9.2``
 
 Deprecated Classes and Methods
 ------------------------------

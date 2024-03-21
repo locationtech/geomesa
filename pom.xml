@@ -97,7 +97,7 @@
         <rhino.js.version>1.7.14</rhino.js.version>
         <s2.geometry.version>1.0.1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>
-        <spring.security.version>5.8.9</spring.security.version> <!-- geoserver is still on 5.x -->
+        <spring.security.version>5.8.11</spring.security.version> <!-- geoserver is still on 5.x -->
         <typesafe.config.version>1.4.3</typesafe.config.version>
 
         <!-- standardized transitive dependencies -->
@@ -106,6 +106,7 @@
         <fasterxml.jackson.databind.version>2.16.1</fasterxml.jackson.databind.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
+        <jna.version>5.14.0</jna.version>
         <json.smart.version>2.5.0</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.106.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
@@ -125,7 +126,7 @@
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.2</accumulo.version>
         <accumulo-20.version>2.0.1</accumulo-20.version>
-        <zookeeper.version>3.9.1</zookeeper.version>
+        <zookeeper.version>3.9.2</zookeeper.version>
         <thrift.version>0.17.0</thrift.version>
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
@@ -1858,6 +1859,16 @@
                 <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope> <!-- from spark -->
             </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId> <!-- used by nailgun and testcontainers -->
+                <version>${jna.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna-platform</artifactId>
+                <version>${jna.version}</version>
+            </dependency>
 
             <!-- provided dependencies -->
             <dependency>
@@ -2044,6 +2055,10 @@
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -2055,6 +2070,10 @@
                 <version>${hadoop.version}</version>
                 <scope>provided</scope>
                 <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
@@ -2096,6 +2115,10 @@
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -2122,6 +2145,12 @@
                 <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
                 <version>${hadoop.version}</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
@@ -2427,13 +2456,6 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- specific to hadoop not to be confused with above-->
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty</artifactId>
-                <version>3.6.2.Final</version>
-            </dependency>
-
             <!-- geoserver spring version -->
             <dependency>
                 <groupId>org.springframework.security</groupId>
@@ -2633,6 +2655,10 @@
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                    <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -2648,6 +2674,10 @@
                 <version>${hadoop.version}</version>
                 <scope>test</scope>
                 <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
                     <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
@@ -2665,6 +2695,12 @@
                 <classifier>tests</classifier>
                 <version>${hadoop.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
