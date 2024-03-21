@@ -30,8 +30,8 @@ import scala.collection.mutable.ArrayBuffer
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 
-  var schema: SimpleFeatureParquetSchema = null
-  var schemaVersion: Integer = null
+  private var schema: SimpleFeatureParquetSchema = null
+  private var schemaVersion: Integer = null
 
   override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context).getOrElse {
