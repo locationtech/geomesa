@@ -45,7 +45,6 @@ jobs:
           - pylintpython3
           - remark-lint
           - SQLint
-          - scalastyle
           - shellcheck
           - stylelint
           - tsqllint
