@@ -170,7 +170,7 @@ object SimpleFeatureReadSupport {
 
   private def geometry(schemaVersion: Int, binding: ObjectType, i: Int, callback: Settable): Converter = {
     schemaVersion match {
-      case 2 => geometryV2(binding, i, callback)
+      case 2 => new GeometryWkbConverter(i, callback)
       case 1 => geometryV0V1(binding, i, callback)
       case 0 => geometryV0V1(binding, i, callback)
       case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
@@ -187,17 +187,6 @@ object SimpleFeatureReadSupport {
       case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter(i, callback)
       case ObjectType.GEOMETRY        => new GeometryWkbConverter(i, callback)
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type $binding")
-    }
-  }
-
-  private def geometryV2(binding: ObjectType, i: Int, callback: Settable): Converter = {
-    val geomTypes = Seq(ObjectType.POINT, ObjectType.LINESTRING, ObjectType.POLYGON, ObjectType.MULTIPOINT,
-      ObjectType.MULTILINESTRING, ObjectType.MULTIPOLYGON, ObjectType.GEOMETRY)
-
-    if (geomTypes.contains(binding)) {
-      new GeometryWkbConverter(i, callback)
-    } else {
-      throw new IllegalArgumentException(s"Can't serialize field of type $binding")
     }
   }
 

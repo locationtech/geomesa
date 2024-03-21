@@ -100,7 +100,7 @@ object SimpleFeatureWriteSupport {
 
   def attribute(name: String, index: Int, bindings: Seq[ObjectType]): AttributeWriter[_] = {
     bindings.head match {
-      case ObjectType.GEOMETRY => geometry(name, index, bindings.last)
+      case ObjectType.GEOMETRY => new GeometryWkbAttributeWriter(name, index) // TODO support z/m
       case ObjectType.DATE     => new DateWriter(name, index)
       case ObjectType.STRING   => new StringWriter(name, index)
       case ObjectType.INT      => new IntegerWriter(name, index)
@@ -113,18 +113,6 @@ object SimpleFeatureWriteSupport {
       case ObjectType.BOOLEAN  => new BooleanWriter(name, index)
       case ObjectType.UUID     => new UuidWriter(name, index)
       case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type ${bindings.head}")
-    }
-  }
-
-  // TODO support z/m
-  private def geometry(name: String, index: Int, binding: ObjectType): AttributeWriter[_] = {
-    val geomTypes = Seq(ObjectType.POINT, ObjectType.LINESTRING, ObjectType.POLYGON, ObjectType.MULTIPOINT,
-      ObjectType.MULTILINESTRING, ObjectType.MULTIPOLYGON, ObjectType.GEOMETRY)
-
-    if (geomTypes.contains(binding)) {
-      new GeometryWkbAttributeWriter(name, index)
-    } else {
-      throw new IllegalArgumentException(s"Can't serialize field '$name' of type $binding")
     }
   }
 
