@@ -80,9 +80,9 @@ object SimpleFeatureParquetSchema {
   def geoParquetMetadata(sft: SimpleFeatureType): String = {
     val geomField = sft.getGeomField
 
-    // If the sft has no geometry field
+    // If the sft has no geometry field, then omit the GeoParquet metadata entirely
     if (geomField == null) {
-      """{"version":"1.0.0"}"""
+      ""
     } else {
       val primaryColumn = alphaNumericSafeString(geomField)
       val columns = sft.getAttributeDescriptors.asScala.collect { case g: GeometryDescriptor => geoParquetMetadata(g) }.mkString(",")
