@@ -108,12 +108,12 @@ object SimpleFeatureParquetSchema {
     }
     // note: don't provide crs, as default is EPSG:4326 with longitude first, which is our default/only crs
 
-    def stringify(geomName: String, encoding: String, geometryTypes: Seq[String], orientation: String, edges: String, epoch: Long): String = {
-      s"""{"$geomName":{"encoding":"$encoding","geometry_types":[${geometryTypes.mkString(",")}],"orientation":"$orientation","edges":"$edges","epoch":$epoch"""
+    def stringify(geomName: String, encoding: String, geometryTypes: Seq[String]): String = {
+      s"""{"$geomName":{"encoding":"$encoding","geometry_types":[${geometryTypes.mkString(",")}]"""
     }
 
     val geomName = alphaNumericSafeString(geom.getLocalName)
-    stringify(geomName, Encoding, geomTypes, "", "planar", 2024)
+    stringify(geomName, Encoding, geomTypes)
   }
 
   /**
