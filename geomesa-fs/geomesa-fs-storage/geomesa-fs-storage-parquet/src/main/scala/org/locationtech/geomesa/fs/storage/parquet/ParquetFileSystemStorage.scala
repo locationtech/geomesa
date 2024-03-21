@@ -21,7 +21,7 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.observer.BoundsObserver
+import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver}
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
@@ -35,7 +35,7 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(file: Path, observer: BoundsObserver): FileSystemWriter = {
+  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
     val sftConf = new Configuration(context.conf)
     StorageConfiguration.setSft(sftConf, metadata.sft)
     new ParquetFileSystemWriter(metadata.sft, file, sftConf, observer)
@@ -74,7 +74,7 @@ object ParquetFileSystemStorage extends LazyLogging {
       sft: SimpleFeatureType,
       file: Path,
       conf: Configuration,
-      observer: BoundsObserver = NoOpObserver
+      observer: FileSystemObserver = NoOpObserver
     ) extends FileSystemWriter {
 
     private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()

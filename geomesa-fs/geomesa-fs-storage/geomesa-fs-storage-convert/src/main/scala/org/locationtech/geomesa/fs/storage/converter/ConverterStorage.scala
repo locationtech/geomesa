@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, Sto
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.common.observer.BoundsObserver
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 
 class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, converter: SimpleFeatureConverter)
@@ -30,7 +30,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, observer: BoundsObserver): FileSystemWriter =
+  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
     throw new NotImplementedError()
 
   override protected def createReader(

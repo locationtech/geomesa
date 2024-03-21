@@ -71,7 +71,7 @@ abstract class AbstractFileSystemStorage(
     * @param observer observer to report stats on the data written
     * @return
     */
-  protected def createWriter(file: Path, observer: BoundsObserver): FileSystemWriter
+  protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter
 
   /**
     * Create a path reader with the given filter and transform
