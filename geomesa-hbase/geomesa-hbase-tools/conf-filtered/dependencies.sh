@@ -69,7 +69,7 @@ function dependencies() {
     "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
     "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
     "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
-    "io.netty:netty:3.6.2.Final:jar"
+    "io.netty:netty:3.10.6.Final:jar"
     # htrace 3 required for hadoop before 2.8
     # htrace 4 required for hadoop 2.8 and later
     # since they have separate package names, should be safe to install both
