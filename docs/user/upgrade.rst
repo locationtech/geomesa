@@ -174,7 +174,7 @@ The following dependencies have been upgraded:
 * jedis ``4.3.1`` -> ``5.1.0``
 * kafka ``2.8.2`` -> ``3.7.0``
 * kryo ``4.0.2`` -> ``4.0.3``
-* orc ``1.8.2`` -> ``1.9.2``
+* orc ``1.8.2`` -> ``1.9.3``
 * org.eclipse.emf.common ``2.15.0`` -> ``2.29.0``
 * org.eclipse.emf.ecore ``2.15.0`` -> ``2.35.0``
 * org.eclipse.emf.ecore.xmi ``2.15.0`` -> ``2.36.0``
