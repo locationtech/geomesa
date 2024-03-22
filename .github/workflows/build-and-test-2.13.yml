@@ -39,14 +39,14 @@ jobs:
         if: steps.test.outcome=='failure'
         run: |
           set -o pipefail
-          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')
+          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry-retry
         if: steps.test-retry.outcome=='failure'
         run: |
           set -o pipefail
-          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')
+          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
