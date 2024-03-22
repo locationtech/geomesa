@@ -97,13 +97,6 @@
       <fileMode>0644</fileMode>
       <filtered>true</filtered>
     </fileSet>
-    <fileSet>
-      <directory>../geomesa-${tools.module}-tools/examples</directory>
-      <outputDirectory>examples</outputDirectory>
-      <directoryMode>755</directoryMode>
-      <fileMode>0644</fileMode>
-      <filtered>false</filtered>
-    </fileSet>
 
     <!-- common tools filesets -->
     <fileSet>
@@ -137,6 +130,16 @@
       <directoryMode>755</directoryMode>
       <fileMode>0644</fileMode>
       <filtered>false</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>../../geomesa-tools/examples</directory>
+      <outputDirectory>conf/sfts/examples</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0644</fileMode>
+      <filtered>false</filtered>
+      <includes>
+        <include>**/application.conf</include>
+      </includes>
     </fileSet>
     <fileSet>
       <directory>./</directory>
