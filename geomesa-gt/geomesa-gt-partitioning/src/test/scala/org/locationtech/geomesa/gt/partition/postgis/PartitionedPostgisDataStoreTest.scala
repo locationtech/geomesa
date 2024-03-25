@@ -580,7 +580,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "support idle_in_transaction_session_timeout" in {
       val sft = SimpleFeatureTypes.renameSft(this.sft, "timeout")
 
-      val ds = DataStoreFinder.getDataStore((params ++ Map("idle_in_transaction_session_timeout" -> "100ms", "fetch size" -> 1)).asJava)
+      val ds = DataStoreFinder.getDataStore((params ++ Map("idle_in_transaction_session_timeout" -> "500ms", "fetch size" -> 1)).asJava)
       ds must not(beNull)
 
       try {
@@ -608,7 +608,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
           reader.hasNext must beTrue
           reader.next must not(beNull)
-          Thread.sleep(120)
+          Thread.sleep(600)
           reader.hasNext must throwAn[Exception]
         }
       } finally {

@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.fs.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FileUtils
-import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.HadoopSharedCluster
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -23,8 +22,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import java.nio.file.{Files, Path}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -36,26 +33,16 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
 
   sequential
 
-  val tempDir: Path = Files.createTempDirectory("fsSparkTest")
-
-  var cluster: MiniDFSCluster = _
-  var directory: String = _
-
   var spark: SparkSession = _
   var sc: SQLContext = _
 
-  lazy val params = Map("fs.path" -> directory)
+  lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
+  lazy val params = Map("fs.path" -> path)
   lazy val ds: DataStore = DataStoreFinder.getDataStore(params.asJava)
 
   val formats = Seq("orc", "parquet")
 
   step {
-    // Start MiniCluster
-    val conf = new HdfsConfiguration()
-    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, tempDir.toFile.getAbsolutePath)
-    cluster = new MiniDFSCluster.Builder(conf).build()
-    directory = cluster.getURI + "/data/chicago"
-
     formats.foreach { format =>
       val sft = SimpleFeatureTypes.createType(format,
         "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
@@ -216,8 +203,5 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
 
   step {
     ds.dispose()
-    // Stop MiniCluster
-    cluster.shutdown()
-    FileUtils.deleteDirectory(tempDir.toFile)
   }
 }

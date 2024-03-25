@@ -43,7 +43,7 @@ object ClassPathUtils extends LazyLogging {
     }
 
     if (remaining.nonEmpty) {
-      logger.warn(s"Could not find requested jars: $remaining")
+      logger.warn(s"Could not find requested jars: ${remaining.mkString(", ")}")
     }
 
     foundJars.distinct.toSeq
