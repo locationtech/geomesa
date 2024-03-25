@@ -135,7 +135,7 @@ org.apache.arrow:arrow-vector	15.0.2	compile
 org.apache.avro:avro	1.11.3	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.26.0	compile
-org.apache.commons:commons-configuration2	2.9.0	compile
+org.apache.commons:commons-configuration2	2.10.1	compile
 org.apache.commons:commons-crypto	1.1.0	compile
 org.apache.commons:commons-csv	1.10.0	compile
 org.apache.commons:commons-dbcp2	2.11.0	compile
