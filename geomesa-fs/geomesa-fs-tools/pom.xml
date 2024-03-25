@@ -47,6 +47,10 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -69,19 +73,17 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-common</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
         </dependency>
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-minicluster</artifactId>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
         </dependency>
-        <!-- used by hadoop-minicluster -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${hadoop.minicluster.mockito.version}</version>
-            <scope>test</scope>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
     </dependencies>
 

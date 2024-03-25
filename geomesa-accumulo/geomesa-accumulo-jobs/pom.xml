@@ -82,20 +82,6 @@
             <groupId>org.geomesa.testcontainers</groupId>
             <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-            <version>${snappy.java.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- used by hadoop-minicluster -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${hadoop.minicluster.mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>
