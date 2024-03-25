@@ -28,23 +28,24 @@ jobs:
         run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Unit tests
         id: test
+        continue-on-error: true
         run: |
           set -o pipefail
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS | tee -a test.log
-        continue-on-error: true
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
+        continue-on-error: true
         run: |
           set -o pipefail
-          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')"
+          RESUME_FROM="$(grep 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry-retry
         if: steps.test-retry.outcome=='failure'
         run: |
           set -o pipefail
-          RESUME_FROM="$(tail -n2 test.log | grep 'rf' | sed 's/.*-rf/-rf/')"
+          RESUME_FROM="$(grep 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
