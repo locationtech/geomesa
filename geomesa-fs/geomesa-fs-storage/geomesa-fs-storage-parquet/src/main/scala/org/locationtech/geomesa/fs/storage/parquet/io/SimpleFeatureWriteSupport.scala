@@ -14,6 +14,7 @@ import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteC
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.MetadataObserver
 import org.locationtech.geomesa.fs.storage.common.observer.BoundsObserver
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -23,7 +24,13 @@ import org.locationtech.jts.geom._
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
-class SimpleFeatureWriteSupport(observer: BoundsObserver) extends WriteSupport[SimpleFeature] {
+class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
+
+  private class SimpleObserver extends MetadataObserver {
+    override protected def onClose(bounds: Envelope, count: Long): Unit = {}
+  }
+
+  private val observer = new SimpleObserver
 
   private var writer: SimpleFeatureWriteSupport.SimpleFeatureWriter = _
   private var consumer: RecordConsumer = _

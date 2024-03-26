@@ -22,12 +22,6 @@ import org.locationtech.jts.geom.Envelope
 
 object SimpleFeatureParquetWriter extends LazyLogging {
 
-  private class SimpleObserver extends MetadataObserver {
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {}
-  }
-
-  private val observer = new SimpleObserver()
-
   def builder(file: Path, conf: Configuration): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
@@ -48,6 +42,6 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =
-      new SimpleFeatureWriteSupport(observer)
+      new SimpleFeatureWriteSupport
   }
 }
