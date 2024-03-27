@@ -33,7 +33,7 @@ import org.specs2.specification.AllExpectations
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.GeoParquetSchemaKey
 import org.locationtech.geomesa.utils.index.BucketIndex
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory, Point}
 
 import java.io.{File, RandomAccessFile}
 import java.nio.file.Files
@@ -70,11 +70,30 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
     c
   }
 
-  val features = Seq(
-    ScalaSimpleFeature.create(sft, "1", "first", 100, "2017-01-01T00:00:00Z", "POINT (25.236263 27.436734)"),
-    ScalaSimpleFeature.create(sft, "2", null,    200, "2017-01-02T00:00:00Z", "POINT (67.2363 55.236)"),
-    ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z", "POINT (73.0 73.0)")
-  )
+  val points = {
+    val gf = new GeometryFactory
+    Seq(
+      gf.createPoint(new Coordinate(25.236263, 27.436734)),
+      gf.createPoint(new Coordinate(67.2363, 55.236)),
+      gf.createPoint(new Coordinate(73.0, 73.0)),
+    )
+  }
+
+  val bboxString = {
+    val bbox = new Envelope
+    points.indices.foreach(i => bbox.expandToInclude(points(i).getEnvelopeInternal))
+    s"[${bbox.getMinX}, ${bbox.getMaxX}, ${bbox.getMinY}, ${bbox.getMaxY}]"
+  }
+
+  val features = {
+    def pointToWKT(p: Point): String = s"POINT (${p.getX} ${p.getY})"
+
+    Seq(
+      ScalaSimpleFeature.create(sft, "1", "first", 100, "2017-01-01T00:00:00Z", pointToWKT(points.head)),
+      ScalaSimpleFeature.create(sft, "2", null,    200, "2017-01-02T00:00:00Z", pointToWKT(points(1))),
+      ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z", pointToWKT(points(2)))
+    )
+  }
 
   def readFile(filter: FilterCompat.Filter = FilterCompat.NOOP, conf: Configuration = sftConf): Seq[SimpleFeature] = {
     val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
@@ -162,6 +181,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
       val metadata = writer.getFooter.getFileMetaData.getKeyValueMetaData.get(GeoParquetSchemaKey)
       validateMetadata(metadata) must beEmpty
+      metadata.contains(bboxString) must beTrue
     }
 
     "read geoparquet files" >> {
