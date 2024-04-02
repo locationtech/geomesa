@@ -11,14 +11,13 @@ package org.locationtech.geomesa.tools.ingest
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.input.CloseShieldInputStream
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.api.data.DataStore
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
+import org.locationtech.geomesa.convert.{ConverterConfigLoader, EvaluationContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
@@ -36,7 +35,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeC
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{CachingStdInHandle, StdInHandle}
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.{File, FileWriter, InputStream, PrintWriter}
@@ -44,7 +43,7 @@ import java.nio.charset.StandardCharsets
 import java.util.{Collections, Locale}
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait IngestCommand[DS <: DataStore]
     extends DataStoreCommand[DS] with DistributedCommand with InteractiveCommand with SchemaOptionsCommand {
@@ -268,14 +267,16 @@ object IngestCommand extends LazyLogging {
         }
       }
 
-      val path = if (inputs.stdin) { None } else { Option(file.path) }
+      val path = if (inputs.stdin) { Map.empty[String, AnyRef] } else { EvaluationContext.inputFileParam(file.path) }
       val opt = format match {
-        case None => SimpleFeatureConverter.infer(open, Option(sft), path)
-        case Some(fmt) => TypeAwareInference.infer(fmt, open, Option(sft), path)
+        case None => SimpleFeatureConverter.infer(open _, Option(sft), path)
+        case Some(fmt) => TypeAwareInference.infer(fmt, open _, Option(sft), path)
       }
 
-      val (inferredSft, inferredConverter) = opt.getOrElse {
-        throw new ParameterException("Could not determine converter from inputs - please specify a converter")
+      val (inferredSft, inferredConverter) = opt match {
+        case Success(o) => o
+        case Failure(e) =>
+          throw new ParameterException("Could not determine converter from inputs - please specify a converter", e)
       }
 
       val renderOptions = ConfigRenderOptions.concise().setFormatted(true)

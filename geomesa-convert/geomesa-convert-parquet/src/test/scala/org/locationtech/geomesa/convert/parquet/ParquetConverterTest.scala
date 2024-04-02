@@ -74,8 +74,8 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 
@@ -103,8 +103,8 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 
@@ -128,8 +128,8 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 

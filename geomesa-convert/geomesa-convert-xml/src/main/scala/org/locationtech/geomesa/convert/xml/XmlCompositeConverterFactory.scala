@@ -19,6 +19,8 @@ import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConve
 import org.w3c.dom.Element
 import pureconfig.{ConfigConvert, ConfigSource}
 
+import java.io.InputStream
+import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
 
 class XmlCompositeConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
@@ -53,6 +55,11 @@ class XmlCompositeConverterFactory extends SimpleFeatureConverterFactory with La
       }
     }
   }
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new NotImplementedError())
 }
 
 object XmlCompositeConverterFactory {
