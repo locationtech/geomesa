@@ -92,7 +92,7 @@ object KafkaDataStoreParams extends NamespaceParams {
           "See http://kafka.apache.org/documentation.html#consumerconfigs",
       largeText = true,
       deprecatedKeys = Seq("consumerConfig"),
-      readWrite = ReadWriteFlag.ReadOnly
+      readWrite = ReadWriteFlag.ReadWrite // used for reading the catalog topic, if not using zk
     )
 
   val ClearOnStart =
