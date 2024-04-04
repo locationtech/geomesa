@@ -94,8 +94,9 @@ object TypeInference {
         def findBestMatch(names: Seq[String]): Option[InferredType] = {
           // determine priority order
           val potentials = nums.flatMap { t =>
-            val i = names.indexOf(t.name)
-            val j = names.indexWhere(n => t.name.endsWith(s"_$n"))
+            val name = t.name.toLowerCase(Locale.US)
+            val i = names.indexOf(name)
+            val j = names.indexWhere(n => name.endsWith(s"_$n"))
             if (i != -1) {
               Some(i -> t)
             } else if (j != -1) {
