@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import com.typesafe.config.{Config, ConfigFactory}
-import org.geotools.api.feature.simple.SimpleFeatureType
+import com.typesafe.config.ConfigFactory
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
