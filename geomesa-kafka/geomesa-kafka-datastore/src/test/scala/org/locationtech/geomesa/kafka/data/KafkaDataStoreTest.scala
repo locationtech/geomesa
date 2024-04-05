@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
+import org.apache.commons.lang3.StringUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig}
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.common.config.ConfigResource
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -1032,6 +1033,34 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         ds.dispose()
       }
     }
+
+    "update compaction policy for catalog topics if not set" in {
+      val props = new Properties()
+      props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+      val path = getUniquePath
+      val topic = StringUtils.strip(path, " /").replace("/", "-")
+      //Create the topic
+      WithClose(AdminClient.create(props)) { admin =>
+        val newTopic = new NewTopic(topic, 1, 1.toShort)
+        admin.createTopics(Collections.singletonList(newTopic)).all().get
+      }
+      val ds = getStore(path, 0)
+      try {
+        ds.getTypeNames()
+        //Verify the compaction policy
+        WithClose(AdminClient.create(props)) { admin =>
+          val configs =
+            admin.describeConfigs(Collections.singletonList(new ConfigResource(ConfigResource.Type.TOPIC, topic)))
+          val config = configs.values().get(new ConfigResource(ConfigResource.Type.TOPIC, topic)).get()
+          config must not(beNull)
+          config.entries().asScala.map(e => e.name() -> e.value()).toMap must
+            containAllOf(Seq("cleanup.policy" -> "compact"))
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
   }
 
   "KafkaDataStoreFactory" should {
