@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.admin._
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.config.ConfigResource
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -38,6 +39,7 @@ import scala.util.control.NonFatal
 class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
+  import KafkaMetadata.{CompactCleanupPolicy, CleanupPolicyConfig}
   import org.apache.kafka.clients.consumer.ConsumerConfig.{AUTO_OFFSET_RESET_CONFIG, GROUP_ID_CONFIG}
 
   import scala.collection.JavaConverters._
@@ -45,13 +47,36 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   private val producer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
   private val consumer = new LazyCloseable(new TopicMap())
 
-  override protected def checkIfTableExists: Boolean =
-    adminClientOp(_.listTopics().names().get.contains(config.catalog))
+  override protected def checkIfTableExists: Boolean = {
+    adminClientOp { adminClient=>
+      val exists = adminClient.listTopics().names().get.contains(config.catalog)
+      // ensure that the topic has compaction enabled, in case it was created externally
+      if (exists && !checkCompactionPolicy(adminClient)){
+        setCompactionPolicy(adminClient)
+      }
+      exists
+    }
+  }
+
+  private def checkCompactionPolicy(kClient: AdminClient): Boolean = {
+    val cr = Collections.singleton(new ConfigResource(ConfigResource.Type.TOPIC, config.catalog))
+    val catalogConfigs = kClient.describeConfigs(cr).all().get().values()
+    catalogConfigs.asScala.exists { config =>
+      config.get(CleanupPolicyConfig) != null && config.get(CleanupPolicyConfig).value() == CompactCleanupPolicy
+    }
+  }
+
+  private def setCompactionPolicy(kClient: AdminClient): Unit ={
+    val catalogResource = new ConfigResource(ConfigResource.Type.TOPIC, config.catalog)
+    val catalogConfigEntry = new ConfigEntry(CleanupPolicyConfig, CompactCleanupPolicy)
+    val alterOps = Collections.singleton(new AlterConfigOp(catalogConfigEntry, AlterConfigOp.OpType.SET))
+    kClient.incrementalAlterConfigs(Collections.singletonMap(catalogResource, alterOps), new AlterConfigsOptions()).all().get()
+  }
 
   override protected def createTable(): Unit = {
     val newTopic =
       new NewTopic(config.catalog, 1, config.topics.replication.toShort)
-          .configs(Collections.singletonMap("cleanup.policy", "compact"))
+          .configs(Collections.singletonMap(CleanupPolicyConfig, CompactCleanupPolicy))
     adminClientOp(_.createTopics(Collections.singletonList(newTopic)).all().get)
   }
 
@@ -233,4 +258,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
       }
     }
   }
+}
+
+object KafkaMetadata {
+  private val CleanupPolicyConfig = "cleanup.policy"
+  private val CompactCleanupPolicy = "compact"
 }
