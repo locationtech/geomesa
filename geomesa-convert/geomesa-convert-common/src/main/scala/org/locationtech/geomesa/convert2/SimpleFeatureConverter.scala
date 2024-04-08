@@ -19,6 +19,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{Closeable, InputStream}
+import scala.util.{Failure, Try}
 
 /**
  * Converts input streams into simple features. SimpleFeatureConverters should be thread-safe. However,
@@ -128,12 +129,62 @@ object SimpleFeatureConverter extends StrictLogging {
     * @param sft simple feature type, if known
     * @return
     */
+  @deprecated("replaced with `infer(() => InputStream, Option[SimpleFeatureType], Map[String, Any])`")
   def infer(
       is: () => InputStream,
       sft: Option[SimpleFeatureType],
       path: Option[String] = None): Option[(SimpleFeatureType, Config)] = {
-    factories.foldLeft[Option[(SimpleFeatureType, Config)]](None) { (res, f) =>
-      res.orElse(WithClose(is())(in => f.infer(in, sft, path)))
+    val hints = path match {
+      case None    => Map.empty[String, AnyRef]
+      case Some(p) => Map(EvaluationContext.InputFilePathKey -> p)
+    }
+    infer(is, sft, hints).toOption
+  }
+
+  /**
+   * Infer a converter based on a data sample
+   *
+   * @param is input stream to convert
+   * @param sft simple feature type, if known
+   * @param hints implementation specific hints
+   * @return
+   */
+  def infer(
+      is: () => InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = infer(is, sft, hints, None)
+
+  /**
+   * Infer a converter based on a data sample
+   *
+   * @param is input stream to convert
+   * @param sft simple feature type, if known
+   * @param hints implementation specific hints
+   * @param priority priority order for trying factories
+   * @return
+   */
+  def infer(
+      is: () => InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef],
+      priority: Option[Ordering[SimpleFeatureConverterFactory]]): Try[(SimpleFeatureType, Config)] = {
+    if (factories.isEmpty) {
+      Failure(new RuntimeException("There are no converters available on the classpath"))
+    } else {
+      val sorted = priority.fold(factories)(factories.sorted(_))
+      val attempts = sorted.iterator.map { factory =>
+        WithClose(is()) { is =>
+          val res = try { factory.infer(is, sft, hints) } catch {
+            // in case a particular converter's dependencies aren't on the classpath
+            case e: NoClassDefFoundError => Failure(e)
+          }
+          if (res.isSuccess) { res } else {
+            val msg = s"${factory.getClass.getSimpleName}: could not infer a converter:"
+            Failure(new RuntimeException(msg, res.failed.get))
+          }
+        }
+      }
+      multiTry(attempts, new RuntimeException("Unable to infer a converter"))
     }
   }
 }

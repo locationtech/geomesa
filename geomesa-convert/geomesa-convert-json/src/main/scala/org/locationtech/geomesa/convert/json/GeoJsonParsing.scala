@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.convert.json
 
-import com.google.gson.{JsonElement, JsonNull, JsonObject, JsonPrimitive}
+import com.google.gson._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.impl.CoordinateArraySequence
+
+import java.util.Collections
 
 
 trait GeoJsonParsing {
@@ -66,8 +68,8 @@ trait GeoJsonParsing {
       case _ => None
     }
     val geometry = parseGeometry(obj.get(GeometryKey))
-    val props: Map[String, String] = obj.get(PropertiesKey) match {
-      case o: JsonObject => parseProperties(o, s"$$['$PropertiesKey']")
+    val props: Map[String, Any] = obj.get(PropertiesKey) match {
+      case o: JsonObject => parseElement(o, s"$$['$PropertiesKey']").toMap
       case _ => Map.empty
     }
     GeoJsonFeature(id, geometry, props)
@@ -143,19 +145,6 @@ trait GeoJsonParsing {
     }
   }
 
-  private def parseProperties(o: JsonObject, path: String): Map[String, String] = {
-    val builder = Map.newBuilder[String, String]
-    o.entrySet().asScala.foreach { entry =>
-      val p = s"$path['${entry.getKey}']"
-      entry.getValue match {
-        case e: JsonPrimitive => builder += p -> e.getAsString
-        case e: JsonObject => builder ++= parseProperties(e, p)
-        case _ => // no-op
-      }
-    }
-    builder.result()
-  }
-
   private def isType(el: JsonElement, t: String): Boolean = el match {
     case o: JsonObject => Option(o.get(TypeKey)).exists(e => e.isJsonPrimitive && e.getAsString == t)
     case _ => false
@@ -164,15 +153,17 @@ trait GeoJsonParsing {
 
 object GeoJsonParsing {
 
+  import scala.collection.JavaConverters._
+
   /**
    * Parsed geojson feature element
    *
    * @param id id, if present
    * @param geom geometry
-   * @param properties 'properties' values - key is json path to value, value is a primitive converted to a string
+   * @param properties 'properties' values - key is json path to value, value is a string, boolean or list[string].
    *                   nested elements will be flattened out, with a path pointing into the element
    */
-  case class GeoJsonFeature(id: Option[String], geom: Geometry, properties: Map[String, String])
+  case class GeoJsonFeature(id: Option[String], geom: Geometry, properties: Map[String, Any])
 
   private val FeatureType = "Feature"
   private val FeatureCollectionType = "FeatureCollection"
@@ -184,4 +175,42 @@ object GeoJsonParsing {
   private val GeometryKey = "geometry"
   private val GeometriesKey = "geometries"
   private val IdKey = "id"
+
+  /**
+   * Parse a json element
+   *
+   * @param elem element
+   * @param path json path to the object
+   * @return map of key is json path to value, value is a string, boolean or list[string]
+   */
+  def parseElement(elem: JsonElement, path: String): Seq[(String, Any)] = {
+    elem match {
+      case e: JsonPrimitive =>
+        if (e.isBoolean) {
+          Seq(path -> e.getAsBoolean)
+        } else {
+          // note: gson numbers don't have a defined type so type checking doesn't work
+          Seq(path -> e.getAsString)
+        }
+
+      case e: JsonObject =>
+        val builder = Seq.newBuilder[(String, Any)]
+        e.entrySet().asScala.foreach { entry =>
+          builder ++= parseElement(entry.getValue, s"$path['${entry.getKey}']")
+        }
+        builder.result
+
+      case e: JsonArray =>
+        val list = new java.util.ArrayList[String](e.size())
+        var i = 0
+        while (i < e.size()) {
+          list.add(e.get(i).toString)
+          i += 1
+        }
+        Seq(path -> Collections.unmodifiableList(list))
+
+      case _ =>
+        Seq.empty // no-op
+    }
+  }
 }

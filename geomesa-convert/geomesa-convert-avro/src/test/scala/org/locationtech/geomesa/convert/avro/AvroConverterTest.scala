@@ -195,9 +195,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
       val bytes = out.toByteArray
 
-      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes))
+      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes), None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
       inferred.get._1 mustEqual sft
 
       logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
@@ -224,9 +224,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       val bytes = out.toByteArray
 
       val updated = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326,tag:String")
-      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes), Some(updated))
+      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes), Some(updated), Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
       inferred.get._1 mustEqual sft
 
       logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
@@ -289,9 +289,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
       val bytes = out.toByteArray
 
-      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes))
+      val inferred = new AvroConverterFactory().infer(new ByteArrayInputStream(bytes), None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
 
       val expectedSft = SimpleFeatureTypes.createType(inferred.get._1.getTypeName,
         "lat:Double,lon:Double,label:String,list:List[String],map:Map[String,Int],age:Int,weight:Float,*geom:Point:srid=4326")
