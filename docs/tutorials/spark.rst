@@ -154,7 +154,7 @@ resolution.
 
     val dayAndFeature = queryRDD.mapPartitions { iter =>
       val df = new SimpleDateFormat("yyyyMMdd")
-      val ff = CommonFactoryFinder.getFilterFactory2
+      val ff = CommonFactoryFinder.getFilterFactory
       val exp = ff.property("SQLDATE")
       iter.map { f => (df.format(exp.evaluate(f).asInstanceOf[java.util.Date]), f) }
     }

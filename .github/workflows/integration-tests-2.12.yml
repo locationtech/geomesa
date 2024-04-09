@@ -1,0 +1,33 @@
+name: integration-tests-2.12
+
+on:
+  push:
+  pull_request:
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
+
+jobs:
+  build-scala:
+    runs-on: ubuntu-latest
+    # avoid duplicate jobs on PRs from the main repo
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      - name: Build with Maven
+        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+      - name: Integration Tests
+        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa

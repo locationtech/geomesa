@@ -18,7 +18,8 @@ that the GeoMesa code is on the classpath:
     parameters.put("lambda.kafka.brokers", "kafka1:9092,kafka2:9092");
     parameters.put("lambda.kafka.zookeepers", "zoo1,zoo2,zoo3");
     parameters.put("lambda.expiry", "10 minutes");
-    org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
 

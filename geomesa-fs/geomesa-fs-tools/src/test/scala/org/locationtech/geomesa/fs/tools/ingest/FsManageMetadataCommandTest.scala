@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.commons.io.FileUtils
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.HadoopSharedCluster
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -21,7 +20,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.nio.file.Files
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -31,8 +29,6 @@ class FsManageMetadataCommandTest extends Specification {
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
-
-  val dir = Files.createTempDirectory("gm-FsManageMetadataCommandTest").toFile
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
   sft.setEncoding("parquet")
@@ -50,15 +46,8 @@ class FsManageMetadataCommandTest extends Specification {
 
   val counter = new AtomicInteger(0)
 
-  var cluster: MiniDFSCluster = _
-
-  def nextPath(): String = s"${cluster.getDataDirectory}_fs${counter.incrementAndGet()}"
-
-  step {
-    val conf = new HdfsConfiguration()
-    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, dir.getAbsolutePath)
-    cluster = new MiniDFSCluster.Builder(conf).build()
-  }
+  def nextPath(): String =
+    s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/${counter.incrementAndGet()}/"
 
   "ManageMetadata command" should {
     "find file inconsistencies" in {
@@ -138,10 +127,5 @@ class FsManageMetadataCommandTest extends Specification {
             containTheSameElementsAs(features.take(2))
       }
     }
-  }
-
-  step {
-    cluster.shutdown()
-    FileUtils.deleteDirectory(dir)
   }
 }

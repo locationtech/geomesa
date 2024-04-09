@@ -24,13 +24,12 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 trait Runner extends MethodProfiling with LazyLogging {
 
   def name: String
-  @deprecated("Use classpathEnvironments instead")
-  def environmentErrorInfo(): Option[String] = None
 
   /**
    * A list of environment variables used to load the classpath, used for error messages after
@@ -51,9 +50,12 @@ trait Runner extends MethodProfiling with LazyLogging {
         val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
         logger.error(msg, e)
         CommandResult(1, Seq(Left(msg)) ++ getEnvironmentErrors.map(Left.apply[String, Throwable]))
-      case e: ParameterException => CommandResult(1, Seq(Left(e.getMessage)))
-      case e: CommandException   => CommandResult(1, Seq(Left(e.getMessage)))
-      case NonFatal(e)           => CommandResult(1, Seq(Right(e)))
+      case e @ (_: ParameterException | _: CommandException) =>
+        logger.error("Error executing command:", e)
+        CommandResult(1, failureMessages(e))
+      case NonFatal(e) =>
+        logger.error("Error executing command:", e)
+        CommandResult(1, Seq(Right(e)))
     }
 
     result.errors.foreach {
@@ -62,6 +64,19 @@ trait Runner extends MethodProfiling with LazyLogging {
     }
 
     sys.exit(result.code)
+  }
+
+  private def failureMessages(e: Throwable, indent: String = "", prefix: String = ""): Seq[Left[String, Throwable]] = {
+    val messages = ArrayBuffer.empty[Left[String, Throwable]]
+    val message = if (indent == "") { e.getMessage } else { s"$indent$prefix${e.toString}" }
+    messages += Left(message)
+    if (e.getCause != null) {
+      messages ++= failureMessages(e.getCause, indent + "  ", "Caused by: ")
+    }
+    e.getSuppressed.foreach { e =>
+      messages ++= failureMessages(e, indent + "  ", "Suppressed: ")
+    }
+    messages.toSeq
   }
 
   def parseCommand(args: Array[String]): Command = {
@@ -129,7 +144,7 @@ trait Runner extends MethodProfiling with LazyLogging {
 
   def autocompleteUsage(jc: JCommander, autocompleteInfo: AutocompleteInfo): Unit = {
     val file = new File(autocompleteInfo.path)
-    val commands = jc.getCommands.asScala.map(_._1).toSeq
+    val commands = jc.getCommands.asScala.keys.toSeq
     val out = new StringBuilder
     out.append(
       s"""_${autocompleteInfo.commandName}(){
@@ -203,20 +218,17 @@ trait Runner extends MethodProfiling with LazyLogging {
   protected def resolveEnvironment(command: Command): Unit = {}
 
   private def getEnvironmentErrors: Option[String] = {
-    // noinspection ScalaDeprecation
-    environmentErrorInfo().orElse {
-      val env = classpathEnvironments
-      if (env.forall(sys.env.contains)) { None } else {
-        val envMsg = if (env.size == 1) { "is not set as an environment variable" } else { "are not set as environment variables" }
-        val types = env.map(e => e.take(1) ++ e.drop(1).toLowerCase(Locale.US).replace("_home", "")).mkString(" and ")
-        val msg =
-          s"\nWarning: ${env.mkString(" and/or ")} $envMsg." +
-              s"\nGeoMesa tools will not run without the appropriate $types JARs in the tools classpath." +
-              s"\nPlease ensure that those JARs are present in the classpath by running '$name classpath'." +
-              "\nTo take corrective action, copy the necessary JAR files in the GeoMesa tools lib directory " +
-              "using the provided 'install-dependencies.sh' and 'install-*-support.sh' scripts."
-        Some(msg)
-      }
+    val env = classpathEnvironments
+    if (env.forall(sys.env.contains)) { None } else {
+      val envMsg = if (env.size == 1) { "is not set as an environment variable" } else { "are not set as environment variables" }
+      val types = env.map(e => e.take(1) ++ e.drop(1).toLowerCase(Locale.US).replace("_home", "")).mkString(" and ")
+      val msg =
+        s"\nWarning: ${env.mkString(" and/or ")} $envMsg." +
+            s"\nGeoMesa tools will not run without the appropriate $types JARs in the tools classpath." +
+            s"\nPlease ensure that those JARs are present in the classpath by running '$name classpath'." +
+            "\nTo take corrective action, copy the necessary JAR files in the GeoMesa tools lib directory " +
+            "using the provided 'install-dependencies.sh' and 'install-*-support.sh' scripts."
+      Some(msg)
     }
   }
 
@@ -247,6 +259,12 @@ object Runner {
     def execute(): Unit
   }
 
+  /**
+   * Result of executing a command
+   *
+   * @param code exit code
+   * @param errors error messages or exceptions with full stack traces
+   */
   case class CommandResult(code: Int, errors: Seq[Either[String, Throwable]] = Seq.empty)
 
   case class AutocompleteInfo(path: String, commandName: String)

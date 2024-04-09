@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.avro.registry
 
 import com.typesafe.config.Config
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.avro.registry.AvroSchemaRegistryConverter.AvroSchemaRegistryConfig
 import org.locationtech.geomesa.convert.avro.registry.AvroSchemaRegistryConverterFactory.AvroSchemaRegistryConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -18,9 +19,18 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
+import java.io.InputStream
+import scala.util.{Failure, Try}
+
 class AvroSchemaRegistryConverterFactory
     extends AbstractConverterFactory[AvroSchemaRegistryConverter, AvroSchemaRegistryConfig, BasicField, BasicOptions](
-      "avro-schema-registry", AvroSchemaRegistryConfigConvert, BasicFieldConvert, BasicOptionsConvert)
+      "avro-schema-registry", AvroSchemaRegistryConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new NotImplementedError())
+}
 
 object AvroSchemaRegistryConverterFactory {
 

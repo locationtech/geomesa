@@ -26,33 +26,36 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
   private val Seq(attribute, tiered @ _*) = attributes
   private val descriptor = sft.getDescriptor(attribute)
-  private val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+  private val isList = descriptor.isList
+  private val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
   override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
 
     val (primary, secondary) =
-      FilterExtractingVisitor(filter, attribute, sft,  AttributeFilterStrategy.attributeCheck(sft))
+      FilterExtractingVisitor(filter, attribute, sft, AttributeFilterStrategy.attributeCheck(sft))
 
-    primary.map { extracted =>
+    primary.flatMap { extracted =>
       val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
-      val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
-      lazy val secondaryFilterAttributes = tiered.union(secondary.toSeq.flatMap(FilterHelper.propertyNames))
-      val temporal = isTemporal(sft, attribute) || (isEquals && secondaryFilterAttributes.exists(isTemporal(sft, _)))
-      val basePriority =
-        if (isEquals) {
-          1f // TODO account for secondary index
-        } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
-          1000f // not null
-        } else {
-          2.5f // range query
+      if (bounds.isEmpty) { None } else {
+        val isEquals = bounds.precise && bounds.forall(_.isEquals)
+        lazy val secondaryFilterAttributes = tiered.union(secondary.toSeq.flatMap(FilterHelper.propertyNames))
+        val temporal = isTemporal(sft, attribute) || (isEquals && secondaryFilterAttributes.exists(isTemporal(sft, _)))
+        val basePriority =
+          if (isEquals || (bounds.disjoint && !isList)) {
+            1f // TODO account for secondary index
+          } else if (!bounds.forall(_.isBounded)) {
+            1000f // not null
+          } else {
+            2.5f // range query
+          }
+        // prioritize attributes based on cardinality hint
+        val priority = descriptor.getCardinality() match {
+          case Cardinality.HIGH    => basePriority / 10f
+          case Cardinality.UNKNOWN => basePriority
+          case Cardinality.LOW     => basePriority * 10f
         }
-      // prioritize attributes based on cardinality hint
-      val priority = descriptor.getCardinality() match {
-        case Cardinality.HIGH    => basePriority / 10f
-        case Cardinality.UNKNOWN => basePriority
-        case Cardinality.LOW     => basePriority * 10f
+        Some(FilterStrategy(this, primary, secondary, temporal, priority))
       }
-      FilterStrategy(this, primary, secondary, temporal, priority)
     }
   }
 }

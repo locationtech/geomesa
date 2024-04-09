@@ -9,15 +9,14 @@ that the GeoMesa code is on the classpath:
 
 .. code-block:: java
 
-    import org.geotools.data.*;
-
     Map<String, String> parameters = new HashMap<>;
     parameters.put("accumulo.instance.name", "myInstance");
     parameters.put("accumulo.zookeepers", "myZoo1,myZoo2,myZoo3");
     parameters.put("accumulo.user", "myUser");
     parameters.put("accumulo.password", "myPassword");
     parameters.put("accumulo.catalog", "myNamespace.myTable");
-    DataStore dataStore = DataStoreFinder.getDataStore(parameters);
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
 Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` may be added
 to the classpath. See the

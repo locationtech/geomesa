@@ -17,90 +17,67 @@ import org.locationtech.jts.geom._
 
 import java.lang.{Boolean => jBoolean, Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.{Date, Locale}
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.Try
 
 object TypeInference {
 
-  import LatLon.{Lat, Lon, NotLatLon}
   import ObjectType._
-  import org.locationtech.geomesa.utils.text.TextTools.isWhitespace
+
+  import scala.collection.JavaConverters._
 
   private val geometries =
     Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION, GEOMETRY)
 
-  private val latitudeNames = Seq("lat", "latitude")
-  private val longitudeNames = Seq("lon", "long", "longitude")
+  // fields to match for lat/lon - in priority order, from most to least specific
+  private val latitudeNames = Seq("latitude", "lat")
+  private val longitudeNames = Seq("longitude", "lon", "long")
+
+  // map of priorities and transforms for merging different number types
+  private val mergeUpNumbers = Map(
+    DOUBLE -> (0, CastToDouble),
+    FLOAT  -> (1, CastToFloat),
+    LONG   -> (2, CastToLong),
+    INT    -> (3, CastToInt),
+  )
 
   /**
-    * Infer attribute types based on input data
-    *
-    * @param data rows of columns
-    * @param failureRate per column, max percentage of values that can fail a conversion to a particular type,
-    *                    and still consider the column to be that type
-    * @return
-    */
-  def infer(data: Iterable[Iterable[Any]],
-            names: Iterable[String] = Seq.empty,
-            failureRate: Float = 0.1f): IndexedSeq[InferredType] = {
-    // list of inferred types for each column
-    val rawTypes = ArrayBuffer.empty[ListBuffer[InferredType]]
-    var i = 0
-    data.iterator.foreach { row =>
-      // skip empty rows or rows consisting of a single whitespace-only string
-      if (row.nonEmpty && (row.size > 1 || row.headOption.collect { case s: String if isWhitespace(s) => s }.isEmpty)) {
-        i = 0
-        row.foreach { col =>
-          if (i == rawTypes.length) {
-            // grow our column array if needed, we don't assume all rows have the same number of columns
-            rawTypes += ListBuffer.empty[InferredType]
-          }
-          // add the inferred type for this column value - it won't have a name at this point
-          rawTypes(i) += InferredType.infer(col)
-          i += 1
-        }
-      }
-    }
-
-    // track the names we use for each column to ensure no duplicates
-    val uniqueNames = scala.collection.mutable.HashSet.empty[String]
-    // names that were provided
-    val nameIterator = names.iterator
-
-    val types = rawTypes.map { raw =>
-
+   * Infer types
+   *
+   * @param pathsAndValues paths (xpath, jsonpath, etc) to values
+   * @param sft simple feature type, or name for inferred type
+   * @param namer naming for inferred attributes
+   * @param failureRate allowed failure rate for conversion to a given type
+   * @return
+   */
+  def infer(
+      pathsAndValues: Seq[PathWithValues],
+      sft: Either[String, SimpleFeatureType],
+      namer: String => String = new Namer(),
+      failureRate: Float = 0.1f): InferredTypesWithPaths = {
+    val inferred = pathsAndValues.map { case PathWithValues(path, values) =>
+      val rawTypes = values.map(InferredType.infer)
       // merge the types for this column from each row
-      val typ = merge(raw.toSeq, failureRate)
-
-      // determine the column name
-      var base: String = null
-      var name: String = null
-      var i = 0
-
-      if (nameIterator.hasNext) {
-        // if the name was passed in, start with that
-        base = nameIterator.next
-        name = base
-      } else {
-        // use the type with an _i, e.g. int_0, string_1
-        base = String.valueOf(typ.typed).toLowerCase(Locale.US)
-        name = s"${base}_0"
-        i += 1
-      }
-
-      while (FeatureUtils.ReservedWords.contains(name.toUpperCase(Locale.US)) || !uniqueNames.add(name)) {
-        name = s"${base}_$i"
-        i += 1
-      }
-
-      // set the name for the column
-      typ.copy(name = name)
+      val typed = merge(rawTypes.toSeq, failureRate)
+      val baseName = if (path.nonEmpty) { path } else { String.valueOf(typed.typed).toLowerCase(Locale.US) }
+      TypeWithPath(path, typed.copy(name = namer(baseName)))
     }
+    val geom = deriveGeometry(inferred.map(_.inferredType), namer).map(TypeWithPath("", _))
 
-    // if there is no geometry field, see if we can derive one
-    deriveGeometry(types.toSeq).foreach(types += _)
+    val typesWithPaths = inferred ++ geom
 
-    types.toIndexedSeq
+    sft match {
+      case Left(name) =>
+        val schema = TypeInference.schema(name, typesWithPaths.map(_.inferredType))
+        InferredTypesWithPaths(schema, typesWithPaths)
+
+      case Right(sft) =>
+        // validate the existing schema
+        AbstractConverterFactory.validateInferredType(sft, typesWithPaths.map(_.inferredType.typed))
+        val renamed = typesWithPaths.zip(sft.getAttributeDescriptors.asScala.map(_.getLocalName)).map {
+          case (inferred, name) => inferred.copy(inferredType = inferred.inferredType.copy(name = name))
+        }
+        InferredTypesWithPaths(sft, renamed)
+    }
   }
 
   /**
@@ -109,50 +86,33 @@ object TypeInference {
     * @param types known types
     * @return
     */
-  def deriveGeometry(types: Seq[InferredType]): Option[InferredType] = {
+  def deriveGeometry(types: Seq[InferredType], namer: String => String): Option[InferredType] = {
     // if there is no geometry field, see if we can derive one
-    if (types.lengthCompare(2) < 0 || types.map(_.typed).exists(geometries.contains)) { None } else {
-      var lat, lon: String = null
-
-      // if we have lat/lon columns, use those
-      types.exists { t =>
-        val name = t.name.toLowerCase(Locale.US)
-        if (latitudeNames.contains(name)) {
-          lat = t.name
-        } else if (longitudeNames.contains(name)) {
-          lon = t.name
-        }
-        // stop iterating if we find them both
-        lat != null && lon != null
-      }
-
-      if (lat == null || lon == null) {
-        // as a fallback, check for 2 consecutive numbers that could be valid lat/lon pairs
-        // if ambiguous, assume longitude first
-        // note that this is pretty brittle, but hopefully better than nothing
-        var i = 1
-        while (i < types.length) {
-          val left = types(i - 1)
-          val right = types(i)
-          // note that valid latitudes are also valid longitudes
-          (left.latlon, right.latlon) match {
-            case (Lat, Lon) => lon = right.name; lat = left.name; i = types.length // break out of the loop
-            case (Lon, Lat) => lon = left.name; lat = right.name; i = types.length // break out of the loop
-            case (Lat, Lat) => lon = left.name; lat = right.name; i = types.length // break out of the loop
-            case _ => // no-op
+    if (types.map(_.typed).exists(geometries.contains)) { None } else {
+      val nums = types.filter(t => t.typed == ObjectType.DOUBLE || t.typed == ObjectType.FLOAT)
+      if (nums.lengthCompare(2) < 0) { None } else {
+        def findBestMatch(names: Seq[String]): Option[InferredType] = {
+          // determine priority order
+          val potentials = nums.flatMap { t =>
+            val name = t.name.toLowerCase(Locale.US)
+            val i = names.indexOf(name)
+            val j = names.indexWhere(n => name.endsWith(s"_$n"))
+            if (i != -1) {
+              Some(i -> t)
+            } else if (j != -1) {
+              Some(j + names.length -> t) // add names.length to make exact matches sort first
+            } else {
+              None
+            }
           }
-          i += 1
+          potentials.sortBy(_._1).collectFirst { case (_, t) => t }
         }
-      }
-
-      if (lat == null || lon == null) { None } else {
-        var name = "geom"
-        var i = 0
-        while (types.exists(_.name == name)) {
-          name = s"geom_$i"
-          i += 1
+        for {
+          lat <- findBestMatch(latitudeNames)
+          lon <- findBestMatch(longitudeNames)
+        } yield {
+          InferredType(namer("geom"), POINT, DerivedTransform("point", lon.name, lat.name))
         }
-        Some(InferredType(name, POINT, DerivedTransform("point", lon, lat)))
       }
     }
   }
@@ -248,28 +208,18 @@ object TypeInference {
     } else if (left.typed == null || right.typed == STRING) {
       Some(right)
     } else if (geometries.contains(left.typed) && geometries.contains(right.typed)) {
-      Some(InferredType("", GEOMETRY, FunctionTransform("geometry(", ")")))
+      Some(InferredType("", GEOMETRY, IdentityTransform))
     } else {
-      lazy val latlon = merge(left.latlon, right.latlon)
-      left.typed match {
-        case INT    if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(right.copy(latlon = latlon))
-        case LONG   if right.typed == INT | right.typed == LONG            => Some(left.copy(latlon = latlon))
-        case LONG   if Seq(LONG, FLOAT, DOUBLE).contains(right.typed)      => Some(right.copy(latlon = latlon))
-        case FLOAT  if Seq(INT, FLOAT, LONG).contains(right.typed)         => Some(left.copy(latlon = latlon))
-        case FLOAT  if right.typed == FLOAT | right.typed == DOUBLE        => Some(right.copy(latlon = latlon))
-        case DOUBLE if Seq(INT, LONG, FLOAT, DOUBLE).contains(right.typed) => Some(left.copy(latlon = latlon))
-        case _ => None
+      for {
+        (leftPriority, leftTransform) <- mergeUpNumbers.get(left.typed)
+        (rightPriority, rightTransform) <- mergeUpNumbers.get(right.typed)
+      } yield {
+        if (leftPriority <= rightPriority) {
+          left.copy(transform = leftTransform)
+        } else {
+          right.copy(transform = rightTransform)
+        }
       }
-    }
-  }
-
-  private def merge(left: LatLon, right: LatLon): LatLon = {
-    if (left == NotLatLon || right == NotLatLon) {
-      NotLatLon
-    } else if (left == Lon || right == Lon) {
-      Lon
-    } else { // implies both equal Lat
-      Lat
     }
   }
 
@@ -303,14 +253,63 @@ object TypeInference {
   }
 
   /**
+   * Helper for naming attributes during type inference
+   */
+  class Namer(existing: Seq[String] = Seq.empty) extends (String => String) {
+
+    // track the names we use for each column to ensure no duplicates
+    private val uniqueNames = scala.collection.mutable.HashSet[String](existing: _*)
+
+    /**
+     * Get a valid attribute name based on the element name
+     *
+     * @param key json key
+     * @return
+     */
+    override def apply(key: String): String = {
+      val base = key.replaceAll("[^A-Za-z0-9]+", "_").replaceAll("^_|_$", "")
+      var candidate = base
+      var i = 0
+      while (FeatureUtils.ReservedWords.contains(candidate.toUpperCase(Locale.US)) || !uniqueNames.add(candidate)) {
+        candidate = s"${base}_$i"
+        i += 1
+      }
+      candidate
+    }
+  }
+
+  /**
+   * Path to an attribute (xpath, json path, column number) and the values of that attribute
+   *
+   * @param path path
+   * @param values sample values
+   */
+  case class PathWithValues(path: String, values: Iterable[Any])
+
+  /**
+   * Inferred feature type
+   *
+   * @param sft simple feature type
+   * @param types types and paths to the attributes
+   */
+  case class InferredTypesWithPaths(sft: SimpleFeatureType, types: Seq[TypeWithPath])
+
+  /**
+   * An attribute type with a path to the attribute (xpath, json path, column number, etc)
+   *
+   * @param path path
+   * @param inferredType type
+   */
+  case class TypeWithPath(path: String, inferredType: InferredType)
+
+  /**
     * Inferred type of a converter field
     *
     * @param name name of the field
     * @param typed type of the field
     * @param transform converter transform
-    * @param latlon possibility that this column could be a latitude or longitude
     */
-  case class InferredType(name: String, typed: ObjectType, transform: InferredTransform, latlon: LatLon = NotLatLon) {
+  case class InferredType(name: String, typed: ObjectType, transform: InferredTransform) {
     def binding: String = TypeInference.binding(typed)
   }
 
@@ -354,39 +353,6 @@ object TypeInference {
     def apply(i: Int): String = s"$name${fields.mkString("($", ",$", ")")}"
   }
 
-  /**
-    * Indicator that the field may be a latitude or longitude
-    */
-  sealed trait LatLon
-
-  object LatLon {
-
-    // note that latitudes are also valid longitudes
-    case object Lat extends LatLon
-    case object Lon extends LatLon
-    case object NotLatLon extends LatLon
-
-    def apply(value: Int): LatLon = {
-      val pos = math.abs(value)
-      if (pos <= 90) { Lat } else if (pos <= 180) { Lon } else { NotLatLon }
-    }
-
-    def apply(value: Long): LatLon = {
-      val pos = math.abs(value)
-      if (pos <= 90) { Lat } else if (pos <= 180) { Lon } else { NotLatLon }
-    }
-
-    def apply(value: Float): LatLon = {
-      val pos = math.abs(value)
-      if (pos <= 90f) { Lat } else if (pos <= 180f) { Lon } else { NotLatLon }
-    }
-
-    def apply(value: Double): LatLon = {
-      val pos = math.abs(value)
-      if (pos <= 90d) { Lat } else if (pos <= 180d) { Lon } else { NotLatLon }
-    }
-  }
-
   object InferredType {
 
     private val dateParsers = TransformerFunction.functions.values.collect { case f: StandardDateParser => f }.toArray
@@ -400,15 +366,11 @@ object TypeInference {
     def infer(value: Any): InferredType = {
       value match {
         case null | ""                => InferredType("", null, IdentityTransform)
-        case v: Int                   => InferredType("", INT, CastToInt, LatLon(v))
-        case v: Integer               => InferredType("", INT, CastToInt, LatLon(v))
-        case v: Long                  => InferredType("", LONG, CastToLong, LatLon(v))
-        case v: jLong                 => InferredType("", LONG, CastToLong, LatLon(v))
-        case v: Float                 => InferredType("", FLOAT, CastToFloat, LatLon(v))
-        case v: jFloat                => InferredType("", FLOAT, CastToFloat, LatLon(v))
-        case v: Double                => InferredType("", DOUBLE, CastToDouble, LatLon(v))
-        case v: jDouble               => InferredType("", DOUBLE, CastToDouble, LatLon(v))
-        case _: Boolean | _: jBoolean => InferredType("", BOOLEAN, CastToBoolean)
+        case _: Int | _: Integer      => InferredType("", INT, IdentityTransform)
+        case _: Long | _: jLong       => InferredType("", LONG, IdentityTransform)
+        case _: Float | _: jFloat     => InferredType("", FLOAT, IdentityTransform)
+        case _: Double | _: jDouble   => InferredType("", DOUBLE, IdentityTransform)
+        case _: Boolean | _: jBoolean => InferredType("", BOOLEAN, IdentityTransform)
         case _: Date                  => InferredType("", DATE, IdentityTransform)
         case _: Array[Byte]           => InferredType("", BYTES, IdentityTransform)
         case _: java.util.UUID        => InferredType("", UUID, IdentityTransform)
@@ -419,6 +381,7 @@ object TypeInference {
         case _: MultiLineString       => InferredType("", MULTILINESTRING, IdentityTransform)
         case _: MultiPolygon          => InferredType("", MULTIPOLYGON, IdentityTransform)
         case _: GeometryCollection    => InferredType("", GEOMETRY_COLLECTION, IdentityTransform)
+        case _: java.util.List[_]     => InferredType("", LIST, IdentityTransform)
 
         case s: String =>
           val trimmed = s.trim
@@ -427,7 +390,7 @@ object TypeInference {
               .orElse(tryGeometryParsing(trimmed))
               .orElse(tryBooleanParsing(trimmed))
               .orElse(tryUuidParsing(trimmed))
-              .getOrElse(InferredType("", STRING, CastToString))
+              .getOrElse(InferredType("", STRING, IdentityTransform))
 
         case _ => InferredType("", STRING, CastToString)
       }
@@ -435,10 +398,10 @@ object TypeInference {
 
     private def tryNumberParsing(s: String): Option[InferredType] = {
       Try(BigDecimal(s)).toOption.collect {
-        case n if s.indexOf('.') == -1 && n.isValidInt  => InferredType("", INT, CastToInt, LatLon(n.toInt))
-        case n if s.indexOf('.') == -1 && n.isValidLong => InferredType("", LONG, CastToLong, LatLon(n.toLong))
-        case n if n.isDecimalFloat                      => InferredType("", FLOAT, CastToFloat, LatLon(n.toFloat))
-        case n if n.isDecimalDouble                     => InferredType("", DOUBLE, CastToDouble, LatLon(n.toDouble))
+        case n if s.indexOf('.') == -1 && n.isValidInt  => InferredType("", INT, CastToInt)
+        case n if s.indexOf('.') == -1 && n.isValidLong => InferredType("", LONG, CastToLong)
+        // don't consider floats - even valid floats cause rounding changes when using as doubles in geometries
+        case n if n.isDecimalDouble                     => InferredType("", DOUBLE, CastToDouble)
       }
     }
 

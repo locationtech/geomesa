@@ -32,6 +32,7 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -88,6 +89,10 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -103,6 +108,9 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -124,6 +132,7 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -179,6 +188,10 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -192,9 +205,12 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -231,6 +247,9 @@ the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -259,7 +278,7 @@ from the ``geomesa`` Accumulo table:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(
@@ -307,7 +326,7 @@ from the ``geomesa`` HBase table:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map("hbase.zookeepers" -> "zoo1,zoo2,zoo3", "hbase.catalog" -> "geomesa")
@@ -333,7 +352,7 @@ from an s3 bucket:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map("fs.path" -> "s3a://mybucket/geomesa/datastore")
@@ -367,7 +386,7 @@ converter, the following Scala code can be used to load this data into an ``RDD`
 
     import com.typesafe.config.ConfigFactory
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val exampleConf = ConfigFactory.load("example.conf").root().render()
@@ -405,7 +424,7 @@ GeoMesa Spark, do the following:
 .. code-block:: scala
 
     import org.apache.hadoop.conf.Configuration
-    import org.geotools.data.Query
+    import org.geotools.api.data.Query
     import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map(

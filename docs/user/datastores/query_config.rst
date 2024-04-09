@@ -18,7 +18,7 @@ To set a hint directly in a query:
 
 .. code-block:: java
 
-    import org.geotools.data.Query;
+    import org.geotools.api.data.Query;
 
     Query query = new Query("typeName");
     query.getHints().put(key, value);

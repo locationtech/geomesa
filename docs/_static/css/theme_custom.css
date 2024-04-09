@@ -211,6 +211,7 @@ a:hover {
 
 .wy-nav-content {
   background: #fcfcfc;
+  max-width: 1000px;
 }
 
 .wy-nav-content-wrap {
@@ -219,11 +220,11 @@ a:hover {
 
 @media screen and (max-width: 768px) {
   .wy-body-for-nav {
-  background: #fcfcfc;
+    background: #fcfcfc;
   }
 
   .wy-nav-content {
-  background: #fcfcfc;
+    background: #fcfcfc;
   }
 }
 

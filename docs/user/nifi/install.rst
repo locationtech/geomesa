@@ -57,10 +57,10 @@ Datastore NAR files:
 * ``geomesa-accumulo20-nar_$VERSION.nar`` - Accumulo 2.0
 * ``geomesa-accumulo21-nar_$VERSION.nar`` - Accumulo 2.1
 * ``geomesa-gt-nar_$VERSION.nar`` - PostGIS
-* ``geomesa-kafka-nar_$VERSION.nar`` Kafka 2.8
-* ``geomesa-redis-nar_$VERSION.nar`` Redis 7
-* ``geomesa-fs-nar_$VERSION.nar`` Hadoop 2.10
-* ``geomesa-lambda-nar_$VERSION.nar`` Kafka 2.8 (lambda architecture)
+* ``geomesa-kafka-nar_$VERSION.nar`` Kafka
+* ``geomesa-redis-nar_$VERSION.nar`` Redis
+* ``geomesa-fs-nar_$VERSION.nar`` Hadoop
+* ``geomesa-lambda-nar_$VERSION.nar`` Kafka (lambda architecture)
 
 The common NAR files are required for all datastores. The datastore-specific NARs can be installed as needed.
 

@@ -6,6 +6,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
@@ -50,6 +56,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -106,6 +113,10 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -121,6 +132,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -128,6 +140,8 @@
 >>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -147,6 +161,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -161,6 +178,7 @@
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -193,6 +211,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -223,6 +243,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -248,6 +271,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -261,6 +285,8 @@
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -291,6 +317,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -313,6 +342,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -324,6 +354,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -344,6 +376,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -363,8 +398,9 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.admin._
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.config.ConfigResource
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -374,6 +410,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, LazyCloseable}
 =======
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -441,6 +478,10 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -456,6 +497,9 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -477,6 +521,7 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -532,6 +577,10 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -545,9 +594,12 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -584,6 +636,9 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -621,6 +676,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -677,6 +733,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -692,6 +752,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -713,6 +776,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -768,6 +832,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -781,9 +849,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -820,6 +891,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -852,6 +926,7 @@ import scala.util.control.NonFatal
 class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
+  import KafkaMetadata.{CompactCleanupPolicy, CleanupPolicyConfig}
   import org.apache.kafka.clients.consumer.ConsumerConfig.{AUTO_OFFSET_RESET_CONFIG, GROUP_ID_CONFIG}
 
   import scala.collection.JavaConverters._
@@ -861,6 +936,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   private val consumer = new LazyCloseable(new TopicMap())
 =======
   private lazy val consumer = new TopicMap()
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -928,6 +1004,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -943,6 +1023,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -964,6 +1047,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1019,6 +1103,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1032,9 +1120,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1071,6 +1162,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1089,13 +1183,36 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> locatelli-main
 
-  override protected def checkIfTableExists: Boolean =
-    adminClientOp(_.listTopics().names().get.contains(config.catalog))
+  override protected def checkIfTableExists: Boolean = {
+    adminClientOp { adminClient=>
+      val exists = adminClient.listTopics().names().get.contains(config.catalog)
+      // ensure that the topic has compaction enabled, in case it was created externally
+      if (exists && !checkCompactionPolicy(adminClient)){
+        setCompactionPolicy(adminClient)
+      }
+      exists
+    }
+  }
+
+  private def checkCompactionPolicy(kClient: AdminClient): Boolean = {
+    val cr = Collections.singleton(new ConfigResource(ConfigResource.Type.TOPIC, config.catalog))
+    val catalogConfigs = kClient.describeConfigs(cr).all().get().values()
+    catalogConfigs.asScala.exists { config =>
+      config.get(CleanupPolicyConfig) != null && config.get(CleanupPolicyConfig).value() == CompactCleanupPolicy
+    }
+  }
+
+  private def setCompactionPolicy(kClient: AdminClient): Unit ={
+    val catalogResource = new ConfigResource(ConfigResource.Type.TOPIC, config.catalog)
+    val catalogConfigEntry = new ConfigEntry(CleanupPolicyConfig, CompactCleanupPolicy)
+    val alterOps = Collections.singleton(new AlterConfigOp(catalogConfigEntry, AlterConfigOp.OpType.SET))
+    kClient.incrementalAlterConfigs(Collections.singletonMap(catalogResource, alterOps), new AlterConfigsOptions()).all().get()
+  }
 
   override protected def createTable(): Unit = {
     val newTopic =
       new NewTopic(config.catalog, 1, config.topics.replication.toShort)
-          .configs(Collections.singletonMap("cleanup.policy", "compact"))
+          .configs(Collections.singletonMap(CleanupPolicyConfig, CompactCleanupPolicy))
     adminClientOp(_.createTopics(Collections.singletonList(newTopic)).all().get)
   }
 
@@ -1123,6 +1240,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -1179,6 +1297,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -1194,6 +1316,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1215,6 +1340,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1270,6 +1396,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1283,9 +1413,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1322,6 +1455,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1378,6 +1514,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -1434,6 +1571,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -1449,6 +1590,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1470,6 +1614,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1525,6 +1670,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1538,9 +1687,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1577,6 +1729,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1630,6 +1785,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -1686,6 +1842,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -1701,6 +1861,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1722,6 +1885,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1777,6 +1941,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1790,9 +1958,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1829,6 +2000,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1960,6 +2134,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -2016,6 +2191,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -2031,6 +2210,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2052,6 +2234,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2107,6 +2290,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2120,9 +2307,12 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2159,6 +2349,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2208,4 +2401,9 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
       }
     }
   }
+}
+
+object KafkaMetadata {
+  private val CleanupPolicyConfig = "cleanup.policy"
+  private val CompactCleanupPolicy = "compact"
 }

@@ -84,7 +84,7 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
 
     .. code-tab:: scala
 
-        import org.geotools.data.Transaction
+        import org.geotools.api.data.Transaction
         import org.geotools.geometry.jts.ReferencedEnvelope
         import org.geotools.referencing.CRS
         import org.locationtech.geomesa.index.conf.QueryHints
@@ -141,7 +141,7 @@ following query hints:
 
     .. code-tab:: scala
 
-        import org.geotools.data.Transaction
+        import org.geotools.api.data.Transaction
         import org.locationtech.geomesa.index.conf.QueryHints
         import org.locationtech.geomesa.index.iterators.StatsScan
         import org.locationtech.geomesa.utils.stats.Stat
@@ -336,7 +336,7 @@ Example Query
     .. code-tab:: scala
 
         import java.io.ByteArrayOutputStream
-        import org.geotools.data.Transaction
+        import org.geotools.api.data.Transaction
         import org.locationtech.geomesa.index.conf.QueryHints
 
         query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
@@ -437,7 +437,7 @@ Example Query
     .. code-tab:: scala
 
         import java.io.ByteArrayOutputStream
-        import org.geotools.data.Transaction
+        import org.geotools.api.data.Transaction
         import org.locationtech.geomesa.index.conf.QueryHints
 
         query.getHints.put(QueryHints.BIN_TRACK, "name")

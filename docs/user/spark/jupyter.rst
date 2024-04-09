@@ -161,8 +161,8 @@ The following sample notebook shows how you can use Leaflet for data visualizati
            PasswordParam.key     -> "USER_PASS",
            CatalogParam.key      -> "CATALOG")
 
-   val ds = org.geotools.data.DataStoreFinder.getDataStore(params.asJava)
-   val ff = org.geotools.factory.CommonFactoryFinder.getFilterFactory2
+   val ds = org.geotools.api.data.DataStoreFinder.getDataStore(params.asJava)
+   val ff = org.geotools.factory.CommonFactoryFinder.getFilterFactory
    val fs = ds.getFeatureSource("twitter")
 
    val filt = ff.and(

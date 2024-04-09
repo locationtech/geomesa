@@ -32,7 +32,7 @@ against a GeoMesa data store:
     val resultRDD = spatialRDDProvider.rdd(new Configuration, sc, dsParams, query)
 
     resultRDD.collect
-    // Array[org.opengis.feature.simple.SimpleFeature] = Array(
+    // Array[org.geotools.api.feature.simple.SimpleFeature] = Array(
     //    ScalaSimpleFeature:4, ScalaSimpleFeature:5, ScalaSimpleFeature:6,
     //    ScalaSimpleFeature:7, ScalaSimpleFeature:9)
 

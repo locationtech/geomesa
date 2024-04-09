@@ -34,8 +34,7 @@ export GEOMESA_LIB="${GEOMESA_LIB:-$%%tools.dist.name%%_HOME/lib}"
 export GEOMESA_LOG_DIR="${GEOMESA_LOG_DIR:-$%%tools.dist.name%%_HOME/logs}"
 
 # debug options passed to the java process when invoked with 'debug'
-export GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
-
+export GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:-UseGCOverheadLimit -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:9898"
 # ==================================================================
 # Java Environment Variables
 # ==================================================================

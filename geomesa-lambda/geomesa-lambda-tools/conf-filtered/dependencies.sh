@@ -48,6 +48,10 @@ function dependencies() {
     zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main

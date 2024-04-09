@@ -39,24 +39,8 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
             $ bin/geomesa-fs scala-console
 
 
-        We see it import commonly used libraries and present us with the REPL prompt.
-
-        .. code-block:: none
-
-            Loading /tmp/geomesa-fs_2.11-2.0.0-SNAPSHOT/conf/.scala_repl_init...
-            import org.geotools.data._
-            import org.geotools.filter.text.ecql.ECQL
-            import org.opengis.feature.simple._
-            import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-            import org.locationtech.geomesa.features.ScalaSimpleFeature
-            import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-            import scala.collection.JavaConverters._
-
-            Welcome to Scala 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_101).
-            Type in expressions for evaluation. Or try :help.
-
-            scala>
-
+        After waiting for a few seconds, it will silently import some commonly used libraries and then
+        present us with the REPL prompt.
 
         Next we get a connection to the FileSystem Datastore.
 
@@ -66,7 +50,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
             dsParams: scala.collection.immutable.Map[String,String] = Map(fs.path -> file:///tmp/fsds/, fs.encoding -> parquet)
 
             scala> val ds = DataStoreFinder.getDataStore(dsParams.asJava)
-            ds: org.geotools.data.DataStore = org.locationtech.geomesa.fs.FileSystemDataStore@27a7ef08
+            ds: org.geotools.api.data.DataStore = org.locationtech.geomesa.fs.FileSystemDataStore@27a7ef08
 
 
         Now we do some example discovery to see what feature types and schemas are stored
@@ -78,7 +62,7 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
             res0: Array[String] = Array(gdelt-quickstart)
 
             scala> val sft = ds.getSchema("gdelt-quickstart")
-            sft: org.opengis.feature.simple.SimpleFeatureType = SimpleFeatureTypeImpl gdelt-quickstart identified extends Feature(GLOBALEVENTID:GLOBALEVENTID,Actor1Name:Actor1Name,Actor1CountryCode:Actor1CountryCode,Actor2Name:Actor2Name,Actor2CountryCode:Actor2CountryCode,EventCode:EventCode,NumMentions:NumMentions,NumSources:NumSources,NumArticles:NumArticles,ActionGeo_Type:ActionGeo_Type,ActionGeo_FullName:ActionGeo_FullName,ActionGeo_CountryCode:ActionGeo_CountryCode,dtg:dtg,geom:geom)
+            sft: org.geotools.api.feature.simple.SimpleFeatureType = SimpleFeatureTypeImpl gdelt-quickstart identified extends Feature(GLOBALEVENTID:GLOBALEVENTID,Actor1Name:Actor1Name,Actor1CountryCode:Actor1CountryCode,Actor2Name:Actor2Name,Actor2CountryCode:Actor2CountryCode,EventCode:EventCode,NumMentions:NumMentions,NumSources:NumSources,NumArticles:NumArticles,ActionGeo_Type:ActionGeo_Type,ActionGeo_FullName:ActionGeo_FullName,ActionGeo_CountryCode:ActionGeo_CountryCode,dtg:dtg,geom:geom)
 
 
         In order to sample the data we create a ``Query`` and a ``FeatureReader`` and
@@ -87,14 +71,14 @@ to a FileSystem Datastore, discover the feature type names, get the schema and q
         .. code-block:: none
 
             scala> val query = new Query(sft.getName.toString())
-            query: org.geotools.data.Query =
+            query: org.geotools.api.data.Query =
             Query:
                feature type: gdelt-quickstart
                filter: Filter.INCLUDE
                [properties:  ALL ]
 
             scala> val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-            reader: org.geotools.data.FeatureReader[org.opengis.feature.simple.SimpleFeatureType,org.opengis.feature.simple.SimpleFeature] = org.geotools.data.simple.DelegateSimpleFeatureReader@7bd96822
+            reader: org.geotools.api.data.FeatureReader[org.geotools.api.feature.simple.SimpleFeatureType,org.geotools.api.feature.simple.SimpleFeature] = org.geotools.data.simple.DelegateSimpleFeatureReader@7bd96822
 
 
         Next, we consume the ``FeatureReader``, printing out the results.

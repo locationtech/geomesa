@@ -13,8 +13,7 @@ import org.apache.hadoop.conf.{Configurable, Configuration}
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.{Result, Scan}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
-import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
-import org.apache.hadoop.hbase.protobuf.ProtobufUtil
+import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat, TableMapReduceUtil}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
@@ -26,8 +25,6 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithStore
-
-import java.util.Base64
 
 /**
   * Input format that allows processing of simple features from GeoMesa based on a CQL query
@@ -116,7 +113,7 @@ object GeoMesaHBaseInputFormat {
     val scans = plan.scans.head.scans.map { scan =>
       // need to set the table name in each scan
       scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, plan.scans.head.table.getName)
-      Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
+      TableMapReduceUtil.convertScanToString(scan)
     }
     conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
 

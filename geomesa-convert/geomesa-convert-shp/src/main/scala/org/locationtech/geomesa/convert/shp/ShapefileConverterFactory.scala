@@ -11,15 +11,16 @@ package org.locationtech.geomesa.convert.shp
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.data.shapefile.ShapefileDataStore
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory.TypeToProcess
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.InputStream
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 class ShapefileConverterFactory
   extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions](
@@ -30,14 +31,20 @@ class ShapefileConverterFactory
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
+      path: Option[String]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, path.fold(Map.empty[String, AnyRef])(EvaluationContext.inputFileParam)).toOption
 
-    is.close() // we don't use the input stream, just close it
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = {
+    val url = hints.get(EvaluationContext.InputFilePathKey) match {
+      case Some(p) => p.toString
+      case None => return Failure(new RuntimeException("No file path specified to the input data"))
 
-    path.flatMap { url =>
-      var ds: ShapefileDataStore = null
-      try {
-        ds = ShapefileConverter.getDataStore(url)
+    }
+    Try {
+      WithClose(ShapefileConverter.getDataStore(url)) { ds =>
         val fields = sft match {
           case None =>
             var i = 0
@@ -65,15 +72,7 @@ class ShapefileConverterFactory
             .withFallback(BasicOptionsConvert.to(BasicOptions.default))
             .toConfig
 
-        Some((sft.getOrElse(ds.getSchema), config))
-      } catch {
-        case NonFatal(e) =>
-          logger.debug(s"Could not infer Shapefile converter from path '$path':", e)
-          None
-      } finally {
-        if (ds != null) {
-          ds.dispose()
-        }
+        (sft.getOrElse(ds.getSchema), config)
       }
     }
   }

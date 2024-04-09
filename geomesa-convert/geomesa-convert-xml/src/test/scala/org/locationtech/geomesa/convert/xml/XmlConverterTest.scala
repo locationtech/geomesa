@@ -24,9 +24,9 @@ import java.nio.charset.StandardCharsets
 @RunWith(classOf[JUnitRunner])
 class XmlConverterTest extends Specification {
 
-  sequential
+  import scala.collection.JavaConverters._
 
-  val sftConf = ConfigFactory.parseString(
+  lazy val sftConf = ConfigFactory.parseString(
     """{ type-name = "xmlFeatureType"
       |  attributes = [
       |    {name = "number", type = "Integer"}
@@ -37,7 +37,7 @@ class XmlConverterTest extends Specification {
       |}
     """.stripMargin)
 
-  val sft = SimpleFeatureTypes.createType(sftConf)
+  lazy val sft = SimpleFeatureTypes.createType(sftConf)
 
   "XML Converter" should {
 
@@ -636,6 +636,73 @@ class XmlConverterTest extends Specification {
         features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
         features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
         features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
+    }
+
+    "infer converters from an xml doc" in {
+      val xmls = Seq(
+        """<doc>
+          |  <DataSource>
+          |    <name>myxml</name>
+          |  </DataSource>
+          |  <Feature>
+          |    <number>123</number>
+          |    <color>red</color>
+          |    <physical weight="127.5" height="5'11"/>
+          |    <position>
+          |      <lat>21.1</lat>
+          |      <lon>45.1</lon>
+          |    </position>
+          |  </Feature>
+          |</doc>
+        """.stripMargin,
+        """<f:doc2 xmlns:f="http://geomesa.org/test-feature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          |  <f:DataSource>
+          |    <f:name>myxml</f:name>
+          |  </f:DataSource>
+          |  <f:Feature>
+          |    <f:number>123</f:number>
+          |    <f:color>red</f:color>
+          |    <f:physical weight="127.5" height="5'11"/>
+          |    <f:position>
+          |      <f:lat>21.1</f:lat>
+          |      <f:lon>45.1</f:lon>
+          |    </f:position>
+          |  </f:Feature>
+          |</f:doc2>
+        """.stripMargin
+      )
+
+      foreach(xmls) { xml =>
+        def bytes = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))
+
+        val inferred = new XmlConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
+
+        inferred must beASuccessfulTry
+
+        val sft = inferred.get._1
+        sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual
+            Seq("DataSource_name", "Feature_number", "Feature_color", "Feature_physical_height",
+              "Feature_physical_weight", "Feature_position_lat", "Feature_position_lon", "geom")
+        sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+            Seq(classOf[String], classOf[Integer], classOf[String], classOf[String], classOf[java.lang.Double],
+              classOf[java.lang.Double], classOf[java.lang.Double], classOf[Point])
+
+        WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+          converter must not(beNull)
+
+          val features = WithClose(converter.process(bytes))(_.toList)
+          features must haveLength(1)
+
+          features.head.getAttribute(0) mustEqual "myxml"
+          features.head.getAttribute(1) mustEqual 123
+          features.head.getAttribute(2) mustEqual "red"
+          features.head.getAttribute(3) mustEqual "5'11"
+          features.head.getAttribute(4) mustEqual 127.5
+          features.head.getAttribute(5) mustEqual 21.1
+          features.head.getAttribute(6) mustEqual 45.1
+          features.head.getAttribute(7) mustEqual WKTUtils.read("POINT (45.1 21.1)")
+        }
       }
     }
   }

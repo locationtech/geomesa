@@ -31,6 +31,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+=======
+>>>>>>> 3af6d372f2 (Set latest release version to 4.0.4)
+>>>>>>> locatelli-main
 =======
 =======
 =======
@@ -80,6 +86,7 @@
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.1</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.1</text>
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,6 +169,8 @@
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -169,6 +178,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 =======
@@ -203,6 +213,8 @@
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.5</text>
@@ -226,6 +238,9 @@
     <text x="500" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">v4.0.4</text>
     <text x="500" y="140" transform="scale(.1)" textLength="350">v4.0.4</text>
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -263,10 +278,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7fd730a88a (Set release version)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 67c8f3fa6c7 (Set latest release version to 3.5.1)
@@ -286,6 +304,9 @@
 >>>>>>> 7fd730a88a (Set release version)
 >>>>>>> 84fa24f897b (Set release version)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -307,10 +328,13 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e098e61b2b (Set release version)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> cfb36f66827 (Set release version)
@@ -328,6 +352,9 @@
 >>>>>>> e098e61b2b (Set release version)
 >>>>>>> 7cb8fbadb12 (Set release version)
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -339,12 +366,15 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 38b67eb84a (Set latest release version to 3.5.1)
 =======
 >>>>>>> 3c3aaca902 (Set release version)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 84fa24f897b (Set release version)
@@ -364,6 +394,9 @@
 >>>>>>> 26b55323470 (Set release version)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -373,10 +406,13 @@
 >>>>>>> d1978ae015 (Set latest release version to 3.5.1)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e098e61b2b (Set release version)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> e7b62481017 (Set latest release version to 3.5.1)
@@ -387,6 +423,9 @@
 >>>>>>> 7cb8fbadb12 (Set release version)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -400,8 +439,13 @@
 >>>>>>> be6e7ba471 (Set latest release to 4.0.3)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e40ee43cf4a (Set latest release to 4.0.3)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e40ee43cf4a (Set latest release to 4.0.3)
 =======
 >>>>>>> locatelli-main
@@ -423,6 +467,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -435,6 +480,9 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> eb6f6241f52 (Set latest release version to 4.0.4)
 >>>>>>> locatelli-main
 =======
 >>>>>>> eb6f6241f52 (Set latest release version to 4.0.4)

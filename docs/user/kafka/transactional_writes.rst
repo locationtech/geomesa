@@ -8,11 +8,11 @@ through the GeoTools `transaction API`_:
 
 .. code-block:: java
 
-    import org.geotools.data.DataStore;
-    import org.geotools.data.DataStoreFinder;
+    import org.geotools.api.data.DataStore;
+    import org.geotools.api.data.DataStoreFinder;
+    import org.geotools.api.data.FeatureWriter;
+    import org.geotools.api.data.Transaction;
     import org.geotools.data.DefaultTransaction;
-    import org.geotools.data.FeatureWriter;
-    import org.geotools.data.Transaction;
 
     DataStore store = DataStoreFinder.getDataStore(params);
     // the transaction will contain the Kafka producer, so make sure to close it when finished
@@ -34,4 +34,4 @@ through the GeoTools `transaction API`_:
     }
 
 .. _transactional writes: https://kafka.apache.org/23/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html
-.. _transaction API: https://docs.geotools.org/stable/javadocs/org/geotools/data/Transaction.html
+.. _transaction API: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/Transaction.html

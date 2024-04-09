@@ -59,7 +59,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     ECQL.toFilter("bbox(the_geom,44,52,46,59) and dtg DURING 2018-01-02T12:00:00.000Z/2018-01-06T12:00:00.000Z")
 
   val accumuloParams = dsParams.asJava
-  
+
   var shpParams: java.util.Map[String, String] = _
 
   var path: Path = _
@@ -150,6 +150,31 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       MergedDataStoreViewTest.loadConfig =
           ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava))
       testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(shpConfig).asJava)))
+    }
+
+    "handle unquoted store keys" in {
+      def unquotedConfig(params: Map[String, String]): Config = {
+        params.foldLeft(ConfigFactory.empty()) { case (conf, (k, v)) =>
+          conf.withValue(k, ConfigValueFactory.fromAnyRef(v))
+        }
+      }
+      val shpConfig = unquotedConfig(shpParams.asScala.toMap).root()
+      val accumuloConfig = unquotedConfig(accumuloParams.asScala.toMap).root()
+      val config =
+        ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig, shpConfig).asJava))
+
+      val params = Map(
+        MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())
+      )
+
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+      try {
+        ds must beAnInstanceOf[MergedDataStoreView]
+        ds.asInstanceOf[MergedDataStoreView].stores must haveLength(2)
+      } finally {
+        ds.dispose()
+      }
     }
 
     "query multiple data stores" in {

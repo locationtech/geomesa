@@ -8,12 +8,11 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.commons.io.FileUtils
-import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.HadoopSharedCluster
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
@@ -25,8 +24,6 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.nio.file.{Files, Path}
-
 @RunWith(classOf[JUnitRunner])
 class CompactCommandTest extends Specification {
 
@@ -36,12 +33,7 @@ class CompactCommandTest extends Specification {
 
   sequential
 
-  val tempDir: Path = Files.createTempDirectory("compactCommand")
-
   val encodings = Seq("parquet", "orc")
-
-  var cluster: MiniDFSCluster = _
-  var directory: String = _
 
   val pt       = WKTUtils.read("POINT(0 0)")
   val line     = WKTUtils.read("LINESTRING(0 0, 1 1, 4 4)")
@@ -63,10 +55,13 @@ class CompactCommandTest extends Specification {
   val numFeatures = 10000
   val targetFileSize = 8000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
+  lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
+
   lazy val ds = {
     val dsParams = Map(
-      "fs.path" -> directory,
-      "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>")
+      "fs.path" -> path,
+      "fs.config.xml" -> HadoopSharedCluster.ContainerConfig
+    )
     DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
   }
 
@@ -79,11 +74,6 @@ class CompactCommandTest extends Specification {
   }
 
   step {
-    // Start MiniCluster
-    val conf = new HdfsConfiguration()
-    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, tempDir.toFile.getAbsolutePath)
-    cluster = new MiniDFSCluster.Builder(conf).build()
-    directory = cluster.getDataDirectory + "_fs"
     sfts.foreach { sft =>
       ds.createSchema(sft)
       // create 2 files per partition
@@ -117,10 +107,11 @@ class CompactCommandTest extends Specification {
       foreach(sfts) { sft =>
         val command = new FsCompactCommand()
         command.params.featureName = sft.getTypeName
-        command.params.path = directory
+        command.params.path = path
         command.params.runMode = RunModes.Distributed.toString
         // invoke on our existing store so the cached metadata gets updated
-        command.compact(ds) must not(throwAn[Exception])
+        command.compact(ds)// must not(throwAn[Exception])
+        ok
       }
     }
 
@@ -145,7 +136,7 @@ class CompactCommandTest extends Specification {
       foreach(sfts) { sft =>
         val command = new FsCompactCommand()
         command.params.featureName = sft.getTypeName
-        command.params.path = directory
+        command.params.path = path
         command.params.runMode = RunModes.Distributed.toString
         command.params.targetFileSize = targetFileSize
         // invoke on our existing store so the cached metadata gets updated
@@ -188,8 +179,5 @@ class CompactCommandTest extends Specification {
 
   step {
     ds.dispose()
-    // Stop MiniCluster
-    cluster.shutdown()
-    FileUtils.deleteDirectory(tempDir.toFile)
   }
 }

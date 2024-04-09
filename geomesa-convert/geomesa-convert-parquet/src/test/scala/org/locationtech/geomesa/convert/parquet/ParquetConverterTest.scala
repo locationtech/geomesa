@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import com.typesafe.config.{Config, ConfigFactory}
-import org.geotools.api.feature.simple.SimpleFeatureType
+import com.typesafe.config.ConfigFactory
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -74,8 +73,8 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 
@@ -103,13 +102,13 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 
       SimpleFeatureTypes.encodeType(sft) mustEqual
-          "color:String,id:Long,lat:Double,lon:Double,number:Long,height:String,weight:Double,*geom:Point:srid=4326"
+          "color:String,id_0:Long,lat:Double,lon:Double,number:Long,height:String,weight:Double,*geom:Point:srid=4326"
 
       val converter = factory.apply(sft, config)
       converter must beSome
@@ -128,8 +127,8 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred: Option[(SimpleFeatureType, Config)] = factory.infer(file.openStream(), path = Some(path))
-      inferred must beSome
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 
