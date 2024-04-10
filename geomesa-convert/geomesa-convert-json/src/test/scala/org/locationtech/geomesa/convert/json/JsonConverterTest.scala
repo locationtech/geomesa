@@ -1574,6 +1574,7 @@ class JsonConverterTest extends Specification {
           Seq("name", "demographics_age", "files", "geom")
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
           Seq(classOf[String], classOf[Integer], classOf[java.util.List[_]], classOf[Point])
+
       WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
         converter must not(beNull)
 

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.convert.json.JsonConverter._
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert, PropNamer}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, FieldConvert, OptionConvert}
-import org.locationtech.geomesa.convert2.TypeInference.{Namer, PathWithValues, TypeWithPath}
+import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, Namer, PathWithValues, TypeWithPath}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.ObjectType
@@ -97,15 +97,18 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
     // track the 'properties', geometry type and 'id' in each feature
     // use linkedHashMap to retain insertion order
     val props = scala.collection.mutable.LinkedHashMap.empty[String, ListBuffer[Any]]
+    val geoms = ListBuffer.empty[Any]
     var hasId = true
 
     features.take(AbstractConverterFactory.inferSampleSize).foreach { feature =>
       feature.properties.foreach { case (k, v) => props.getOrElseUpdate(k, ListBuffer.empty) += v }
-      props.getOrElseUpdate(JsonConverterFactory.GeoJsonGeometryPath, ListBuffer.empty) += feature.geom
+      geoms += feature.geom
       hasId = hasId && feature.id.isDefined
     }
 
-    val pathsAndValues = props.toSeq.map { case (path, values) => PathWithValues(path, values) }
+    val pathsAndValues =
+      props.toSeq.map { case (path, values) => PathWithValues(path, values) } :+
+          PathWithValues(JsonConverterFactory.GeoJsonGeometryPath, geoms)
     val inferredTypes = TypeInference.infer(pathsAndValues, sft.toRight("inferred-json"), new PropNamer())
 
     val idJsonField = if (hasId) { Some(StringJsonField("id", "$.id", pathIsRoot = false, None)) } else { None }
@@ -185,22 +188,25 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 
   private def createFieldConfig(typed: TypeWithPath): JsonField = {
     val TypeWithPath(path, inferredType) = typed
-    // account for optional nodes by wrapping transform with a try/null
-    val transform = Some(Expression(s"try(${inferredType.transform.apply(0)},null)"))
+    val transform = inferredType.transform match {
+      case IdentityTransform => None
+      // account for optional nodes by wrapping transform with a try/null
+      case t => Some(Expression(s"try(${t.apply(0)},null)"))
+    }
     if (path.isEmpty) {
       DerivedField(inferredType.name, transform)
     } else if (path == JsonConverterFactory.GeoJsonGeometryPath) {
       GeometryJsonField(inferredType.name, path, pathIsRoot = false, None)
     } else {
       inferredType.typed match {
-        case ObjectType.STRING  => StringJsonField(inferredType.name, path, pathIsRoot = false, transform)
-        case ObjectType.BOOLEAN => BooleanJsonField(inferredType.name, path, pathIsRoot = false, transform)
+        case ObjectType.BOOLEAN =>
+          BooleanJsonField(inferredType.name, path, pathIsRoot = false, transform)
         case ObjectType.LIST =>
           // if type is list, that means the transform is 'identity', but we need to replace it with jsonList.
           // this is due to GeoJsonParsing decoding the json array for us, above
           ArrayJsonField(inferredType.name, path, pathIsRoot = false, Some(Expression("try(jsonList('string',$0),null)")))
         case _ =>
-          logger.warn(s"Unhandled JSON type: $typed")
+          // all other types will be parsed as strings with appropriate transforms
           StringJsonField(inferredType.name, path, pathIsRoot = false, transform)
       }
     }
