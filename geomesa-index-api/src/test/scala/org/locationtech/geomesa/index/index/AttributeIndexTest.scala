@@ -303,7 +303,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       if (time > 500L) {
         logger.warn(s"Attribute query processing took ${time}ms for large OR query")
       }
-      time must beLessThan(10000L)
+      time must beLessThan(10000L) // note: scoverage causes this test to slow down a lot and sometimes fail
     }
 
     "de-prioritize not-null queries" in {
