@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export
+package org.locationtech.geomesa.tools.`export`
 
 import org.geotools.api.data.{DataStore, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -14,9 +14,8 @@ import org.geotools.data.DataUtilities
 import org.geotools.data.memory.MemoryDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.exporters.DelimitedExporter
 import org.locationtech.geomesa.tools.DataStoreRegistration
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExportStream
-import org.locationtech.geomesa.tools.export.formats.{DelimitedExporter, ExportFormat}
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -54,7 +53,7 @@ class DelimitedExportImportTest extends Specification {
   }
 
   def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: ExportFormat): String = {
-    val os = new ByteExportStream()
+    val os = new ByteArrayOutputStream()
     // exclude feature ID since the inferred ingestion just treats it as another column
     val export = format match {
       case ExportFormat.Csv => DelimitedExporter.csv(os, withHeader = true, includeIds = false)

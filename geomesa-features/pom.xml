@@ -15,6 +15,7 @@
         <module>geomesa-feature-avro</module>
         <module>geomesa-feature-kryo</module>
         <module>geomesa-feature-common</module>
+        <module>geomesa-feature-exporters</module>
         <module>geomesa-feature-all</module>
     </modules>
 

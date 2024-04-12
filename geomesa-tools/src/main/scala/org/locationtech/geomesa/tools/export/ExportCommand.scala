@@ -6,11 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export
+package org.locationtech.geomesa.tools.`export`
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
+import org.apache.commons.io.output.CountingOutputStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapreduce.Job
@@ -21,6 +22,8 @@ import org.geotools.api.filter.sort.SortOrder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.exporters.FileSystemExporter.{OrcFileSystemExporter, ParquetFileSystemExporter}
+import org.locationtech.geomesa.features.exporters._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
@@ -30,18 +33,18 @@ import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobResult}
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.LazyExportStream
 import org.locationtech.geomesa.tools.export.ExportCommand.{ChunkedExporter, ExportOptions, ExportParams, Exporter}
-import org.locationtech.geomesa.tools.export.formats.FileSystemExporter.{OrcFileSystemExporter, ParquetFileSystemExporter}
-import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter, ExportFormatConverter}
 import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import java.io._
 import java.util.Collections
+import java.util.zip.GZIPOutputStream
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -278,9 +281,7 @@ object ExportCommand extends LazyLogging {
         sft.getDtgField.foreach(hints.put(QueryHints.BIN_DTG, _))
       }
     } else if (params.outputFormat == ExportFormat.Leaflet) {
-      if (!LeafletMapExporter.configure(params)) {
-        throw new ParameterException("Terminating execution")
-      }
+      configureLeafletExport(params)
     }
 
     val attributes: Array[String] = {
@@ -323,6 +324,53 @@ object ExportCommand extends LazyLogging {
   }
 
   /**
+   * Configure parameters for a leaflet export
+   *
+   * @param params params
+   * @throws ParameterException if params are not valid for a leaflet export
+   */
+  @throws(classOf[ParameterException])
+  private def configureLeafletExport(params: ExportParams): Unit = {
+    val large = "The Leaflet map may exhibit performance issues when displaying large numbers of features. For a " +
+        "more robust solution, consider using GeoServer."
+    if (params.maxFeatures == null) {
+      Command.user.warn(large)
+      Command.user.warn(s"Limiting max features to ${LeafletMapExporter.MaxFeatures}. To override, " +
+          "please use --max-features")
+      params.maxFeatures = LeafletMapExporter.MaxFeatures
+    } else if (params.maxFeatures > LeafletMapExporter.MaxFeatures) {
+      if (params.force) {
+        Command.user.warn(large)
+      } else if (!Prompt.confirm(s"$large Would you like to continue anyway (y/n)? ")) {
+        throw new ParameterException("Terminating execution")
+      }
+    }
+
+    if (params.gzip != null) {
+      Command.user.warn("Ignoring gzip parameter for Leaflet export")
+      params.gzip = null
+    }
+
+    if (params.file == null) {
+      params.file = sys.props("user.dir")
+    }
+    if (PathUtils.isRemote(params.file)) {
+      if (params.file.endsWith("/")) {
+        params.file = s"${params.file}index.html"
+      } else if (FilenameUtils.indexOfExtension(params.file) == -1) {
+        params.file = s"${params.file}/index.html"
+      }
+    } else {
+      val file = new File(params.file)
+      val destination = if (file.isDirectory || (!file.exists && file.getName.indexOf(".") == -1)) {
+        new File(file, "index.html")
+      } else {
+        file
+      }
+      params.file = destination.getAbsolutePath
+    }
+  }
+  /**
     * Disable hints for aggregating scans by removing them, and moving any aggregating sort hints to
     * regular sort hints
     *
@@ -330,7 +378,7 @@ object ExportCommand extends LazyLogging {
     * @param hints hints
     * @return
     */
-  def disableAggregation(sft: SimpleFeatureType, hints: Hints): Unit = {
+  private def disableAggregation(sft: SimpleFeatureType, hints: Hints): Unit = {
     if (hints.isArrowQuery) {
       hints.remove(QueryHints.ARROW_ENCODE)
       val sort = hints.remove(QueryHints.ARROW_SORT_FIELD).asInstanceOf[String]
@@ -371,7 +419,6 @@ object ExportCommand extends LazyLogging {
     *
     * @param options options
     * @param hints query hints
-    * @param dictionaries lazily evaluated arrow dictionaries
     */
   class Exporter(options: ExportOptions, hints: Hints) extends FeatureExporter {
 
@@ -379,7 +426,11 @@ object ExportCommand extends LazyLogging {
     private lazy val stream = {
       // avro compression is handled differently, see AvroExporter below
       val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro && options.format != ExportFormat.AvroNative)
-      new LazyExportStream(options.file, gzip)
+      val handle = options.file match {
+        case None => StdInHandle.get() // writes to std out
+        case Some(f) => PathUtils.getHandle(f)
+      }
+      new LazyExportStream(handle, gzip)
     }
 
     // used only for file-based export formats
@@ -414,7 +465,16 @@ object ExportCommand extends LazyLogging {
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = exporter.export(features)
 
-    override def bytes: Long = exporter.bytes
+    def bytes: Long = {
+      if (options.format.streaming) {
+        stream.bytes
+      } else {
+        exporter match {
+          case e: ShapefileExporter => e.bytes
+          case _ => PathUtils.getHandle(name).length
+        }
+      }
+    }
 
     override def close(): Unit = exporter.close()
   }
@@ -424,7 +484,6 @@ object ExportCommand extends LazyLogging {
     *
     * @param options export options
     * @param hints query hints
-    * @param dictionaries arrow dictionaries (lazily evaluated)
     * @param chunks number of bytes to write per file
     */
   class ChunkedExporter(options: ExportOptions, hints: Hints, chunks: Long)
@@ -436,7 +495,7 @@ object ExportCommand extends LazyLogging {
     }
 
     private var sft: SimpleFeatureType = _
-    private var exporter: FeatureExporter = _
+    private var exporter: Exporter = _
     private var estimator: FileSizeEstimator = _
     private var count = 0L // number of features written
     private var total = 0L // sum size of all finished chunks
@@ -448,8 +507,6 @@ object ExportCommand extends LazyLogging {
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = export(features, None)
-
-    override def bytes: Long = if (exporter == null) { total } else { total + exporter.bytes }
 
     override def close(): Unit = if (exporter != null) { exporter.close() }
 
@@ -494,6 +551,41 @@ object ExportCommand extends LazyLogging {
         export(features, exported)
       }
     }
+  }
+
+  /**
+   * Export output stream, lazily instantiated
+   *
+   * @param out file handle
+   * @param gzip gzip
+   */
+  class LazyExportStream(out: FileHandle, gzip: Option[Int] = None) extends OutputStream {
+
+    // lowest level - keep track of the bytes we write
+    // do this before any compression, buffering, etc so we get an accurate count
+    private var counter: CountingOutputStream = _
+    private var stream: OutputStream = _
+
+    private def ensureStream(): OutputStream = {
+      if (stream == null) {
+        counter = new CountingOutputStream(out.write(CreateMode.Create, createParents = true))
+        val compressed = gzip match {
+          case None => counter
+          case Some(c) => new GZIPOutputStream(counter) { `def`.setLevel(c) } // hack to access the protected deflate level
+        }
+        stream = new BufferedOutputStream(compressed)
+      }
+      stream
+    }
+
+    def bytes: Long = if (counter == null) { 0L } else { counter.getByteCount }
+
+    override def write(b: Array[Byte]): Unit = ensureStream().write(b)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = ensureStream().write(b, off, len)
+    override def write(b: Int): Unit = ensureStream().write(b)
+
+    override def flush(): Unit = if (stream != null) { stream.flush() }
+    override def close(): Unit = if (stream != null) { stream.close() }
   }
 
   /**
