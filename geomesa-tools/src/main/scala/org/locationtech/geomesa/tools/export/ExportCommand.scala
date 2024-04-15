@@ -400,18 +400,25 @@ object ExportCommand extends LazyLogging {
   }
 
   /**
-    * Options from the input params, in a more convenient format
-    *
-    * @param format output format
-    * @param file file path (or stdout)
-    * @param gzip compression
-    * @param headers headers (for delimited text only)
-    */
-  case class ExportOptions(format: ExportFormat, file: Option[String], gzip: Option[Int], headers: Boolean)
+   * Options from the input params, in a more convenient format
+   *
+   * @param format output format
+   * @param file file path (or stdout)
+   * @param gzip compression
+   * @param headers headers (for delimited text only)
+   * @param writeEmptyFiles write empty files (i.e. headers, etc), or suppress all output
+   */
+  case class ExportOptions(
+    format: ExportFormat,
+    file: Option[String],
+    gzip: Option[Int],
+    headers: Boolean,
+    writeEmptyFiles: Boolean
+  )
 
   object ExportOptions {
     def apply(params: ExportParams): ExportOptions =
-      ExportOptions(params.outputFormat, Option(params.file), Option(params.gzip).map(_.intValue), !params.noHeader)
+      ExportOptions(params.outputFormat, Option(params.file), Option(params.gzip).map(_.intValue), !params.noHeader, !params.suppressEmpty)
   }
 
   /**
@@ -423,14 +430,18 @@ object ExportCommand extends LazyLogging {
   class Exporter(options: ExportOptions, hints: Hints) extends FeatureExporter {
 
     // used only for streaming export formats
-    private lazy val stream = {
+    private lazy val stream: ByteCounterStream = {
       // avro compression is handled differently, see AvroExporter below
       val gzip = options.gzip.filter(_ => options.format != ExportFormat.Avro && options.format != ExportFormat.AvroNative)
       val handle = options.file match {
         case None => StdInHandle.get() // writes to std out
         case Some(f) => PathUtils.getHandle(f)
       }
-      new LazyExportStream(handle, gzip)
+      if (options.writeEmptyFiles) {
+        new ExportStream(handle, gzip)
+      } else {
+        new LazyExportStream(handle, gzip)
+      }
     }
 
     // used only for file-based export formats
@@ -559,26 +570,18 @@ object ExportCommand extends LazyLogging {
    * @param out file handle
    * @param gzip gzip
    */
-  class LazyExportStream(out: FileHandle, gzip: Option[Int] = None) extends OutputStream {
+  class LazyExportStream(out: FileHandle, gzip: Option[Int] = None) extends ByteCounterStream {
 
-    // lowest level - keep track of the bytes we write
-    // do this before any compression, buffering, etc so we get an accurate count
-    private var counter: CountingOutputStream = _
-    private var stream: OutputStream = _
+    private var stream: ExportStream = _
 
     private def ensureStream(): OutputStream = {
       if (stream == null) {
-        counter = new CountingOutputStream(out.write(CreateMode.Create, createParents = true))
-        val compressed = gzip match {
-          case None => counter
-          case Some(c) => new GZIPOutputStream(counter) { `def`.setLevel(c) } // hack to access the protected deflate level
-        }
-        stream = new BufferedOutputStream(compressed)
+        stream = new ExportStream(out, gzip)
       }
       stream
     }
 
-    def bytes: Long = if (counter == null) { 0L } else { counter.getByteCount }
+    def bytes: Long = if (stream == null) { 0L } else { stream.bytes }
 
     override def write(b: Array[Byte]): Unit = ensureStream().write(b)
     override def write(b: Array[Byte], off: Int, len: Int): Unit = ensureStream().write(b, off, len)
@@ -586,6 +589,39 @@ object ExportCommand extends LazyLogging {
 
     override def flush(): Unit = if (stream != null) { stream.flush() }
     override def close(): Unit = if (stream != null) { stream.close() }
+  }
+
+  /**
+   * Export output stream
+   *
+   * @param out file handle
+   * @param gzip gzip
+   */
+  class ExportStream(out: FileHandle, gzip: Option[Int] = None) extends ByteCounterStream {
+
+    // lowest level - keep track of the bytes we write
+    // do this before any compression, buffering, etc so we get an accurate count
+    private val counter = new CountingOutputStream(out.write(CreateMode.Create, createParents = true))
+    private val stream = {
+      val compressed = gzip match {
+        case None => counter
+        case Some(c) => new GZIPOutputStream(counter) { `def`.setLevel(c) } // hack to access the protected deflate level
+      }
+      new BufferedOutputStream(compressed)
+    }
+
+    override def bytes: Long = counter.getByteCount
+
+    override def write(b: Array[Byte]): Unit = stream.write(b)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = stream.write(b, off, len)
+    override def write(b: Int): Unit = stream.write(b)
+
+    override def flush(): Unit = stream.flush()
+    override def close(): Unit = stream.close()
+  }
+
+  trait ByteCounterStream extends OutputStream {
+    def bytes: Long
   }
 
   /**

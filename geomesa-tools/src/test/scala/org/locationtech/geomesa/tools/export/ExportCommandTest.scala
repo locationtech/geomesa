@@ -190,12 +190,8 @@ class ExportCommandTest extends Specification with Retries {
           command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
           command.execute()
         }
-        if (format == ExportFormat.Bin) {
-          // bin will not write anything out, even for empty files
-          empty.exists() must beFalse
-        } else {
-          readFeatures(format, file) must beEmpty
-        }
+        empty.exists() must beTrue
+        readFeatures(format, file) must beEmpty
       }
     }
     "support arrow with dictionaries and without feature ids" in {

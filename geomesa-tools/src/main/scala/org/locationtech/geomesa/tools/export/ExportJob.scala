@@ -279,7 +279,7 @@ object ExportJob extends JobWithLibJars {
         val name = s"$base-$taskType-${jobIdentifier}_${taskIdFormat.format(taskId.getId)}$extension"
         new Path(workPath, name).toString
       }
-      val opts = ExportOptions(Config.getFormat(conf), Some(file), Config.getGzip(conf), Config.getHeaders(conf))
+      val opts = ExportOptions(Config.getFormat(conf), Some(file), Config.getGzip(conf), Config.getHeaders(conf), writeEmptyFiles = true)
       val hints = Config.getQueryHints(conf)
       lazy val names = new IncrementingFileName(file)
       Config.getChunks(conf) match {
