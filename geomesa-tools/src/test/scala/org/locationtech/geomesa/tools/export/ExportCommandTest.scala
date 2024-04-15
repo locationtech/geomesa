@@ -35,7 +35,6 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
-import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -191,6 +190,7 @@ class ExportCommandTest extends Specification with Retries {
           command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
           command.execute()
         }
+        empty.exists() must beTrue
         readFeatures(format, file) must beEmpty
       }
     }

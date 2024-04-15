@@ -6,27 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FilenameUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
-import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
-import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 
-import java.io._
+import java.io.{OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
-import scala.collection.JavaConverters._
 import scala.io.Source
 
-class LeafletMapExporter(stream: ExportStream) extends ByteCounterExporter(stream) with LazyLogging {
+class LeafletMapExporter(out: OutputStream) extends FeatureExporter with LazyLogging {
 
   private val coordMap = scala.collection.mutable.Map.empty[Coordinate, Int].withDefaultValue(0)
 
@@ -38,7 +31,7 @@ class LeafletMapExporter(stream: ExportStream) extends ByteCounterExporter(strea
 
   override def start(sft: SimpleFeatureType): Unit = {
     featureInfo = LeafletMapExporter.getFeatureInfo(sft)
-    writer = new OutputStreamWriter(stream.os, StandardCharsets.UTF_8)
+    writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)
     jsonWriter = GeoJsonSerializer.writer(writer)
     writer.write(LeafletMapExporter.IndexHead)
     writer.write("var points = ")
@@ -74,7 +67,7 @@ class LeafletMapExporter(stream: ExportStream) extends ByteCounterExporter(strea
         // Write Heatmap Data
         writer.write("var heat = L.heatLayer([\n")
         if (coordMap.isEmpty) {
-          Command.user.warn("No features were exported - the map will not render correctly")
+          logger.warn("No features were exported - the map will not render correctly")
         } else {
           val max = coordMap.maxBy(_._2)._2
           val iter = coordMap.iterator
@@ -96,6 +89,10 @@ class LeafletMapExporter(stream: ExportStream) extends ByteCounterExporter(strea
 
 object LeafletMapExporter {
 
+  import scala.collection.JavaConverters._
+
+  val MaxFeatures = 10000
+
   private lazy val Template: Array[String] = {
     WithClose(getClass.getClassLoader.getResourceAsStream("leaflet/index.html")) { is =>
       val indexArray = Source.fromInputStream(is).mkString.split("\\|codegen\\|")
@@ -104,60 +101,10 @@ object LeafletMapExporter {
     }
   }
 
-  lazy val IndexHead: String = Template.head
-  lazy val IndexTail: String = Template.last
+  private lazy val IndexHead: String = Template.head
+  private lazy val IndexTail: String = Template.last
 
-  val MaxFeatures = 10000
-
-  /**
-    * Configure parameters for a leaflet export
-    *
-    * @param params params
-    */
-  def configure(params: ExportParams): Boolean = {
-    val large = "The Leaflet map may exhibit performance issues when displaying large numbers of features. For a " +
-        "more robust solution, consider using GeoServer."
-    if (params.maxFeatures == null) {
-      Command.user.warn(large)
-      Command.user.warn(s"Limiting max features to ${LeafletMapExporter.MaxFeatures}. To override, " +
-          "please use --max-features")
-      params.maxFeatures = LeafletMapExporter.MaxFeatures
-    } else if (params.maxFeatures > LeafletMapExporter.MaxFeatures) {
-      if (params.force) {
-        Command.user.warn(large)
-      } else if (!Prompt.confirm(s"$large Would you like to continue anyway (y/n)? ")) {
-        return false
-      }
-    }
-
-    if (params.gzip != null) {
-      Command.user.warn("Ignoring gzip parameter for Leaflet export")
-      params.gzip = null
-    }
-
-    if (params.file == null) {
-      params.file = sys.props("user.dir")
-    }
-    if (PathUtils.isRemote(params.file)) {
-      if (params.file.endsWith("/")) {
-        params.file = s"${params.file}index.html"
-      } else if (FilenameUtils.indexOfExtension(params.file) == -1) {
-        params.file = s"${params.file}/index.html"
-      }
-    } else {
-      val file = new File(params.file)
-      val destination = if (file.isDirectory || (!file.exists && file.getName.indexOf(".") == -1)) {
-        new File(file, "index.html")
-      } else {
-        file
-      }
-      params.file = destination.getAbsolutePath
-    }
-
-    true
-  }
-
-  def getFeatureInfo(sft: SimpleFeatureType): String = {
+  private def getFeatureInfo(sft: SimpleFeatureType): String = {
     val str = new StringBuilder()
     str.append("    function onEachFeature(feature, layer) {\n")
     if (sft == null) {
