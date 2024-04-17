@@ -8,19 +8,23 @@
 
 package org.locationtech.geomesa.convert.json
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
+import scala.collection.mutable
+import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
@@ -1386,7 +1390,10 @@ class JsonConverterTest extends Specification {
           |        "coordinates": [41.0, 51.0]
           |      },
           |      "properties": {
-          |        "name": "name1"
+          |        "name": "name1",
+          |        "demographics": {
+          |          "age": 1
+          |        }
           |      }
           |    },
           |    {
@@ -1396,10 +1403,7 @@ class JsonConverterTest extends Specification {
           |        "coordinates": [42.0, 52.0]
           |      },
           |      "properties": {
-          |        "name": "name2",
-          |        "demographics": {
-          |          "age": 2
-          |        }
+          |        "name": "name2"
           |      }
           |    },
           |    {
@@ -1421,9 +1425,9 @@ class JsonConverterTest extends Specification {
 
       def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
 
-      val inferred = new JsonConverterFactory().infer(bytes)
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
 
       val sft = inferred.get._1
       sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
@@ -1436,8 +1440,8 @@ class JsonConverterTest extends Specification {
         features must haveLength(3)
 
         val expected = Seq(
-          Seq("name1", null, WKTUtils.read("POINT (41 51)")),
-          Seq("name2", 2, WKTUtils.read("POINT (42 52)")),
+          Seq("name1", 1, WKTUtils.read("POINT (41 51)")),
+          Seq("name2", null, WKTUtils.read("POINT (42 52)")),
           Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
         )
         features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
@@ -1453,9 +1457,9 @@ class JsonConverterTest extends Specification {
 
       def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
 
-      val inferred = new JsonConverterFactory().infer(bytes)
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
 
       val sft = inferred.get._1
       sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
@@ -1485,9 +1489,9 @@ class JsonConverterTest extends Specification {
 
       def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
 
-      val inferred = new JsonConverterFactory().infer(bytes)
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
 
       val sft = inferred.get._1
       sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
@@ -1517,9 +1521,9 @@ class JsonConverterTest extends Specification {
 
       def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
 
-      val inferred = new JsonConverterFactory().infer(bytes)
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
 
-      inferred must beSome
+      inferred must beASuccessfulTry
 
       val sft = inferred.get._1
       sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
@@ -1540,6 +1544,112 @@ class JsonConverterTest extends Specification {
         foreach(features.zip(expected)) { case (f, e) =>
           f.getAttribute(1).asInstanceOf[Point].getCoordinate.equals3D(e(1).asInstanceOf[Point].getCoordinate) must beTrue
         }
+      }
+    }
+
+    "infer schema from non-geojson files" >> {
+      verifyInferredSchema((f, is) => f.infer(is, None, Map.empty[String, AnyRef]))
+    }
+
+    "infer schema from non-geojson files using deprecated API" >> {
+      verifyInferredSchema((f, is) => f.infer(is).fold[Try[(SimpleFeatureType, Config)]](Failure(null))(Success(_)))
+    }
+
+    def verifyInferredSchema(
+        infer: (JsonConverterFactory, InputStream) => Try[(SimpleFeatureType, Config)]): MatchResult[Any] = {
+      val json =
+        """{ "name": "name1", "demographics": { "age": 1 }, "files":[1], "geom": "POINT (41 51)" }
+          |{ "name": "name2", "files":[2,3], "geom": "POINT (42 52)" }
+          |{ "name": "name3", "demographics": { "age": 3 }, "files":[4,5,6], "geom": "POINT (43 53)" }
+        """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val factory = new JsonConverterFactory()
+      val inferred = infer(factory, bytes)
+      inferred must beASuccessfulTry
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual
+          Seq("name", "demographics_age", "files", "geom")
+      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+          Seq(classOf[String], classOf[Integer], classOf[java.util.List[_]], classOf[Point])
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("name1", 1, Seq("1").asJava, WKTUtils.read("POINT (41 51)")),
+          Seq("name2", null, Seq("2", "3").asJava, WKTUtils.read("POINT (42 52)")),
+          Seq("name3", 3, Seq("4", "5", "6").asJava, WKTUtils.read("POINT (43 53)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+    "infer schema from non-geojson files with feature path" >> {
+      val json =
+        """[{ "name": "name1", "demographics": { "age": 1 }, "geom": "POINT (41 51)" },
+          |{ "name": "name2", "geom": "POINT (42 52)" },
+          |{ "name": "name3", "demographics": { "age": 3 }, "geom": "POINT (43 53)" }]
+          """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map[String, AnyRef]("featurePath" -> "$.[*]"))
+
+      inferred must beASuccessfulTry
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("name", classOf[String]), ("demographics_age", classOf[Integer]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("name1", 1, WKTUtils.read("POINT (41 51)")),
+          Seq("name2", null, WKTUtils.read("POINT (42 52)")),
+          Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+
+    "infer schema from non-geojson arrays with implicit feature path" >> {
+      val json =
+        """[{ "name": "name1", "demographics": { "age": 1 }, "geom": "POINT (41 51)" },
+          |{ "name": "name2", "geom": "POINT (42 52)" },
+          |{ "name": "name3", "demographics": { "age": 3 }, "geom": "POINT (43 53)" }]
+          """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map.empty[String, AnyRef])
+
+      inferred must beASuccessfulTry
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("name", classOf[String]), ("demographics_age", classOf[Integer]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("name1", 1, WKTUtils.read("POINT (41 51)")),
+          Seq("name2", null, WKTUtils.read("POINT (42 52)")),
+          Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
       }
     }
   }

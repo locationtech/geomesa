@@ -6,24 +6,22 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 
-import java.io.OutputStreamWriter
+import java.io.{OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
 import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
-class DelimitedExporter(stream: ExportStream, format: CSVFormat, withHeader: Boolean, includeIds: Boolean)
-    extends ByteCounterExporter(stream) with LazyLogging {
+class DelimitedExporter(out: OutputStream, format: CSVFormat, withHeader: Boolean, includeIds: Boolean)
+    extends FeatureExporter with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
@@ -32,7 +30,7 @@ class DelimitedExporter(stream: ExportStream, format: CSVFormat, withHeader: Boo
   private var printer: CSVPrinter = _
 
   override def start(sft: SimpleFeatureType): Unit = {
-    printer = format.print(new OutputStreamWriter(stream.os, StandardCharsets.UTF_8))
+    printer = format.print(new OutputStreamWriter(out, StandardCharsets.UTF_8))
     // write out a header line
     if (withHeader) {
       if (includeIds) {
@@ -85,9 +83,9 @@ class DelimitedExporter(stream: ExportStream, format: CSVFormat, withHeader: Boo
 
 object DelimitedExporter {
 
-  def csv(stream: ExportStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
-    new DelimitedExporter(stream, CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
+  def csv(out: OutputStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
+    new DelimitedExporter(out, CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
 
-  def tsv(stream: ExportStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
-    new DelimitedExporter(stream, CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
+  def tsv(out: OutputStream, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter =
+    new DelimitedExporter(out, CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
 }

@@ -76,8 +76,9 @@ class ShapefileConverterTest extends Specification {
     }
 
     "infer converters" in {
-      val inferred = new ShapefileConverterFactory().infer(new ByteArrayInputStream(Array.empty), None, Some(shpFile))
-      inferred must beSome
+      val hints = EvaluationContext.inputFileParam(shpFile)
+      val inferred = new ShapefileConverterFactory().infer(new ByteArrayInputStream(Array.empty), None, hints)
+      inferred must beASuccessfulTry
 
       val (sft, conf) = inferred.get
 

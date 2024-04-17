@@ -155,6 +155,8 @@ org.apache.hbase.thirdparty:hbase-unsafe	4.1.5	compile
 org.apache.hbase:hbase-asyncfs	2.5.8-hadoop3	compile
 org.apache.hbase:hbase-client	2.5.8-hadoop3	compile
 org.apache.hbase:hbase-common	2.5.8-hadoop3	compile
+org.apache.hbase:hbase-hadoop-compat	2.5.8-hadoop3	compile
+org.apache.hbase:hbase-hadoop2-compat	2.5.8-hadoop3	compile
 org.apache.hbase:hbase-logging	2.5.8-hadoop3	compile
 org.apache.hbase:hbase-mapreduce	2.5.8-hadoop3	compile
 org.apache.hbase:hbase-metrics	2.5.8-hadoop3	compile

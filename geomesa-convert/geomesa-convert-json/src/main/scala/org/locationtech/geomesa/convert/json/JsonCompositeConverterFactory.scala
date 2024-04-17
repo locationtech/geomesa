@@ -17,6 +17,8 @@ import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import pureconfig.{ConfigConvert, ConfigSource}
 
+import java.io.InputStream
+import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
 
 class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
@@ -47,6 +49,11 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
       }
     }
   }
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new NotImplementedError())
 }
 
 object JsonCompositeConverterFactory {

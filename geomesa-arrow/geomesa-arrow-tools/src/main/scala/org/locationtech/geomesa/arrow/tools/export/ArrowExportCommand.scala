@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.arrow.tools.export
+package org.locationtech.geomesa.arrow.tools.`export`
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.arrow.data.ArrowDataStore

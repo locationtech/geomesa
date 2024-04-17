@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.TextTools
 import org.w3c.dom.{Element, NodeList}
-import org.xml.sax.InputSource
+import org.xml.sax.{ErrorHandler, InputSource, SAXParseException}
 
 import java.io._
 import java.nio.charset.Charset
@@ -203,7 +203,14 @@ object XmlConverter extends StrictLogging {
     private val builder = {
       val factory = DocumentBuilderFactory.newInstance()
       factory.setNamespaceAware(true)
-      factory.newDocumentBuilder()
+      val builder = factory.newDocumentBuilder()
+      // override default error handler which prints to stdout/stderr
+      builder.setErrorHandler(new ErrorHandler() {
+        override def warning(e: SAXParseException): Unit = logger.warn("XML parsing error:", e)
+        override def error(e: SAXParseException): Unit = throw e
+        override def fatalError(e: SAXParseException): Unit = throw e
+      })
+      builder
     }
 
     private val validator = xsd.map { path =>

@@ -17,8 +17,36 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.nio.charset.Charset
 import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
 
 package object convert2 {
+
+  /**
+   * Try a sequence of attempts. Return the first success. If there are no successes,
+   * Failures will be added as suppressed exceptions.
+   *
+   * @param attempts attempts
+   * @param failure umbrella exception in case of failure
+   * @tparam T attempt type
+   * @return
+   */
+  def multiTry[T](attempts: Iterator[Try[T]], failure: Throwable): Try[T] = {
+    var res: Try[T] = Failure(failure)
+    while (res.isFailure && attempts.hasNext) {
+      val attempt = attempts.next
+      if (attempt.isSuccess) {
+        res = attempt
+      } else {
+        val e = attempt.failed.get
+        // filter out NotImplementedErrors, so we don't clutter up the logs with failed conversion attempts from
+        // converter factories that haven't implemented schema inference
+        if (!e.isInstanceOf[NotImplementedError] && !Option(e.getCause).exists(_.isInstanceOf[NotImplementedError])) {
+          failure.addSuppressed(e)
+        }
+      }
+    }
+    res
+  }
 
   trait ConverterConfig {
     def `type`: String

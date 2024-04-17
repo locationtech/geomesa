@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import org.geotools.api.data.Transaction
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -19,6 +19,11 @@ import org.locationtech.jts.geom.Geometry
 import java.io.File
 import java.net.URL
 
+/**
+ * Exports to a shapefile, which is a collection of files
+ *
+ * @param file pointer to a .shp file (not a directory)
+ */
 class ShapefileExporter(file: File) extends FeatureExporter {
 
   import scala.collection.JavaConverters._
@@ -68,7 +73,12 @@ class ShapefileExporter(file: File) extends FeatureExporter {
     Some(count)
   }
 
-  override def bytes: Long = {
+  /**
+   * Counts the total bytes written, across the various files in this shapefile
+   *
+   * @return bytes written
+   */
+  def bytes: Long = {
     val files = new ShpFiles(url)
     try {
       var sum = 0L

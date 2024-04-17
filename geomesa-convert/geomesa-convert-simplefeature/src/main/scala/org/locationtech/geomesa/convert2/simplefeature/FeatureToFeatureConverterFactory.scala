@@ -20,6 +20,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigSource}
 
+import java.io.InputStream
+import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
 
 class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
@@ -81,6 +83,11 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
       Some(new FeatureToFeatureConverter(sft, id, columns ++ defaults, opts))
     }
   }
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new NotImplementedError())
 }
 
 object FeatureToFeatureConverterFactory {

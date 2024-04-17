@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert2
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert2.TypeInference.{DerivedTransform, LatLon}
+import org.locationtech.geomesa.convert2.TypeInference.{DerivedTransform, InferredType, PathWithValues}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -46,112 +46,123 @@ class TypeInferenceTest extends Specification with LazyLogging {
   val geometryCollectionString = "GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10))"
   val geometryCollection = WKTUtils.read(geometryCollectionString)
 
+  private def inferRow(row: Seq[Any]): Seq[InferredType] =
+    TypeInference.infer(row.map(v => PathWithValues("", Seq(v))), Left("")).types.map(_.inferredType)
+
+  private def inferRowWithNames(row: Seq[(String, Any)]): Seq[InferredType] =
+    TypeInference.infer(row.map(v => PathWithValues(v._1, Seq(v._2))), Left("")).types.map(_.inferredType)
+
+  private def inferRowTypes(row: Seq[Any]): Seq[ObjectType] =
+    TypeInference.infer(row.map(v => PathWithValues("", Seq(v))), Left("")).types.map(_.inferredType.typed)
+
+  private def inferColType(values: Seq[Any], failureRate: Option[Float] = None): ObjectType = {
+    val in = Seq(PathWithValues("", values))
+    val res = failureRate match {
+      case None => TypeInference.infer(in, Left(""))
+      case Some(r) => TypeInference.infer(in, Left(""), failureRate = r)
+    }
+    res.types.head.inferredType.typed
+  }
+
   "TypeInference" should {
     "infer simple types" in {
       // note: don't put any valid lat/lon pairs next to each other or it will create a geometry type
-      val types = TypeInference.infer(Seq(Seq("a", 1, 200L, 1f, 200d, true)))
-      types.map(_.typed) mustEqual Seq(STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN)
+      val types = inferRowTypes(Seq("a", 1, 200L, 1f, 200d, true))
+      types mustEqual Seq(STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN)
     }
     "infer simple types from strings" in {
       // note: don't put any valid lat/lon pairs next to each other or it will create a geometry type
-      val types = TypeInference.infer(Seq(Seq("a", "1", s"${Int.MaxValue.toLong + 1L}", "1.1", "true", "1.00000001")))
-      types.map(_.typed) mustEqual Seq(STRING, INT, LONG, FLOAT, BOOLEAN, DOUBLE)
+      val types = inferRowTypes(Seq("a", "1", s"${Int.MaxValue.toLong + 1L}", "1.1", "true", "1.00000001"))
+      types mustEqual Seq(STRING, INT, LONG, DOUBLE, BOOLEAN, DOUBLE)
     }
     "infer complex types" in {
-      val types = TypeInference.infer(Seq(Seq(new Date(), Array[Byte](0), uuid)))
-      types.map(_.typed) mustEqual Seq(DATE, BYTES, UUID)
+      val types = inferRowTypes(Seq(new Date(), Array[Byte](0), uuid))
+      types mustEqual Seq(DATE, BYTES, UUID)
     }
     "infer complex types from strings" in {
-      val types = TypeInference.infer(Seq(Seq("2018-01-01T00:00:00.000Z", uuidString)))
-      types.map(_.typed) mustEqual Seq(DATE, UUID)
+      val types = inferRowTypes(Seq("2018-01-01T00:00:00.000Z", uuidString))
+      types mustEqual Seq(DATE, UUID)
     }
     "infer geometry types" in {
-      val types = TypeInference.infer(Seq(Seq(point, lineString, polygon, multiPoint, multiLineString,
-        multiPolygon, geometryCollection))).map(_.typed)
+      val types = inferRowTypes(Seq(point, lineString, polygon, multiPoint, multiLineString, multiPolygon, geometryCollection))
       types mustEqual Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION)
     }
     "infer geometry types from strings" in {
-      val types = TypeInference.infer(Seq(Seq(pointString, lineStringString, polygonString, multiPointString,
-        multiLineStringString, multiPolygonString, geometryCollectionString))).map(_.typed)
+      val types = inferRowTypes(Seq(pointString, lineStringString, polygonString, multiPointString,
+        multiLineStringString, multiPolygonString, geometryCollectionString))
       types mustEqual Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION)
     }
     "merge up number types" in {
-      val types = Seq(Seq(1d), Seq(1f), Seq(1L), Seq(1))
-      foreach(types.drop(0).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(DOUBLE))
-      foreach(types.drop(1).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(FLOAT))
-      foreach(types.drop(2).permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(LONG))
+      val types = Seq[Any](1d, 1f, 1L, 1)
+      foreach(types.drop(0).permutations.toSeq)(t => inferColType(t) mustEqual DOUBLE)
+      foreach(types.drop(1).permutations.toSeq)(t => inferColType(t) mustEqual FLOAT)
+      foreach(types.drop(2).permutations.toSeq)(t => inferColType(t) mustEqual LONG)
     }
     "merge up number types with lat/lon" in {
-      TypeInference.infer(Seq(Seq(135), Seq(45))).map(_.typed) mustEqual Seq(INT)
-      TypeInference.infer(Seq(Seq(135f), Seq(45f))).map(_.typed) mustEqual Seq(FLOAT)
-      TypeInference.infer(Seq(Seq(135d), Seq(45d))).map(_.typed) mustEqual Seq(DOUBLE)
+      inferColType(Seq(135, 45)) mustEqual INT
+      inferColType(Seq(135f,45f)) mustEqual FLOAT
+      inferColType(Seq(135d, 45d)) mustEqual DOUBLE
     }
     "merge up geometry types" in {
-      val types = Seq(Seq(point), Seq(lineString), Seq(polygon), Seq(multiPoint), Seq(multiLineString),
-        Seq(multiPolygon), Seq(geometryCollection))
-      foreach(types.permutations.toSeq)(t => TypeInference.infer(t).map(_.typed) mustEqual Seq(GEOMETRY))
+      val types = Seq(point, lineString, polygon, multiPoint, multiLineString, multiPolygon, geometryCollection)
+      foreach(types.permutations.toSeq)(t => inferColType(t) mustEqual GEOMETRY)
     }
     "merge up null values" in {
       val values = Seq("a", 1, 1L, 1f, 1d, true, new Date(), Seq[Byte](0), uuid, point, lineString,
         polygon, multiPoint, multiLineString, multiPolygon, geometryCollection)
       foreach(values) { value =>
-        TypeInference.infer(Seq(Seq(value), Seq(null))) mustEqual TypeInference.infer(Seq(Seq(value)))
+        inferColType(Seq(value, null)) mustEqual inferColType(Seq(value))
       }
     }
     "create points from lon/lat pairs" in {
-      import LatLon.{Lat, NotLatLon}
-
-      val floats = TypeInference.infer(Seq(Seq(45f, 55f, "foo")))
+      val floats = inferRowWithNames(Seq("lon" -> 45f, "lat" -> 55f, "foo" -> "foo"))
       floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING, POINT)
-      val doubles = TypeInference.infer(Seq(Seq(45d, 55d, "foo")))
+      val doubles = inferRowWithNames(Seq("lon" -> 45d, "lat" -> 55d, "foo" -> "foo"))
       doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING, POINT)
       foreach(Seq(floats, doubles)) { types =>
-        types.map(_.latlon) mustEqual Seq(Lat, Lat, NotLatLon, NotLatLon)
-        types(3).transform mustEqual DerivedTransform("point", types(0).name, types(1).name)
+        types(3).transform mustEqual DerivedTransform("point", types.head.name, types(1).name)
       }
     }
     "create points from lat/lon pairs" in {
-      import LatLon.{Lat, Lon, NotLatLon}
-
-      val floats = TypeInference.infer(Seq(Seq(45f, 120f, "foo")))
+      val floats = inferRowWithNames(Seq("lat" -> 45f, "lon" -> 120f, "foo" -> "foo"))
       floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING, POINT)
-      val doubles = TypeInference.infer(Seq(Seq(45d, 120d, "foo")))
+      val doubles = inferRowWithNames(Seq("lat" -> 45d, "lon" -> 120d, "foo" -> "foo"))
       doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING, POINT)
       foreach(Seq(floats, doubles)) { types =>
-        types.map(_.latlon) mustEqual Seq(Lat, Lon, NotLatLon, NotLatLon)
-        types(3).transform mustEqual DerivedTransform("point", types(1).name, types(0).name)
+        types(3).transform mustEqual DerivedTransform("point", types(1).name, types.head.name)
       }
     }
     "create points from named lat/lon fields" in {
-      import LatLon.{Lat, Lon, NotLatLon}
+      def infer(row: Seq[(String, Any)]): Seq[InferredType] =
+        TypeInference.infer(row.map(v => PathWithValues(v._1, Seq(v._2))), Left("")).types.map(_.inferredType)
 
-      val floats = TypeInference.infer(Seq(Seq(45f, 120f, 121f, "foo")), Seq("lat", "bar", "lon", "foo"))
+      val floats = infer(Seq("lat" -> 45f, "bar" -> 120f, "lon" -> 121f, "foo" -> "foo"))
       floats.map(_.typed) mustEqual Seq(FLOAT, FLOAT, FLOAT, STRING, POINT)
-      val doubles = TypeInference.infer(Seq(Seq(45d, 120d, 121d, "foo")), Seq("lat", "bar", "lon", "foo"))
+      val doubles = infer(Seq("lat" -> 45d, "bar" -> 120d, "lon" -> 121d, "foo" -> "foo"))
       doubles.map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, DOUBLE, STRING, POINT)
       foreach(Seq(floats, doubles)) { types =>
-        types.map(_.latlon) mustEqual Seq(Lat, Lon, Lon, NotLatLon, NotLatLon)
-        types(4).transform mustEqual DerivedTransform("point", types(2).name, types(0).name)
+        types(4).transform mustEqual DerivedTransform("point", types(2).name, types.head.name)
       }
     }
     "not create points from unpaired numbers" in {
-      TypeInference.infer(Seq(Seq(45f, "foo", 55f))).map(_.typed) mustEqual Seq(FLOAT, STRING, FLOAT)
-      TypeInference.infer(Seq(Seq(45d, "foo", 55d))).map(_.typed) mustEqual Seq(DOUBLE, STRING, DOUBLE)
+      inferRowTypes(Seq(45f, "foo", 55f)) mustEqual Seq(FLOAT, STRING, FLOAT)
+      inferRowTypes(Seq(45d, "foo", 55d)) mustEqual Seq(DOUBLE, STRING, DOUBLE)
     }
     "not create points if another geometry is present" in {
-      TypeInference.infer(Seq(Seq(45f, 55f, "POINT (40 50)"))).map(_.typed) mustEqual Seq(FLOAT, FLOAT, POINT)
-      TypeInference.infer(Seq(Seq(45d, 55d, "POINT (40 50)"))).map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, POINT)
+      inferRowTypes(Seq(45f, 55f, "POINT (40 50)")) mustEqual Seq(FLOAT, FLOAT, POINT)
+      inferRowTypes(Seq(45d, 55d, "POINT (40 50)")) mustEqual Seq(DOUBLE, DOUBLE, POINT)
     }
     "not create points if values are not valid lat/lons" in {
-      TypeInference.infer(Seq(Seq(145f, 155f, "foo"))).map(_.typed) mustEqual Seq(FLOAT, FLOAT, STRING)
-      TypeInference.infer(Seq(Seq(145d, 155d, "foo"))).map(_.typed) mustEqual Seq(DOUBLE, DOUBLE, STRING)
+      inferRowTypes(Seq(145f, 155f, "foo")) mustEqual Seq(FLOAT, FLOAT, STRING)
+      inferRowTypes(Seq(145d, 155d, "foo")) mustEqual Seq(DOUBLE, DOUBLE, STRING)
     }
     "infer types despite some failures" in {
-      TypeInference.infer(Seq.tabulate(11)(i => Seq(i)) :+ Seq("foo")).map(_.typed) mustEqual Seq(INT)
-      TypeInference.infer(Seq.tabulate(11)(i => Seq(i)) :+ Seq("foo"), failureRate = 0.01f).map(_.typed) mustEqual Seq(STRING)
+      val values = Seq.tabulate(11)(i => i) ++ Seq("foo")
+      inferColType(values) mustEqual INT
+      inferColType(values, Some(0.01f)) mustEqual STRING
     }
     "fall back to string type" in {
-      TypeInference.infer(Seq(Seq("2018-01-01"), Seq(uuidString))).map(_.typed) mustEqual Seq(STRING)
+      inferColType(Seq("2018-01-01", uuidString)) mustEqual STRING
     }
   }
 }

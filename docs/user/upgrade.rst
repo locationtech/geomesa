@@ -165,7 +165,7 @@ The following dependencies have been upgraded:
 * gson ``2.10`` -> ``2.10.1``
 * guava ``30.1-jre`` -> ``32.0.0-jre``
 * hadoop ``2.10.2`` -> ``3.4.0``
-* hbase ``2.5.2`` -> ``2.5.8``
+* hbase ``2.5.2`` -> ``2.5.8-hadoop3``
 * httpclient ``4.5.13`` -> ``4.5.14``
 * httpcore ``4.4.15`` -> ``4.4.16``
 * io.netty ``4.1.85.Final`` -> ``4.1.106.Final``

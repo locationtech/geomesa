@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import net.opengis.wfs.WfsFactory
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -16,15 +16,13 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.wfs.WFSConfiguration
 import org.geotools.xsd.Encoder
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
-import org.locationtech.geomesa.tools.export.formats.GmlExporter.AsyncFeatureCollection
+import org.locationtech.geomesa.features.exporters.GmlExporter.AsyncFeatureCollection
 
+import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.{ConcurrentLinkedQueue, Executors, TimeUnit}
-import javax.xml.namespace.QName
 
 /**
   * GML exporter implementation.
@@ -34,14 +32,14 @@ import javax.xml.namespace.QName
   * encoding in a separate thread. The encoder thread will block until there are more features to export,
   * so that we only get a single feature collection in the xml.
   *
-  * @param stream output stream
+  * @param out output stream
   * @param configuration wfs configuration (gml3 vs gml2)
   */
-class GmlExporter private (stream: ExportStream, configuration: WFSConfiguration)
-    extends ByteCounterExporter(stream) {
+class GmlExporter private (out: OutputStream, configuration: WFSConfiguration)
+    extends FeatureExporter {
 
   private val encoder: Encoder = {
-    val props = configuration.getProperties.asInstanceOf[java.util.Set[QName]]
+    val props = configuration.getProperties
     props.add(org.geotools.gml2.GMLConfiguration.OPTIMIZED_ENCODING)
     props.add(org.geotools.gml2.GMLConfiguration.NO_FEATURE_BOUNDS)
     val e = new Encoder(configuration)
@@ -65,7 +63,7 @@ class GmlExporter private (stream: ExportStream, configuration: WFSConfiguration
     val collection = WfsFactory.eINSTANCE.createFeatureCollectionType()
     collection.getFeature.asInstanceOf[java.util.List[SimpleFeatureCollection]].add(features)
 
-    def encode(): Unit = encoder.encode(collection, org.geotools.wfs.WFS.FeatureCollection, stream.os)
+    def encode(): Unit = encoder.encode(collection, org.geotools.wfs.WFS.FeatureCollection, out)
 
     val runnable = new Runnable() {
       override def run(): Unit = {
@@ -102,7 +100,7 @@ class GmlExporter private (stream: ExportStream, configuration: WFSConfiguration
       es.shutdown()
       es.awaitTermination(Long.MaxValue, TimeUnit.MILLISECONDS)
     } finally {
-      stream.close()
+      out.close()
     }
   }
 }
@@ -114,20 +112,20 @@ object GmlExporter {
   /**
     * Create a GML3 exporter
     *
-    * @param stream output stream
+    * @param out output stream
     * @return
     */
-  def apply(stream: ExportStream): GmlExporter =
-    new GmlExporter(stream, new org.geotools.wfs.v1_1.WFSConfiguration())
+  def apply(out: OutputStream): GmlExporter =
+    new GmlExporter(out, new org.geotools.wfs.v1_1.WFSConfiguration())
 
   /**
     * Create a GML2 exporter
     *
-    * @param stream output stream
+    * @param out output stream
     * @return
     */
-  def gml2(stream: ExportStream): GmlExporter =
-    new GmlExporter(stream, new org.geotools.wfs.v1_0.WFSConfiguration_1_0())
+  def gml2(out: OutputStream): GmlExporter =
+    new GmlExporter(out, new org.geotools.wfs.v1_0.WFSConfiguration_1_0())
 
   /**
     * Feature collection that lets us add additional features in an asynchronous fashion. The consumer

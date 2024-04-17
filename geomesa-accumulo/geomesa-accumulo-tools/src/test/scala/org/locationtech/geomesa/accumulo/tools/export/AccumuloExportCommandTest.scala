@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.export
+package org.locationtech.geomesa.accumulo.tools.`export`
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -30,7 +31,7 @@ import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
-import org.locationtech.geomesa.tools.export.formats.ExportFormat
+import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -41,6 +42,7 @@ import java.io.{File, FileInputStream, FileWriter}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.{Collections, Date}
+import scala.util.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloExportCommandTest extends TestWithFeatureType {
@@ -194,9 +196,9 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, Some(file)) match {
-      case None => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
-      case Some((s, c)) => SimpleFeatureConverter(s, c)
+    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
+      case Failure(_) => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
+      case Success((s, c)) => SimpleFeatureConverter(s, c)
     }
     val result = Seq.newBuilder[SimpleFeature]
     val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)

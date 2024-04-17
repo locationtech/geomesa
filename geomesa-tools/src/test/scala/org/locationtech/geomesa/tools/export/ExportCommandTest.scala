@@ -24,6 +24,7 @@ import org.geotools.util.factory.Hints
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
-import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -48,6 +48,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Date}
+import scala.util.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
 class ExportCommandTest extends Specification with Retries {
@@ -189,6 +190,7 @@ class ExportCommandTest extends Specification with Retries {
           command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
           command.execute()
         }
+        empty.exists() must beTrue
         readFeatures(format, file) must beEmpty
       }
     }
@@ -256,9 +258,9 @@ class ExportCommandTest extends Specification with Retries {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    SimpleFeatureConverter.infer(() => new FileInputStream(file), None, Some(file)) match {
-      case None => Seq.empty // empty json file
-      case Some((s, c)) =>
+    SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
+      case Failure(_) => Seq.empty // empty json file
+      case Success((s, c)) =>
         val converter = SimpleFeatureConverter(s, c)
         val result = Seq.newBuilder[SimpleFeature]
         val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)

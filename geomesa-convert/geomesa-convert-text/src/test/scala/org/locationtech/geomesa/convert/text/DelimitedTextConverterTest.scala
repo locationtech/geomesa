@@ -757,17 +757,18 @@ class DelimitedTextConverterTest extends Specification {
 
       val data =
         """
+          |num,word,lat,lon
           |1,hello,45.0,45.0
           |2,world,90.0,90.0
         """.stripMargin
 
       val factory = new DelimitedTextConverterFactory()
-      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
-      inferred must beSome
+      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), None, Map.empty[String, AnyRef])
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
-          Seq(classOf[Integer], classOf[String], classOf[java.lang.Float], classOf[java.lang.Float], classOf[Point])
+          Seq(classOf[Integer], classOf[String], classOf[java.lang.Double], classOf[java.lang.Double], classOf[Point])
 
       val converter = factory.apply(sft, config)
       converter must beSome
@@ -789,12 +790,12 @@ class DelimitedTextConverterTest extends Specification {
         """.stripMargin
 
       val factory = new DelimitedTextConverterFactory()
-      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
-      inferred must beSome
+      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), None, Map.empty[String, AnyRef])
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
-          Seq(classOf[Integer], classOf[String], classOf[java.lang.Float], classOf[java.lang.Float], classOf[Point])
+          Seq(classOf[Integer], classOf[String], classOf[java.lang.Double], classOf[java.lang.Double], classOf[Point])
 
       val converter = factory.apply(sft, config)
       converter must beSome
@@ -833,8 +834,8 @@ class DelimitedTextConverterTest extends Specification {
           |""".stripMargin
 
       val factory = new DelimitedTextConverterFactory()
-      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
-      inferred must beSome
+      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), None, Map.empty[String, AnyRef])
+      inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
 

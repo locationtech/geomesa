@@ -13,11 +13,12 @@ import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, OptionConvert}
-import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
+import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType, Namer}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.avro.io.AvroDataFile
@@ -30,7 +31,7 @@ import pureconfig.ConfigObjectCursor
 import pureconfig.error.{ConfigReaderFailures, FailureReason}
 
 import java.io.InputStream
-import scala.util.control.NonFatal
+import scala.util.Try
 
 class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions](
   "avro", AvroConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
@@ -50,8 +51,14 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
-    try {
+      path: Option[String]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = {
+    Try {
       WithClose(new DataFileStream[GenericRecord](is, new GenericDatumReader[GenericRecord]())) { dfs =>
         val (schema, id, fields, userData) = if (AvroDataFile.canParse(dfs)) {
           // this is a file written in the geomesa avro format
@@ -142,12 +149,8 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
             .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
-        Some((schema, config))
+        (schema, config)
       }
-    } catch {
-      case NonFatal(e) =>
-        logger.debug(s"Could not infer Avro converter from input:", e)
-        None
     }
   }
 }
@@ -163,18 +166,12 @@ object AvroConverterFactory {
     * @return
     */
   def schemaTypes(schema: Schema): Seq[InferredType] = {
-    val uniqueNames = scala.collection.mutable.HashSet.empty[String]
+    val namer = new Namer()
     val types = scala.collection.mutable.ArrayBuffer.empty[InferredType]
 
     def mapField(field: Schema.Field, path: String = ""): Unit = {
       // get a valid attribute name
-      val base = s"${field.name().replaceAll("[^A-Za-z0-9]+", "_")}"
-      var name = base
-      var i = 0
-      while (!uniqueNames.add(name)) {
-        name = s"${base}_$i"
-        i += 1
-      }
+      val name = namer(field.name())
 
       // checks for nested array/map types we can handle
       def isSimpleArray: Boolean = isSimple(field.schema().getElementType)
@@ -202,7 +199,7 @@ object AvroConverterFactory {
     schema.getFields.asScala.foreach(mapField(_))
 
     // check if we can derive a geometry field
-    TypeInference.deriveGeometry(types.toSeq).foreach(g => types += g)
+    TypeInference.deriveGeometry(types.toSeq, namer).foreach(g => types += g)
 
     types.toSeq
   }

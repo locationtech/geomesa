@@ -12,7 +12,7 @@ GeoMesa facilitates integration with a wide range of existing mapping clients ov
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
 
-- http://www.geomesa.org/
+- https://www.geomesa.org/
 
 Eclipse Contributor Agreement
 -----------------------------
@@ -20,7 +20,7 @@ Eclipse Contributor Agreement
 Before your contribution can be accepted by the project, you need to create an Eclipse Foundation 
 account and electronically sign the Eclipse Contributor Agreement (ECA).
 
-- http://www.eclipse.org/legal/ECA.php 
+- https://www.eclipse.org/legal/ECA.php 
 
 Developer Resources
 -------------------
@@ -65,7 +65,7 @@ Coding Standards
   information in bullets below as required.
   * See e.g. https://github.com/locationtech/geomesa/commit/1f345132a717816d5a4951f73b2b73537fce305b
 * Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
-  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+  GeoMesa tries to adhere to the official Scala style guide: https://docs.scala-lang.org/style/
 * Code should include unit tests when appropriate.
 
 License and Copyright
@@ -76,7 +76,7 @@ licensing, source files must contain an appropriate license header. When a file 
 the contributor should also indicate their copyright in the header. If copyright is not desired, the contributor
 may delegate the copyright to CCRi, as per the default header.
 
-GeoMesa uses the [License Maven Plugin](http://code.mycila.com/license-maven-plugin/) to help manage copyright
+GeoMesa uses the [License Maven Plugin](https://code.mycila.com/license-maven-plugin/) to help manage copyright
 headers. This plugin runs as part of the default build, and will fail if any files do not contain a valid header.
 To add a new copyright owner, a template file can be placed under `build/copyright/` and added to the
 `<validHeaders>` block in the root pom.xml.
