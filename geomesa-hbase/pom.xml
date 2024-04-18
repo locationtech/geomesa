@@ -14,6 +14,7 @@
 
     <properties>
         <guava.version>${hbase.guava.version}</guava.version>
+        <hadoop.version>${hbase.hadoop.version}</hadoop.version>
     </properties>
 
     <modules>

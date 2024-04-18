@@ -130,9 +130,10 @@
         <thrift.version>0.17.0</thrift.version>
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
-        <hadoop.version>3.3.6</hadoop.version>
+        <hadoop.version>3.4.0</hadoop.version>
         <spark.version>3.5.0</spark.version>
         <hbase.version>2.5.8-hadoop3</hbase.version>
+        <hbase.hadoop.version>3.3.6</hbase.hadoop.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <protobuf.version>2.5.0</protobuf.version> <!-- see also confluent.protobuf.version-->
         <cassandra.version>3.11.5</cassandra.version>
@@ -214,7 +215,7 @@
         <hbase.thirdparty.version.recommended>4.1.5</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>3.11.3</cassandra.driver.version.recommended>
-        <hadoop.version.recommended>3.3.6</hadoop.version.recommended>
+        <hadoop.version.recommended>3.4.0</hadoop.version.recommended>
         <zookeeper.version.recommended>3.9.1</zookeeper.version.recommended>
         <confluent.version.recommended>7.6.0</confluent.version.recommended>
     </properties>
@@ -2713,6 +2714,20 @@
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-hdfs</artifactId>
+                <type>test-jar</type>
+                <classifier>tests</classifier>
+                <version>${hadoop.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
                 <type>test-jar</type>
                 <classifier>tests</classifier>
                 <version>${hadoop.version}</version>
