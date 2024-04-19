@@ -37,7 +37,7 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
   var sc: SQLContext = _
 
   lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
-  lazy val params = Map("fs.path" -> path)
+  lazy val params = Map("fs.path" -> path, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
   lazy val ds: DataStore = DataStoreFinder.getDataStore(params.asJava)
 
   val formats = Seq("orc", "parquet")

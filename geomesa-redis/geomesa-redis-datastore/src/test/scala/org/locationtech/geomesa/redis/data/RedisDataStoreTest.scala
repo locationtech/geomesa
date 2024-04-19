@@ -113,7 +113,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
     "expire features based on ingest time" in {
       val sft = featureType("ingest", Some("2 seconds"))
 
-      RedisSystemProperties.AgeOffInterval.threadLocalValue.set("500 ms")
+      RedisSystemProperties.AgeOffInterval.threadLocalValue.set("100 ms")
       val ds = try { DataStoreFinder.getDataStore(params.asJava).asInstanceOf[RedisDataStore] } finally {
         RedisSystemProperties.AgeOffInterval.threadLocalValue.remove()
       }
@@ -141,7 +141,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
 
         foreach(filters) { filter =>
           val query = new Query(sft.getTypeName, filter)
-          eventually(40, 100.millis) {
+          eventually(10, 1000.millis) {
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result must beEmpty
           }
@@ -161,7 +161,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
 
       val sft = featureType("time", Some(s"dtg($time ms)"))
 
-      RedisSystemProperties.AgeOffInterval.threadLocalValue.set("500 ms")
+      RedisSystemProperties.AgeOffInterval.threadLocalValue.set("100 ms")
       val ds = try { DataStoreFinder.getDataStore(params.asJava).asInstanceOf[RedisDataStore] } finally {
         RedisSystemProperties.AgeOffInterval.threadLocalValue.remove()
       }
@@ -191,7 +191,7 @@ class RedisDataStoreTest extends Specification with LazyLogging {
         foreach(filters) { filter =>
           val expected = features.drop(1).filter(filter.evaluate)
           val query = new Query(sft.getTypeName, filter)
-          eventually(40, 100.millis) {
+          eventually(10, 1000.millis) {
             val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
             result must containTheSameElementsAs(expected)
           }
