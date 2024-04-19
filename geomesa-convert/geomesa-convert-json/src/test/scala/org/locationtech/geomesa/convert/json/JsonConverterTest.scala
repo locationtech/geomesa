@@ -1589,6 +1589,80 @@ class JsonConverterTest extends Specification {
         features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
       }
     }
+
+    "infer schema from non-geojson files with geojson points" >> {
+      val json =
+        """{
+          |  "DataSource": { "name": "myjson" },
+          |  "Features": [
+          |    {
+          |      "id": 1,
+          |      "name": "phil",
+          |      "physicals": {
+          |        "age": 32,
+          |        "weight": 150.2
+          |      },
+          |      "hobbies": [ "baseball", "soccer" ],
+          |      "languages": {
+          |        "java": 100,
+          |        "scala": 70
+          |      },
+          |      "geometry": { "type": "Point", "coordinates": [55, 56] }
+          |    },
+          |    {
+          |      "id": 2,
+          |      "name": "fred",
+          |      "physicals": {
+          |        "age": 33,
+          |        "weight": 150.1
+          |      },
+          |      "hobbies": [ "archery", "tennis" ],
+          |      "languages": {
+          |        "c++": 10,
+          |        "fortran": 50
+          |      },
+          |      "geometry": { "type": "Point", "coordinates": [45, 46] }
+          |    }
+          |  ]
+          |}
+          """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes, None, Map[String, AnyRef]("featurePath" -> "$.Features[*]"))
+
+      inferred must beASuccessfulTry
+
+      val sft = inferred.get._1
+
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+        Seq(
+          ("id_0", classOf[Integer]),
+          ("name", classOf[String]),
+          ("physicals_age", classOf[Integer]),
+          ("physicals_weight", classOf[java.lang.Double]),
+          ("hobbies", classOf[java.util.List[_]]),
+          ("languages_java", classOf[Integer]),
+          ("languages_scala", classOf[Integer]),
+          ("geometry", classOf[Point]),
+          ("languages_c", classOf[Integer]),
+          ("languages_fortran", classOf[Integer]),
+        )
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(2)
+
+        val expected = Seq(
+          Seq(1, "phil", 32, 150.2, Seq("baseball", "soccer").asJava, 100, 70, WKTUtils.read("POINT (55 56)"), null, null),
+          Seq(2, "fred", 33, 150.1, Seq("archery", "tennis").asJava, null, null, WKTUtils.read("POINT (45 46)"), 10, 50),
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+
     "infer schema from non-geojson files with feature path" >> {
       val json =
         """[{ "name": "name1", "demographics": { "age": 1 }, "geom": "POINT (41 51)" },
