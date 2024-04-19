@@ -13,7 +13,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.impl.CoordinateArraySequence
 
-import java.util.Collections
+import java.util.{Collections, Locale}
 import scala.util.{Failure, Success, Try}
 
 
@@ -145,7 +145,7 @@ trait GeoJsonParsing {
       return Failure(new RuntimeException("Not a Geometry object"))
     }
 
-    geomType.getAsString.toLowerCase match {
+    geomType.getAsString.toLowerCase(Locale.US) match {
       case "point" =>
         Try(factory.createPoint(toPointCoords(obj.get(CoordinatesKey))))
 
@@ -158,11 +158,13 @@ trait GeoJsonParsing {
       case "multipoint" =>
         Try(factory.createMultiPoint(toCoordSeq(obj.get(CoordinatesKey))))
 
-      case "multilinestring" => Try {
-        val coords =  obj.get(CoordinatesKey).getAsJsonArray.asScala
-            .map(c => factory.createLineString(toCoordSeq(c))).toArray
-        factory.createMultiLineString(coords)
-      }
+      case "multilinestring" =>
+        Try {
+          val coords =
+            obj.get(CoordinatesKey).getAsJsonArray.asScala
+              .map(c => factory.createLineString(toCoordSeq(c))).toArray
+          factory.createMultiLineString(coords)
+        }
 
       case "multipolygon" =>
         Try(factory.createMultiPolygon(obj.get(CoordinatesKey).getAsJsonArray.asScala.map(toPolygon).toArray))

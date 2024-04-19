@@ -1634,7 +1634,7 @@ class JsonConverterTest extends Specification {
       inferred must beASuccessfulTry
 
       val sft = inferred.get._1
-      println(SimpleFeatureTypes.encodeType(sft))
+
       sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
         Seq(
           ("id_0", classOf[Integer]),
