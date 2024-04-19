@@ -1,4 +1,4 @@
-{% extends "!layout.html" %}
+{% if meta and meta.template %}{% extends meta.template + ".html" %}{% else %}{% extends "!layout.html" %}{% endif -%}
 
 {% block extrahead %}
 {% if theme_analytics_id %}

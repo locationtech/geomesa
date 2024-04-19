@@ -21,6 +21,9 @@ import org.locationtech.jts.geom.{LineString, Point}
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31,6 +34,10 @@ import org.opengis.feature.simple.SimpleFeature
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/bin/BinaryOutputEncoderTest.scala
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main

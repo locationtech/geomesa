@@ -115,7 +115,7 @@ class DensityProcess extends GeoMesaProcess {
    * <li>modify the query hints to ensure point features are returned
    * </ul>
    * Note that in order to pass validation, all parameters named here must also appear in the
-   * parameter list of the <tt>execute</tt> method, even if they are not used there.
+   * parameter list of the `execute` method, even if they are not used there.
    *
    * @param argRadiusPixels the feature type attribute that contains the observed surface value
    * @param targetQuery the query used against the data source

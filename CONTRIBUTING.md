@@ -24,6 +24,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -54,6 +55,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -78,6 +81,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -100,6 +104,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -129,6 +135,9 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -163,12 +172,15 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -201,6 +213,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -209,6 +222,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -267,6 +282,9 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -296,6 +314,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -334,6 +353,11 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -378,6 +402,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -417,6 +442,10 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -456,6 +485,9 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -479,6 +511,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -521,6 +554,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -541,6 +576,9 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -577,11 +615,14 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -616,11 +657,14 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -655,11 +699,14 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -692,11 +739,15 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -738,6 +789,7 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -748,6 +800,8 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -824,6 +878,9 @@ has the ability to contribute to PROJ. Here's a few suggestion on how:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -867,34 +924,11 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
 <<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -902,20 +936,35 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -930,6 +979,15 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -942,6 +1000,10 @@ geospatial analytics.
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -970,6 +1032,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1000,6 +1063,9 @@ geospatial analytics.
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1019,8 +1085,11 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1057,10 +1126,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1119,6 +1191,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1163,6 +1238,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1231,6 +1307,11 @@ geospatial analytics.
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1248,10 +1329,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1282,6 +1366,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1319,10 +1406,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1389,6 +1479,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1427,7 +1520,11 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c63e6e91bd (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> a029d873e8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1472,11 +1569,14 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1528,6 +1628,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1562,8 +1665,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
@@ -1617,10 +1725,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1652,6 +1763,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1694,10 +1808,8 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
 <<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1723,6 +1835,11 @@ geospatial analytics.
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1742,6 +1859,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1783,6 +1903,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1797,6 +1918,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1846,6 +1970,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1882,11 +2009,14 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1919,11 +2049,14 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1953,9 +2086,12 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2015,6 +2151,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2045,6 +2184,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2083,6 +2223,11 @@ geospatial analytics.
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 >>>>>>> aa22876329 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2127,6 +2272,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2158,6 +2304,11 @@ geospatial analytics.
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -2200,6 +2351,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2251,6 +2403,9 @@ geospatial analytics.
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -2267,6 +2422,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2310,6 +2468,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2378,6 +2537,11 @@ geospatial analytics.
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2396,11 +2560,14 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2435,11 +2602,14 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2475,11 +2645,15 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -2522,12 +2696,15 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2569,11 +2746,15 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2618,10 +2799,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2718,6 +2902,9 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2751,10 +2938,13 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 73e3ca4b4 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2786,6 +2976,7 @@ geospatial analytics.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2806,10 +2997,100 @@ geospatial analytics.
 =======
 >>>>>>> locatelli-main
 
+=======
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+- https://www.geomesa.org/
+=======
+=======
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 In the following sections you can find some guidelines on how to contribute.
 As PROJ is managed on GitHub most contributions require that you have a GitHub
 account. Familiarity with [issues](https://guides.github.com/features/issues/) and
 the [GitHub Flow](https://guides.github.com/introduction/flow/) is an advantage.
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 6843cbd899f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> 03e7ed27006 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.geomesa.org/
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 
 ## Help a fellow PROJ user
 The main forum for support for PROJ is the mailing list. You can subscribe to
@@ -2821,7 +3102,79 @@ Please *do not* use the GitHub issue tracker as a support forum. Your question i
 more likely to be answered on the mailing list, as many more people follow that than
 the issue tracker.
 
+<<<<<<< HEAD
 ## Adding bug reports
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+- https://www.eclipse.org/legal/ECA.php 
+=======
+## Adding bug reports
+>>>>>>> 6843cbd899f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> 03e7ed27006 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+- http://www.eclipse.org/legal/ECA.php 
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Adding bug reports
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 
 Bug reports are handled in the [issue tracker](https://github.com/OSGeo/PROJ/issues)
 on PROJ's home on GitHub. Writing a good bug report is not easy. But fixing a poorly
@@ -2871,7 +3224,118 @@ If you intend to document one of PROJ's supported projections please use the
 [Mercator projection](https://proj.org/operations/projections/merc.html) as a template.
 
 
+<<<<<<< HEAD
 ## Code contributions
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 03e7ed27006 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+* An initial pull request should consist of a single commit, rebased on top of the current main branch.
+  * Additional commits can be added in response to code review comments.
+* The commit message must consist of a JIRA ticket number followed by a short description, with additional
+  information in bullets below as required.
+  * See e.g. https://github.com/locationtech/geomesa/commit/1f345132a717816d5a4951f73b2b73537fce305b
+* Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+  GeoMesa tries to adhere to the official Scala style guide: https://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+=======
+## Code contributions
+>>>>>>> 6843cbd899f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> 03e7ed27006 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+  GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
+* Code should include unit tests when appropriate.
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+## Code contributions
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 
 See [Code Contributions](https://proj.org/community/code_contributions.html)
 
@@ -2880,12 +3344,122 @@ Committers are the front line gatekeepers to keep the code base clear of imprope
 It is important to the PROJ users, developers and the OSGeo foundation to avoid contributing any
 code to the project without it being clearly licensed under the project license.
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+GeoMesa uses the [License Maven Plugin](https://code.mycila.com/license-maven-plugin/) to help manage copyright
+headers. This plugin runs as part of the default build, and will fail if any files do not contain a valid header.
+To add a new copyright owner, a template file can be placed under `build/copyright/` and added to the
+`<validHeaders>` block in the root pom.xml.
+=======
+=======
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 Generally speaking the key issues are that those providing code to be included in the repository
 understand that the code will be released under the MIT/X license, and that the person providing
 the code has the right to contribute the code. For the committer themselves understanding about
 the license is hopefully clear. For other contributors, the committer should verify the understanding
 unless the committer is very comfortable that the contributor understands the license (for
 instance frequent contributors).
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 6843cbd899f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+=======
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+GeoMesa uses the [License Maven Plugin](http://code.mycila.com/license-maven-plugin/) to help manage copyright
+headers. This plugin runs as part of the default build, and will fail if any files do not contain a valid header.
+To add a new copyright owner, a template file can be placed under `build/copyright/` and added to the
+`<validHeaders>` block in the root pom.xml.
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 03e7ed27006 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e41aa813db8 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> fedb7240349 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 188a4a2926c (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> c05acb75a02 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 6da99dfb276 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 20962c93f4e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> d4bc3a74d69 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26762293fda (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e615f409944 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 468115f7a54 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 48b994d852f (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> fbe28cece9b (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 5122654f2df (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 8d6c968689e (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> f7180172424 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 
 If the contribution was developed on behalf of an employer (on work time, as part of a work project,
 etc) then it is important that an appropriate representative of the employer understand that the

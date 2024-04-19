@@ -16,7 +16,7 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
 import org.locationtech.geomesa.convert.xml.XmlConverter._
 import org.locationtech.geomesa.convert.xml.XmlConverterFactory.{XmlConfigConvert, XmlFieldConvert, XmlNamer, XmlOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
-import org.locationtech.geomesa.convert2.TypeInference.{Namer, PathWithValues, TypeWithPath}
+import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, Namer, PathWithValues, TypeWithPath}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -109,8 +109,11 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
             val inferredTypes = TypeInference.infer(pathsAndValues, sft.toRight("inferred-xml"), namer)
 
             val fieldConfig = inferredTypes.types.map { case TypeWithPath(path, inferredType) =>
-              // account for optional nodes by wrapping transform with a try/null
-              val transform = Some(Expression(s"try(${inferredType.transform.apply(0)},null)"))
+              val transform = inferredType.transform match {
+                case IdentityTransform => None
+                // account for optional nodes by wrapping transform with a try/null
+                case t => Some(Expression(s"try(${t.apply(0)},null)"))
+              }
               if (path.isEmpty) {
                 DerivedField(inferredType.name, transform)
               } else {
