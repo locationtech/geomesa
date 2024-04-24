@@ -195,8 +195,6 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
     }
     if (path.isEmpty) {
       DerivedField(inferredType.name, transform)
-    } else if (path == JsonConverterFactory.GeoJsonGeometryPath) {
-      GeometryJsonField(inferredType.name, path, pathIsRoot = false, None)
     } else {
       inferredType.typed match {
         case ObjectType.BOOLEAN =>
@@ -205,6 +203,8 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           // if type is list, that means the transform is 'identity', but we need to replace it with jsonList.
           // this is due to GeoJsonParsing decoding the json array for us, above
           ArrayJsonField(inferredType.name, path, pathIsRoot = false, Some(Expression("try(jsonList('string',$0),null)")))
+        case t if transform.isEmpty && (t == ObjectType.GEOMETRY || ObjectType.GeometrySubtypes.contains(t)) =>
+          GeometryJsonField(inferredType.name, path, pathIsRoot = false, None)
         case _ =>
           // all other types will be parsed as strings with appropriate transforms
           StringJsonField(inferredType.name, path, pathIsRoot = false, transform)

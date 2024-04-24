@@ -6,24 +6,23 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.io.AvroDataFileWriter
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
+import java.io.OutputStream
 import java.util.zip.Deflater
 
-class AvroExporter(stream: ExportStream, compression: Option[Int], opts: Set[SerializationOption] = Set.empty)
-    extends ByteCounterExporter(stream) {
+class AvroExporter(out: OutputStream, compression: Option[Int], opts: Set[SerializationOption] = Set.empty)
+    extends FeatureExporter {
 
   private var writer: AvroDataFileWriter = _
 
   override def start(sft: SimpleFeatureType): Unit =
-    writer = new AvroDataFileWriter(stream.os, sft, compression.getOrElse(Deflater.DEFAULT_COMPRESSION), opts)
+    writer = new AvroDataFileWriter(out, sft, compression.getOrElse(Deflater.DEFAULT_COMPRESSION), opts)
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
@@ -37,6 +36,6 @@ class AvroExporter(stream: ExportStream, compression: Option[Int], opts: Set[Ser
 
   override def close(): Unit = {
     CloseWithLogging(Option(writer))
-    stream.close()
+    out.close()
   }
 }

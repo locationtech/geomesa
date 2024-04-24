@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.tools.`export`
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -61,13 +61,35 @@ object ExportFormat {
   // note: these estimated sizes are based on exporting 86602 gdelt records from 2018-01-01
   // with the attributes GLOBALEVENTID,SQLDATE,MonthYear,Actor1Code,Actor1Name,dtg,geom
 
-  case object Arrow extends ExportFormat("arrow", Seq("arrow"), true, true, 6.6f) with ArrowBytesPerFeature
+  case object Arrow extends ExportFormat("arrow", Seq("arrow"), true, true, 6.6f) {
+    override def bytesPerFeature(sft: SimpleFeatureType): Float = {
+      val base = super.bytesPerFeature(sft)
+      if (sft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
+        base * 1000 // default batch size
+      } else {
+        base
+      }
+    }
+  }
 
   case object Avro extends ExportFormat("avro", Seq("avro"), true, true, 1.9f)
 
   case object AvroNative extends ExportFormat("avro-native", Seq("avro"), true, true, 1.9f)
 
-  case object Bin extends ExportFormat("bin", Seq("bin"), true, true, -1) with BinBytesPerFeature
+  case object Bin extends ExportFormat("bin", Seq("bin"), true, true, -1) {
+    override def bytesPerFeature(sft: SimpleFeatureType): Float = {
+      val base = bytesPerFeatureProperty.toInt.orElse(ExportFormat.BytesPerFeatureProperty.toInt).getOrElse {
+        // note: assume there is a label field, which, if wrong, should cause us
+        // to under-count but then adjust and keep writing
+        24
+      }
+      if (sft == BinaryOutputEncoder.BinEncodedSft) {
+        base * 1000 // default batch size
+      } else {
+        base
+      }
+    }
+  }
 
   case object Csv extends ExportFormat("csv", Seq("csv"), true, true, 12)
 
@@ -88,30 +110,4 @@ object ExportFormat {
   case object Shp extends ExportFormat("shp", Seq("shp"), false, false, 105)
 
   case object Tsv extends ExportFormat("tsv", Seq("tsv"), true, true,  12)
-
-  trait ArrowBytesPerFeature extends ExportFormat {
-    abstract override def bytesPerFeature(sft: SimpleFeatureType): Float = {
-      val base = super.bytesPerFeature(sft)
-      if (sft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
-        base * 1000 // default batch size
-      } else {
-        base
-      }
-    }
-  }
-
-  trait BinBytesPerFeature extends ExportFormat {
-    override def bytesPerFeature(sft: SimpleFeatureType): Float = {
-      val base = bytesPerFeatureProperty.toInt.orElse(ExportFormat.BytesPerFeatureProperty.toInt).getOrElse {
-        // note: assume there is a label field, which, if wrong, should cause us
-        // to under-count but then adjust and keep writing
-        24
-      }
-      if (sft == BinaryOutputEncoder.BinEncodedSft) {
-        base * 1000 // default batch size
-      } else {
-        base
-      }
-    }
-  }
 }

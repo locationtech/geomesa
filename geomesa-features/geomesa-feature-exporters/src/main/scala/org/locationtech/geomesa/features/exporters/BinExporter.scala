@@ -6,16 +6,16 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.`export`.formats
+package org.locationtech.geomesa.features.exporters
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 
-class BinExporter(stream: ExportStream, hints: Hints) extends ByteCounterExporter(stream) {
+import java.io.OutputStream
+
+class BinExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -38,20 +38,20 @@ class BinExporter(stream: ExportStream, hints: Hints) extends ByteCounterExporte
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     val count = encoder match {
-      case Some(e) => e.encode(features, stream.os)
+      case Some(e) => e.encode(features, out)
       case None =>
         var numBytes = 0L
         // just copy bytes directly out
         features.foreach { f =>
           val bytes = f.getAttribute(0).asInstanceOf[Array[Byte]]
-          stream.os.write(bytes)
+          out.write(bytes)
           numBytes += bytes.length
         }
         numBytes / (if (label) { 24 } else { 16 })
     }
-    stream.os.flush()
+    out.flush()
     Some(count)
   }
 
-  override def close(): Unit = stream.close()
+  override def close(): Unit = out.close()
 }

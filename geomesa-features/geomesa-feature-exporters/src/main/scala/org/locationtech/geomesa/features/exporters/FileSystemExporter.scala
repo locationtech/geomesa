@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
@@ -21,9 +21,7 @@ import org.locationtech.geomesa.utils.io.PathUtils
 /**
   * Export to a FileSystem data store format
   */
-abstract class FileSystemExporter(path: String) extends FeatureExporter {
-
-  private lazy val handle = PathUtils.getHandle(path)
+abstract class FileSystemExporter extends FeatureExporter {
 
   private var writer: FileSystemWriter = _
 
@@ -43,8 +41,6 @@ abstract class FileSystemExporter(path: String) extends FeatureExporter {
     Some(i)
   }
 
-  override def bytes: Long = handle.length
-
   override def close(): Unit = {
     if (writer != null) {
       writer.close()
@@ -54,7 +50,7 @@ abstract class FileSystemExporter(path: String) extends FeatureExporter {
 
 object FileSystemExporter extends LazyLogging {
 
-  class ParquetFileSystemExporter(path: String) extends FileSystemExporter(path) {
+  class ParquetFileSystemExporter(path: String) extends FileSystemExporter {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
       val conf = new Configuration()
       StorageConfiguration.setSft(conf, sft)
@@ -68,7 +64,7 @@ object FileSystemExporter extends LazyLogging {
     }
   }
 
-  class OrcFileSystemExporter(path: String) extends FileSystemExporter(path) {
+  class OrcFileSystemExporter(path: String) extends FileSystemExporter {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
       // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
       new OrcFileSystemWriter(sft, new Configuration(), new Path(PathUtils.getUrl(path).toURI))

@@ -41,9 +41,6 @@ class FsManageMetadataCommandTest extends Specification {
       ScalaSimpleFeature.create(sft, "2", "name1", "2022-01-01T00:00:00.000Z", "POINT (0 0)")
     )
 
-  val gzipXml =
-    "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>"
-
   val counter = new AtomicInteger(0)
 
   def nextPath(): String =
@@ -52,7 +49,7 @@ class FsManageMetadataCommandTest extends Specification {
   "ManageMetadata command" should {
     "find file inconsistencies" in {
       val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -73,7 +70,7 @@ class FsManageMetadataCommandTest extends Specification {
         val command = new FsManageMetadataCommand.CheckConsistencyCommand()
         command.params.path = dir
         command.params.featureName = sft.getTypeName
-        command.params.configuration = Collections.singletonList(s"fs.config.xml=$gzipXml")
+        command.params.configuration = Collections.singletonList(s"fs.config.xml=${HadoopSharedCluster.ContainerConfig}")
         command.params.repair = true
         command.execute()
 
@@ -89,7 +86,7 @@ class FsManageMetadataCommandTest extends Specification {
     }
     "rebuild metadata from scratch" in {
       val dir = nextPath()
-      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
       WithClose(DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]) { ds =>
         ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
@@ -114,7 +111,7 @@ class FsManageMetadataCommandTest extends Specification {
         val command = new FsManageMetadataCommand.CheckConsistencyCommand()
         command.params.path = dir
         command.params.featureName = sft.getTypeName
-        command.params.configuration = Collections.singletonList(s"fs.config.xml=$gzipXml")
+        command.params.configuration = Collections.singletonList(s"fs.config.xml=${HadoopSharedCluster.ContainerConfig}")
         command.params.rebuild = true
         command.execute()
 

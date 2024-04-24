@@ -27,6 +27,8 @@ object ObjectType extends Enumeration {
   // string sub-types
   val JSON = Value
 
+  val GeometrySubtypes = Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION)
+
   /**
    * @see selectType(clazz: Class[_], metadata: java.util.Map[_, _])
    *

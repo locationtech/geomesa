@@ -13,7 +13,8 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.impl.CoordinateArraySequence
 
-import java.util.Collections
+import java.util.{Collections, Locale}
+import scala.util.{Failure, Success, Try}
 
 
 trait GeoJsonParsing {
@@ -82,10 +83,53 @@ trait GeoJsonParsing {
     * @return
     */
   def parseGeometry(el: JsonElement): Geometry = el match {
-    case o: JsonObject    => parseGeometryObject(o)
+    case o: JsonObject    => parseGeometryObject(o).get
     case o: JsonPrimitive => WKTUtils.read(o.getAsString)
     case _: JsonNull      => null.asInstanceOf[Geometry]
     case _ => throw new IllegalArgumentException(s"Unknown geometry type: $el")
+  }
+
+
+  /**
+   * Parse a json element
+   *
+   * @param elem element
+   * @param path json path to the object
+   * @return map of key is json path to value, value is a string, boolean or list[string]
+   */
+  def parseElement(elem: JsonElement, path: String): Seq[(String, Any)] = {
+    elem match {
+      case e: JsonPrimitive =>
+        if (e.isBoolean) {
+          Seq(path -> e.getAsBoolean)
+        } else {
+          // note: gson numbers don't have a defined type so type checking doesn't work
+          Seq(path -> e.getAsString)
+        }
+
+      case e: JsonObject =>
+        parseGeometryObject(e) match {
+          case Success(geom) => Seq(path -> geom)
+          case Failure(_) =>
+            val builder = Seq.newBuilder[(String, Any)]
+            e.entrySet().asScala.foreach { entry =>
+              builder ++= parseElement(entry.getValue, s"$path['${entry.getKey}']")
+            }
+            builder.result
+        }
+
+      case e: JsonArray =>
+        val list = new java.util.ArrayList[String](e.size())
+        var i = 0
+        while (i < e.size()) {
+          list.add(e.get(i).toString)
+          i += 1
+        }
+        Seq(path -> Collections.unmodifiableList(list))
+
+      case _ =>
+        Seq.empty // no-op
+    }
   }
 
   /**
@@ -94,33 +138,42 @@ trait GeoJsonParsing {
     * @param obj object
     * @return
     */
-  private def parseGeometryObject(obj: JsonObject): Geometry = {
-    obj.get(TypeKey).getAsString.toLowerCase match {
+  private def parseGeometryObject(obj: JsonObject): Try[Geometry] = {
+    val geomType = obj.get(TypeKey)
+
+    if (geomType == null || !geomType.isJsonPrimitive) {
+      return Failure(new RuntimeException("Not a Geometry object"))
+    }
+
+    geomType.getAsString.toLowerCase(Locale.US) match {
       case "point" =>
-        factory.createPoint(toPointCoords(obj.get(CoordinatesKey)))
+        Try(factory.createPoint(toPointCoords(obj.get(CoordinatesKey))))
 
       case "linestring" =>
-        factory.createLineString(toCoordSeq(obj.get(CoordinatesKey)))
+        Try(factory.createLineString(toCoordSeq(obj.get(CoordinatesKey))))
 
       case "polygon" =>
-        toPolygon(obj.get(CoordinatesKey))
+        Try(toPolygon(obj.get(CoordinatesKey)))
 
       case "multipoint" =>
-        factory.createMultiPoint(toCoordSeq(obj.get(CoordinatesKey)))
+        Try(factory.createMultiPoint(toCoordSeq(obj.get(CoordinatesKey))))
 
       case "multilinestring" =>
-        val coords = obj.get(CoordinatesKey).getAsJsonArray.asScala
-            .map(c => factory.createLineString(toCoordSeq(c))).toArray
-        factory.createMultiLineString(coords)
+        Try {
+          val coords =
+            obj.get(CoordinatesKey).getAsJsonArray.asScala
+              .map(c => factory.createLineString(toCoordSeq(c))).toArray
+          factory.createMultiLineString(coords)
+        }
 
       case "multipolygon" =>
-        factory.createMultiPolygon(obj.get(CoordinatesKey).getAsJsonArray.asScala.map(toPolygon).toArray)
+        Try(factory.createMultiPolygon(obj.get(CoordinatesKey).getAsJsonArray.asScala.map(toPolygon).toArray))
 
       case "geometrycollection" =>
-        factory.createGeometryCollection(obj.get(GeometriesKey).getAsJsonArray.asScala.map(parseGeometry).toArray)
+        Try(factory.createGeometryCollection(obj.get(GeometriesKey).getAsJsonArray.asScala.map(parseGeometry).toArray))
 
       case unknown =>
-        throw new NotImplementedError(s"Can't parse geometry type of $unknown")
+        Failure(new NotImplementedError(s"Can't parse geometry type of $unknown"))
     }
   }
 
@@ -151,9 +204,7 @@ trait GeoJsonParsing {
   }
 }
 
-object GeoJsonParsing {
-
-  import scala.collection.JavaConverters._
+object GeoJsonParsing extends GeoJsonParsing {
 
   /**
    * Parsed geojson feature element
@@ -176,41 +227,4 @@ object GeoJsonParsing {
   private val GeometriesKey = "geometries"
   private val IdKey = "id"
 
-  /**
-   * Parse a json element
-   *
-   * @param elem element
-   * @param path json path to the object
-   * @return map of key is json path to value, value is a string, boolean or list[string]
-   */
-  def parseElement(elem: JsonElement, path: String): Seq[(String, Any)] = {
-    elem match {
-      case e: JsonPrimitive =>
-        if (e.isBoolean) {
-          Seq(path -> e.getAsBoolean)
-        } else {
-          // note: gson numbers don't have a defined type so type checking doesn't work
-          Seq(path -> e.getAsString)
-        }
-
-      case e: JsonObject =>
-        val builder = Seq.newBuilder[(String, Any)]
-        e.entrySet().asScala.foreach { entry =>
-          builder ++= parseElement(entry.getValue, s"$path['${entry.getKey}']")
-        }
-        builder.result
-
-      case e: JsonArray =>
-        val list = new java.util.ArrayList[String](e.size())
-        var i = 0
-        while (i < e.size()) {
-          list.add(e.get(i).toString)
-          i += 1
-        }
-        Seq(path -> Collections.unmodifiableList(list))
-
-      case _ =>
-        Seq.empty // no-op
-    }
-  }
 }

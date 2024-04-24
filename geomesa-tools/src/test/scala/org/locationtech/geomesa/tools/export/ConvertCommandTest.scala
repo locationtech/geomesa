@@ -13,7 +13,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.tools.export.formats.ExportFormat
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.utils.io.PathUtils

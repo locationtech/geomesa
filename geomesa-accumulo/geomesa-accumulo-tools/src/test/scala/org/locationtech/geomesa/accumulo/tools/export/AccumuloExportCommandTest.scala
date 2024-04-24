@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.export
+package org.locationtech.geomesa.accumulo.tools.`export`
 
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
@@ -31,7 +31,7 @@ import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
-import org.locationtech.geomesa.tools.export.formats.ExportFormat
+import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -6,13 +6,14 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.kafka.tools.export
+package org.locationtech.geomesa.kafka.tools.`export`
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.geotools.api.data.{FeatureEvent, FeatureListener, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.TransformSimpleFeature
+import org.locationtech.geomesa.features.exporters.FeatureExporter
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.ConsumerDataStoreParams
 import org.locationtech.geomesa.kafka.tools.KafkaDataStoreCommand.KafkaDistributedCommand
@@ -20,7 +21,6 @@ import org.locationtech.geomesa.kafka.tools.export.KafkaExportCommand._
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 

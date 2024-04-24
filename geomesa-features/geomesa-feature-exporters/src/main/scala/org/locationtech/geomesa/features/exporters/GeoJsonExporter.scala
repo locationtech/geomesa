@@ -6,23 +6,21 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import com.google.gson.stream.JsonWriter
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 
-import java.io.OutputStreamWriter
+import java.io.{OutputStream, OutputStreamWriter}
 
-class GeoJsonExporter(stream: ExportStream) extends ByteCounterExporter(stream) {
+class GeoJsonExporter(out: OutputStream) extends FeatureExporter {
 
   private var writer: JsonWriter = _
   private var serializer: GeoJsonSerializer = _
 
   override def start(sft: SimpleFeatureType): Unit = {
-    writer = GeoJsonSerializer.writer(new OutputStreamWriter(stream.os))
+    writer = GeoJsonSerializer.writer(new OutputStreamWriter(out))
     serializer = new GeoJsonSerializer(sft)
     serializer.startFeatureCollection(writer)
   }
@@ -42,7 +40,7 @@ class GeoJsonExporter(stream: ExportStream) extends ByteCounterExporter(stream) 
       if (serializer != null) {
         serializer.endFeatureCollection(writer)
         writer.flush()
-        stream.os.write('\n')
+        out.write('\n')
       }
     } finally {
       if (writer != null) {

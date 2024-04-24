@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.tools
 
+import org.locationtech.geomesa.kafka.tools.ingest.KafkaPlaybackCommand
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object KafkaRunner extends Runner {
@@ -23,6 +24,7 @@ object KafkaRunner extends Runner {
       new export.KafkaListenCommand,
       new export.KafkaExportCommand,
       new ingest.KafkaIngestCommand,
+      new KafkaPlaybackCommand,
       new status.KafkaDescribeSchemaCommand,
       new status.KafkaGetSftConfigCommand,
       new status.KafkaGetTypeNamesCommand

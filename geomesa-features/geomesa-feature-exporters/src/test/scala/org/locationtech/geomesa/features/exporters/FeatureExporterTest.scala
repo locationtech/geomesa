@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export
+package org.locationtech.geomesa.features.exporters
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
@@ -14,14 +14,12 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteExportStream
-import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.zip.Deflater
@@ -46,7 +44,7 @@ class FeatureExporterTest extends Specification {
   "DelimitedExport" should {
     "properly export to CSV" >> {
       val features = createFeatures("DelimitedExportTest")
-      val os = new ByteExportStream()
+      val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = true, includeIds = true)
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
@@ -64,7 +62,7 @@ class FeatureExporterTest extends Specification {
       // simulate a projecting read
       val sft = SimpleFeatureTypes.createType("DelimitedExportTest", "name:String,dtg:Date")
       val features = createFeatures("DelimitedExportTest").map(DataUtilities.reType(sft, _))
-      val os = new ByteExportStream()
+      val os = new ByteArrayOutputStream()
       val export = DelimitedExporter.csv(os, withHeader = false, includeIds = false)
       export.start(sft)
       export.export(features.iterator)
@@ -80,7 +78,7 @@ class FeatureExporterTest extends Specification {
 
     "properly export to avro" >> {
       val features = createFeatures("AvroExportTest", 10)
-      val os = new ByteExportStream()
+      val os = new ByteArrayOutputStream()
       val export = new AvroExporter(os, Some(Deflater.NO_COMPRESSION))
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
@@ -103,7 +101,7 @@ class FeatureExporterTest extends Specification {
       val features = createFeatures("AvroExportTest", 10)
 
       val uncompressed :: compressed :: Nil = List(Deflater.NO_COMPRESSION, Deflater.DEFAULT_COMPRESSION).map { c =>
-        val os = new ByteExportStream()
+        val os = new ByteArrayOutputStream()
         val export = new AvroExporter(os, Option(c))
         export.start(features.head.getFeatureType)
         export.export(features.iterator)

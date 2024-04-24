@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export.formats
+package org.locationtech.geomesa.features.exporters
 
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -15,14 +15,12 @@ import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, FormatVersion, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
-import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
+import org.locationtech.geomesa.features.exporters.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io._
 
-class ArrowExporter(stream: ExportStream, hints: Hints) extends ByteCounterExporter(stream) {
+class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -36,15 +34,15 @@ class ArrowExporter(stream: ExportStream, hints: Hints) extends ByteCounterExpor
 
   override def start(sft: SimpleFeatureType): Unit = {
     delegate = if (sft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
-      new EncodedDelegate(stream.os)
+      new EncodedDelegate(out)
     } else if (dictionaryFields.isEmpty) {
       // note: features should be sorted already, even if arrow encoding wasn't performed
-      new BatchDelegate(stream.os, encoding, FormatVersion.options(ipc), sort, batchSize, Map.empty)
+      new BatchDelegate(out, encoding, FormatVersion.options(ipc), sort, batchSize, Map.empty)
     } else {
       if (sort.isDefined) {
         throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
       }
-      new DictionaryDelegate(stream.os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
+      new DictionaryDelegate(out, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
     }
     delegate.start(sft)
   }
@@ -53,7 +51,7 @@ class ArrowExporter(stream: ExportStream, hints: Hints) extends ByteCounterExpor
 
   override def close(): Unit = {
     CloseWithLogging(Option(delegate))
-    stream.close()
+    out.close()
   }
 }
 
@@ -66,7 +64,6 @@ object ArrowExporter {
       features.foreach(f => os.write(f.getAttribute(0).asInstanceOf[Array[Byte]]))
       None // we don't know the actual count
     }
-    override def bytes: Long = 0L
     override def close(): Unit = {}
   }
 
@@ -97,8 +94,6 @@ object ArrowExporter {
       }
       Some(count - start)
     }
-
-    override def bytes: Long = 0L
 
     override def close(): Unit = {
       if (writer != null) {
@@ -138,8 +133,6 @@ object ArrowExporter {
       }
       Some(count - start)
     }
-
-    override def bytes: Long = 0L
 
     override def close(): Unit = {
       if (writer != null) {
