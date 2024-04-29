@@ -111,14 +111,16 @@ For more details on implementing a service provider, see the
 Error Mode
 ~~~~~~~~~~
 
-There are two types of modes for handling errors:
+There are three modes for handling errors:
 
-* ``skip-bad-records``
+* ``log-errors``
 * ``raise-errors``
+* ``return-errors``
 
 ``raise-errors`` mode will throw an IOException if bad data is detected based on parsing or validation. This can
-be especially useful when first developing and testing a converter definition. ``skip-bad-records`` mode will
-still provide debug level logging but will not throw an exception. To configure the
+be especially useful when first developing and testing a converter definition. ``log-errors`` mode will
+still provide debug level logging but will not throw an exception. ``return-errors`` will expose error details through
+the evaluation context, and is generally only useful when using converters programmatically. To configure the
 error mode add the following option to your converter's typesafe config:
 
 ::

@@ -59,6 +59,14 @@ trait EvaluationContext {
   def failure: com.codahale.metrics.Counter
 
   /**
+   * Access to any errors that have occurred - note that errors will generally only be kept if the converter
+   * error mode is set to `ReturnErrors`
+   *
+   * @return
+   */
+  def errors: java.util.Queue[EvaluationError]
+
+  /**
    * Gets a references to a field's value
    *
    * @param name field name
@@ -189,7 +197,8 @@ object EvaluationContext extends LazyLogging {
       val cache: Map[String, EnrichmentCache],
       val metrics: ConverterMetrics,
       val success: Counter,
-      val failure: Counter
+      val failure: Counter,
+      val errors: java.util.Queue[EvaluationError] = new java.util.ArrayDeque[EvaluationError]()
     ) extends EvaluationContext {
 
     // holder for results from evaluating each row

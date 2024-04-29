@@ -1378,6 +1378,59 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "return errors in the evaluation context" >> {
+      val jsonStr =
+        """{ id: 1, number: 123, color: "red", lat: 1, lon: 1 }
+          |{ id: 2, number: 456, color: "blue", lat: 200, lon: 2 }
+          |{ id: 3, number: 789, color: "green", lat: 3 }
+          |{ id: 4, number: 321, color: "yellow", lat: 4, lon: 4 }
+        """.stripMargin
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   options = {
+          |     error-mode: "return-errors"
+          |   }
+          |   fields = [
+          |     { name = "id",     json-type = "integer", path = "$.id",               transform = "toString($0)"      }
+          |     { name = "number", json-type = "integer", path = "$.number",                                           }
+          |     { name = "color",  json-type = "string",  path = "$.color",            transform = "trim($0)"          }
+          |     { name = "lat",    json-type = "double",  path = "$.lat",                                              }
+          |     { name = "lon",    json-type = "double",  path = "$.lon",                                              }
+          |     { name = "geom",                                                       transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(2)
+        features(0).getID mustEqual "1"
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getDefaultGeometry mustEqual WKTUtils.read("POINT (1 1)")
+        features(1).getID mustEqual "4"
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 321
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "yellow"
+        features(1).getDefaultGeometry mustEqual WKTUtils.read("POINT (4 4)")
+
+        ec.errors.size() mustEqual 2
+        val e1 = ec.errors.poll()
+        val e2 = ec.errors.poll()
+        e1.field must beNull
+        e1.e.getCause must not(beNull)
+        e1.e.getCause.getMessage must contain("Validation error")
+        e2.field mustEqual "geom"
+        e2.e.getCause must not(beNull)
+        e2.e.getCause.getMessage must contain("Invalid point")
+        ec.errors.size() mustEqual 0
+      }
+    }
+
     "infer schema from geojson files" >> {
       val json =
         """{

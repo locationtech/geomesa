@@ -68,7 +68,7 @@ satisfaction, then used for the entire data set with a distributed ingest.
 See :ref:`cli_converter_conf` for more details on specifying the converter.
 
 The ``converter-error-mode`` argument may be used to override the error mode defined in the converter. It must be
-one of ``skip-bad-records`` or ``raise-errors``.
+one of ``log-errors`` or ``raise-errors``.
 
 If the ``--feature-name`` is specified and the schema already exists, then ``--spec`` is not required. Likewise,
 if a converter is not defined, the schema will be inferred alongside the converter. Otherwise, ``--spec`` may be

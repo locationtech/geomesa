@@ -33,12 +33,27 @@ object Modes {
   type LineMode  = LineMode.Value
 
   object ErrorMode extends Enumeration with Modes {
+
     type Mode = Modes.ErrorMode
-    val SkipBadRecords: ErrorMode = Value("skip-bad-records")
     val RaiseErrors   : ErrorMode = Value("raise-errors")
+    val LogErrors     : ErrorMode = Value("log-errors")
+    val ReturnErrors  : ErrorMode = Value("return-errors")
     def Default       : ErrorMode = apply()
 
-    override protected val defaultValue: ErrorMode = SkipBadRecords
+    def apply(mode: String): ErrorMode = {
+      values.find(_.toString.equalsIgnoreCase(mode)) match {
+        case Some(m) => m
+        case None =>
+          if ("skip-bad-records".equalsIgnoreCase(mode)) {
+            LogErrors
+          } else {
+            throw new IllegalArgumentException(
+              s"Invalid error mode '$mode'. Valid values are ${values.mkString("'", "', '", "'")}")
+          }
+      }
+    }
+
+    override protected val defaultValue: ErrorMode = LogErrors
     override val systemProperty: SystemProperty =
       SystemProperty("geomesa.converter.error.mode.default", defaultValue.toString)
   }
