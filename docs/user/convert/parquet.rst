@@ -161,7 +161,7 @@ The following SimpleFeatureType and converter would be sufficient to parse the r
           ],
           "options" : {
             "encoding" : "UTF-8",
-            "error-mode" : "skip-bad-records",
+            "error-mode" : "log-errors",
             "parse-mode" : "incremental",
             "validators" : [ "index" ]
           }

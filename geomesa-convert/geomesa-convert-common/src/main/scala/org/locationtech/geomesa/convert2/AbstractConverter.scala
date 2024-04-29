@@ -148,7 +148,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val hist = ec.metrics.histogram("parse.nanos")
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure, hist), ec)
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, hist), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator((new ListBuffer() ++= converted).iterator, converted.close())
@@ -254,14 +254,13 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
       case Left(error) =>
         ec.failure.inc()
-        if (options.errorMode == ErrorMode.RaiseErrors) {
-          throw new IOException(errorMessage(error, rawValues, verbose = true), error.e)
-        }
-        // SkipBadRecords
-        if (logger.underlying.isDebugEnabled) {
-          logger.debug(errorMessage(error, rawValues, verbose = true), error.e)
-        } else if (logger.underlying.isInfoEnabled) {
-          logger.info(errorMessage(error, rawValues, verbose = false))
+        def msg(verbose: Boolean): String = errorMessage(error, rawValues, verbose)
+        options.errorMode match {
+          case ErrorMode.LogErrors if logger.underlying.isDebugEnabled => logger.debug(msg(verbose = true), error.e)
+          case ErrorMode.LogErrors if logger.underlying.isInfoEnabled => logger.info(msg(verbose = false))
+          case ErrorMode.ReturnErrors => ec.errors.add(error.copy(e = new IOException(msg(verbose = true), error.e)))
+          case ErrorMode.RaiseErrors => throw new IOException(msg(verbose = true), error.e)
+          case _ => // no-op
         }
         CloseableIterator.empty
     }

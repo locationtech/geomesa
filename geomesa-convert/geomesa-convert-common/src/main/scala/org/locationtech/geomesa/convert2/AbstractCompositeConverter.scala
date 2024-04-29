@@ -82,7 +82,7 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
     }
 
     val hist = predicates.head.context.metrics.histogram("parse.nanos")
-    new ErrorHandlingIterator(parse(is, ec), errorMode, ec.failure, hist).flatMap(eval)
+    new ErrorHandlingIterator(parse(is, ec), errorMode, ec, hist).flatMap(eval)
   }
 
   override def close(): Unit = CloseWithLogging(delegates.map(_._2))
@@ -97,6 +97,7 @@ object AbstractCompositeConverter {
     override def accessor(name: String): FieldAccessor = throw new NotImplementedError()
     override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] =
       throw new NotImplementedError()
+    override def errors: java.util.Queue[EvaluationError] = throw new NotImplementedError()
   }
 
   object CompositeEvaluationContext {

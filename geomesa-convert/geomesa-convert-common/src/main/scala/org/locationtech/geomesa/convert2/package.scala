@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa
 
-import com.codahale.metrics.{Counter, Histogram}
+import com.codahale.metrics.Histogram
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
+import java.io.IOException
 import java.nio.charset.Charset
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
@@ -82,13 +85,13 @@ package object convert2 {
     *
     * @param underlying wrapped iterator
     * @param mode error mode
-    * @param counter counter for failures
+    * @param ec EvaluationContext for tracking errors
     * @param times histogram for tracking convert times
     */
   class ErrorHandlingIterator[T](
       underlying: CloseableIterator[T],
       mode: ErrorMode,
-      counter: Counter,
+      ec: EvaluationContext,
       times: Histogram
     ) extends CloseableIterator[T] with LazyLogging {
 
@@ -109,10 +112,11 @@ package object convert2 {
           }
         } catch {
           case NonFatal(e) =>
-            counter.inc()
+            ec.failure.inc()
             mode match {
-              case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
-              case ErrorMode.RaiseErrors => throw e
+              case ErrorMode.LogErrors => logger.warn("Failed parsing input: ", e)
+              case ErrorMode.ReturnErrors => ec.errors.add(EvaluationError(null, ec.line, new IOException("Failed parsing input: ", e)))
+              case ErrorMode.RaiseErrors => throw new IOException("Failed parsing input: ", e)
             }
             error = true
             false // usually parsing can't continue if there is an exception in the underlying read

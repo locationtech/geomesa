@@ -19,7 +19,7 @@ specifying the input source:
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterSpec``             | Converter specification string. Overridden by ConverterName if both are set.            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
+| ``ConverterErrorMode``        | Override the converter error mode (``log-errors`` or ``raise-errors``)                  |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterMetricReporters``  | Override the converter metrics reporters (see below)                                    |
 +-------------------------------+-----------------------------------------------------------------------------------------+
