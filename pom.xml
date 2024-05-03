@@ -354,7 +354,7 @@
                         <executions>
                             <execution>
                                 <id>makeBom</id>
-                                <phase>verify</phase>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>makeBom</goal>
                                 </goals>
@@ -3404,7 +3404,7 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
                             <goal>test-jar-no-fork</goal>
