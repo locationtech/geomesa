@@ -66,7 +66,7 @@
                                 <configuration>
                                     <target>
                                         <property name="build.directory" value="${project.build.directory}" />
-                                        <ant antfile="build.xml" target="${ant.target}" />
+                                        <ant antfile="build.xml" dir="${basedir}" target="${ant.target}" />
                                     </target>
                                 </configuration>
                                 <goals>
