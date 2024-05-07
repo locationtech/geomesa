@@ -18,6 +18,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -33,10 +34,30 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+    <version>5.1.0-SNAPSHOT</version>
+=======
+=======
+>>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 04c05827657 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 89c7c604010 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> 1027099a7ac ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> 8d42fac7ec3 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
     <version>5.0.0-SNAPSHOT</version>
 =======
 =======
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -74,6 +95,11 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
+=======
+=======
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -117,6 +143,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -141,6 +170,10 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+>>>>>>> 52370a94352 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 52370a94352 ([maven-release-plugin] prepare for next development iteration)
@@ -167,6 +200,7 @@
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -207,6 +241,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
@@ -227,6 +263,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -251,6 +290,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
@@ -268,6 +308,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -291,6 +333,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -308,6 +353,7 @@
 =======
     <version>4.0.0</version>
 >>>>>>> 2596fab215 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -374,10 +420,22 @@
 >>>>>>> locatelli-main
 >>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
+>>>>>>> 0f8ab31e50d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
+>>>>>>> 1d15d4996a6 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> locatelli-main
+=======
 =======
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> a1ab6c44ffe ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 554f4609770 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
@@ -399,6 +457,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -417,6 +478,7 @@
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> 90aae4f59d ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -465,6 +527,12 @@
 >>>>>>> locatelli-main
 >>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
+>>>>>>> d4780debd08 ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
+>>>>>>> 62f28739f09 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 3448c11b21f ([maven-release-plugin] prepare release geomesa-4.0.0)
 =======
@@ -477,6 +545,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -495,6 +566,7 @@
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> c5c85553f6 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -535,12 +607,19 @@
 >>>>>>> locatelli-main
 >>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> 4e658df6774 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
+>>>>>>> 72fc4dba33b ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 52370a94352 ([maven-release-plugin] prepare for next development iteration)
 =======
 >>>>>>> fc31a30e9f ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 >>>>>>> 097f05dc1de ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -559,6 +638,12 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 04c05827657 ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -566,6 +651,7 @@
     <version>4.1.0-SNAPSHOT</version>
 >>>>>>> c355e9f4d0 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> 0ea8471e76 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -606,10 +692,22 @@
 >>>>>>> locatelli-main
 >>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
 =======
+>>>>>>> d032d6a8377 ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
+>>>>>>> 89c7c604010 ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c88c49d289 ([maven-release-plugin] prepare release geomesa-4.0.0)
 <<<<<<< HEAD
 >>>>>>> 3448c11b21f ([maven-release-plugin] prepare release geomesa-4.0.0)
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 1027099a7ac ([maven-release-plugin] prepare release geomesa-4.0.0)
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 0e908b6f4b ([maven-release-plugin] prepare for next development iteration)
@@ -620,6 +718,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -632,6 +731,9 @@
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 8d42fac7ec3 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
   </parent>
   <modelVersion>4.0.0</modelVersion>

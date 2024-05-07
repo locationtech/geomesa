@@ -11,7 +11,7 @@ Installing Sphinx and its dependencies in a Python ``virtualenv``:
 
     $ virtualenv .sphinx && source .sphinx/bin/activate
     $ pip install -r requirements.txt
-    
+
 Alternatively use ``sudo`` with the ``pip`` command to install the packages in the system Python distribution.
 
     $ sudo pip install -r requirements.txt
@@ -49,7 +49,7 @@ when it prompts for input. It should build the whole document. If the
 table of contents doesn't render properly, delete ``GeoMesa.pdf``
 and run ``make`` again.
 
-To build a single HTML file containing all three manuals:
+To build a single HTML file containing all two manuals:
 
     $ mvn clean install -Pdocs,singlehtml
 

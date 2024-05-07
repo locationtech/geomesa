@@ -358,10 +358,11 @@ object AbstractConverterFactory extends LazyLogging {
         }
       }
 
-      def parse[T](key: String, values: Iterable[T]): Either[ConfigReaderFailures, T] = {
+      def parse[T](key: String, values: Iterable[T], fallback: Map[String, T] = Map.empty[String, T]): Either[ConfigReaderFailures, T] = {
         cur.atKey(key).right.flatMap { value =>
           value.asString.right.flatMap { string =>
-            values.find(_.toString.equalsIgnoreCase(string)) match {
+            val fb = fallback.collectFirst { case (k, v) if k.equalsIgnoreCase(string) => v }
+            values.find(_.toString.equalsIgnoreCase(string)).orElse(fb) match {
               case Some(v) => Right(v)
               case None => value.failed(CannotConvert(value.valueOpt.map(_.toString).orNull, values.head.getClass.getSimpleName, s"Must be one of: ${values.mkString(", ")}"))
             }
@@ -377,7 +378,7 @@ object AbstractConverterFactory extends LazyLogging {
         validators <- cur.atKey("validators").right.flatMap(_.asListCursor).right.flatMap(mergeValidators).right
         reporters  <- parseReporters(cur.atKeyOrUndefined("reporters")).right
         parseMode  <- parse("parse-mode", ParseMode.values).right
-        errorMode  <- parse("error-mode", ErrorMode.values).right
+        errorMode  <- parse("error-mode", ErrorMode.values, Map("skip-bad-records" -> ErrorMode.LogErrors)).right
         encoding   <- cur.atKey("encoding").right.flatMap(_.asString).right.map(Charset.forName).right
         options    <- decodeOptions(cur, validators, reporters, parseMode, errorMode, encoding).right
       } yield {

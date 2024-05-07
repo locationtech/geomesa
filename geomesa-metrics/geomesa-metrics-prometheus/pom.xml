@@ -6,6 +6,12 @@
 <<<<<<< HEAD:geomesa-metrics/geomesa-metrics-prometheus/pom.xml
         <artifactId>geomesa-metrics_2.12</artifactId>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        <version>5.1.0-SNAPSHOT</version>
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
         <version>5.0.0-SNAPSHOT</version>
 =======
         <version>4.1.0-SNAPSHOT</version>
@@ -32,6 +38,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -59,6 +66,13 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
+>>>>>>> 97948746494 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -73,6 +87,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
@@ -100,6 +115,13 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
+<<<<<<< HEAD
+>>>>>>> 4a074dd79bb ([maven-release-plugin] prepare for next development iteration)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -119,6 +141,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -146,6 +169,13 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
+>>>>>>> b827ee768c1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -162,6 +192,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
@@ -182,6 +213,10 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> af514868ade ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
     </parent>
     <modelVersion>4.0.0</modelVersion>

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import java.util.Date
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object ParameterConverters {
 
@@ -106,9 +106,9 @@ object ParameterConverters {
 
   class ErrorModeConverter(name: String) extends BaseConverter[ErrorMode](name) {
     override def convert(value: String): ErrorMode = {
-      ErrorMode.values.find(_.toString.equalsIgnoreCase(value)).getOrElse {
-        throw new ParameterException(s"Invalid error mode '$value'. Valid values are " +
-            ErrorMode.values.map(_.toString).mkString("'", "', '", "'"))
+      Try(ErrorMode(value)) match {
+        case Success(m) => m
+        case Failure(e) => throw new ParameterException(e.getMessage)
       }
     }
   }

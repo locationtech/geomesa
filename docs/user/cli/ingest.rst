@@ -58,7 +58,7 @@ The ``--converter`` argument may be any of the following:
 * The name of a file containing a converter configuration
 
 If a converter is not specified, GeoMesa will attempt to infer a converter definition based on the input files.
-Currently this supports GeoJSON, self-describing Avro, delimited text (TSV, CSV) or Shapefiles. If GeoMesa is able
+Currently this supports JSON, XML, self-describing Avro, delimited text (TSV, CSV), and Shapefiles. If GeoMesa is able
 to infer a schema and converter definition, the user can accept them as-is, or alternatively use them as the basis
 for a fully custom converter. If desired, the user can persist the inferred converter to file, which allows for
 easy modification and reuse. When ingesting a large data set, it can be useful to ingest a single file in local
@@ -68,7 +68,7 @@ satisfaction, then used for the entire data set with a distributed ingest.
 See :ref:`cli_converter_conf` for more details on specifying the converter.
 
 The ``converter-error-mode`` argument may be used to override the error mode defined in the converter. It must be
-one of ``skip-bad-records`` or ``raise-errors``.
+one of ``log-errors`` or ``raise-errors``.
 
 If the ``--feature-name`` is specified and the schema already exists, then ``--spec`` is not required. Likewise,
 if a converter is not defined, the schema will be inferred alongside the converter. Otherwise, ``--spec`` may be
