@@ -107,6 +107,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     static const std::string ANCHOREPOCH; // WKT2-2019
 =======
 <<<<<<< HEAD
@@ -162,6 +163,8 @@ class WKTConstants {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -188,6 +191,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -232,6 +238,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     static const std::string ANCHOREPOCH; // WKT2-2019
 >>>>>>> locationtech-main
 =======
@@ -241,6 +248,8 @@ class WKTConstants {
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -300,6 +309,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -353,6 +365,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 >>>>>>> location-main
@@ -391,6 +404,10 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -448,6 +465,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -478,6 +498,7 @@ class WKTConstants {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -529,6 +550,8 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -552,6 +575,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -597,11 +623,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -643,11 +672,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -703,11 +735,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -748,6 +783,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -755,6 +791,8 @@ class WKTConstants {
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -864,6 +902,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -960,18 +1001,16 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1006,6 +1045,11 @@ class WKTConstants {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1029,6 +1073,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1071,9 +1118,12 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1132,6 +1182,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1176,6 +1229,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1190,6 +1244,9 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1243,11 +1300,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1290,6 +1350,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1298,6 +1359,8 @@ class WKTConstants {
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1360,6 +1423,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1406,6 +1472,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     static const std::string GEOIDMODEL; // WKT2-2019
@@ -1492,6 +1559,9 @@ class WKTConstants {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1509,8 +1579,11 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1561,6 +1634,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1604,7 +1680,10 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1649,6 +1728,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
 =======
@@ -1681,10 +1761,13 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1738,6 +1821,10 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1795,6 +1882,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1825,6 +1915,7 @@ class WKTConstants {
     static const std::string GEOIDMODEL; // WKT2-2019
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1878,6 +1969,8 @@ class WKTConstants {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1901,6 +1994,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1948,11 +2044,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1993,12 +2092,15 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2052,11 +2154,14 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2098,6 +2203,7 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
     static const std::string GEOIDMODEL; // WKT2-2019
@@ -2107,6 +2213,8 @@ class WKTConstants {
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2212,6 +2320,9 @@ class WKTConstants {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

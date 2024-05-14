@@ -1789,6 +1789,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -1830,6 +1831,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1869,6 +1872,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1903,6 +1907,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1937,6 +1943,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1980,12 +1989,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2027,6 +2039,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -2035,6 +2048,8 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2110,6 +2125,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2145,6 +2163,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2228,9 +2247,15 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2306,6 +2331,10 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5c88d70ae3 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> c14b8214ca (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -2325,11 +2354,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2371,11 +2403,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2432,11 +2468,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2479,6 +2518,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
@@ -2489,6 +2529,8 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 =======
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2567,6 +2609,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2598,6 +2643,7 @@ expect  -0.001790493 -0.000895247
 -------------------------------------------------------------------------------
 # Test material from Snyder p. 168, table 26.  Repeat tests with ellispoid of
 # flattening 1/200.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2650,6 +2696,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2665,6 +2713,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2713,6 +2762,9 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2748,9 +2800,12 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2803,6 +2858,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2838,6 +2896,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2906,6 +2965,9 @@ expect  -0.001790493 -0.000895247
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2925,6 +2987,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2961,6 +3026,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3046,6 +3112,11 @@ expect  -0.001790493 -0.000895247
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3065,11 +3136,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3113,11 +3187,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3159,11 +3236,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3217,6 +3298,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -3225,6 +3307,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3298,6 +3382,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3346,6 +3433,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -3372,6 +3460,9 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3418,6 +3509,8 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3466,6 +3559,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3511,11 +3607,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3556,6 +3655,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3564,6 +3664,8 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3628,6 +3730,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3679,6 +3784,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3710,6 +3816,11 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3778,6 +3889,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3809,6 +3921,11 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -3869,6 +3986,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> location-main
 =======
@@ -3910,6 +4028,10 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -3965,6 +4087,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4012,6 +4137,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4021,6 +4147,10 @@ expect  -0.001790493 -0.000895247
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -4097,6 +4227,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 =======
@@ -4161,6 +4292,10 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -4178,7 +4313,10 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4223,6 +4361,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -4287,6 +4426,10 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4304,7 +4447,10 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4356,6 +4502,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -4363,6 +4510,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4409,6 +4558,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4423,6 +4573,8 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4461,6 +4613,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4508,6 +4663,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -4525,6 +4681,10 @@ expect  -0.001790493 -0.000895247
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -4594,11 +4754,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4641,11 +4804,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4702,11 +4869,14 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4751,11 +4921,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4dfac16980 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4810,12 +4984,15 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4870,8 +5047,11 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4922,8 +5102,11 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4985,6 +5168,7 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5000,6 +5184,8 @@ expect  -0.001790493 -0.000895247
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5220,6 +5406,9 @@ expect  -0.001790493 -0.000895247
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5310,6 +5499,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -5336,6 +5526,9 @@ expect      0   90
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5458,6 +5651,10 @@ expect      0   90
 =======
 =======
 >>>>>>> locatelli-main
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5476,6 +5673,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5524,6 +5724,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5567,12 +5770,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5613,12 +5819,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5662,6 +5871,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -5672,6 +5882,8 @@ expect      0   90
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5756,6 +5968,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5801,6 +6016,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5832,6 +6048,11 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -5892,6 +6113,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5924,6 +6146,9 @@ expect      0   90
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5971,6 +6196,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6015,9 +6243,12 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6063,6 +6294,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -6075,6 +6307,8 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6122,6 +6356,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6167,11 +6404,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6215,11 +6455,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6263,11 +6506,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -6324,11 +6571,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6369,11 +6619,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6458,6 +6711,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6546,6 +6802,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6575,6 +6832,9 @@ expect      0   90
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6627,6 +6887,8 @@ expect      0   90
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6671,6 +6933,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6714,12 +6979,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6763,6 +7031,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -6773,6 +7042,8 @@ expect      0   90
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6843,6 +7114,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6888,6 +7162,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6919,6 +7194,11 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -6981,6 +7261,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7012,6 +7293,11 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -7074,7 +7360,10 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7119,8 +7408,11 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7167,6 +7459,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7210,6 +7505,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7249,6 +7545,8 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7268,11 +7566,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -7313,6 +7615,7 @@ expect      0   90
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7327,6 +7630,8 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7371,6 +7676,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 =======
@@ -7435,6 +7741,10 @@ expect      0   90
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -7452,7 +7762,10 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7497,6 +7810,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -7561,10 +7875,15 @@ expect      0   90
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7606,9 +7925,12 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7660,6 +7982,8 @@ expect      0   90
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7670,6 +7994,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7702,6 +8027,11 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7768,11 +8098,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7816,11 +8149,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7864,11 +8200,14 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7909,12 +8248,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7962,8 +8304,11 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8014,8 +8359,11 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8066,8 +8414,11 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8124,11 +8475,15 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -8182,6 +8537,7 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8192,6 +8548,8 @@ expect      0   90
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8395,6 +8753,9 @@ expect      0   90
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8461,6 +8822,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -8487,6 +8849,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8609,6 +8974,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 =======
 >>>>>>> locatelli-main
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8627,6 +8996,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8675,6 +9047,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8718,12 +9093,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8764,12 +9142,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8813,6 +9194,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -8823,6 +9205,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8907,6 +9291,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8952,6 +9339,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8983,6 +9371,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -9043,6 +9436,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9075,6 +9469,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -9122,6 +9519,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9166,9 +9566,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9214,6 +9617,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -9226,6 +9630,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9273,6 +9679,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9318,11 +9727,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9366,11 +9778,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9414,11 +9829,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -9475,11 +9894,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9520,11 +9942,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9609,6 +10034,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9674,6 +10102,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -9703,6 +10132,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9755,6 +10187,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9799,6 +10233,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9842,12 +10279,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9891,6 +10331,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -9901,6 +10342,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9971,6 +10414,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10016,6 +10462,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10047,6 +10494,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -10109,6 +10561,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10140,6 +10593,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -10202,7 +10660,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10247,8 +10708,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10295,6 +10759,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10338,6 +10805,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10377,6 +10845,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10396,11 +10866,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -10441,6 +10915,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10455,6 +10930,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10499,6 +10976,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 =======
@@ -10563,6 +11041,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -10580,7 +11062,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10625,6 +11110,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -10689,10 +11175,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10734,9 +11225,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10788,6 +11282,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10798,6 +11294,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10830,6 +11327,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10896,11 +11398,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10944,11 +11449,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10992,11 +11500,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11037,12 +11548,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11090,8 +11604,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11142,8 +11659,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11194,8 +11714,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11252,11 +11775,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -11310,6 +11837,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11320,6 +11848,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11523,6 +12053,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11587,6 +12120,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -11613,6 +12147,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11735,6 +12272,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 =======
 >>>>>>> locatelli-main
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11753,6 +12294,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11801,6 +12345,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11844,12 +12391,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11890,12 +12440,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11939,6 +12492,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -11949,6 +12503,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12033,6 +12589,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12078,6 +12637,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -12109,6 +12669,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -12169,6 +12734,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12201,6 +12767,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -12248,6 +12817,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12292,9 +12864,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12340,6 +12915,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -12352,6 +12928,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12399,6 +12977,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12444,11 +13025,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12492,11 +13076,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12540,11 +13127,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -12601,11 +13192,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12646,11 +13240,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12735,6 +13332,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12800,6 +13400,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12829,6 +13430,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12881,6 +13485,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12925,6 +13531,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12968,12 +13577,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13017,6 +13629,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -13027,6 +13640,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13097,6 +13712,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13142,6 +13760,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13173,6 +13792,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -13235,6 +13859,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13266,6 +13891,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -13328,7 +13958,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13373,8 +14006,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13421,6 +14057,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13464,6 +14103,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13503,6 +14143,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13522,11 +14164,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -13567,6 +14213,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13581,6 +14228,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13625,6 +14274,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 =======
@@ -13689,6 +14339,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -13706,7 +14360,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13751,6 +14408,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -13815,10 +14473,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13860,9 +14523,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13914,6 +14580,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13924,6 +14592,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13956,6 +14625,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14022,11 +14696,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14070,11 +14747,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14118,11 +14798,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14163,12 +14846,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14216,8 +14902,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14268,8 +14957,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14320,8 +15012,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14378,11 +15073,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -14436,6 +15135,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14446,6 +15146,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14649,6 +15351,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14713,6 +15418,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -14739,6 +15445,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14861,6 +15570,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 =======
 >>>>>>> locatelli-main
+=======
+=======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14879,6 +15592,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14927,6 +15643,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14970,12 +15689,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15016,12 +15738,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15065,6 +15790,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -15075,6 +15801,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15159,6 +15887,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15204,6 +15935,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -15235,6 +15967,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -15295,6 +16032,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15327,6 +16065,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15374,6 +16115,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15418,9 +16162,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15466,6 +16213,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -15478,6 +16226,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15525,6 +16275,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15570,11 +16323,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15618,11 +16374,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15666,11 +16425,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -15727,11 +16490,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15772,11 +16538,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15861,6 +16630,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15923,6 +16695,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15952,6 +16725,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16004,6 +16780,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16048,6 +16826,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16091,12 +16872,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16140,6 +16924,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -16150,6 +16935,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> ba006ad292 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 9b68b76b81 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16220,6 +17007,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16265,6 +17055,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16296,6 +17087,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 094787b30a (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -16358,6 +17154,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16389,6 +17186,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+=======
+>>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 938d194c93 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -16451,7 +17253,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16496,8 +17301,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16544,6 +17352,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16587,6 +17398,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
@@ -16626,6 +17438,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c59e00e4f (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16645,11 +17459,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48bc392fd3 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -16690,6 +17508,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 >>>>>>> 68b6f2f484 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16704,6 +17523,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16748,6 +17569,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 =======
@@ -16812,6 +17634,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> 69116cc937 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 <<<<<<< HEAD
 >>>>>>> f2702b99ef (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
@@ -16829,7 +17655,10 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16874,6 +17703,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 =======
@@ -16938,10 +17768,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 6f78b76c12 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16983,9 +17818,12 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> eee860d65 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> d55f305b24 (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17037,6 +17875,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d0c8565c4b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 =======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17047,6 +17887,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17079,6 +17920,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17145,11 +17991,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17193,11 +18042,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17241,11 +18093,14 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17286,12 +18141,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17339,8 +18197,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17391,8 +18252,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17443,8 +18307,11 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17501,11 +18368,15 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 26891e6f2b (Fix build with -DPROJ_INTERNAL_CPP_NAMESPACE)
 >>>>>>> locatelli-main
@@ -17559,6 +18430,7 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17569,6 +18441,8 @@ expect  failure errno coord_transfm_outside_projection_domain
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17772,6 +18646,9 @@ expect  failure errno coord_transfm_outside_projection_domain
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

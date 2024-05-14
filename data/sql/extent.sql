@@ -296,18 +296,16 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -342,6 +340,11 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -367,6 +370,9 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -411,6 +417,7 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -419,6 +426,8 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -477,6 +486,9 @@ INSERT INTO "extent" VALUES('EPSG','1298','Europe - ETRF by country','Europe - o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -520,6 +532,7 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -529,6 +542,10 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -600,6 +617,7 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -633,11 +651,14 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -691,6 +712,10 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -748,6 +773,9 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -779,6 +807,7 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -832,6 +861,8 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -855,6 +886,9 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -902,11 +936,14 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -948,11 +985,14 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1010,11 +1050,14 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1056,6 +1099,7 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar; Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -1065,6 +1109,8 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1181,6 +1227,9 @@ INSERT INTO "extent" VALUES('EPSG','1299','Europe - EVRF2000','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1279,18 +1328,16 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1325,6 +1372,11 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1350,6 +1402,9 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1394,6 +1449,7 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1402,6 +1458,8 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1460,6 +1518,9 @@ INSERT INTO "extent" VALUES('EPSG','1351','Asia - Middle East - Qatar offshore a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1503,6 +1564,7 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1512,6 +1574,10 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1583,6 +1649,7 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.9,71.24,4.39,31.32,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -1616,11 +1683,14 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.9,71.24,4.39,31.32,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1674,6 +1744,10 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1731,6 +1805,9 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1762,6 +1839,7 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.93,71.21,4.68,31.22,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1815,6 +1893,8 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1838,6 +1918,9 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1885,11 +1968,14 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1931,11 +2017,14 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1993,11 +2082,14 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2039,6 +2131,7 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.',57.93,71.21,4.68,31.22,0);
@@ -2048,6 +2141,8 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2164,6 +2259,9 @@ INSERT INTO "extent" VALUES('EPSG','1352','Norway - onshore','Norway - onshore.'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2598,18 +2696,16 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -2644,6 +2740,11 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2667,6 +2768,9 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2709,9 +2813,12 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2770,6 +2877,9 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2814,6 +2924,7 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -2828,6 +2939,9 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2881,11 +2995,14 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2928,6 +3045,7 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2936,6 +3054,8 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2998,6 +3118,9 @@ INSERT INTO "extent" VALUES('EPSG','1740','Kuwait - east of 48°E onshore','Kuwa
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3052,6 +3175,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -3088,6 +3212,8 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3117,6 +3243,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3172,6 +3301,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3208,6 +3338,8 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -3218,6 +3350,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3282,6 +3415,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -3289,6 +3425,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3314,6 +3451,8 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3390,6 +3529,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3443,6 +3585,11 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -3520,6 +3667,10 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3573,6 +3724,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3626,6 +3778,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3658,9 +3813,12 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3713,6 +3871,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3757,7 +3918,10 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3804,9 +3968,12 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3856,6 +4023,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3900,6 +4070,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3932,6 +4103,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -3979,6 +4153,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4016,6 +4193,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4084,6 +4262,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -4103,6 +4284,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4141,6 +4325,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4226,6 +4411,11 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4245,11 +4435,14 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4292,11 +4485,14 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4340,11 +4536,14 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4385,6 +4584,7 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4395,6 +4595,8 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4476,6 +4678,9 @@ INSERT INTO "extent" VALUES('EPSG','1748','Norway - zone VIII','Norway - east of
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5104,6 +5309,7 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -5145,10 +5351,13 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5210,6 +5419,11 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -5272,6 +5486,9 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5317,11 +5534,15 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5375,9 +5596,12 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5434,6 +5658,9 @@ INSERT INTO "extent" VALUES('EPSG','2329','Syria - Deir area','Syria - Deir area
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5476,6 +5703,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5558,6 +5786,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5579,6 +5810,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5615,6 +5849,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5703,6 +5938,11 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5722,11 +5962,14 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5770,11 +6013,14 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5815,6 +6061,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5825,6 +6072,8 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5894,6 +6143,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5924,6 +6176,7 @@ INSERT INTO "extent" VALUES('EPSG','2331','Norway - offshore north of 65°N','No
 INSERT INTO "extent" VALUES('EPSG','2332','Norway - offshore north of 65°N; Svalbard','Norway - offshore north of 65°N. Also Svalbard.',65.0,84.73,-3.35,38.01,0);
 INSERT INTO "extent" VALUES('EPSG','2333','Norway - offshore 62°N to 65°N and west of 5°E','Norway - offshore between 62°N and 65°N and west of 5°E.',62.0,65.0,-0.49,5.0,0);
 INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south of 62°N','Norway - offshore south of 62°N - North Sea.',56.08,62.0,1.37,11.14,0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5992,6 +6245,8 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> locationtech-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6008,6 +6263,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6050,9 +6308,12 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6105,6 +6366,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6149,7 +6413,10 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6196,9 +6463,12 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6248,6 +6518,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6276,6 +6549,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6329,6 +6603,10 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -6386,6 +6664,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6434,6 +6715,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -6473,6 +6755,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -6520,6 +6805,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6566,6 +6854,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> location-main
 =======
@@ -6601,6 +6890,11 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6662,11 +6956,15 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -6726,11 +7024,14 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6774,11 +7075,14 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6821,11 +7125,15 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -6879,6 +7187,7 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -6889,6 +7198,8 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6974,6 +7285,9 @@ INSERT INTO "extent" VALUES('EPSG','2334','Norway - North Sea - offshore south o
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7029,18 +7343,16 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -7075,6 +7387,11 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7100,6 +7417,9 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7144,6 +7464,7 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7152,6 +7473,8 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7210,6 +7533,9 @@ INSERT INTO "extent" VALUES('EPSG','2343','Europe - British Isles and Channel Is
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7253,6 +7579,7 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -7262,6 +7589,10 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -7333,6 +7664,7 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.9,71.24,4.39,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -7366,11 +7698,14 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.9,71.24,4.39,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7424,6 +7759,10 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -7481,6 +7820,9 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7512,6 +7854,7 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.93,71.21,4.68,31.59,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7565,6 +7908,8 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7588,6 +7933,9 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7635,11 +7983,14 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7681,11 +8032,14 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7743,11 +8097,14 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7789,6 +8146,7 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore','Finland and Norway - onshore.',57.93,71.21,4.68,31.59,0);
@@ -7798,6 +8156,8 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7914,6 +8274,9 @@ INSERT INTO "extent" VALUES('EPSG','2344','Europe - Finland and Norway - onshore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8035,18 +8398,16 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -8081,6 +8442,11 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8106,6 +8472,9 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8150,6 +8519,7 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -8158,6 +8528,8 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8216,6 +8588,9 @@ INSERT INTO "extent" VALUES('EPSG','2419','Central America - Belize to Costa Ric
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8259,6 +8634,7 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -8268,6 +8644,10 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -8339,6 +8719,7 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -8372,11 +8753,14 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8430,6 +8814,10 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -8487,6 +8875,9 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8518,6 +8909,7 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.21,-9.56,31.59,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8571,6 +8963,8 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8594,6 +8988,9 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8641,11 +9038,14 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8687,11 +9087,14 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8749,11 +9152,14 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8795,6 +9201,7 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austria; Belgium; Denmark; Finland; Faroe islands; France; Germany (west); Gibraltar; Greece; Italy; Luxembourg; Netherlands; Norway; Portugal; Spain; Sweden; Switzerland.',34.88,71.21,-9.56,31.59,0);
@@ -8804,6 +9211,8 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8920,6 +9329,9 @@ INSERT INTO "extent" VALUES('EPSG','2420','Europe - west (DMA ED50 mean)','Austr
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10139,18 +10551,16 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -10185,6 +10595,11 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10210,6 +10625,9 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10254,6 +10672,7 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10262,6 +10681,8 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10320,6 +10741,9 @@ INSERT INTO "extent" VALUES('EPSG','3593','New Zealand - offshore','New Zealand 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10363,6 +10787,7 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -10372,6 +10797,10 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -10443,6 +10872,7 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -10476,11 +10906,14 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10534,6 +10967,10 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -10591,6 +11028,9 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10622,6 +11062,7 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10675,6 +11116,8 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10698,6 +11141,9 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10745,11 +11191,14 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10791,11 +11240,14 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10853,11 +11305,14 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10899,6 +11354,7 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -10908,6 +11364,8 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11024,6 +11482,9 @@ INSERT INTO "extent" VALUES('EPSG','3594','Europe - EVRF2007','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11112,6 +11573,7 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -11153,10 +11615,13 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11218,6 +11683,11 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -11280,6 +11750,9 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11325,11 +11798,15 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -11383,9 +11860,12 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11442,6 +11922,9 @@ INSERT INTO "extent" VALUES('EPSG','3635','Mexico - east of 90°W','Mexico east 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11483,6 +11966,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11565,6 +12049,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11586,6 +12073,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11622,6 +12112,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11710,6 +12201,11 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11729,11 +12225,14 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11777,11 +12276,14 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11822,6 +12324,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -11832,6 +12335,8 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11901,6 +12406,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11930,6 +12438,7 @@ INSERT INTO "extent" VALUES('EPSG','3636','Norway - onshore - west of 6°E','Nor
 INSERT INTO "extent" VALUES('EPSG','3637','USA - 102°W to 96°W and GoM OCS','United States (USA) - between 102°W and 96°W. Iowa; Kansas; Minnesota; Nebraska; North Dakota; Oklahoma; South Dakota; Texas; Gulf of Mexico outer continental shelf (GoM OCS) west of approximately 96°W - protraction areas Corpus Christi; Port Isabel.',25.83,49.01,-102.0,-95.87,0);
 INSERT INTO "extent" VALUES('EPSG','3638','South America - 84°W to 78°W, S hemisphere and SIRGAS95 by country','Ecuador (mainland whole country including areas in northern hemisphere and east of 78°W), onshore and offshore. In remainder of South America, between 84°W and 78°W, southern hemisphere, onshore and offshore.',-56.45,1.45,-84.0,-75.21,0);
 INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Norway - onshore - between 6°E and 7°E.',57.93,63.02,6.0,7.0,0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11998,6 +12507,8 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> locationtech-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12014,6 +12525,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12056,9 +12570,12 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12111,6 +12628,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12155,7 +12675,10 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12202,9 +12725,12 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12254,6 +12780,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12282,6 +12811,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12335,6 +12865,10 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -12392,6 +12926,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12439,6 +12976,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -12478,6 +13016,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -12525,6 +13066,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12571,6 +13115,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> location-main
 =======
@@ -12606,6 +13151,11 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12667,11 +13217,15 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -12730,11 +13284,14 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12778,11 +13335,14 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12825,11 +13385,15 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -12883,6 +13447,7 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -12893,6 +13458,8 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12977,6 +13544,9 @@ INSERT INTO "extent" VALUES('EPSG','3639','Norway - onshore - 6°E to 7°E','Nor
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13030,18 +13600,16 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -13076,6 +13644,11 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13099,6 +13672,9 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13141,9 +13717,12 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13202,6 +13781,9 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13246,6 +13828,7 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -13260,6 +13843,9 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -13313,11 +13899,14 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13360,6 +13949,7 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13368,6 +13958,8 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13430,6 +14022,9 @@ INSERT INTO "extent" VALUES('EPSG','3646','Sao Tome and Principe - onshore - Pri
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13468,6 +14063,7 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13536,6 +14132,9 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4391c6673 (typo fixes)
 =======
 >>>>>>> d8e8090c80 (typo fixes)
@@ -13555,6 +14154,9 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13622,6 +14224,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locatelli-main
@@ -13699,6 +14302,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13720,6 +14326,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13756,6 +14365,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13844,6 +14454,11 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13863,11 +14478,14 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13911,11 +14529,14 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13956,6 +14577,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -13966,6 +14588,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14035,6 +14659,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14083,16 +14710,14 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -14127,6 +14752,11 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14144,6 +14774,9 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14186,9 +14819,12 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14243,6 +14879,9 @@ INSERT INTO "extent" VALUES('EPSG','3651','Norway - onshore - 11°E to 12°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14311,6 +14950,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14323,6 +14963,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14372,6 +15014,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14457,6 +15100,11 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14476,11 +15124,14 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14559,11 +15210,15 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 48ae38528d (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 48ae38528d (typo fixes)
 >>>>>>> locatelli-main
@@ -14617,8 +15272,11 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14708,11 +15366,15 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -14766,6 +15428,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -14773,6 +15436,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15032,6 +15697,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15102,6 +15770,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -15114,6 +15783,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15156,6 +15827,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15198,6 +15872,7 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -15205,6 +15880,8 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15249,6 +15926,9 @@ INSERT INTO "extent" VALUES('EPSG','3676','Norway - onshore - east of 30°E','No
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15684,18 +16364,16 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -15730,6 +16408,11 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15753,6 +16436,9 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15795,9 +16481,12 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15856,6 +16545,9 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15900,6 +16592,7 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -15914,6 +16607,9 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -15967,11 +16663,14 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16014,6 +16713,7 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16022,6 +16722,8 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16084,6 +16786,9 @@ INSERT INTO "extent" VALUES('EPSG','4065','Arctic - 81°10''N to 76°10''N, 144�
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16134,6 +16839,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 74eac2217b (typo fixes)
 =======
@@ -16170,6 +16876,8 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16199,6 +16907,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16254,6 +16965,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16290,6 +17002,8 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -16300,6 +17014,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16364,6 +17079,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -16371,6 +17089,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16396,6 +17115,8 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16472,6 +17193,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16521,6 +17245,11 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -16598,6 +17327,10 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -16651,6 +17384,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16704,6 +17438,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -16736,9 +17473,12 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16791,6 +17531,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16835,7 +17578,10 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16882,9 +17628,12 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16934,6 +17683,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16978,6 +17730,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17010,6 +17763,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -17057,6 +17813,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17094,6 +17853,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17162,6 +17922,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 48ae38528d (typo fixes)
@@ -17181,6 +17944,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17219,6 +17985,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17304,6 +18071,11 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17323,11 +18095,14 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17370,11 +18145,14 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17418,11 +18196,14 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17463,6 +18244,7 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -17473,6 +18255,8 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17554,6 +18338,9 @@ INSERT INTO "extent" VALUES('EPSG','4069','Norway - onshore - 24°E to 30°E','N
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18138,18 +18925,16 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -18184,6 +18969,11 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18209,6 +18999,9 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18253,6 +19046,7 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -18261,6 +19055,8 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18319,6 +19115,9 @@ INSERT INTO "extent" VALUES('EPSG','4608','Europe - EVRF2019','Europe - onshore 
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18362,6 +19161,7 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -18371,6 +19171,10 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -18442,6 +19246,7 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -18475,11 +19280,14 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.24,-9.56,31.59,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18533,6 +19341,10 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -18590,6 +19402,9 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18621,6 +19436,7 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18674,6 +19490,8 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18697,6 +19515,9 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18744,11 +19565,14 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18790,11 +19614,14 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18852,11 +19679,14 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18898,6 +19728,7 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - onshore - Andorra; Austria; Belgium; Bosnia and Herzegovina; Bulgaria; Croatia; Czechia; Denmark; Estonia; Finland; France - mainland; Germany; Gibraltar, Hungary; Italy - mainland and Sicily; Latvia; Liechtenstein; Lithuania; Luxembourg; Netherlands; North Macedonia; Norway; Poland; Portugal - mainland; Romania; San Marino; Slovakia; Slovenia; Spain - mainland; Sweden; Switzerland; United Kingdom (UK) - Great Britain mainland; Vatican City State.',35.95,71.21,-9.56,31.59,0);
@@ -18907,6 +19738,8 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19023,6 +19856,9 @@ INSERT INTO "extent" VALUES('EPSG','4609','Europe - ETRF EVRF2019','Europe - ons
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19115,18 +19951,16 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -19161,6 +19995,11 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19186,6 +20025,9 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19230,6 +20072,7 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -19238,6 +20081,8 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19296,6 +20141,9 @@ INSERT INTO "extent" VALUES('EPSG','4655','UK - Manchester to Dore','United King
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19339,6 +20187,7 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -19348,6 +20197,10 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -19419,6 +20272,7 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.39,4.08,31.77,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -19452,11 +20306,14 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.39,4.08,31.77,0);
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19510,6 +20367,10 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -19567,6 +20428,9 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19598,6 +20462,7 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.38,4.08,31.77,0);
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19651,6 +20516,8 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19674,6 +20541,9 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19721,11 +20591,14 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19767,11 +20640,14 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19829,11 +20705,14 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19875,6 +20754,7 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norway - inshore and nearshore.',57.75,71.38,4.08,31.77,0);
@@ -19884,6 +20764,8 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20000,6 +20882,9 @@ INSERT INTO "extent" VALUES('EPSG','4656','Norway - inshore and nearshore','Norw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20066,18 +20951,16 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -20112,6 +20995,11 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20135,6 +21023,9 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20177,9 +21068,12 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20238,6 +21132,9 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20282,6 +21179,7 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -20296,6 +21194,9 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -20349,11 +21250,14 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20396,6 +21300,7 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -20404,6 +21309,8 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20466,6 +21373,9 @@ INSERT INTO "extent" VALUES('EPSG','4676','Japan - zone XII - onshore mainland',
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20523,6 +21433,7 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -20605,9 +21516,13 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20625,6 +21540,8 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20678,6 +21595,9 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20713,6 +21633,7 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20766,6 +21687,10 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -20823,6 +21748,9 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20852,6 +21780,7 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20903,6 +21832,8 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20926,6 +21857,9 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20971,11 +21905,14 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21015,12 +21952,15 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21073,11 +22013,14 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21118,6 +22061,7 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -21125,6 +22069,8 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21224,6 +22170,9 @@ INSERT INTO "extent" VALUES('EPSG','4690','UK - London to Fishguard','United Kin
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

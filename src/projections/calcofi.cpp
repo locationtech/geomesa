@@ -50,18 +50,16 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -96,6 +94,11 @@ whatever ellipsoid is provided. */
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -121,6 +124,9 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -165,6 +171,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -173,6 +180,8 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -231,6 +240,9 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -274,6 +286,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -283,6 +296,10 @@ whatever ellipsoid is provided. */
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -354,6 +371,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #define PT_O_LAMBDA -2.1144663887911301 /* long -121.15 and */
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -387,11 +405,14 @@ whatever ellipsoid is provided. */
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
 #define PT_O_LAMBDA -2.1144663887911301 /* long -121.15 and */
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -445,6 +466,10 @@ whatever ellipsoid is provided. */
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -502,6 +527,9 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -533,6 +561,7 @@ whatever ellipsoid is provided. */
 #define PT_O_LAMBDA -2.1144663887911301 /* lon -121.15 and */
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -586,6 +615,8 @@ whatever ellipsoid is provided. */
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -609,6 +640,9 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -656,11 +690,14 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -702,11 +739,14 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -764,11 +804,14 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -810,6 +853,7 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 #define PT_O_LAMBDA -2.1144663887911301 /* lon -121.15 and */
@@ -819,6 +863,8 @@ whatever ellipsoid is provided. */
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -935,6 +981,9 @@ whatever ellipsoid is provided. */
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

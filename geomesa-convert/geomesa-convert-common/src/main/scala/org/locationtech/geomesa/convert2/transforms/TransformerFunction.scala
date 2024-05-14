@@ -32,11 +32,6 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -44,15 +39,18 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -87,6 +85,11 @@ import java.util.ServiceLoader
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -134,6 +137,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -180,6 +186,7 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -190,6 +197,8 @@ import java.util.ServiceLoader
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -236,6 +245,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -279,6 +291,7 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -344,6 +357,8 @@ import java.util.ServiceLoader
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -359,6 +374,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -405,11 +423,15 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -466,11 +488,14 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -515,6 +540,7 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -528,6 +554,8 @@ import java.util.ServiceLoader
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -588,6 +616,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -630,10 +661,13 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -674,6 +708,9 @@ import java.util.ServiceLoader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -720,6 +757,7 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
@@ -730,6 +768,8 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -784,6 +824,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -829,6 +872,7 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -847,6 +891,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -894,9 +941,12 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -943,6 +993,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -980,6 +1033,7 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1065,6 +1119,11 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1085,11 +1144,15 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -1148,11 +1211,15 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1210,11 +1277,14 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1253,8 +1323,11 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1303,11 +1376,15 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -1363,10 +1440,13 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1451,6 +1531,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1493,10 +1576,13 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1537,6 +1623,9 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.Delegate
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1602,8 +1691,35 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -1635,29 +1751,6 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1750,6 +1843,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
@@ -1770,6 +1866,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1814,6 +1913,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -1822,6 +1922,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1881,6 +1983,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1910,6 +2015,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1961,6 +2067,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1976,6 +2084,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2018,12 +2129,15 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2067,11 +2181,15 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -2128,11 +2246,14 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2173,9 +2294,12 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2218,6 +2342,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2246,6 +2373,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
   def apply(args: Array[AnyRef]): AnyRef =
     // this error will be caught and handled by the evaluation context
     throw TransformerFunctionApiError // TODO remove default impl in next major release
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2311,6 +2439,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2326,6 +2456,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2372,6 +2505,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2380,6 +2514,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2420,6 +2556,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2466,11 +2605,14 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2515,11 +2657,14 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2565,6 +2710,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2584,6 +2730,11 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
@@ -2655,9 +2806,12 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2718,11 +2872,15 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -2779,6 +2937,7 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -2793,6 +2952,8 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2962,6 +3123,9 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3007,8 +3171,14 @@ trait TransformerFunction extends ContextDependent[TransformerFunction] {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -3132,6 +3302,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3193,6 +3364,8 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3229,6 +3402,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3272,12 +3448,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3321,6 +3500,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3331,6 +3511,8 @@ object TransformerFunction {
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3399,6 +3581,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3449,6 +3634,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3480,6 +3666,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -3545,6 +3736,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3576,6 +3768,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3639,6 +3836,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3699,6 +3897,9 @@ object TransformerFunction {
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3718,6 +3919,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3748,6 +3952,7 @@ object TransformerFunction {
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3824,6 +4029,10 @@ object TransformerFunction {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
+=======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3852,11 +4061,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3913,11 +4126,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3961,11 +4177,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4006,10 +4225,13 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4105,6 +4327,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4149,6 +4374,10 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -4205,7 +4434,11 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -4269,6 +4502,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4330,6 +4564,8 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4366,6 +4602,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4409,12 +4648,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4458,6 +4700,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -4468,6 +4711,8 @@ object TransformerFunction {
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4536,6 +4781,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4586,6 +4834,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4617,6 +4866,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -4682,6 +4936,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4713,6 +4968,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4776,6 +5036,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4836,6 +5097,9 @@ object TransformerFunction {
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1cbf436890 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4855,6 +5119,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4885,6 +5152,7 @@ object TransformerFunction {
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4961,6 +5229,10 @@ object TransformerFunction {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
+=======
       override def eval(args: Array[Any])(implicit ec: EvaluationContext): Any = f(args)
 <<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -4989,11 +5261,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -5050,11 +5326,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5098,11 +5377,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5143,10 +5425,13 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5242,6 +5527,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5286,6 +5574,10 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -5342,7 +5634,11 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -5408,8 +5704,35 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -5441,29 +5764,6 @@ object TransformerFunction {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5556,6 +5856,9 @@ object TransformerFunction {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
@@ -5584,6 +5887,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5628,6 +5934,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -5636,6 +5943,8 @@ object TransformerFunction {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5695,6 +6004,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5724,6 +6036,7 @@ object TransformerFunction {
 =======
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5775,6 +6088,8 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5790,6 +6105,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5832,12 +6150,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5881,11 +6202,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -5942,11 +6267,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5989,10 +6317,13 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6052,6 +6383,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6094,10 +6428,13 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6138,6 +6475,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6192,6 +6532,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -6245,6 +6586,8 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6270,6 +6613,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6315,11 +6661,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6358,9 +6707,12 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6419,6 +6771,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6465,6 +6820,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6496,6 +6852,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 11089e31dc (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6558,6 +6919,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6589,6 +6951,11 @@ object TransformerFunction {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -6652,6 +7019,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6725,11 +7093,17 @@ object TransformerFunction {
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 397a13ab3c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6805,6 +7179,10 @@ object TransformerFunction {
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -6825,11 +7203,15 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -6886,11 +7268,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6935,11 +7320,14 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6985,6 +7373,7 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -6994,6 +7383,8 @@ object TransformerFunction {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7076,6 +7467,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7118,10 +7512,13 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7162,6 +7559,9 @@ object TransformerFunction {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

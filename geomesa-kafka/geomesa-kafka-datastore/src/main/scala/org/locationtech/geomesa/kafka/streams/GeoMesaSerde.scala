@@ -10,6 +10,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
@@ -78,6 +84,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -150,6 +157,10 @@
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -169,6 +180,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -176,6 +188,8 @@
 >>>>>>> locatelli-main
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -207,6 +221,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -229,6 +246,7 @@
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -283,6 +301,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a7c0500a81 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -307,6 +327,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -331,6 +354,7 @@
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -375,6 +399,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 67d93e2791 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -399,6 +425,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -433,6 +462,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -444,6 +474,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -476,6 +508,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -524,8 +559,35 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -557,29 +619,6 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -672,6 +711,9 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
@@ -698,6 +740,9 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -741,12 +786,15 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -790,6 +838,7 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -800,6 +849,8 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -868,6 +919,9 @@ import org.locationtech.geomesa.kafka.streams.GeoMesaSerde.TypeSpecificSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -919,6 +973,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -950,6 +1005,11 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -1009,6 +1069,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1055,6 +1116,8 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1077,6 +1140,9 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1126,10 +1192,13 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1170,6 +1239,9 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1216,6 +1288,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -1227,6 +1300,8 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1263,6 +1338,9 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1306,12 +1384,15 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1361,11 +1442,15 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1422,11 +1507,14 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1484,6 +1572,7 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1494,6 +1583,8 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1627,6 +1718,9 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1717,11 +1811,6 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1729,15 +1818,18 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1772,6 +1864,11 @@ class GeoMesaSerde
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1802,6 +1899,9 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1848,6 +1948,7 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -1858,6 +1959,8 @@ class GeoMesaSerde
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1918,6 +2021,9 @@ class GeoMesaSerde
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2010,6 +2116,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2049,6 +2156,8 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2064,6 +2173,9 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2109,6 +2221,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -2121,6 +2234,9 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -2232,11 +2348,15 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -2304,11 +2424,14 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2352,6 +2475,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -2369,6 +2493,11 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> b62770d74c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> locatelli-main
 =======
@@ -2438,6 +2567,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
@@ -2456,6 +2586,8 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 
   override def close(): Unit = CloseWithLogging(Option(impl))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2527,6 +2659,9 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2569,6 +2704,10 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> locatelli-main
@@ -2635,6 +2774,10 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -2704,6 +2847,7 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2711,6 +2855,8 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2896,6 +3042,9 @@ class GeoMesaSerde extends Serde[GeoMesaMessage] with HasTopicMetadata {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2959,11 +3108,6 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2971,15 +3115,18 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -3014,6 +3161,11 @@ object GeoMesaSerde {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3046,6 +3198,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3090,6 +3245,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3098,6 +3254,8 @@ object GeoMesaSerde {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3155,6 +3313,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3184,6 +3345,7 @@ object GeoMesaSerde {
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3235,6 +3397,8 @@ object GeoMesaSerde {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -3250,6 +3414,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3292,12 +3459,15 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3343,11 +3513,14 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3390,10 +3563,13 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3451,6 +3627,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3493,10 +3672,13 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3537,6 +3719,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3604,6 +3789,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -3657,6 +3843,8 @@ object GeoMesaSerde {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3682,6 +3870,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3727,11 +3918,14 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3770,9 +3964,12 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3831,6 +4028,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3877,6 +4077,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3908,6 +4109,11 @@ object GeoMesaSerde {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -3976,6 +4182,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4007,6 +4214,11 @@ object GeoMesaSerde {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -4070,6 +4282,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4143,11 +4356,17 @@ object GeoMesaSerde {
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4223,6 +4442,10 @@ object GeoMesaSerde {
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -4243,11 +4466,15 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -4304,11 +4531,14 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4353,11 +4583,14 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4403,6 +4636,7 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -4412,6 +4646,8 @@ object GeoMesaSerde {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4494,6 +4730,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4536,10 +4775,13 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4580,6 +4822,9 @@ object GeoMesaSerde {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

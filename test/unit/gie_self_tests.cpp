@@ -1077,6 +1077,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -1118,10 +1119,13 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1183,6 +1187,11 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -1245,6 +1254,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1290,11 +1302,15 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1348,9 +1364,12 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1407,6 +1426,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1450,6 +1472,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1532,6 +1555,9 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a24938f25 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 3bd0f77d39 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1553,6 +1579,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1589,6 +1618,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1677,6 +1707,11 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> b609c280f5 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1696,11 +1731,14 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1744,11 +1782,14 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1789,6 +1830,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1799,6 +1841,8 @@ TEST(gie, proj_trans_generic) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1868,6 +1912,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1899,6 +1946,7 @@ TEST(gie, proj_trans_generic) {
     // Should be a no-op when the time is unknown (or equal to 2020)
     EXPECT_NEAR(lat, -60, 1e-9);
     EXPECT_NEAR(lon, 120, 1e-9);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1967,6 +2015,8 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> locationtech-main
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1983,6 +2033,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2025,9 +2078,12 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2080,6 +2136,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2124,7 +2183,10 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2171,9 +2233,12 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2223,6 +2288,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2251,6 +2319,7 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2304,6 +2373,10 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -2361,6 +2434,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2410,6 +2486,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -2449,6 +2526,9 @@ TEST(gie, proj_trans_generic) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2496,6 +2576,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2542,6 +2625,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> location-main
 =======
@@ -2577,6 +2661,11 @@ TEST(gie, proj_trans_generic) {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2638,11 +2727,15 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -2703,11 +2796,14 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2751,11 +2847,14 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2798,11 +2897,15 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dbc4ff68b0 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -2856,6 +2959,7 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -2866,6 +2970,8 @@ TEST(gie, proj_trans_generic) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2952,6 +3058,9 @@ TEST(gie, proj_trans_generic) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3085,18 +3194,16 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -3131,6 +3238,11 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3154,6 +3266,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3196,9 +3311,12 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3257,6 +3375,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3301,6 +3422,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -3315,6 +3437,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3368,11 +3493,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3415,6 +3543,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3423,6 +3552,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3485,6 +3616,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3534,6 +3668,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3619,9 +3754,13 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3639,6 +3778,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3692,6 +3833,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3727,6 +3871,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3780,6 +3925,10 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -3837,6 +3986,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3866,6 +4018,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3917,6 +4070,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3940,6 +4095,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3985,11 +4143,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4029,12 +4190,15 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4087,11 +4251,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4132,6 +4299,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4139,6 +4307,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4238,6 +4408,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4382,18 +4555,16 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -4428,6 +4599,11 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4451,6 +4627,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4493,9 +4672,12 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4554,6 +4736,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4598,6 +4783,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -4612,6 +4798,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -4665,11 +4854,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4712,6 +4904,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4720,6 +4913,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4782,6 +4977,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4835,6 +5033,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 748ccdbcc6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -4917,9 +5116,13 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 74eac2217b (typo fixes)
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4937,6 +5140,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4990,6 +5195,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5025,6 +5233,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 =======
 >>>>>>> e4a6fd6d75 (typo fixes)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5078,6 +5287,10 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -5135,6 +5348,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5164,6 +5380,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 =======
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5215,6 +5432,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5238,6 +5457,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5283,11 +5505,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5327,12 +5552,15 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5385,11 +5613,14 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5430,6 +5661,7 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 0a2f6458d1 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -5437,6 +5669,8 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5536,6 +5770,9 @@ TEST(gie, proj_create_crs_to_crs_from_pj_force_over) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

@@ -25,6 +25,7 @@ package org.locationtech.geomesa.utils.io
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/io/HadoopUtilsTest.scala
 =======
 <<<<<<< HEAD
@@ -97,6 +98,10 @@ package org.locationtech.geomesa.utils.io
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -116,6 +121,9 @@ package org.locationtech.geomesa.utils.io
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -145,6 +153,7 @@ package org.locationtech.geomesa.utils.io
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/io/HadoopUtilsTest.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -220,6 +229,10 @@ package org.locationtech.geomesa.utils.io
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/test/scala/org/locationtech/geomesa/utils/io/HadoopUtilsTest.scala
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -237,9 +250,12 @@ package org.locationtech.geomesa.utils.io
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -288,6 +304,9 @@ package org.locationtech.geomesa.utils.io
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
