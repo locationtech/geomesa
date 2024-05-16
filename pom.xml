@@ -135,7 +135,8 @@
         <hbase.version>2.5.8-hadoop3</hbase.version>
         <hbase.hadoop.version>3.3.6</hbase.hadoop.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
-        <protobuf.version>2.5.0</protobuf.version> <!-- see also confluent.protobuf.version-->
+        <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
+        <protobuf.version>3.25.3</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
         <cassandra.version>3.11.5</cassandra.version>
         <kafka.version>3.7.0</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>6.2.9</confluent.version> <!-- corresponds to kafka 2.8 - newer versions have license issues, see https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues/13628 -->
