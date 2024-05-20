@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* arrow ``15.0.2`` -> ``16.1.0``
+
 Version 5.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
