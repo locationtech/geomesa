@@ -129,10 +129,11 @@ org.apache.accumulo:accumulo-core	2.0.1	compile
 org.apache.accumulo:accumulo-core	2.1.2	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 org.apache.accumulo:accumulo-hadoop-mapreduce	2.1.2	compile
-org.apache.arrow:arrow-format	15.0.2	compile
-org.apache.arrow:arrow-memory-core	15.0.2	compile
-org.apache.arrow:arrow-memory-netty	15.0.2	compile
-org.apache.arrow:arrow-vector	15.0.2	compile
+org.apache.arrow:arrow-format	16.1.0	compile
+org.apache.arrow:arrow-memory-core	16.1.0	compile
+org.apache.arrow:arrow-memory-netty	16.1.0	compile
+org.apache.arrow:arrow-memory-netty-buffer-patch	16.1.0	compile
+org.apache.arrow:arrow-vector	16.1.0	compile
 org.apache.avro:avro	1.11.3	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.26.0	compile
@@ -188,8 +189,6 @@ org.apiguardian:apiguardian-api	1.1.2	compile
 org.calrissian.mango:mango-core	3.0.0	compile
 org.checkerframework:checker-qual	3.37.0	compile
 org.checkerframework:checker-qual	3.42.0	compile
-org.eclipse.collections:eclipse-collections	11.1.0	compile
-org.eclipse.collections:eclipse-collections-api	11.1.0	compile
 org.eclipse.emf:org.eclipse.emf.common	2.15.0	compile
 org.eclipse.emf:org.eclipse.emf.ecore	2.15.0	compile
 org.eclipse.emf:org.eclipse.emf.ecore.xmi	2.15.0	compile
@@ -302,7 +301,7 @@ com.uber:h3	4.1.1	test
 commons-lang:commons-lang	2.6	test
 junit:junit	4.13.2	test
 org.apache.accumulo:accumulo-test	2.1.2	test
-org.apache.arrow:arrow-vector	tests:15.0.2	test
+org.apache.arrow:arrow-vector	tests:16.1.0	test
 org.apache.cassandra:cassandra-all	3.11.14	test
 org.apache.cassandra:cassandra-thrift	3.11.14	test
 org.apache.curator:curator-test	5.6.0	test
