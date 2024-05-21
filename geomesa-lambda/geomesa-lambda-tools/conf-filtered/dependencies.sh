@@ -77,6 +77,7 @@ function dependencies() {
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
       "io.opentelemetry:opentelemetry-api:1.19.0:jar"
       "io.opentelemetry:opentelemetry-context:1.19.0:jar"
+      "io.opentelemetry:opentelemetry-semconv:1.19.0-alpha:jar"
       "io.micrometer:micrometer-core:1.9.6:jar"
     )
   else
