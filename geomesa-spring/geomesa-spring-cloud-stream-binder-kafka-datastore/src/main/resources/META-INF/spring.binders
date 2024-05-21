@@ -1,0 +1,2 @@
+kafka-datastore:\
+com.ccri.geomesa.binder.kafka.datastore.KafkaDatastoreBinderConfiguration

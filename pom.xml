@@ -45,6 +45,7 @@
         <module>geomesa-utils-parent</module>
         <module>geomesa-z3</module>
         <module>docs</module>
+        <module>geomesa-spring</module>
     </modules>
 
     <properties>
