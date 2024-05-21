@@ -31,7 +31,7 @@ import java.util.regex.Pattern
 import javax.xml.xpath.XPathConstants
 import scala.collection.mutable.ListBuffer
 import scala.reflect.classTag
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Random, Try}
 
 class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions](
   XmlConverterFactory.TypeToProcess, XmlConfigConvert, XmlFieldConvert, XmlOptionsConvert) {
@@ -69,7 +69,22 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
 
     tryElements.flatMap { elements =>
       val featurePath = hints.get(XmlConverterFactory.FeaturePathKey).map(_.toString)
-      val namespaces = elements.headOption.map(XmlConverterFactory.getNamespaces).getOrElse(Map.empty)
+      val (defaultNs, namespaces) = elements.headOption match {
+        case None => (None, Map.empty[String, String])
+        case Some(e) =>
+          val ns = XmlConverterFactory.getNamespaces(e)
+          ns.get("") match {
+            case None => (None, ns)
+            case Some(default) =>
+              val alphas = Random.alphanumeric.filter(_.isLower)
+              var key: String = null
+              while ({ key = alphas.take(4).mkString(""); ns.contains(key) }) {
+                // loop
+              }
+              (Some(s"$key:"), ns - "" + (key -> default))
+          }
+      }
+
       val xpathFactory =
         ConfigSource.fromConfig(withDefaults(XmlConverterFactory.TypeConfig))
             .loadOrThrow[XmlConfig](classTag[XmlConfig], XmlConfigConvert)
@@ -97,10 +112,10 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
             // use linkedHashMap to retain insertion order
             val props = scala.collection.mutable.LinkedHashMap.empty[String, ListBuffer[Any]]
 
-            val namer = new XmlNamer()
+            val namer = new XmlNamer(defaultNs)
             features.foreach { feature =>
               namer.addRootElement(feature)
-              XmlConverterFactory.parseNode(feature, "").foreach { case (k, v) =>
+              XmlConverterFactory.parseNode(feature, "", defaultNs.getOrElse("")).foreach { case (k, v) =>
                 props.getOrElseUpdate(k, ListBuffer.empty) += v
               }
             }
@@ -234,7 +249,7 @@ object XmlConverterFactory {
   /**
    * Attribute namer for xml elements
    */
-  private class XmlNamer extends Namer {
+  private class XmlNamer(defaultPrefix: Option[String]) extends Namer {
 
     private val rootPrefixes = scala.collection.mutable.HashSet.empty[String]
     private val namespaceMatcher = Pattern.compile("(/@?)[^:/@]*:")
@@ -244,8 +259,14 @@ object XmlConverterFactory {
      *
      * @param elem element
      */
-    def addRootElement(elem: Element): Unit =
-      rootPrefixes += s"/${elem.getTagName}/"
+    def addRootElement(elem: Element): Unit = {
+      rootPrefixes += {
+        defaultPrefix match {
+          case Some(p) if elem.getPrefix == null || elem.getPrefix.isEmpty => s"/$p${elem.getTagName}/"
+          case _ => s"/${elem.getTagName}/"
+        }
+      }
+    }
 
     override def apply(key: String): String = {
       val withoutRoot = rootPrefixes.find(key.startsWith) match {
@@ -272,6 +293,8 @@ object XmlConverterFactory {
       val attr = attributes.item(i).asInstanceOf[Attr]
       if (attr.getName.startsWith("xmlns:")) {
         namespaces += attr.getName.substring(6) -> attr.getValue
+      } else if (attr.getName == "xmlns") {
+        namespaces += "" -> attr.getValue
       }
       i += 1
     }
@@ -283,20 +306,24 @@ object XmlConverterFactory {
    *
    * @param node node
    * @param path xpath to the parent of the object
+   * @param defaultNamespacePrefix path prefix for elements without an explicit namespace
    * @return map of key is xpath to value, value is a string
    */
-  private def parseNode(node: Node, path: String): Seq[(String, String)] = {
+  private def parseNode(node: Node, path: String, defaultNamespacePrefix: String): Seq[(String, String)] = {
     // use linkedHashMap to preserve insertion order
     val builder = scala.collection.mutable.LinkedHashMap.empty[String, String]
     node match {
       case n: Element =>
-        val p = s"$path/${n.getTagName}"
+        val elemPath = {
+          val prefix = if (n.getPrefix == null || n.getPrefix.isEmpty) { defaultNamespacePrefix } else { "" }
+          s"$path/$prefix${n.getTagName}"
+        }
         Seq.tabulate(n.getAttributes.getLength)(n.getAttributes.item(_).asInstanceOf[Attr])
-            .filterNot(_.getName.startsWith("xmlns:"))
+            .filterNot(a => a.getName.startsWith("xmlns:") || a.getName == "xmlns")
             .sortBy(_.getLocalName)
-            .foreach(attr => builder += s"$p/@${attr.getName}" -> attr.getValue)
+            .foreach(attr => builder += s"$elemPath/@${attr.getName}" -> attr.getValue)
         Seq.tabulate(n.getChildNodes.getLength)(n.getChildNodes.item)
-            .foreach(child => builder ++= parseNode(child, p))
+            .foreach(child => builder ++= parseNode(child, elemPath, defaultNamespacePrefix))
 
       case n: Text if !TextTools.isWhitespace(n.getData) =>
         builder += path -> n.getData

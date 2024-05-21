@@ -670,6 +670,21 @@ class XmlConverterTest extends Specification {
           |    </f:position>
           |  </f:Feature>
           |</f:doc2>
+        """.stripMargin,
+        """<doc3 xmlns="http://geomesa.org/test-feature" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          |  <DataSource>
+          |    <name>myxml</name>
+          |  </DataSource>
+          |  <Feature>
+          |    <number>123</number>
+          |    <color>red</color>
+          |    <physical weight="127.5" height="5'11"/>
+          |    <position>
+          |      <lat>21.1</lat>
+          |      <lon>45.1</lon>
+          |    </position>
+          |  </Feature>
+          |</doc3>
         """.stripMargin
       )
 
