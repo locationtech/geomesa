@@ -24,8 +24,9 @@ JSON attributes are still strings, and are set as any other strings. The value m
     SimpleFeature sf = ...
     sf.setAttribute("json", json);
 
-JSON attributes can be queried using JSONPath expressions. The first part of the path refers to the simple
-feature attribute name, and the rest of the path is applied to the JSON attribute. Note that in ECQL, path
+JSON attributes can be queried using
+`JSONPath expressions <https://github.com/json-path/JsonPath?tab=readme-ov-file#jayway-jsonpath>`__. The first part of the path
+refers to the simple feature attribute name, and the rest of the path is applied to the JSON attribute. Note that in ECQL, path
 expressions must be enclosed in double quotes.
 
 .. code-block:: java
@@ -39,6 +40,10 @@ expressions must be enclosed in double quotes.
     filter.evaluate(sf); // returns false
     sf.getAttribute("\"$.json.foo\""); // returns "baz"
     sf.getAttribute("\"$.json.bar\""); // returns null
+
+.. note::
+
+    GeoMesa does not support the JSONPath functions `stddev()`, `keys()`, `concat()` and `append()`.
 
 .. _json_path_filter_function:
 

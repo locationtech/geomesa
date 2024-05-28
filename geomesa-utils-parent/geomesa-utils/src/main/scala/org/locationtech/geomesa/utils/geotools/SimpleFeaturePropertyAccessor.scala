@@ -39,15 +39,15 @@ object SimpleFeaturePropertyAccessor extends LazyLogging {
     // our accumulo iterators are not generally available in the system classloader
     // instead, we can set the context classloader (as that will be checked if set)
     val contextClassLoader = Thread.currentThread.getContextClassLoader
-    if (contextClassLoader != null) {
-      logger.warn(s"Bypassing context classloader $contextClassLoader for PropertyAccessor loading.")
-    }
     Thread.currentThread.setContextClassLoader(getClass.getClassLoader)
-    try {
-      PropertyAccessors.findPropertyAccessors(sf, name, null, null)
-    } finally {
+    var result = try { PropertyAccessors.findPropertyAccessors(sf, name, null, null) } finally {
       // reset the classloader after loading the accessors
       Thread.currentThread.setContextClassLoader(contextClassLoader)
     }
+    if (result == null || result.isEmpty) {
+      // try with the default context classloader if the above didn't work
+      result = PropertyAccessors.findPropertyAccessors(sf, name, null, null)
+    }
+    result
   }
 }

@@ -36,11 +36,11 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
   sf1.setAttribute(1, "POINT(45 61)")
 
   val sf2 = new ScalaSimpleFeature(sft, "2")
-  sf2.setAttribute(0, getJson(45, 62, """{"id":"two","characteristics":{"height":20,"weight":200}}"""))
+  sf2.setAttribute(0, getJson(45, 62, """{"id":"two","characteristics":{"height":20,"weight":200,"age":20}}"""))
   sf2.setAttribute(1, "POINT(45 62)")
 
   val sf3 = new ScalaSimpleFeature(sft, "3")
-  sf3.setAttribute(0, getJson(45, 63, """{"id":"three","characteristics":{"height":30,"weight":300}}"""))
+  sf3.setAttribute(0, getJson(45, 63, """{"id":"three","characteristics":{"height":30,"weight":300,"age":20}}"""))
   sf3.setAttribute(1, "POINT(45 63)")
 
   val sf4 = new ScalaSimpleFeature(sft, "4")
@@ -58,6 +58,13 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithFeatureType {
     }
     "support queries against json attributes" in {
       val query = new Query(sftName, ECQL.toFilter(""""$.json.properties.characteristics.height" = 30"""))
+      val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      features must haveLength(1)
+      features.head.getID mustEqual "3"
+      features.head.getAttributes mustEqual sf3.getAttributes // note: whitespace will be stripped from json string
+    }
+    "support queries against json attributes with json-path filters" in {
+      val query = new Query(sftName, ECQL.toFilter("""jsonPath('$.json.properties.characteristics[?(@.height == 30 && @.age == 20)]') IS NOT NULL"""))
       val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       features must haveLength(1)
       features.head.getID mustEqual "3"
