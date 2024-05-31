@@ -153,19 +153,20 @@ class CompactCommandTest extends Specification {
         fs.getCount(Query.ALL) mustEqual numFeatures
 
         val partitions = ds.storage(sft.getTypeName).metadata.getPartitions()
-        val partitionNames = partitions.map(_.name)
-        partitionNames.foreach(partitionName => {
-          val filePaths = ds.storage(sft.getTypeName).getFilePaths(partitionName)
-          filePaths.foreach(path => {
-            val filepath = path.path
-            if (encoding == "parquet") {
+
+        // For parquet files, get bounding boxes from each file in each partition
+        if (encoding == "parquet") {
+          val partitionNames = partitions.map(_.name)
+          partitionNames.foreach(partitionName => {
+            val filePaths = ds.storage(sft.getTypeName).getFilePaths(partitionName)
+            filePaths.foreach(path => {
+              val filepath = path.path
               val bbox = getBoundingBoxFromGeoParquetFile(filepath)
               partitionBoundingBoxes.addBinding(partitionName, bbox)
-            }
+            })
           })
-        })
+        }
 
-        // TODO: might be able to replace the number 10 in Seq.fill with something like partitions.length??
         partitions.map(_.files.size) mustEqual Seq.fill(10)(numFilesPerPartition)
       }
     }
@@ -198,22 +199,23 @@ class CompactCommandTest extends Specification {
         fs.getCount(Query.ALL) mustEqual numFeatures
 
         val partitions = ds.storage(sft.getTypeName).metadata.getPartitions()
-        val partitionNames = partitions.map(_.name)
-        partitionNames.foreach(partitionName => {
-          val filePaths = ds.storage(sft.getTypeName).getFilePaths(partitionName).map(_.path)
-          filePaths.foreach(path => {
-            if (encoding == "parquet") {
-              // In each partition, assert that the union of bounding boxes of the 2 files before compaction
-              // is the same as the bounding box of the 1 file after compaction
-              val bboxesUnion = new Envelope
-              partitionBoundingBoxes(partitionName).foreach(bbox => bboxesUnion.expandToInclude(bbox))
-              val metadataBbox = getBoundingBoxFromGeoParquetFile(path)
-              bboxesUnion mustEqual metadataBbox
-            }
-          })
-        })
 
-        // TODO: might be able to replace the number 10 in Seq.fill with something like partitions.length??
+        // For parquet files, check that the union of bounding boxes of the 2 files before
+        // compaction is the same as the bounding box of the 1 file after compaction
+        if (encoding == "parquet") {
+          val partitionNames = partitions.map(_.name)
+          partitionNames.foreach(partitionName => {
+            val filePaths = ds.storage(sft.getTypeName).getFilePaths(partitionName).map(_.path)
+            filePaths.foreach(path => {
+                // In each partition, assert that the
+                val bboxesUnion = new Envelope
+                partitionBoundingBoxes(partitionName).foreach(bbox => bboxesUnion.expandToInclude(bbox))
+                val metadataBbox = getBoundingBoxFromGeoParquetFile(path)
+                bboxesUnion mustEqual metadataBbox
+            })
+          })
+        }
+
         partitions.map(_.files.size) mustEqual Seq.fill(10)(1)
       }
     }

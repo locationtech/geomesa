@@ -26,13 +26,11 @@ import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 
-class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
+class SimpleFeatureWriteSupport(callback: (Envelope, Long) => Unit = ((_, _) => {})) extends WriteSupport[SimpleFeature] {
 
   private class MultipleGeometriesObserver extends MetadataObserver {
     private var count: Long = 0L
-    private var numGeoms: Int = 0
-
-    // Number of geometries in the file
+    private var numGeoms: Int = 0 // number of geometries in the file
     private var bounds: Array[Envelope] = new Array[Envelope](0)
 
     override def write(feature: SimpleFeature): Unit = {
@@ -57,16 +55,30 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
     def getBoundingBoxes: Array[Envelope] = bounds
 
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {}
+    override def close(): Unit = {
+      // Merge all the envelopes into one
+      val mergedBounds = new Envelope()
+      for (b <- bounds) {
+        mergedBounds.expandToInclude(b)
+      }
+
+      onClose(mergedBounds, count)
+    }
+
+    // Invokes the callback function that adds metadata to the storage partition
+    override protected def onClose(bounds: Envelope, count: Long): Unit = callback(bounds, count)
   }
 
   private val observer = new MultipleGeometriesObserver
-
   private var writer: SimpleFeatureWriteSupport.SimpleFeatureWriter = _
   private var consumer: RecordConsumer = _
   private var schema: SimpleFeatureParquetSchema = _
 
   override val getName: String = "SimpleFeatureWriteSupport"
+
+  // Need a no-arg constructor because Apache Parquet can't instantiate the callback arg for the MapReduce compaction job
+  // Also, the compaction job doesn't write or calculate bounds anyway
+  def this() = this( (_, _) => {} )
 
   // called once
   override def init(conf: Configuration): WriteContext = {
@@ -82,6 +94,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   override def finalizeWrite(): FinalizedWriteContext = {
     // Get the bounding boxes that span each geometry type
     val bboxes = observer.getBoundingBoxes
+    observer.close()
 
     // If the SFT has no geometries, then there's no need to create GeoParquet metadata
     if (bboxes.isEmpty) {

@@ -16,13 +16,15 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver}
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Envelope, Geometry}
 
 /**
   * Orc implementation of FileSystemStorage
@@ -32,8 +34,14 @@ import org.locationtech.jts.geom.Geometry
 class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, OrcFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
-    new OrcFileSystemWriter(metadata.sft, context.conf, file, observer)
+  private class SingleGeometryObserver(partition: String, action: StorageFileAction, file: Path) extends MetadataObserver with BoundsObserver {
+    override protected def onClose(bounds: Envelope, count: Long): Unit = new StorageMetadataCallback(partition, action, file)(bounds, count)
+  }
+
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter = {
+    val compositeObserver = new CompositeObserver(Seq(new SingleGeometryObserver(partition, action, file), observer))
+    new OrcFileSystemWriter(metadata.sft, context.conf, file, compositeObserver)
+  }
 
   override protected def createReader(
       filter: Option[Filter],

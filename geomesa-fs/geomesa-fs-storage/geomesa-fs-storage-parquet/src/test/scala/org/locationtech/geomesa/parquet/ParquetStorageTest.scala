@@ -47,6 +47,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
   // 8 bits resolution creates 3 partitions with our test data
   val scheme = NamedOptions("z2-8bits")
 
+  // TODO: implement a unit test to check if partition bounds in the storage metadata are correct
   "ParquetFileSystemStorage" should {
     "read and write features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")

@@ -19,8 +19,8 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpda
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver, WriterConfig}
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterConfig}
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.{CompositeObserver, NoOpObserver}
 import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
@@ -67,11 +67,13 @@ abstract class AbstractFileSystemStorage(
   /**
     * Create a writer for the given file
     *
+    * @param partition the partition that the file belongs to
+    * @param action whether to append or modify
     * @param file file to write to
     * @param observer observer to report stats on the data written
     * @return
     */
-  protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter
+  protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter
 
   /**
     * Create a path reader with the given filter and transform
@@ -234,11 +236,11 @@ abstract class AbstractFileSystemStorage(
     def pathAndObserver: WriterConfig = {
       val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
       PathCache.register(context.fc, path)
-      val updateObserver = new UpdateObserver(partition, path, action)
-      val observer = if (observers.isEmpty) { updateObserver.asInstanceOf[BoundsObserver] } else {
-        new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver)).asInstanceOf[BoundsObserver]
+      val noopObserver = NoOpObserver
+      val observer = if (observers.isEmpty) { noopObserver } else {
+        new CompositeObserver(observers.map(_.apply(path)).+:(noopObserver)).asInstanceOf[BoundsObserver]
       }
-      WriterConfig(path, observer)
+      WriterConfig(partition, action, path, observer)
     }
 
     targetSize(targetFileSize) match {
@@ -247,7 +249,7 @@ abstract class AbstractFileSystemStorage(
     }
   }
 
-  private def createWriter(config: WriterConfig): FileSystemWriter = createWriter(config.path, config.observer)
+  private def createWriter(config: WriterConfig): FileSystemWriter = createWriter(config.partition, config.action, config.path, config.observer)
 
   /**
    * Writes files up to a given size, then starts a new file
@@ -350,13 +352,10 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver with BoundsObserver {
-
-    override def getBoundingBox: Envelope = super.getBoundingBox
-
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {
+  protected class StorageMetadataCallback(partition: String, action: StorageFileAction, file: Path) extends ((Envelope, Long) => Unit) {
+    override def apply(env: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
-      metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
+      metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(env), count))
     }
   }
 }
@@ -396,5 +395,5 @@ object AbstractFileSystemStorage {
     protected def onClose(bounds: Envelope, count: Long): Unit
   }
 
-  private case class WriterConfig(path: Path, observer: BoundsObserver)
+  private case class WriterConfig(partition: String, action: StorageFileAction, path: Path, observer: BoundsObserver)
 }

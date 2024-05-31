@@ -17,13 +17,14 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureWriteSupport
+import org.locationtech.jts.geom.Envelope
 
 object SimpleFeatureParquetWriter extends LazyLogging {
 
-  def builder(file: Path, conf: Configuration): Builder = {
+  def builder(file: Path, conf: Configuration, callback: (Envelope, Long) => Unit = ((_, _) => {})): Builder = {
     val codec = CompressionCodecName.fromConf(conf.get("parquet.compression", "SNAPPY"))
     logger.debug(s"Using Parquet Compression codec ${codec.name()}")
-    new Builder(file)
+    new Builder(file, callback)
       .withConf(conf)
       .withCompressionCodec(codec)
       .withDictionaryEncoding(true)
@@ -36,10 +37,10 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       .withRowGroupSize(8*1024*1024)
   }
 
-  class Builder private [SimpleFeatureParquetWriter] (file: Path)
+  class Builder private [SimpleFeatureParquetWriter] (file: Path, callback: (Envelope, Long) => Unit)
       extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =
-      new SimpleFeatureWriteSupport
+      new SimpleFeatureWriteSupport(callback)
   }
 }

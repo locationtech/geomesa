@@ -13,6 +13,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
@@ -30,7 +31,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter =
     throw new NotImplementedError()
 
   override protected def createReader(
