@@ -99,6 +99,8 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * arrow ``15.0.2`` -> ``16.1.0``
+* orc ``1.9.3`` -> ``2.0.1``
+* parquet ``1.13.1`` -> ``1.14.0``
 
 Version 5.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
