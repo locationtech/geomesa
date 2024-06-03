@@ -101,7 +101,7 @@
         <typesafe.config.version>1.4.3</typesafe.config.version>
 
         <!-- standardized transitive dependencies -->
-        <aircompressor.version>0.25</aircompressor.version>
+        <aircompressor.version>0.27</aircompressor.version>
         <fasterxml.jackson.version>2.16.1</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
         <fasterxml.jackson.databind.version>2.16.1</fasterxml.jackson.databind.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
