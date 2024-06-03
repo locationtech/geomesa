@@ -286,8 +286,8 @@ object KryoJsonPath {
       case j: JObject              => compact(render(j))
       case j: JArray               => unwrapArray(j)
       case JDouble(d)              => d
-      case JInt(i) if i.isValidInt => i.intValue() // note: this check needs to be a separate line to avoid auto-casting to long
-      case JInt(i)                 => i.longValue()
+      case JInt(i) if i.isValidInt => i.intValue // note: this check needs to be a separate line to avoid auto-casting to long
+      case JInt(i)                 => i.longValue
       case JLong(i)                => i
       case JNull                   => null
       case JBool(b)                => b

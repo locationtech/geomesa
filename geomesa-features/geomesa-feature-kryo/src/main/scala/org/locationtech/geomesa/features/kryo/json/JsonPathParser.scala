@@ -133,7 +133,7 @@ object JsonPathParser {
       }
       override def apply(args: Any): Any = {
         args match {
-          case s: java.util.List[_] if !s.isEmpty => op(s.asScala.map(toNum))
+          case s: java.util.List[_] if !s.isEmpty => op(s.asScala.toSeq.map(toNum))
           case s: Seq[_] if s.nonEmpty => op(s.map(toNum))
           case _ => null
         }

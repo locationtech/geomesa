@@ -198,7 +198,7 @@ object KryoJsonPathFilter {
 
     def toSeq(expression: Any): Option[Seq[Any]] = expression match {
       case s: Seq[_] => Some(s)
-      case s: java.util.List[_] => Some(s.asScala)
+      case s: java.util.List[_] => Some(s.asScala.toSeq)
       case _ => None
     }
 
