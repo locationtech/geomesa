@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spring.binder.kafka.datastore.converters;
+package org.locationtech.geomesa.kafka.spring.binder.converters;
 
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent;
 import org.geotools.api.feature.simple.SimpleFeature;

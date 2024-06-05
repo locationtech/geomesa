@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spring.binder.kafka.datastore;
+package org.locationtech.geomesa.kafka.spring.binder;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ConfigurationProperties(prefix = "spring.cloud.stream.kafka-datastore")
-public class KafkaDatastoreBinderConfigurationProperties {
+    public class KafkaDatastoreBinderConfigurationProperties {
     public Map<String, ? extends Serializable> binder = new HashMap<>();
 
     public Map<String, ? extends Serializable> getBinder() {

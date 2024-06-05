@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spring.binder.kafka.datastore;
+package org.locationtech.geomesa.kafka.spring.binder;
 
 import org.geotools.api.data.DataStore;
 import org.geotools.api.data.FeatureWriter;
@@ -69,7 +69,12 @@ public class KafkaDatastoreMessageBinder extends AbstractMessageChannelBinder<Co
                 if (sft.isDefined()) {
                     ds.createSchema(sft.get());
                 } else {
-                    logger.warn("Could not find a local version of {}, hoping the KDS is already defined...", sfName);
+                    try {
+                        ds.getSchema(sfName);
+                        logger.debug("There is no local schema for {}, but we found it in the kds", sfName);
+                    } catch (IOException e) {
+                        logger.error("There is no sft schema {} in the kds {} or locally", sfName, ds.getInfo().getDescription(), e);
+                    }
                 }
 
                 if (message.getPayload() instanceof SimpleFeature) {

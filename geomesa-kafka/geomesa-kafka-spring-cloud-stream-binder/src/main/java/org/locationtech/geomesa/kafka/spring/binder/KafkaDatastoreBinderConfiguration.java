@@ -6,11 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spring.binder.kafka.datastore;
+package org.locationtech.geomesa.kafka.spring.binder;
 
 import org.geotools.api.data.DataStore;
 import org.geotools.api.data.DataStoreFinder;
-import org.locationtech.geomesa.spring.binder.kafka.datastore.converters.SimpleFeatureConverter;
+import org.locationtech.geomesa.kafka.spring.binder.converters.SimpleFeatureConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
