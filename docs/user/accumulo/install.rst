@@ -62,6 +62,11 @@ queries might not work correctly or at all.
 Namespace Install
 ^^^^^^^^^^^^^^^^^
 
+.. warning::
+
+    GeoMesa 4.0.x is not compatible with Accumulo namespace installs. Upgrade to GeoMesa 5.0.0 or later in order
+    to use namespace installs.
+
 GeoMesa leverages namespaces and classpath contexts to isolate the GeoMesa
 classpath from the rest of Accumulo.
 
@@ -107,19 +112,23 @@ Once in the shell:
 System Install
 ^^^^^^^^^^^^^^
 
-Alternatively, the GeoMesa runtime JAR can be copied into the ``$ACCUMULO_HOME/lib/ext`` folder on
-each tablet server.
-
 .. warning::
 
     This approach is not recommended, as the GeoMesa classes will be on the global
     Accumulo classpath, and may conflict with other custom JARs installed in Accumulo.
 
+Alternatively, the GeoMesa runtime JAR can be copied into the ``$ACCUMULO_HOME/lib/`` folder on
+each tablet server.
+
+.. note::
+
+    In Accumulo versions prior to 2.1, the JAR should be copied into ``$ACCUMULO_HOME/lib/ext/`` instead.
+
 .. code-block:: bash
 
     $ for tserver in $(cat $ACCUMULO_HOME/conf/tservers); do \
         scp dist/accumulo/geomesa-accumulo-distributed-runtime_${VERSION}.jar \
-        $tserver:$ACCUMULO_HOME/lib/ext; done
+        $tserver:$ACCUMULO_HOME/lib/; done
 
 .. _setting_up_accumulo_commandline:
 
