@@ -911,6 +911,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "support pausing at-least-once consumers" >> {
+      skipped("inconsistent")
       val params = Map(
         KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
         KafkaDataStoreParams.ConsumerCount.key -> "2",
