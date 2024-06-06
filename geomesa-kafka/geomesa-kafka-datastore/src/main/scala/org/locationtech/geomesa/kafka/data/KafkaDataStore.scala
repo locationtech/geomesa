@@ -121,11 +121,24 @@ class KafkaDataStore(
    * @param processor message processor
    * @return
    */
+  def createConsumer(typeName: String, groupId: String, processor: GeoMessageProcessor): Closeable =
+    createConsumer(typeName, groupId, processor, None)
+
+  /**
+   * Create a message consumer for the given feature type. This can be used for guaranteed at-least-once
+   * message processing
+   *
+   * @param typeName type name
+   * @param groupId consumer group id
+   * @param processor message processor
+   * @param errorHandler error handler
+   * @return
+   */
   def createConsumer(
       typeName: String,
       groupId: String,
       processor: GeoMessageProcessor,
-      errorHandler: Option[ConsumerErrorHandler] = None): Closeable = {
+      errorHandler: Option[ConsumerErrorHandler]): Closeable = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IllegalArgumentException(s"Schema '$typeName' does not exist; call `createSchema` first")

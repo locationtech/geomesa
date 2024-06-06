@@ -10,8 +10,6 @@
     <condition property="build.directory" value="${build.directory}" else="${basedir}/target">
       <isset property="build.directory"/>
     </condition>
-
-    <echo message="Build directory: ${build.directory}"/>
   </target>
 
   <target name="clean" depends="init">
