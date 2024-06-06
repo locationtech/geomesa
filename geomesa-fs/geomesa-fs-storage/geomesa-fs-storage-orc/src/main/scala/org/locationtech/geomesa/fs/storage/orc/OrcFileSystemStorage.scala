@@ -35,7 +35,7 @@ class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata
     extends AbstractFileSystemStorage(context, metadata, OrcFileSystemStorage.FileExtension) {
 
   private class SingleGeometryObserver(partition: String, action: StorageFileAction, file: Path) extends MetadataObserver with BoundsObserver {
-    override protected def onClose(bounds: Envelope, count: Long): Unit = new StorageMetadataCallback(partition, action, file)(bounds, count)
+    override protected def onClose(bounds: Envelope, count: Long): Unit = new FileBasedMetadataCallback(partition, action, file)(bounds, count)
   }
 
   override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter = {

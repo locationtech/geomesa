@@ -20,12 +20,14 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionBounds
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Envelope
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -33,6 +35,7 @@ import org.specs2.specification.AllExpectations
 
 import java.nio.file.Files
 import java.util.UUID
+import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class ParquetStorageTest extends Specification with AllExpectations with LazyLogging {
@@ -47,8 +50,54 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
   // 8 bits resolution creates 3 partitions with our test data
   val scheme = NamedOptions("z2-8bits")
 
-  // TODO: implement a unit test to check if partition bounds in the storage metadata are correct
   "ParquetFileSystemStorage" should {
+    "contain partition metadata with correct bounds" in {
+      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val features = (0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(0, s"POINT(4$i 5$i)")
+        sf
+      }
+
+      withTestDir { dir =>
+        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val metadata =
+          new FileBasedMetadataFactory()
+            .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+
+        storage must not(beNull)
+
+        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+
+        val expectedBounds = new mutable.HashMap[String, Envelope]()
+        features.foreach { f =>
+          val partition = storage.metadata.scheme.getPartitionName(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+          writer.write(f)
+
+          val env = expectedBounds.getOrElse(partition, new Envelope)
+          env.expandToInclude(f.getBounds.asInstanceOf[Envelope])
+          expectedBounds.put(partition, env)
+        }
+
+        writers.foreach(_._2.close())
+
+        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+        val partitions = storage.getPartitions.map(_.name)
+        partitions must haveLength(writers.size)
+
+        storage.getPartitions.foreach(partition => partition.bounds mustEqual PartitionBounds(expectedBounds(partition.name)))
+      }
+      ok
+    }
+
     "read and write features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 

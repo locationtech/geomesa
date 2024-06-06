@@ -352,7 +352,7 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  protected class StorageMetadataCallback(partition: String, action: StorageFileAction, file: Path) extends ((Envelope, Long) => Unit) {
+  protected class FileBasedMetadataCallback(partition: String, action: StorageFileAction, file: Path) extends ((Envelope, Long) => Unit) {
     override def apply(env: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(env), count))
