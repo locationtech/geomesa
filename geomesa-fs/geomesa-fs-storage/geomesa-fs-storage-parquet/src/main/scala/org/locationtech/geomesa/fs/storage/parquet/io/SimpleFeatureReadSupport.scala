@@ -17,7 +17,6 @@ import org.apache.parquet.schema.MessageType
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.SchemaVersionKey
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
@@ -31,16 +30,14 @@ import scala.collection.mutable.ArrayBuffer
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 
   private var schema: SimpleFeatureParquetSchema = null
-  private var schemaVersion: Integer = null
 
   override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context).getOrElse {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
     }
-    schemaVersion = schema.metadata.get(SchemaVersionKey).toInt
 
     // ensure that our read schema matches the geomesa parquet version
-    new ReadContext(schema.schema, schema.metadata)
+    new ReadContext(schema.schema, schema.metadata.build())
   }
 
   override def prepareForRead(
@@ -88,7 +85,7 @@ object SimpleFeatureReadSupport {
 
   class SimpleFeatureRecordMaterializer(schema: SimpleFeatureParquetSchema)
       extends RecordMaterializer[SimpleFeature] {
-    private val converter = new SimpleFeatureGroupConverter(schema.sft, schema.metadata.get(SchemaVersionKey).toInt)
+    private val converter = new SimpleFeatureGroupConverter(schema.sft, schema.version.toInt)
     override def getRootConverter: GroupConverter = converter
     override def getCurrentRecord: SimpleFeature = converter.materialize
   }

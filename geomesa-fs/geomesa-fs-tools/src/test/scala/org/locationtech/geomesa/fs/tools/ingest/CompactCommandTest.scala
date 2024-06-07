@@ -8,10 +8,8 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hdfs.HdfsConfiguration
 import org.apache.parquet.format.converter.ParquetMetadataConverter
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}

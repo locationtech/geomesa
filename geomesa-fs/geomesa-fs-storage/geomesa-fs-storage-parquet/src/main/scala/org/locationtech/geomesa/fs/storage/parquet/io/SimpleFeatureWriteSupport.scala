@@ -15,8 +15,6 @@ import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.MetadataObserver
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.{GeoParquetSchemaKey, SchemaVersionKey}
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -24,7 +22,6 @@ import org.locationtech.jts.geom._
 
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
-import scala.collection.JavaConverters._
 
 class SimpleFeatureWriteSupport(callback: (Envelope, Long) => Unit = ((_, _) => {})) extends WriteSupport[SimpleFeature] {
 
@@ -87,30 +84,21 @@ class SimpleFeatureWriteSupport(callback: (Envelope, Long) => Unit = ((_, _) => 
     }
     this.writer = SimpleFeatureWriteSupport.SimpleFeatureWriter(schema.sft)
 
-    new WriteContext(schema.schema, schema.metadata)
+    new WriteContext(schema.schema, schema.metadata.build())
   }
 
-  // called once at the end after all SimpleFeatures are written
+  // called once at the end after all SimpleFeatures are written to the file
   override def finalizeWrite(): FinalizedWriteContext = {
     // Get the bounding boxes that span each geometry type
     val bboxes = observer.getBoundingBoxes
     observer.close()
 
-    // If the SFT has no geometries, then there's no need to create GeoParquet metadata
+    // Omit GeoParquet metadata if the SFT has no geometries
     if (bboxes.isEmpty) {
-      return new FinalizedWriteContext(schema.metadata)
+      new FinalizedWriteContext(schema.metadata.build())
+    } else {
+      new FinalizedWriteContext(schema.metadata.withGeoParquetMetadata(bboxes).build())
     }
-
-    // TODO: not an elegant way to do it
-    //  somehow trying to mutate the map, e.g. by calling metadata.put(GeoParquetSchemaKey, result), causes empty parquet files to be written
-    val newMetadata: java.util.Map[String, String] = Map(
-      StorageConfiguration.SftNameKey -> schema.metadata.get(StorageConfiguration.SftNameKey),
-      StorageConfiguration.SftSpecKey -> schema.metadata.get(StorageConfiguration.SftSpecKey),
-      SchemaVersionKey -> schema.metadata.get(SchemaVersionKey),
-      GeoParquetSchemaKey -> SimpleFeatureParquetSchema.geoParquetMetadata(schema.sft, bboxes)
-    ).asJava
-
-    new FinalizedWriteContext(newMetadata)
   }
 
   // called per block

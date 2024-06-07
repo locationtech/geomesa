@@ -16,14 +16,13 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.Types.BasePrimitiveBuilder
 import org.apache.parquet.schema._
-import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.CurrentSchemaVersion
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.locationtech.jts.geom.Envelope
 
 /**
   * A paired simple feature type and parquet schema
@@ -33,19 +32,10 @@ import org.locationtech.jts.geom.Envelope
   */
 case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageType, version: Integer = CurrentSchemaVersion) {
 
-  import SimpleFeatureParquetSchema.{GeoParquetSchemaKey, SchemaVersionKey}
-
-  import scala.collection.JavaConverters._
-
   /**
     * Parquet file metadata
     */
-  lazy val metadata: java.util.Map[String, String] = Map(
-    StorageConfiguration.SftNameKey -> sft.getTypeName,
-    StorageConfiguration.SftSpecKey -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-    SchemaVersionKey                -> version.toString,
-    GeoParquetSchemaKey             -> null
-  ).asJava
+  val metadata = new SimpleFeatureParquetMetadataBuilder(sft, version)
 
   /**
     * Gets the name of the parquet field for the given simple feature type attribute
@@ -59,7 +49,6 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
 object SimpleFeatureParquetSchema {
 
   import StringSerialization.alphaNumericSafeString
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -71,55 +60,6 @@ object SimpleFeatureParquetSchema {
 
   val Encoding = "WKB"
   val GeoParquetSchemaKey = "geo"
-
-  /**
-   * See https://geoparquet.org/releases/v1.0.0/schema.json
-   *
-   * @param sft simple feature type
-   * @return
-   */
-  def geoParquetMetadata(sft: SimpleFeatureType, bboxes: Array[Envelope]): String = {
-    val geomField = sft.getGeomField
-
-    // If the sft has no geometry field, then omit the GeoParquet metadata entirely
-    if (geomField == null) {
-      ""
-    } else {
-      val primaryColumn = alphaNumericSafeString(geomField)
-      val columns = {
-        val geometryDescriptors = sft.getAttributeDescriptors.toArray.collect {case gd: GeometryDescriptor => gd}
-        geometryDescriptors.indices.map(i => geoParquetMetadata(geometryDescriptors(i),  bboxes(i))).mkString(",")
-      }
-
-      s"""{"version":"1.0.0","primary_column":"$primaryColumn","columns":{$columns}}"""
-    }
-  }
-
-  def geoParquetMetadata(geom: GeometryDescriptor, bbox: Envelope): String = {
-    // TODO "Z" for 3d, minz/maxz for bbox
-    val geomTypes = {
-      val types = ObjectType.selectType(geom).last match {
-        case ObjectType.POINT               => """"Point""""
-        case ObjectType.LINESTRING          => """"LineString""""
-        case ObjectType.POLYGON             => """"Polygon""""
-        case ObjectType.MULTILINESTRING     => """"MultiLineString""""
-        case ObjectType.MULTIPOLYGON        => """"MultiPolygon""""
-        case ObjectType.MULTIPOINT          => """"MultiPoint""""
-        case ObjectType.GEOMETRY_COLLECTION => """"GeometryCollection""""
-        case ObjectType.GEOMETRY            => null
-      }
-      Seq(types).filter(_ != null)
-    }
-    // note: don't provide crs, as default is EPSG:4326 with longitude first, which is our default/only crs
-
-    def stringify(geomName: String, encoding: String, geometryTypes: Seq[String], bbox: Envelope): String = {
-      val bboxString = s"[${bbox.getMinX}, ${bbox.getMinY}, ${bbox.getMaxX}, ${bbox.getMaxY}]"
-      s""""$geomName":{"encoding":"$encoding","geometry_types":[${geometryTypes.mkString(",")}],"bbox":$bboxString}"""
-    }
-
-    val geomName = alphaNumericSafeString(geom.getLocalName)
-    stringify(geomName, Encoding, geomTypes, bbox)
-  }
 
   /**
     * Extract the simple feature type from a parquet read context. The read context
