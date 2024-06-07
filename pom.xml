@@ -68,7 +68,9 @@
         <accumulo.access.version>1.0.0-beta</accumulo.access.version>
         <arrow.version>16.1.0</arrow.version>
         <avro.version>1.11.3</avro.version>
-        <aws.sdk.version>1.12.625</aws.sdk.version>
+        <aws.sdk.version>1.12.735</aws.sdk.version> <!-- latest available as of 2024/06 -->
+        <aws.sdk.v2.version>2.25.64</aws.sdk.v2.version> <!-- latest available as of 2024/06 -->
+        <aws.crt.version>0.29.18</aws.crt.version>
         <caffeine.version>3.1.8</caffeine.version>
         <clearspring.analytics.version>2.9.8</clearspring.analytics.version>
         <commons.codec.version>1.16.0</commons.codec.version>
@@ -1588,6 +1590,21 @@
                 <version>${aws.sdk.version}</version>
             </dependency>
             <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${aws.sdk.v2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3-transfer-manager</artifactId>
+                <version>${aws.sdk.v2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk.crt</groupId>
+                <artifactId>aws-crt</artifactId>
+                <version>${aws.crt.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
@@ -2205,6 +2222,18 @@
                 <artifactId>hadoop-yarn-server-web-proxy</artifactId>
                 <version>${hadoop.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-aws</artifactId>
+                <version>${hadoop.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>bundle</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- transitive dependency of hadoop 2.x -->
             <dependency>

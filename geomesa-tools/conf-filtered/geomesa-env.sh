@@ -84,6 +84,9 @@ fi
 
 newline=$'\n'
 
+# checks a version string is >= a test
+function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
+
 # setup opts for invoking the geomesa java process
 function get_options() {
     # create log dir if needed

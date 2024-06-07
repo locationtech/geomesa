@@ -8,53 +8,49 @@
 
 package org.locationtech.geomesa.fs.storage.common.s3
 
-import com.amazonaws.services.s3.AmazonS3
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 
-import java.io.IOException
+import scala.util.control.NonFatal
 
 /**
  * Factory for S3VisibilityObserver
  */
-class S3VisibilityObserverFactory extends FileSystemObserverFactory {
+class S3VisibilityObserverFactory extends FileSystemObserverFactory with LazyLogging {
 
-  private var fs: FileSystem = _
-  private var s3: AmazonS3 = _
-  private var tag: String = _
+  private var delegate: FileSystemObserverFactory = _
 
   override def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit = {
     try {
-      // use reflection to access to private client factory used by the s3a hadoop impl
-      fs = root.getFileSystem(conf)
-      val field = fs.getClass.getDeclaredField("s3")
-      field.setAccessible(true)
-      s3 = field.get(fs).asInstanceOf[AmazonS3]
-      tag = conf.get(S3VisibilityObserverFactory.TagNameConfig, S3VisibilityObserverFactory.DefaultTag)
+      if (S3VisibilityObserverFactory.UseV2) {
+        delegate = new v2.S3VisibilityObserverFactory()
+      } else {
+        delegate = new v1.S3VisibilityObserverFactory()
+      }
+      delegate.init(conf, root, sft)
     } catch {
       case e: Exception => throw new RuntimeException("Unable to get s3 client", e)
     }
   }
 
-  override def apply(path: Path): FileSystemObserver = new S3VisibilityObserver(s3, path, tag)
+  override def apply(path: Path): FileSystemObserver = delegate.apply(path)
 
-  override def close(): Unit = {
-    s3 = null
-    if (fs != null) {
-      try {
-        fs.close()
-      } catch {
-        case e: Exception => throw new IOException("Error closing S3 filesystem", e)
-      } finally {
-        fs = null
-      }
-    }
-  }
+  override def close(): Unit = if (delegate != null) { delegate.close() }
 }
 
-object S3VisibilityObserverFactory {
+object S3VisibilityObserverFactory extends LazyLogging {
+
   val TagNameConfig = "geomesa.fs.vis.tag"
   val DefaultTag = "geomesa.file.visibility"
+
+  lazy private val UseV2: Boolean = try {
+    val versionRegex = """(\d+)\.(\d+)\..*""".r
+    val versionRegex(maj, min) = org.apache.hadoop.util.VersionInfo.getVersion
+    maj.toInt >= 3 && min.toInt >= 4
+  } catch {
+    case NonFatal(e) => logger.warn("Unable to evaluate hadoop version, defaulting to aws sdk v2: ", e); true
+  }
 }

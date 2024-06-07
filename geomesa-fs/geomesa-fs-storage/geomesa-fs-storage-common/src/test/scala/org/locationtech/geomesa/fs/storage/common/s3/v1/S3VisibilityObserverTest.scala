@@ -6,11 +6,14 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.s3
+package org.locationtech.geomesa.fs.storage.common.s3.v1
 
+import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.s3.model.{SetObjectTaggingRequest, Tag}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs._
-import org.apache.hadoop.fs.s3a.{S3AFileSystem, S3AInternals}
+import org.apache.hadoop.fs.permission.FsPermission
+import org.apache.hadoop.util.Progressable
 import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -21,9 +24,8 @@ import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{PutObjectTaggingRequest, Tag}
 
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
@@ -33,6 +35,7 @@ class S3VisibilityObserverTest extends Specification with Mockito {
   import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("s3", "dtg:Date,*geom:Point:srid=4326")
+  val defaultTag = org.locationtech.geomesa.fs.storage.common.s3.S3VisibilityObserverFactory.DefaultTag
 
   def feature(id: Int, vis: String): SimpleFeature = {
     val sf = ScalaSimpleFeature.create(sft, s"$id", "2020-01-01T00:00:00.000Z", "POINT (45 55)")
@@ -40,18 +43,22 @@ class S3VisibilityObserverTest extends Specification with Mockito {
     sf
   }
 
-  def mockS3(factory: S3VisibilityObserverFactory): S3Client = {
-    val root = mock[Path]
-    val s3Internals = mock[S3AInternals]
-    val s3 = mock[S3Client]
-    val fs = new S3AFileSystem() {
-      override def getS3AInternals: S3AInternals = s3Internals
-    }
+  // noinspection NotImplementedCode
+  class MockFileSystem extends FileSystem {
 
-    root.getFileSystem(ArgumentMatchers.any()) returns fs
-    s3Internals.getAmazonS3Client(ArgumentMatchers.any()) returns s3
-    factory.init(new Configuration(), root, sft)
-    s3
+    val s3: AmazonS3 = mock[AmazonS3]
+
+    override def getUri: URI = ???
+    override def open(path: Path, i: Int): FSDataInputStream = ???
+    override def create(path: Path, fsp: FsPermission, b: Boolean, i: Int, i1: Short, l: Long, p: Progressable): FSDataOutputStream = ???
+    override def append(path: Path, i: Int, p: Progressable): FSDataOutputStream = ???
+    override def rename(path: Path, path1: Path): Boolean = ???
+    override def delete(path: Path, b: Boolean): Boolean = ???
+    override def listStatus(path: Path): Array[FileStatus] = ???
+    override def setWorkingDirectory(path: Path): Unit = ???
+    override def getWorkingDirectory: Path = ???
+    override def mkdirs(path: Path, fsp: FsPermission): Boolean = ???
+    override def getFileStatus(path: Path): FileStatus = ???
   }
 
   "S3VisibilityObserver" should {
@@ -59,72 +66,80 @@ class S3VisibilityObserverTest extends Specification with Mockito {
     "initialize factory correctly" >> {
       // mimic construction through reflection
       WithClose(classOf[S3VisibilityObserverFactory].getDeclaredConstructor().newInstance()) { factory =>
-        mockS3(factory) must not(throwAn[Exception])
+        val root = mock[Path]
+        root.getFileSystem(ArgumentMatchers.any()) returns new MockFileSystem()
+        factory.init(new Configuration(), root, sft) must not(throwAn[Exception])
       }
     }
 
     "tag a single visibility label" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
-        val s3 = mockS3(factory)
+        val fs = new MockFileSystem()
+        val root = mock[Path]
+        root.getFileSystem(ArgumentMatchers.any()) returns fs
+        factory.init(new Configuration(), root, sft)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
         observer.write(feature(0, "user"))
         observer.close()
 
-        val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])
-        there was one(s3).putObjectTagging(captor.capture())
+        val captor: ArgumentCaptor[SetObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[SetObjectTaggingRequest])
+        there was one(fs.s3).setObjectTagging(captor.capture())
         val request = captor.getValue
-        request.bucket mustEqual "foo"
-        request.key mustEqual "bar/baz.json"
+        request.getBucketName mustEqual "foo"
+        request.getKey mustEqual "bar/baz.json"
         val encoded = Base64.getEncoder.encodeToString("user".getBytes(StandardCharsets.UTF_8))
-        request.tagging.tagSet.asScala mustEqual
-          Seq(Tag.builder.key(S3VisibilityObserverFactory.DefaultTag).value(encoded).build())
+        request.getTagging.getTagSet.asScala mustEqual Seq(new Tag(defaultTag, encoded))
       }
     }
 
     "tag multiple visibility labels" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
-        val s3 = mockS3(factory)
+        val fs = new MockFileSystem()
+        val root = mock[Path]
+        root.getFileSystem(ArgumentMatchers.any()) returns fs
+        factory.init(new Configuration(), root, sft)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
         observer.write(feature(0, "user"))
         observer.write(feature(1, "admin"))
         observer.write(feature(2, "user"))
         observer.close()
 
-        val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])
-        there was one(s3).putObjectTagging(captor.capture())
+        val captor: ArgumentCaptor[SetObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[SetObjectTaggingRequest])
+        there was one(fs.s3).setObjectTagging(captor.capture())
         val request = captor.getValue
-        request.bucket mustEqual "foo"
-        request.key mustEqual "bar/baz.json"
+        request.getBucketName mustEqual "foo"
+        request.getKey mustEqual "bar/baz.json"
         // since the vis are kept in a set, the order is not defined
         val encodedFront = Base64.getEncoder.encodeToString("user&admin".getBytes(StandardCharsets.UTF_8))
         val encodedBack = Base64.getEncoder.encodeToString("admin&user".getBytes(StandardCharsets.UTF_8))
-        request.tagging.tagSet.asScala must beOneOf(
-          Seq(Tag.builder.key(S3VisibilityObserverFactory.DefaultTag).value(encodedFront).build()),
-          Seq(Tag.builder.key(S3VisibilityObserverFactory.DefaultTag).value(encodedBack).build())
+        request.getTagging.getTagSet.asScala must beOneOf(
+          Seq(new Tag(defaultTag, encodedFront)), Seq(new Tag(defaultTag, encodedBack))
         )
       }
     }
 
     "simplify tag expressions" >> {
       WithClose(new S3VisibilityObserverFactory) { factory =>
-        val s3 = mockS3(factory)
+        val fs = new MockFileSystem()
+        val root = mock[Path]
+        root.getFileSystem(ArgumentMatchers.any()) returns fs
+        factory.init(new Configuration(), root, sft)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
         observer.write(feature(0, "user&admin"))
         observer.write(feature(1, "admin"))
         observer.write(feature(2, "user"))
         observer.close()
 
-        val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])
-        there was one(s3).putObjectTagging(captor.capture())
+        val captor: ArgumentCaptor[SetObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[SetObjectTaggingRequest])
+        there was one(fs.s3).setObjectTagging(captor.capture())
         val request = captor.getValue
-        request.bucket mustEqual "foo"
-        request.key mustEqual "bar/baz.json"
+        request.getBucketName mustEqual "foo"
+        request.getKey mustEqual "bar/baz.json"
         // since the vis are kept in a set, the order is not defined
         val encodedFront = Base64.getEncoder.encodeToString("user&admin".getBytes(StandardCharsets.UTF_8))
         val encodedBack = Base64.getEncoder.encodeToString("admin&user".getBytes(StandardCharsets.UTF_8))
-        request.tagging.tagSet.asScala must beOneOf(
-          Seq(Tag.builder.key(S3VisibilityObserverFactory.DefaultTag).value(encodedFront).build()),
-          Seq(Tag.builder.key(S3VisibilityObserverFactory.DefaultTag).value(encodedBack).build())
+        request.getTagging.getTagSet.asScala must beOneOf(
+          Seq(new Tag(defaultTag, encodedFront)), Seq(new Tag(defaultTag, encodedBack))
         )
       }
     }
