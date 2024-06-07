@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.io
 
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
-import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
+import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject, SwallowedExceptionListener}
 
 import java.io.Closeable
 
@@ -70,6 +70,19 @@ object CloseablePool {
       }
     }
 
-    override def close(): Unit = pool.close()
+    override def close(): Unit = {
+      val errors = new java.util.concurrent.LinkedBlockingQueue[Exception]()
+      pool.setSwallowedExceptionListener(new SwallowedExceptionListener() {
+        override def onSwallowException(e: Exception): Unit = errors.offer(e)
+      })
+      pool.close()
+      if (!errors.isEmpty) {
+        val e = errors.poll()
+        while (!errors.isEmpty) {
+          e.addSuppressed(errors.poll())
+        }
+        throw e
+      }
+    }
   }
 }
