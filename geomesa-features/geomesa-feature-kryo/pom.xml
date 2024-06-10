@@ -32,6 +32,10 @@
             <artifactId>json-path</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.parboiled</groupId>
             <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
         </dependency>

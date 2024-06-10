@@ -8,19 +8,21 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
-import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
-import com.jayway.jsonpath.{Configuration, JsonPath}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import com.jayway.jsonpath.Configuration
+import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, SUPPRESS_EXCEPTIONS}
+import net.minidev.json.JSONObject
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathAttributeWildCard, PathDeepScan, PathElement}
-import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.{pathConfig, pathFor}
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
-import java.lang.ref.SoftReference
+import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
 
 /**
@@ -38,7 +40,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
   import scala.collection.JavaConverters._
 
   override def canHandle(obj: AnyRef, xpath: String, target: Class[_]): Boolean = {
-    val path = try { pathFor(xpath) } catch { case NonFatal(_) => Seq.empty }
+    val path = try { JsonPathPropertyAccessor.paths.get(xpath) } catch { case NonFatal(e) => e.printStackTrace; JsonPath(Seq.empty, None) }
 
     if (path.isEmpty) { false } else {
       path.head match {
@@ -65,7 +67,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
 
   override def get[T](obj: AnyRef, xpath: String, target: Class[T]): T = {
 
-    val path = pathFor(xpath)
+    val path = JsonPathPropertyAccessor.paths.get(xpath)
 
     val result = obj match {
       case s: KryoBufferSimpleFeature =>
@@ -73,11 +75,11 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
         if (s.getFeatureType.getDescriptor(i).isJson()) {
           s.getInput(i).map(KryoJsonSerialization.deserialize(_, path.tail)).orNull
         } else {
-          parse(s.getAttribute(i).asInstanceOf[String], path.tail)
+          JsonPathPropertyAccessor.evaluateJsonPath(s.getAttribute(i).asInstanceOf[String], path.tail)
         }
 
       case s: SimpleFeature =>
-        parse(s.getAttribute(attribute(s.getFeatureType, path.head)).asInstanceOf[String], path.tail)
+        JsonPathPropertyAccessor.evaluateJsonPath(s.getAttribute(attribute(s.getFeatureType, path.head)).asInstanceOf[String], path.tail)
 
       case s: SimpleFeatureType =>
         // remove the json flag, so that transform serializations don't try to serialize
@@ -114,19 +116,23 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
         }
     }
   }
-
-  private def parse(json: String, path: Seq[PathElement]): AnyRef = {
-    val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path))
-    if (list == null || list.isEmpty) { null } else if (list.size == 1) { list.get(0) } else { list }
-  }
 }
 
 object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
 
+  import scala.collection.JavaConverters._
+
+  val CacheExpiry: SystemProperty = SystemProperty("geomesa.json.cache.expiry", "10 minutes")
+
   // cached references to parsed json path expressions
-  private val paths = new java.util.concurrent.ConcurrentHashMap[String, SoftReference[Seq[PathElement]]]()
-  private val pathConfig =
-    Configuration.builder.options(ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS).build()
+  private val paths: LoadingCache[String, JsonPath] =
+    Caffeine.newBuilder()
+      .expireAfterAccess(CacheExpiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
+      .build(new CacheLoader[String, JsonPath]() {
+        override def load(path: String): JsonPath = JsonPathParser.parse(path, report = false)
+      })
+
+  private val pathConfig: Configuration = Configuration.builder.options(ALWAYS_RETURN_LIST, SUPPRESS_EXCEPTIONS).build()
 
   class JsonPropertyAccessorFactory extends PropertyAccessorFactory {
 
@@ -146,21 +152,40 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
   }
 
   /**
-    * Gets a parsed json path expression, using a cached value if available
-    *
-    * @param path path to parse
-    * @return
-    */
-  private def pathFor(path: String): Seq[PathElement] = {
-    val cached = paths.get(path) match {
-      case null => null
-      case c => c.get
+   * Evaluate a json path using the json-path lib. This method is a fallback for our custom kryo-deserialization,
+   * and requires parsing the input into the json-path AST. The result has been modified to be consistent
+   * with our custom serialization (for better interop with geotools), i.e. json objects are serialized to json
+   * strings.
+   *
+   * @param json json doc
+   * @param path json path
+   * @return
+   */
+  private[json] def evaluateJsonPath(json: String, path: JsonPath): AnyRef = {
+    val parsed = com.jayway.jsonpath.JsonPath.using(pathConfig).parse(json)
+    val list = parsed.read[java.util.List[AnyRef]](JsonPathParser.print(path))
+    if (list == null || list.isEmpty) {
+      // special handling to return 0 for length functions without matches
+      path.function match {
+        case Some(PathFunction.LengthFunction) => Int.box(0)
+        case _ => null
+      }
+    } else {
+      val transformed = list.asScala.map {
+        case o: java.util.Map[String, AnyRef] => JSONObject.toJSONString(o)
+        case a: java.util.List[AnyRef] => unwrapArray(a)
+        case p => p
+      }
+      if (transformed.lengthCompare(1) == 0) { transformed.head } else { transformed.asJava }
     }
-    if (cached != null) { cached } else {
-      val parsed = JsonPathParser.parse(path, report = false)
-      paths.put(path, new SoftReference(parsed))
-      parsed
-    }
+  }
+
+  private def unwrapArray(array: java.util.List[AnyRef]): java.util.List[AnyRef] = {
+    array.asScala.map {
+      case o: java.util.Map[String, AnyRef] => JSONObject.toJSONString(o)
+      case a: java.util.List[AnyRef] => unwrapArray(a)
+      case p => p
+    }.asJava
   }
 }
 

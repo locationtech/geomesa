@@ -49,11 +49,14 @@ class BasicParser extends Parser {
     "'" ~ zeroOrMore((noneOf("""\'""") ~? notControlChar) | escapedChar) ~> StringEscapeUtils.unescapeJava ~ "'"
   }
 
+  // optional whitespace
   def whitespace: Rule0 = rule { zeroOrMore(anyOf(" \n\r\t\f")) }
+  // required space
+  def space: Rule0 = rule { oneOrMore(anyOf(" \t")) }
 
-  private def escapedChar: Rule0 = rule {
+  def escapedChar: Rule0 = rule {
     "\\" ~ (anyOf("""\/"'bfnrt""") | "u" ~ nTimes(4, "0" - "9" | "a" - "f" | "A" - "F"))
   }
 
-  private def notControlChar(s: String): Boolean = !controlCharPattern.matcher(s).matches()
+  def notControlChar(s: String): Boolean = !controlCharPattern.matcher(s).matches()
 }
