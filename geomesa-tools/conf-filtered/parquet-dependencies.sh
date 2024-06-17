@@ -12,8 +12,6 @@
 
 hadoop_install_version="%%hadoop.version.recommended%%"
 
-function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
-
 # gets the dependencies for this module
 # args:
 #   $1 - current classpath

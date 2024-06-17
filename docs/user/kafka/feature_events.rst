@@ -1,7 +1,15 @@
 .. _kafka_feature_events:
 
+Kafka Feature Events
+--------------------
+
 Listening for Feature Events
-----------------------------
+============================
+
+.. warning::
+
+    The feature events API does not guarantee all messages will be fully processed. To ensure
+    at-least-once processing, use :ref:`kafka_guaranteed_processing`.
 
 The GeoTools API includes a mechanism to fire off a `FeatureEvent`_ object each time
 that there is an "event," which occurs when data is added, changed, or deleted in a
@@ -80,6 +88,68 @@ be used to mark the method that does the deregistration:
         store.removeFeatureListener(listener);
         // other cleanup
     }
+
+.. _kafka_guaranteed_processing:
+
+Guaranteed Message Processing
+=============================
+
+In order to guarantee at-least-once processing of **all** messages, implement an instance of ``GeoMessageProcessor``. The
+underlying Kafka consumer will not acknowledge messages until the processor returns, ensuring that they are fully processed
+without any errors:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.kafka.data.KafkaDataStore
+        import org.locationtech.geomesa.kafka.utils.GeoMessage;
+        import org.locationtech.geomesa.kafka.utils.interop.GeoMessageProcessor;
+
+        GeoMessageProcessor processor = new GeoMessageProcessor() {
+            @Override
+            public BatchResult consume(List<GeoMessage> records) {
+                records.forEach((r) -> {
+                    if (r instanceof GeoMessage.Change) {
+                        System.out.println(((GeoMessage.Change) r).feature());
+                    } else if (r instanceof GeoMessage.Delete) {
+                        System.out.println(((GeoMessage.Delete) r).id());
+                    } else if (r instanceof GeoMessage.Clear) {
+                        System.out.println("clear");
+                    }
+                });
+                return BatchResult.COMMIT;
+            }
+        };
+        // use try-with-resources to close the consumer
+        try (((KafkaDataStore) ds).createConsumer(sftName, "my-group-id", processor)) {
+          Thread.sleep(10000);
+        }
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
+        import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
+        import org.locationtech.geomesa.kafka.data.KafkaDataStore
+        import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
+
+        val processor = new GeoMessageProcessor() {
+          override def consume(records: Seq[GeoMessage]): BatchResult = {
+            records.foreach {
+              case GeoMessage.Change(sf) => println(sf)
+              case GeoMessage.Delete(id) => println(id)
+              case GeoMessage.Clear      => println("clear")
+            }
+            BatchResult.Commit
+          }
+        }
+
+        val consumer = ds.asInstanceOf[KafkaDataStore].createConsumer(sftName, "my-group-id", processor)
+        try {
+          ???
+        } finally {
+          consumer.close()
+        }
 
 .. _FeatureEvent: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureEvent.html
 .. _FeatureEvent.Type: https://docs.geotools.org/stable/javadocs/org/geotools/api/data/FeatureEvent.Type.html

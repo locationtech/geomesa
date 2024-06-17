@@ -28,12 +28,12 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
 
   private val cache = new ConcurrentHashMap[String, PropertyAccessor]
 
-  override def evaluate(obj: java.lang.Object): AnyRef = {
-    val sf = try {
-      obj.asInstanceOf[SimpleFeature]
-    } catch {
-      case e: Exception => throw new IllegalArgumentException(s"Expected SimpleFeature, Received ${obj.getClass}. " +
-        s"Only simple features are supported. ${obj.toString}", e)
+  override def evaluate(obj: Object): AnyRef = {
+    val sf = obj match {
+      case sf: SimpleFeature => sf
+      case _ =>
+        throw new IllegalArgumentException(
+          s"Expected SimpleFeature, but received ${obj.getClass}. Only simple features are supported: $obj")
     }
     val base = params.get(0) match {
       case p: PropertyName => p.getPropertyName // for property name expressions, we want the attribute name

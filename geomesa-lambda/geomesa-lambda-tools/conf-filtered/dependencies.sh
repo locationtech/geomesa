@@ -18,8 +18,6 @@ kafka_install_version="%%kafka.version%%"
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%accumulo.guava.version%%"
 
-function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
-
 # gets the dependencies for this module
 # args:
 #   $1 - current classpath
@@ -54,6 +52,10 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main

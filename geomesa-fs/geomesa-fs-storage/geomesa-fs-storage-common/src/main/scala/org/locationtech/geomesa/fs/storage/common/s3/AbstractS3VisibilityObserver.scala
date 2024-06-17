@@ -8,26 +8,34 @@
 
 package org.locationtech.geomesa.fs.storage.common.s3
 
-import com.amazonaws.services.s3.AmazonS3
 import org.apache.accumulo.access.AccessExpression
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.security.SecurityUtils
 
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
-/**
- * Creates a tag containing the base64 encoded summary visibility for the observed file
- *
- * @param s3 s3 client
- * @param path file path
- * @param tag tag name to use
- */
-class S3VisibilityObserver(s3: AmazonS3, path: Path, tag: String) extends S3ObjectTagObserver(s3, path) {
+abstract class AbstractS3VisibilityObserver(path: Path) extends FileSystemObserver {
 
   private val visibilities = scala.collection.mutable.Set.empty[String]
 
+  private val (bucket, key) = {
+    val uri = path.toUri
+    val uriPath = uri.getPath
+    val key = if (uriPath.startsWith("/")) { uriPath.substring(1) } else { uriPath }
+    (uri.getHost, key)
+  }
+
+  override def flush(): Unit = {}
+
+  override def close(): Unit = {
+    try { makeTagRequest(bucket, key) } catch {
+      case e: Exception => throw new IOException("Error tagging object", e)
+    }
+  }
   override def write(feature: SimpleFeature): Unit = {
     val vis = SecurityUtils.getVisibility(feature)
     if (vis != null) {
@@ -35,12 +43,14 @@ class S3VisibilityObserver(s3: AmazonS3, path: Path, tag: String) extends S3Obje
     }
   }
 
-  override protected def tags(): Iterable[(String, String)] = {
-    if (visibilities.isEmpty) { Seq.empty } else {
+  private def makeTagRequest(bucket: String, key: String): Unit = {
+    if (visibilities.nonEmpty) {
       val vis = visibilities.mkString("(", ")&(", ")")
       // this call simplifies and de-duplicates the expression
       val expression = AccessExpression.of(vis, /*normalize = */true).getExpression
-      Seq(tag -> Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8)))
+      makeTagRequest(bucket: String, key: String, Base64.getEncoder.encodeToString(expression.getBytes(StandardCharsets.UTF_8)))
     }
   }
+
+  protected def makeTagRequest(bucket: String, key: String, visibility: String): Unit
 }

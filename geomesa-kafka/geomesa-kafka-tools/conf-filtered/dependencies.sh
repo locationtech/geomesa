@@ -14,8 +14,6 @@
 kafka_install_version="%%kafka.version%%"
 zookeeper_install_version="%%zookeeper.version.recommended%%"
 
-function version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
-
 # gets the dependencies for this module
 # args:
 #   $1 - current classpath

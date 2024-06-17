@@ -9,6 +9,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        <version>5.1.0-SNAPSHOT</version>
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
         <version>5.1.0-SNAPSHOT</version>
 =======
@@ -53,6 +59,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -83,6 +90,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -94,6 +103,9 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -114,6 +126,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
@@ -144,6 +157,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -155,6 +170,9 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -180,6 +198,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -210,6 +229,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -221,6 +242,9 @@
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -243,6 +267,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
@@ -263,6 +288,10 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> af514868ade ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)

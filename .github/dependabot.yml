@@ -7,3 +7,12 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
+    commit-message:
+      prefix: "[dependabot] "
+      include: "scope"
+    groups:
+      actions:
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"

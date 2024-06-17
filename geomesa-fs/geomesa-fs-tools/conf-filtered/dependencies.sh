@@ -13,11 +13,20 @@
 
 hadoop_install_version="%%hadoop.version.recommended%%"
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+aws_sdk_v1_install_version="1.12.735" # latest version as of 2024/06
+aws_sdk_v2_install_version="2.25.64" # latest version as of 2024/06
+aws_crt_install_version="0.29.18"
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 aws_sdk_install_version="1.12.385" # latest version as of 2023/01
 =======
 # required for hadoop - make sure it corresponds to the hadoop installed version
 guava_install_version="%%hadoop.guava.version%%"
 aws_sdk_install_version="1.10.6"
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -115,6 +124,10 @@ aws_sdk_install_version="1.10.6"
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -122,6 +135,7 @@ aws_sdk_install_version="1.10.6"
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -167,8 +181,15 @@ aws_sdk_install_version="1.10.6"
 >>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> eca30cb68af (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -254,10 +275,28 @@ aws_sdk_install_version="1.10.6"
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 5b52d906cba (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 53570f0ec79 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 9b1f8069ef9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 46cd5b49cbf (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 2b372099996 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -310,10 +349,28 @@ aws_sdk_install_version="1.10.6"
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
+>>>>>>> e5506204c18 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 2b372099996 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> d62bec498b1 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 9b1f8069ef9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -359,6 +416,14 @@ aws_sdk_install_version="1.10.6"
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 46cd5b49cbf (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 2b372099996 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
@@ -369,12 +434,14 @@ function dependencies() {
   local classpath="$1"
 
   local hadoop_version="$hadoop_install_version"
-  local aws_sdk_version="$aws_sdk_install_version"
+  local aws_sdk_v1_version="$aws_sdk_v1_install_version"
+  local aws_sdk_v2_version="$aws_sdk_v2_install_version"
   local snappy_version="$snappy_install_version"
 
   if [[ -n "$classpath" ]]; then
     hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
-    aws_sdk_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_version")"
+    aws_sdk_v1_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_v1_version")"
+    aws_sdk_v2_version="$(get_classpath_version aws-core "$classpath" "$aws_sdk_v2_version")"
     snappy_version="$(get_classpath_version snappy-java "$classpath" "$snappy_version")"
   fi
 
@@ -398,22 +465,14 @@ function dependencies() {
     "com.google.protobuf:protobuf-java:2.5.0:jar"
     "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
-    "com.amazonaws:aws-java-sdk-core:${aws_sdk_version}:jar"
-    "com.amazonaws:aws-java-sdk-s3:${aws_sdk_version}:jar"
-    "com.amazonaws:aws-java-sdk-dynamodb:${aws_sdk_version}:jar"
-    # joda-time required for aws sdk
-    "joda-time:joda-time:2.8.1:jar"
     # these are the versions used by hadoop 2.8 and 3.1
     "org.apache.httpcomponents:httpclient:4.5.2:jar"
     "org.apache.httpcomponents:httpcore:4.4.4:jar"
     "commons-httpclient:commons-httpclient:3.1:jar"
-
   )
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver
-  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
-  if [[ "$hadoop_maj_ver" -ge 3 ]]; then
+  if version_ge "${hadoop_version}" 3.0.0; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
       "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
@@ -422,6 +481,49 @@ function dependencies() {
   else
     gavs+=(
       "com.google.guava:guava:11.0.2:jar"
+    )
+  fi
+
+  # aws sdk
+  if version_ge "${hadoop_version}" 3.4.0; then
+    gavs+=(
+      "software.amazon.awssdk:annotations:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:apache-client:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:arns:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:auth:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:aws-core:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:aws-query-protocol:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:aws-xml-protocol:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:checksums:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:checksums-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:crt-core:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:endpoints-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:http-auth:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:http-auth-aws:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:http-auth-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:http-client-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:identity-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:json-utils:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:metrics-spi:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:netty-nio-client:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:profiles:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:protocol-core:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:regions:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:s3:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:s3-transfer-manager:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:sdk-core:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:third-party-jackson-core:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:utils:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk.crt:aws-crt:${aws_crt_install_version}:jar"
+      "software.amazon.eventstream:eventstream:1.0.1:jar"
+      "org.reactivestreams:reactive-streams:1.0.4:jar"
+    )
+  else
+    gavs+=(
+      "com.amazonaws:aws-java-sdk-core:${aws_sdk_v1_version}:jar"
+      "com.amazonaws:aws-java-sdk-s3:${aws_sdk_v1_version}:jar"
+      "com.amazonaws:aws-java-sdk-dynamodb:${aws_sdk_v1_version}:jar"
+      "joda-time:joda-time:2.8.1:jar"
     )
   fi
 

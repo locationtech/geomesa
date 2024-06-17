@@ -183,6 +183,12 @@ geomesa.ingest.local.batch.size
 Controls the batch size for local ingests via the command-line tools. By default, feature writers will be
 flushed every 20,000 features.
 
+geomesa.json.cache.expiry
++++++++++++++++++++++++++
+
+Controls the length of time that parsed JSON-path objects are kept in memory. The expiry is specified as a duration, e.g.
+``10 minutes`` or ``1 hour``. The default is ``10 minutes``.
+
 geomesa.metadata.expiry
 +++++++++++++++++++++++
 
