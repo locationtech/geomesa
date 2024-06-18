@@ -37,7 +37,7 @@ import org.locationtech.jts.geom.Envelope
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter = {
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: Option[FileSystemObserver]): FileSystemWriter = {
     val sftConf = new Configuration(context.conf)
     StorageConfiguration.setSft(sftConf, metadata.sft)
     new ParquetFileSystemWriter(metadata.sft, file, sftConf, observer, new FileBasedMetadataCallback(partition, action, file))
@@ -76,19 +76,21 @@ object ParquetFileSystemStorage extends LazyLogging {
       sft: SimpleFeatureType,
       file: Path,
       conf: Configuration,
-      observer: FileSystemObserver = NoOpObserver,
+      observer: Option[FileSystemObserver] = None,
       callback: (Envelope, Long) => Unit = ((_, _) => {})
     ) extends FileSystemWriter {
 
     private val writer = SimpleFeatureParquetWriter.builder(file, conf, callback).build()
+    private val observerVal = observer.getOrElse(NoOpObserver)
 
     override def write(f: SimpleFeature): Unit = {
       writer.write(f)
-      observer.write(f)
+      observerVal.write(f)
     }
-    override def flush(): Unit = observer.flush()
+    override def flush(): Unit = observerVal.flush()
     override def close(): Unit = {
-      CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+      CloseQuietly(Seq(writer, observerVal)).foreach(e => throw e)
+
       if (FileValidationEnabled.get.toBoolean) {
         validateParquetFile(file)
       }

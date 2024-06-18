@@ -21,7 +21,7 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver}
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
-import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver}
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom.{Envelope, Geometry}
@@ -34,13 +34,19 @@ import org.locationtech.jts.geom.{Envelope, Geometry}
 class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, OrcFileSystemStorage.FileExtension) {
 
-  private class SingleGeometryObserver(partition: String, action: StorageFileAction, file: Path) extends MetadataObserver with BoundsObserver {
+  private class SingleGeometryObserver(partition: String, action: StorageFileAction, file: Path) extends MetadataObserver {
     override protected def onClose(bounds: Envelope, count: Long): Unit = new FileBasedMetadataCallback(partition, action, file)(bounds, count)
   }
 
-  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter = {
-    val compositeObserver = new CompositeObserver(Seq(new SingleGeometryObserver(partition, action, file), observer))
-    new OrcFileSystemWriter(metadata.sft, context.conf, file, compositeObserver)
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: Option[FileSystemObserver]): FileSystemWriter = {
+    val singleGeometryObserver = new SingleGeometryObserver(partition, action, file)
+
+    observer match {
+      case Some(_) =>
+        val compositeObserver = new CompositeObserver(Seq(singleGeometryObserver, observer.get))
+        new OrcFileSystemWriter(metadata.sft, context.conf, file, Some(compositeObserver))
+      case None => new OrcFileSystemWriter(metadata.sft, context.conf, file, Some(singleGeometryObserver))
+    }
   }
 
   override protected def createReader(

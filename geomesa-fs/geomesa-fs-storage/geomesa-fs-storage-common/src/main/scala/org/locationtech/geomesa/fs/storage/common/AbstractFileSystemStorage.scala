@@ -20,8 +20,8 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterConfig}
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.{CompositeObserver, NoOpObserver}
-import org.locationtech.geomesa.fs.storage.common.observer.{BoundsObserver, FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
@@ -73,7 +73,7 @@ abstract class AbstractFileSystemStorage(
     * @param observer observer to report stats on the data written
     * @return
     */
-  protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter
+  protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: Option[FileSystemObserver]): FileSystemWriter
 
   /**
     * Create a path reader with the given filter and transform
@@ -236,9 +236,9 @@ abstract class AbstractFileSystemStorage(
     def pathAndObserver: WriterConfig = {
       val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
       PathCache.register(context.fc, path)
-      val noopObserver = NoOpObserver
-      val observer = if (observers.isEmpty) { noopObserver } else {
-        new CompositeObserver(observers.map(_.apply(path)).+:(noopObserver)).asInstanceOf[BoundsObserver]
+      val observer = if (observers.isEmpty) { None } else {
+        val compositeObserver = new CompositeObserver(observers.map(_.apply(path)))
+        Some(compositeObserver)
       }
       WriterConfig(partition, action, path, observer)
     }
@@ -372,7 +372,7 @@ object AbstractFileSystemStorage {
   /**
    * Tracks metadata during writes
    */
-  abstract class MetadataObserver extends BoundsObserver {
+  abstract class MetadataObserver extends FileSystemObserver {
 
     private var count: Long = 0L
     private val bounds: Envelope = new Envelope()
@@ -386,8 +386,6 @@ object AbstractFileSystemStorage {
       }
     }
 
-    def getBoundingBox: Envelope = bounds
-
     override def flush(): Unit = {}
 
     override def close(): Unit = onClose(bounds, count)
@@ -395,5 +393,5 @@ object AbstractFileSystemStorage {
     protected def onClose(bounds: Envelope, count: Long): Unit
   }
 
-  private case class WriterConfig(partition: String, action: StorageFileAction, path: Path, observer: BoundsObserver)
+  private case class WriterConfig(partition: String, action: StorageFileAction, path: Path, observer: Option[FileSystemObserver])
 }

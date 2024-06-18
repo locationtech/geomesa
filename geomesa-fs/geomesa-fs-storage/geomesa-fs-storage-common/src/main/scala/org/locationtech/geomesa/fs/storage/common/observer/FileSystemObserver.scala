@@ -9,13 +9,8 @@
 package org.locationtech.geomesa.fs.storage.common.observer
 
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.jts.geom.Envelope
 
 /**
  * Marker trait for writer hooks
  */
 trait FileSystemObserver extends FileSystemWriter
-
-trait BoundsObserver extends FileSystemObserver {
-  def getBoundingBox: Envelope
-}

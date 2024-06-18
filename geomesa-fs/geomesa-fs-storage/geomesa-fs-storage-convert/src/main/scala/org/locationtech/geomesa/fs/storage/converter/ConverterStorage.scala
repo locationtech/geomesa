@@ -31,7 +31,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: Option[FileSystemObserver]): FileSystemWriter =
     throw new NotImplementedError()
 
   override protected def createReader(

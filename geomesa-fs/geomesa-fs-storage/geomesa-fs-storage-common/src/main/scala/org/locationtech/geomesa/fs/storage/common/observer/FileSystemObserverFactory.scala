@@ -13,7 +13,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
-import org.locationtech.jts.geom.Envelope
 
 import java.io.Closeable
 
@@ -42,9 +41,8 @@ trait FileSystemObserverFactory extends Closeable {
 
 object FileSystemObserverFactory {
 
-  object NoOpObserver extends BoundsObserver {
+  object NoOpObserver extends FileSystemObserver {
     override def write(feature: SimpleFeature): Unit = {}
-    override def getBoundingBox: Envelope = new Envelope()
     override def flush(): Unit = {}
     override def close(): Unit = {}
   }
@@ -54,14 +52,8 @@ object FileSystemObserverFactory {
    *
    * @param observers observers
    */
-  class CompositeObserver(observers: Seq[FileSystemObserver]) extends BoundsObserver {
+  class CompositeObserver(observers: Seq[FileSystemObserver]) extends FileSystemObserver {
     override def write(feature: SimpleFeature): Unit = observers.foreach(_.write(feature))
-
-    // Get the bounding box for the UpdateObserver instance (the first one in the list)
-    override def getBoundingBox: Envelope = {
-      observers.head.asInstanceOf[BoundsObserver].getBoundingBox
-    }
-
     override def flush(): Unit = FlushQuietly(observers).foreach(e => throw e)
     override def close(): Unit = CloseQuietly(observers).foreach(e => throw e)
   }
