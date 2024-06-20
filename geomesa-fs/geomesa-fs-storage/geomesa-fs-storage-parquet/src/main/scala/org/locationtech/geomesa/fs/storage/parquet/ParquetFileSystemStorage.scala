@@ -18,6 +18,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
@@ -26,6 +27,7 @@ import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
 import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.jts.geom.Envelope
 
 /**
   *
@@ -35,10 +37,10 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
+  override protected def createWriter(partition: String, action: StorageFileAction, file: Path, observer: Option[FileSystemObserver]): FileSystemWriter = {
     val sftConf = new Configuration(context.conf)
     StorageConfiguration.setSft(sftConf, metadata.sft)
-    new ParquetFileSystemWriter(metadata.sft, file, sftConf, observer)
+    new ParquetFileSystemWriter(metadata.sft, file, sftConf, observer, new FileBasedMetadataCallback(partition, action, file))
   }
 
   override protected def createReader(
@@ -74,18 +76,21 @@ object ParquetFileSystemStorage extends LazyLogging {
       sft: SimpleFeatureType,
       file: Path,
       conf: Configuration,
-      observer: FileSystemObserver = NoOpObserver
+      observer: Option[FileSystemObserver] = None,
+      callback: (Envelope, Long) => Unit = ((_, _) => {})
     ) extends FileSystemWriter {
 
-    private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
+    private val writer = SimpleFeatureParquetWriter.builder(file, conf, callback).build()
+    private val observerVal = observer.getOrElse(NoOpObserver)
 
     override def write(f: SimpleFeature): Unit = {
       writer.write(f)
-      observer.write(f)
+      observerVal.write(f)
     }
-    override def flush(): Unit = observer.flush()
+    override def flush(): Unit = observerVal.flush()
     override def close(): Unit = {
-      CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
+      CloseQuietly(Seq(writer, observerVal)).foreach(e => throw e)
+
       if (FileValidationEnabled.get.toBoolean) {
         validateParquetFile(file)
       }
@@ -102,9 +107,9 @@ object ParquetFileSystemStorage extends LazyLogging {
         // Process the record
         record = reader.read()
       }
-      logger.debug(s"${file} is a valid Parquet file")
+      logger.debug(s"'$file' is a valid Parquet file")
     } catch {
-      case e: Exception => throw new RuntimeException(s"Unable to validate ${file}: File may be corrupted", e)
+      case e: Exception => throw new RuntimeException(s"Unable to validate '$file': File may be corrupted", e)
     } finally {
       reader.close()
     }
