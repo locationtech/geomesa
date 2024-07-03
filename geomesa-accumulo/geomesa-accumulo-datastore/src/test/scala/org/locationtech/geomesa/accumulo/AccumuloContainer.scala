@@ -34,13 +34,11 @@ case object AccumuloContainer extends StrictLogging {
   lazy val Container: AccumuloContainer = {
     val container = tryContainer.get
     WithClose(container.client()) { client =>
-      client.namespaceOperations().create(Namespace)
       val secOps = client.securityOperations()
       secOps.changeUserAuthorizations(Users.root.name, Users.root.auths)
       Seq(Users.admin, Users.user).foreach { case UserWithAuths(name, password, auths) =>
         secOps.createLocalUser(name, new PasswordToken(password))
         SystemPermissions.foreach(p => secOps.grantSystemPermission(name, p))
-        NamespacePermissions.foreach(p => secOps.grantNamespacePermission(name, Namespace, p))
         client.securityOperations().changeUserAuthorizations(name, auths)
       }
     }
@@ -77,14 +75,9 @@ case object AccumuloContainer extends StrictLogging {
   private val SystemPermissions = Seq(
     SystemPermission.CREATE_NAMESPACE,
     SystemPermission.ALTER_NAMESPACE,
-    SystemPermission.DROP_NAMESPACE
-  )
-
-  private val NamespacePermissions = Seq(
-    NamespacePermission.READ,
-    NamespacePermission.WRITE,
-    NamespacePermission.CREATE_TABLE,
-    NamespacePermission.ALTER_TABLE,
-    NamespacePermission.DROP_TABLE
+    SystemPermission.DROP_NAMESPACE,
+    SystemPermission.CREATE_TABLE,
+    SystemPermission.ALTER_TABLE,
+    SystemPermission.DROP_TABLE,
   )
 }

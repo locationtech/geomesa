@@ -6,6 +6,27 @@ Accumulo Configuration
 This section details Accumulo specific configuration properties. For general properties,
 see :ref:`geomesa_site_xml`.
 
+General Properties
+------------------
+
+geomesa.accumulo.table.cache.expiry
++++++++++++++++++++++++++++++++++++
+
+The expiry to cache the existence of tables, defined as a duration, e.g. ``60 seconds`` or ``100 millis``. To avoid frequent
+checks for the existence of tables before writing, tables checks are cached. If tables are deleted without stopping any ingest,
+they will not be re-created until the cache expires.
+
+Default is ``10 minutes``.
+
+geomesa.accumulo.table.sync
++++++++++++++++++++++++++++
+
+A Boolean (``true`` or ``false``) that enables synchronization of table creation using a distributed lock.
+Particularly when backed by S3, this can prevent table corruption errors in Accumulo.
+
+Default is ``true``.
+
+
 Batch Writer Properties
 -----------------------
 

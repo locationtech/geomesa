@@ -14,6 +14,11 @@ package object accumulo {
 
   object AccumuloProperties {
 
+    object TableProperties {
+      val SynchronizeTableCreation: SystemProperty = SystemProperty("geomesa.accumulo.table.sync", "true")
+      val TableCacheExpiry: SystemProperty = SystemProperty("geomesa.accumulo.table.cache.expiry", "10 minutes")
+    }
+
     object AccumuloMapperProperties {
       val DESIRED_SPLITS_PER_TSERVER = SystemProperty("geomesa.mapreduce.splits.tserver.max")
       val DESIRED_ABSOLUTE_SPLITS = SystemProperty("geomesa.mapreduce.splits.max")

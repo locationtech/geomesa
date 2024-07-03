@@ -73,7 +73,7 @@ class DataStorePersistence(ds: DataStore,
             logger.trace(s"Acquired lock for [$topic:$partition]")
             persist(partition, clock.millis() - ageOffMillis)
           } finally {
-            lock.release()
+            lock.close()
             logger.trace(s"Released lock for [$topic:$partition]")
           }
       }
