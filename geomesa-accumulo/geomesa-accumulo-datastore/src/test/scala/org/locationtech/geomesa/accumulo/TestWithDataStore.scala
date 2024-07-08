@@ -27,7 +27,8 @@ import scala.collection.JavaConverters._
 trait TestWithDataStore extends Specification {
 
   // we use class name to prevent spillage between unit tests
-  lazy val catalog = s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}"
+  // use different namespaces to verify namespace creation works correctly
+  lazy val catalog = s"${getClass.getSimpleName.take(2)}.${getClass.getSimpleName}"
 
   // note the table needs to be different to prevent tests from conflicting with each other
   lazy val dsParams: Map[String, String] = Map(

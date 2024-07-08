@@ -186,7 +186,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       logger.debug(s"Delaying creation of partitioned indices ${indices.map(_.identifier).mkString(", ")}")
     } else {
       logger.debug(s"Creating indices ${indices.map(_.identifier).mkString(", ")}")
-      indices.foreach(index => adapter.createTable(index, None, index.getSplits(None)))
+      indices.toList.map(i => CachedThreadPool.submit(() => adapter.createTable(i, None, i.getSplits(None)))).foreach(_.get)
     }
   }
 
@@ -227,7 +227,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       logger.debug("Delaying creation of partitioned indices")
     } else {
       logger.debug(s"Ensuring indices ${manager.indices(sft).map(_.identifier).mkString(", ")}")
-      manager.indices(sft).foreach(index => adapter.createTable(index, None, index.getSplits(None)))
+      manager.indices(sft).toList.map(i => CachedThreadPool.submit(() => adapter.createTable(i, None, i.getSplits(None)))).foreach(_.get)
     }
 
     // update stats

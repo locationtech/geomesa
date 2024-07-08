@@ -13,7 +13,6 @@ import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.combiners.StatsCombiner
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
@@ -77,7 +76,6 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
   def configureStatCombiner(connector: AccumuloClient, sft: SimpleFeatureType): Unit = {
     import MetadataBackedStats._
 
-    TableUtils.createTableIfNeeded(connector, metadata.table)
     StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
     val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
