@@ -18,7 +18,6 @@ import org.locationtech.geomesa.accumulo.util.TableManager._
 import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
@@ -58,16 +57,23 @@ class TableManager(client: AccumuloClient) {
    */
   def ensureNamespaceExists(namespace: String): Unit = delegate.ensureNamespaceExists(namespace)
 
-  // note: shadows IndexAdapter.renameTable
-  def renameTable(from: String, to: String): Unit = delegate.renameTable(from, to)
+  /**
+   * Delete a table
+   *
+   * @param table table to delete
+   */
+  def deleteTable(table: String): Unit = delegate.deleteTable(table)
 
-  // note: shadows IndexAdapter.deleteTables
-  def deleteTables(tables: Seq[String]): Unit =
-    tables.toList.map(table => CachedThreadPool.submit(() => delegate.deleteTable(table))).foreach(_.get)
+  // note: shadows IndexAdapter.renameTable
+  // noinspection ScalaUnusedSymbol
+  def renameTable(from: String, to: String): Unit = delegate.renameTable(from, to)
 }
 
 object TableManager {
 
+  /**
+   * Types of synchronization available
+   */
   object TableSynchronization extends Enumeration {
 
     val ZooKeeper, Local, None = Value

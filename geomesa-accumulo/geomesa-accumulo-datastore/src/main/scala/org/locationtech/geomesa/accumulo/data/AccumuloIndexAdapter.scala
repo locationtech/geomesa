@@ -115,6 +115,9 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connec
     }
   }
 
+  override def deleteTables(tables: Seq[String]): Unit =
+    tables.toList.map(table => CachedThreadPool.submit(() => deleteTable(table))).foreach(_.get)
+
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
     val auths = ds.auths // get the auths once up front
     def clearOne(table: String): Unit = {

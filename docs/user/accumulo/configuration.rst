@@ -22,7 +22,7 @@ geomesa.accumulo.table.sync
 +++++++++++++++++++++++++++
 
 Sets the level of synchronization when creating and deleting tables. When using tables backed by S3, synchronization
-can prevent table corruption errors in Accumulo. Possible values are:
+may prevent table corruption errors in Accumulo. Possible values are:
 
 * ``zookeeper`` (default) - uses a distributed lock that works across JVMs.
 * ``local`` - uses an in-memory lock that works within a single JVM.
