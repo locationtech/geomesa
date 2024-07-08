@@ -87,7 +87,7 @@ object TableManager {
   }
 
   /**
-   * Local locking implementation of table utils
+   * No-op locking implementation of table utils
    *
    * @param client accumulo client
    */

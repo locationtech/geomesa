@@ -26,7 +26,7 @@ may prevent table corruption errors in Accumulo. Possible values are:
 
 * ``zookeeper`` (default) - uses a distributed lock that works across JVMs.
 * ``local`` - uses an in-memory lock that works within a single JVM.
-* ``none`` - does not use any outside locking. Generally this is safe when using tables backed by HDFS.
+* ``none`` - does not use any external locking. Generally this is safe when using tables backed by HDFS.
 
 The synchronization level may be adjusted depending on the architecture being used - for example, if tables are created
 by a single-thread, then a system may safely disable synchronization.
