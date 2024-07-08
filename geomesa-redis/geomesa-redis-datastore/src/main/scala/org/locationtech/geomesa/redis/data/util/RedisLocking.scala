@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.redis.data.util
 
 import org.locationtech.geomesa.index.DistributedLockTimeout
-import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
+import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.params.SetParams
 
+import java.io.Closeable
 import java.util.UUID
 
 /**
@@ -37,12 +38,12 @@ trait RedisLocking extends DistributedLocking {
 
   def connection: JedisPool
 
-  override protected def acquireDistributedLock(key: String): Releasable =
+  override protected def acquireDistributedLock(key: String): Closeable =
     acquireDistributedLock(key, Long.MaxValue).orNull
 
-  override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Releasable] = {
+  override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Closeable] = {
     val start = System.currentTimeMillis()
-    var lock: Releasable = null
+    var lock: Closeable = null
 
     while (lock == null && System.currentTimeMillis() - start < timeOut) {
       if (WithClose(connection.getResource)(_.set(key, id, params)) != null) {
@@ -53,8 +54,8 @@ trait RedisLocking extends DistributedLocking {
     Option(lock)
   }
 
-  private class JedisReleasable(key: String) extends Releasable {
-    override def release(): Unit = {
+  private class JedisReleasable(key: String) extends Closeable {
+    override def close(): Unit = {
       WithClose(connection.getResource) { jedis =>
         if (jedis.get(key) == id) {
           jedis.del(key)

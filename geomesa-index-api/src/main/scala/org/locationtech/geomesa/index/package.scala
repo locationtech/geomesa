@@ -18,10 +18,9 @@ package object index {
 
   type FlushableFeatureWriter = SimpleFeatureWriter with Flushable
 
-  val FilterCacheSize = SystemProperty("geomesa.cache.filters.size", "1000")
-  val ZFilterCacheSize = SystemProperty("geomesa.cache.z-filters.size", "1000")
+  val FilterCacheSize : SystemProperty = SystemProperty("geomesa.cache.filters.size", "1000")
+  val ZFilterCacheSize: SystemProperty = SystemProperty("geomesa.cache.z-filters.size", "1000")
 
-  val PartitionParallelScan = SystemProperty("geomesa.partition.scan.parallel", "false")
-
-  val DistributedLockTimeout = SystemProperty("geomesa.distributed.lock.timeout", "2 minutes")
+  val PartitionParallelScan : SystemProperty = SystemProperty("geomesa.partition.scan.parallel", "false")
+  val DistributedLockTimeout: SystemProperty = SystemProperty("geomesa.distributed.lock.timeout", "2 minutes")
 }

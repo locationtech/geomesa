@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kafka.confluent
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
 import org.apache.avro.Schema
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.index.utils.LocalLocking
 import org.locationtech.geomesa.kafka.confluent.ConfluentGeoMessageSerializer.ConfluentGeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -31,7 +30,7 @@ object ConfluentKafkaDataStore {
     val metadata = new ConfluentMetadata(client, topicToSft)
     val serialization = new ConfluentGeoMessageSerializerFactory(schemaRegistryUrl, topicToSchema)
 
-    new KafkaDataStore(config, metadata, serialization) with LocalLocking {
+    new KafkaDataStore(config, metadata, serialization) {
       override protected def preSchemaCreate(sft: SimpleFeatureType): Unit =
         throw new NotImplementedError(
           "Confluent Kafka stores do not support creating schemas, " +

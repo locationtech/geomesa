@@ -53,7 +53,7 @@ class ShpIngestTest extends Specification {
     command.params.instance    = AccumuloContainer.instanceName
     command.params.zookeepers  = AccumuloContainer.zookeepers
     command.params.password    = AccumuloContainer.password
-    command.params.catalog     = s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
+    command.params.catalog     = s"gm.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)
     command.params.compact     = false

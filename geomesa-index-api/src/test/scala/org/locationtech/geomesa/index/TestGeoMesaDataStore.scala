@@ -26,8 +26,9 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
+import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
-import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator

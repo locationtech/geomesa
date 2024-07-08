@@ -20,7 +20,8 @@ import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
-import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
+import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
