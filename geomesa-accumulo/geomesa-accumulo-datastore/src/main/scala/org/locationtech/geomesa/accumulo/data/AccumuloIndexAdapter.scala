@@ -21,7 +21,7 @@ import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.Accumu
 import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.TableUtils
+import org.locationtech.geomesa.accumulo.util.TableManager
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -50,7 +50,7 @@ import java.util.Map.Entry
   *
   * @param ds data store
   */
-class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloDataStore] {
+class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connector) with IndexAdapter[AccumuloDataStore] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -65,7 +65,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       splits: => Seq[Array[Byte]]): Unit = {
     val table = index.configureTableName(partition) // writes table name to metadata
     // create table if it doesn't exist
-    val created = TableUtils.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
+    val created = ensureTableExists(table, index.sft.isLogicalTime)
 
     def addSplitsAndGroups(): Unit = {
       // create splits
@@ -117,20 +117,8 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     }
   }
 
-  override def renameTable(from: String, to: String): Unit = {
-    if (tableOps.exists(from)) {
-      tableOps.rename(from, to)
-    }
-  }
-
-  override def deleteTables(tables: Seq[String]): Unit = {
-    def deleteOne(table: String): Unit = {
-      if (tableOps.exists(table)) {
-        tableOps.delete(table)
-      }
-    }
-    tables.toList.map(table => CachedThreadPool.submit(() => deleteOne(table))).foreach(_.get)
-  }
+  override def deleteTables(tables: Seq[String]): Unit =
+    tables.toList.map(table => CachedThreadPool.submit(() => deleteTable(table))).foreach(_.get)
 
   override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
     val auths = ds.auths // get the auths once up front

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFe
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
-import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
+import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
@@ -31,7 +31,7 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import java.io.IOException
+import java.io.{Closeable, IOException}
 import java.time.{Instant, ZoneOffset}
 import java.util.{Locale, List => jList}
 import scala.util.control.NonFatal
@@ -171,7 +171,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
           }
         }
       } finally {
-        lock.release()
+        lock.close()
       }
     }
   }
@@ -268,7 +268,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
       onSchemaUpdated(sft, previousSft)
     } finally {
-      lock.release()
+      lock.close()
     }
   }
 
@@ -286,7 +286,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         metadata.delete(typeName)
       }
     } finally {
-      lock.release()
+      lock.close()
     }
   }
 
@@ -456,10 +456,10 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   }
 
   /**
-    * Acquires a distributed lock for all data stores sharing this catalog table.
-    * Make sure that you 'release' the lock in a finally block.
-    */
-  protected [geomesa] def acquireCatalogLock(): Releasable = {
+   * Acquires a distributed lock for all data stores sharing this catalog table.
+   * Make sure that you 'release' the lock in a finally block.
+   */
+  protected[geomesa] def acquireCatalogLock(): Closeable = {
     import org.locationtech.geomesa.index.DistributedLockTimeout
     val dsTypeName = getClass.getSimpleName.replaceAll("[^A-Za-z]", "")
     val path = s"/org.locationtech.geomesa/ds/$dsTypeName/${config.catalog}"

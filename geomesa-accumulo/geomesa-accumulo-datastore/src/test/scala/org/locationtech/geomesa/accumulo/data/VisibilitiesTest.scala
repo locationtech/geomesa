@@ -8,12 +8,16 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import org.apache.accumulo.core.client.security.tokens.PasswordToken
+import org.apache.accumulo.core.security.NamespacePermission
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.MiniCluster.Users
+import org.locationtech.geomesa.accumulo.util.TableManager
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -42,10 +46,20 @@ class VisibilitiesTest extends TestWithFeatureType {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
-  val privDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name)).asJava)
-  val unprivDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name)).asJava)
-  
+
+  lazy val privDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name)).asJava)
+  lazy val unprivDS = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name)).asJava)
+
   step {
+    val ns = catalog.substring(0, catalog.indexOf("."))
+    WithClose(MiniCluster.cluster.createAccumuloClient("root", new PasswordToken("secret"))) { client =>
+      new TableManager(client).ensureNamespaceExists(ns)
+      Seq(Users.user.name, Users.admin.name).foreach { user =>
+        Seq(NamespacePermission.READ, NamespacePermission.WRITE).foreach { p =>
+          client.securityOperations().grantNamespacePermission(user, ns, p)
+        }
+      }
+    }
     addFeatures(privFeatures ++ unprivFeatures)
   }
 
