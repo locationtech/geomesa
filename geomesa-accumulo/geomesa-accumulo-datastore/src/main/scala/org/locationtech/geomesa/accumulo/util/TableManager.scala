@@ -13,8 +13,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.admin.{NewTableConfiguration, TimeType}
 import org.apache.accumulo.core.client.{AccumuloClient, NamespaceExistsException, TableExistsException}
 import org.apache.accumulo.core.conf.ClientProperty
-import org.locationtech.geomesa.accumulo.AccumuloProperties.TableProperties.{SynchronizeTableCreation, TableCacheExpiry}
-import org.locationtech.geomesa.accumulo.util.TableManager.{TableLock, TableLockLocal, TableLockZk}
+import org.locationtech.geomesa.accumulo.AccumuloProperties.TableProperties.{TableCacheExpiry, TableCreationSync}
+import org.locationtech.geomesa.accumulo.util.TableManager._
 import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
@@ -22,6 +22,7 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
+import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
 /**
@@ -31,8 +32,11 @@ import java.util.concurrent.TimeUnit
  */
 class TableManager(client: AccumuloClient) {
 
-  private val delegate: TableLock =
-    if (SynchronizeTableCreation.toBoolean.get) { new TableLockZk(client) } else { new TableLockLocal(client) }
+  private val delegate: TableLock = TableSynchronization(TableCreationSync.get) match {
+    case TableSynchronization.ZooKeeper => new TableLockZk(client)
+    case TableSynchronization.Local     => new TableLockLocal(client)
+    case TableSynchronization.None      => new TableLockNone(client)
+  }
 
   /**
    * Create table if it does not exist.
@@ -64,17 +68,34 @@ class TableManager(client: AccumuloClient) {
 
 object TableManager {
 
+  object TableSynchronization extends Enumeration {
+
+    val ZooKeeper, Local, None = Value
+
+    def apply(value: String): TableSynchronization.Value = {
+      Seq(ZooKeeper, Local, None).find(_.toString.equalsIgnoreCase(value)).getOrElse {
+        throw new IllegalArgumentException(
+          s"No matching value for '$value' - available sync types: ${Seq(ZooKeeper, Local, None).mkString(", ")}")
+      }
+    }
+  }
+
   /**
    * Local locking implementation of table utils
    *
    * @param client accumulo client
    */
-  private class TableLockLocal(client: AccumuloClient) extends TableLock(client) with LocalLocking {
-    // can happen sometimes with multiple threads but usually not a problem
-    override protected def onTableExists(table: String): Unit = {}
-    // can happen sometimes with multiple threads but usually not a problem
-    override protected def onNamespaceExists(namespace: String): Unit = {}
+  private class TableLockNone(client: AccumuloClient) extends TableLock(client) {
+    override protected def acquireDistributedLock(key: String): Closeable = () => {}
+    override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Closeable] = Some(() => {})
   }
+
+  /**
+   * Local locking implementation of table utils
+   *
+   * @param client accumulo client
+   */
+  private class TableLockLocal(client: AccumuloClient) extends TableLock(client) with LocalLocking
 
   /**
    * Distributed zookeeper locking implementation of table utils
@@ -142,7 +163,6 @@ object TableManager {
         java.lang.Boolean.FALSE
       })
       created
-
     }
 
     /**
@@ -199,8 +219,10 @@ object TableManager {
       })
     }
 
-    protected def onTableExists(table: String): Unit
-    protected def onNamespaceExists(namespace: String): Unit
+    // can happen sometimes with multiple threads but usually not a problem
+    protected def onTableExists(table: String): Unit = {}
+    // can happen sometimes with multiple threads but usually not a problem
+    protected def onNamespaceExists(namespace: String): Unit = {}
 
     /**
      * ZK path for acquiring a table lock

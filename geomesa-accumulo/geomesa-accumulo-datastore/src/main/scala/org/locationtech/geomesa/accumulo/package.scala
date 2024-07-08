@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa
 
+import org.locationtech.geomesa.accumulo.util.TableManager
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object accumulo {
@@ -15,7 +16,8 @@ package object accumulo {
   object AccumuloProperties {
 
     object TableProperties {
-      val SynchronizeTableCreation: SystemProperty = SystemProperty("geomesa.accumulo.table.sync", "true")
+      val TableCreationSync: SystemProperty =
+        SystemProperty("geomesa.accumulo.table.sync", TableManager.TableSynchronization.ZooKeeper.toString)
       val TableCacheExpiry: SystemProperty = SystemProperty("geomesa.accumulo.table.cache.expiry", "10 minutes")
     }
 

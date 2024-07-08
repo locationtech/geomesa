@@ -21,11 +21,15 @@ Default is ``10 minutes``.
 geomesa.accumulo.table.sync
 +++++++++++++++++++++++++++
 
-A Boolean (``true`` or ``false``) that enables synchronization of table creation using a distributed lock.
-Particularly when backed by S3, this can prevent table corruption errors in Accumulo.
+Sets the level of synchronization when creating and deleting tables. When using tables backed by S3, synchronization
+can prevent table corruption errors in Accumulo. Possible values are:
 
-Default is ``true``.
+* ``zookeeper`` (default) - uses a distributed lock that works across JVMs.
+* ``local`` - uses an in-memory lock that works within a single JVM.
+* ``none`` - does not use any outside locking. Generally this is safe when using tables backed by HDFS.
 
+The synchronization level may be adjusted depending on the architecture being used - for example, if tables are created
+by a single-thread, then a system may safely disable synchronization.
 
 Batch Writer Properties
 -----------------------
