@@ -188,7 +188,7 @@ object ArrowConversionProcess {
     private var count = 0L
 
     private val writer =
-      SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, ipcOpts, sort, flattenStruct)
+      SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, ipcOpts, sort, flattenStruct.getOrElse(false))
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature)
@@ -263,7 +263,7 @@ object ArrowConversionProcess {
       val out = new ByteArrayOutputStream()
       val bytes = ListBuffer.empty[Array[Byte]]
 
-      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort, flattenStruct)) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort, flattenStruct.getOrElse(false))) { writer =>
         while (sorted.hasNext) { // send batches
           var i = 0
           while (i < batchSize && sorted.hasNext) {

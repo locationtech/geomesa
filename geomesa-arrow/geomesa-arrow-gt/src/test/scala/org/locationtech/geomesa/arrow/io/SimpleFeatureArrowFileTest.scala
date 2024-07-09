@@ -107,7 +107,7 @@ class SimpleFeatureArrowFileTest extends Specification {
     }
     "write and read values with flatten" >> {
       withTestFile("simple") { file =>
-        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None, Some(true))) { writer =>
+        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None, true)) { writer =>
           features0.foreach(writer.add)
           writer.flush()
           features1.foreach(writer.add)
@@ -126,6 +126,9 @@ class SimpleFeatureArrowFileTest extends Specification {
           root.getFieldVectors.get(0) must haveClass[VarCharVector]
           totalRecords += root.getRowCount
         }
+
+        reader.close()
+        rootAllocator.close()
 
         totalRecords mustEqual (features0.size + features1.size)
       }
@@ -197,7 +200,7 @@ class SimpleFeatureArrowFileTest extends Specification {
     "write and read dictionary encoded values with flatten" >> {
       val dictionaries = Map("foo:String" -> ArrowDictionary.create(sft.getTypeName, 0, Array("foo0", "foo1", "foo2")))
       withTestFile("dictionary") { file =>
-        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None, Some(true))) { writer =>
+        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None, true)) { writer =>
           features0.foreach(writer.add)
           writer.flush()
           features1.foreach(writer.add)
@@ -216,6 +219,9 @@ class SimpleFeatureArrowFileTest extends Specification {
           root.getFieldVectors.get(0) must haveClass[VarCharVector]
           totalRecords += root.getRowCount
         }
+
+        reader.close()
+        rootAllocator.close()
 
         totalRecords mustEqual (features0.size + features1.size)
       }

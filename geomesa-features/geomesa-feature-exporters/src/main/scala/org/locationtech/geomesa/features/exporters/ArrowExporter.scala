@@ -29,7 +29,7 @@ class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
   private lazy val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
   private lazy val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
   private lazy val dictionaryFields = hints.getArrowDictionaryFields
-  private lazy val flattenFields = hints.isArrowFlatten
+  private lazy val flattenFields = hints.isArrowFlatten.getOrElse(false)
 
   private var delegate: FeatureExporter = _
 
@@ -74,7 +74,7 @@ object ArrowExporter {
       encoding: SimpleFeatureEncoding,
       ipcOpts: IpcOption,
       batchSize: Int,
-      flattenStruct: Option[Boolean] = Some(false)
+      flattenStruct: Boolean = false
     ) extends FeatureExporter {
 
     private var writer: DictionaryBuildingWriter = _
@@ -115,7 +115,7 @@ object ArrowExporter {
       sort: Option[(String, Boolean)],
       batchSize: Int,
       dictionaries: Map[String, ArrowDictionary],
-      flattenStruct: Option[Boolean] = Some(false)
+      flattenStruct: Boolean = false
     ) extends FeatureExporter {
 
     private var writer: SimpleFeatureArrowFileWriter = _

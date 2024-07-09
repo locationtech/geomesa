@@ -37,16 +37,16 @@ class SimpleFeatureArrowFileWriter private (
     os: OutputStream,
     ipcOpts: IpcOption,
     sort: Option[(String, Boolean)],
-    flattenStruct: Option[Boolean]
+    flattenStruct: Boolean = false
   ) extends Closeable with Flushable with LazyLogging {
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
   private val root = {
     val potentialRoot = createRoot(vector.underlying, metadata)
-    flattenStruct match {
-      case Some(toFlatten) if toFlatten == true =>
-        new VectorSchemaRoot(potentialRoot.getVector(sft.getTypeName))
-      case _ =>
-        potentialRoot
+
+    if (flattenStruct) {
+      new VectorSchemaRoot(potentialRoot.getVector(sft.getTypeName))
+    } else {
+      potentialRoot
     }
   }
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)
@@ -116,7 +116,7 @@ object SimpleFeatureArrowFileWriter {
       encoding: SimpleFeatureEncoding,
       ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
-      flattenStruct: Option[Boolean] = Some(false)): SimpleFeatureArrowFileWriter = {
+      flattenStruct: Boolean = false): SimpleFeatureArrowFileWriter = {
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     // convert the dictionary values into arrow vectors
     // make sure we load dictionaries before instantiating the stream writer

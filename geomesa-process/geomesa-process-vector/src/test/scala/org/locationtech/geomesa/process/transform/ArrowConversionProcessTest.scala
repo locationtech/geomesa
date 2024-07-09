@@ -10,7 +10,6 @@ package org.locationtech.geomesa.process.transform
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.arrow.vector.VarCharVector
-import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.ipc.ArrowStreamReader
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
@@ -79,6 +78,9 @@ class ArrowConversionProcessTest extends Specification {
         totalRecords += root.getRowCount
       }
 
+      reader.close()
+      rootAllocator.close()
+
       totalRecords mustEqual collection.size()
     }
 
@@ -111,6 +113,9 @@ class ArrowConversionProcessTest extends Specification {
         root.getFieldVectors.get(0) must haveClass[VarCharVector]
         totalRecords += root.getRowCount
       }
+
+      reader.close()
+      rootAllocator.close()
 
       totalRecords mustEqual collection.size()
     }
