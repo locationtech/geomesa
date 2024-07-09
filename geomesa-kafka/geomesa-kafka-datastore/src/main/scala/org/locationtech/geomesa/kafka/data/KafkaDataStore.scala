@@ -216,6 +216,7 @@ class KafkaDataStore(
     val topic = KafkaDataStore.topic(sft)
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
     config.producers.properties.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
@@ -253,6 +254,7 @@ class KafkaDataStore(
     val topic = KafkaDataStore.topic(sft)
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
     config.producers.properties.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
