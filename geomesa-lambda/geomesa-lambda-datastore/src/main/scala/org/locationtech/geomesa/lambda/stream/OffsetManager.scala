@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.lambda.stream
 
-import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
+import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 
 import java.io.Closeable
@@ -20,7 +20,7 @@ trait OffsetManager extends DistributedLocking with Closeable {
   def getOffset(topic: String, partition: Int): Long
   def setOffset(topic: String, partition: Int, offset: Long): Unit
   def deleteOffsets(topic: String): Unit
-  def acquireLock(topic: String, partition: Int, timeOut: Long): Option[Releasable] =
+  def acquireLock(topic: String, partition: Int, timeOut: Long): Option[Closeable] =
     acquireDistributedLock(s"$topic/$partition", timeOut)
   def addOffsetListener(topic: String, listener: OffsetListener): Unit
   def removeOffsetListener(topic: String, listener: OffsetListener): Unit

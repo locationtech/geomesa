@@ -23,7 +23,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloD
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
-import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -44,6 +43,7 @@ import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, 
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -146,6 +146,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -168,6 +172,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -203,6 +210,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -293,6 +301,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -313,9 +325,12 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -373,6 +388,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -526,7 +544,9 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       case -1 => ""
       case i  => config.catalog.substring(0, i)
     }
-    TableUtils.createNamespaceIfNeeded(connector, namespace)
+    if (namespace.nonEmpty) {
+      adapter.ensureNamespaceExists(namespace)
+    }
     val canLoad = connector.namespaceOperations().testClassLoad(namespace,
       classOf[ProjectVersionIterator].getName, classOf[SortedKeyValueIterator[_, _]].getName)
 
@@ -567,6 +587,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
     super.onSchemaCreated(sft)
     if (sft.statsEnabled) {
       // configure the stats combining iterator on the table for this sft
+      adapter.ensureTableExists(stats.metadata.table)
       stats.configureStatCombiner(connector, sft)
     }
     sft.getFeatureExpiration.foreach {
@@ -637,6 +658,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       stats.removeStatCombiner(connector, previous)
     }
     if (sft.statsEnabled) {
+      adapter.ensureTableExists(stats.metadata.table)
       stats.configureStatCombiner(connector, sft)
     }
 
@@ -693,7 +715,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
             new SingleRowAccumuloMetadata[Stat](stats.metadata).migrate(typeName)
           }
         } finally {
-          lock.release()
+          lock.close()
         }
         sft = super.getSchema(typeName)
       }
@@ -739,11 +761,12 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
           val lock = acquireCatalogLock()
           try {
             if (!metadata.read(typeName, configuredKey, cache = false).contains("true")) {
+              adapter.ensureTableExists(stats.metadata.table)
               stats.configureStatCombiner(connector, sft)
               metadata.insert(typeName, configuredKey, "true")
             }
           } finally {
-            lock.release()
+            lock.close()
           }
         }
         // kick off asynchronous stats run for the existing data - this will set the stat date

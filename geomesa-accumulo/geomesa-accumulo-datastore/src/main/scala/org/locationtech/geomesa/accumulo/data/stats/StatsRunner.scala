@@ -141,7 +141,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
               Instant.now(Clock.systemUTC()).plus(updateInterval, ChronoUnit.MINUTES)
             }
           } finally {
-            lock.release()
+            lock.close()
           }
       }
     }

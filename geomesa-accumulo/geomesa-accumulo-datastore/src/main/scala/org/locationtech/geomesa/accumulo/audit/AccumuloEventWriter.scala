@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.audit
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
 import org.apache.accumulo.core.data.Mutation
-import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
+import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableManager}
 import org.locationtech.geomesa.utils.audit.AuditedEvent
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -69,7 +69,7 @@ class AccumuloEventWriter(connector: AccumuloClient, table: String) extends Runn
 
   private def getWriter: BatchWriter = synchronized {
     if (maybeWriter == null) {
-      TableUtils.createTableIfNeeded(connector, table)
+      new TableManager(connector).ensureTableExists(table)
       maybeWriter = connector.createBatchWriter(table, batchWriterConfig)
     }
     maybeWriter

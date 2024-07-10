@@ -10,9 +10,10 @@ package org.locationtech.geomesa.utils.zk
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
-import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
+import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
+import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
 trait ZookeeperLocking extends DistributedLocking {
@@ -26,7 +27,7 @@ trait ZookeeperLocking extends DistributedLocking {
     * @param key key to lock on - equivalent to a path in zookeeper
     * @return the lock
     */
-  override protected def acquireDistributedLock(key: String): Releasable = {
+  override protected def acquireDistributedLock(key: String): Closeable = {
     val (client, lock) = distributedLock(key)
     try {
       lock.acquire()
@@ -44,7 +45,7 @@ trait ZookeeperLocking extends DistributedLocking {
     * @param timeOut how long to wait to acquire the lock, in millis
     * @return the lock, if obtained
     */
-  override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Releasable] = {
+  override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Closeable] = {
     val (client, lock) = distributedLock(key)
     try {
       if (lock.acquire(timeOut, TimeUnit.MILLISECONDS)) {
@@ -69,6 +70,6 @@ trait ZookeeperLocking extends DistributedLocking {
 object ZookeeperLocking {
 
   // delegate lock that will close the curator client upon release
-  def releasable(lock: InterProcessSemaphoreMutex, client: CuratorFramework): Releasable =
-    new Releasable { override def release(): Unit = try { lock.release() } finally { client.close() } }
+  def releasable(lock: InterProcessSemaphoreMutex, client: CuratorFramework): Closeable =
+    () => try { lock.release() } finally { client.close() }
 }

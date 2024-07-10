@@ -32,7 +32,8 @@ class QueryStatTransformTest extends TestWithDataStore {
 
     "convert query stats to and from accumulo" in {
 
-      ds.connector.tableOperations().create(catalog)
+      ds.adapter.ensureNamespaceExists(catalog.substring(0, catalog.indexOf(".")))
+      ds.adapter.ensureTableExists(catalog)
 
       // currently we don't restore table and feature in the query stat - thus setting them null here
       val stat = QueryEvent(AccumuloAuditService.StoreType, featureName, 500L, "user1", "attr=1", "hint1=true", 101L, 201L, 11)
