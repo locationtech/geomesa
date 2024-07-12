@@ -291,6 +291,15 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
+                            scala versions. we can discard the staging repo if there is an error in the build. -->
+                            <deployAtEnd>false</deployAtEnd>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
             <distributionManagement>
