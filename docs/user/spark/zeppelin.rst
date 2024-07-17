@@ -17,7 +17,7 @@ Configuring Zeppelin with GeoMesa
 ---------------------------------
 
 The GeoMesa Accumulo Spark runtime JAR may be found either in the ``dist/spark`` directory of the GeoMesa Accumulo
-binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target``
+binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/target``
 directory of the GeoMesa source distribution.
 
 .. note::
@@ -29,8 +29,8 @@ directory of the GeoMesa source distribution.
 #. Scroll to the bottom where the "Spark" interpreter configuration appears.
 #. Click on the "edit" button next to the interpreter name (on the right-hand side of the UI).
 #. In the "Dependencies" section, add the GeoMesa JAR, either as
-     a. the full local path to the ``geomesa-accumulo-spark-runtime-accumulo2_${VERSION}.jar`` described above, or
-     b. the Maven groupId:artifactId:version coordinates (``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo2_2.12:$VERSION``)
+     a. the full local path to the ``geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar`` described above, or
+     b. the Maven groupId:artifactId:version coordinates (``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo21_2.12:$VERSION``)
 #. Click "Save". When prompted by the pop-up, click to restart the Spark interpreter.
 
 It is not necessary to restart Zeppelin.
@@ -51,18 +51,10 @@ may be used to print a ``DataFrame`` via this display system:
       dfc.foreach(r => println(r.mkString("\t")))
     }
 
-It is also possible to use third-party libraries such as `Vegas`_, as described in :ref:`jupyter_vegas`. For
-Zeppelin, the following implicit ``displayer`` method should be used:
-
-.. code-block:: scala
-
-    implicit val displayer: String => Unit = s => println("%html\n"+s)
-
 .. |zeppelin_version| replace:: 0.7.0
 
 .. _configuring the Zeppelin Spark interpreter: https://zeppelin.apache.org/docs/0.7.0/interpreter/spark.html
 .. _Spark: https://spark.apache.org/
-.. _Vegas: https://github.com/vegas-viz/Vegas/
 .. _Zeppelin: https://zeppelin.apache.org/
 .. _Zeppelin installation instructions: https://zeppelin.apache.org/docs/0.7.0/install/install.html
 .. _Zeppelin table display system: https://zeppelin.apache.org/docs/0.7.0/displaysystem/basicdisplaysystem.html#table
