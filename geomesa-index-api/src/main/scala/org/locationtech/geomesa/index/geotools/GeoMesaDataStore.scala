@@ -404,7 +404,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   override def dispose(): Unit = {
     Try(GeoMesaDataStore.liveStores.get(VersionKey(config.catalog, getClass)).remove(this))
     CloseWithLogging(stats)
-    config.audit.foreach { case (writer, _, _) => CloseWithLogging(writer) }
+    CloseWithLogging(config.audit)
     super.dispose()
   }
 

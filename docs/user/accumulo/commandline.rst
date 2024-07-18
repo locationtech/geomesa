@@ -263,7 +263,7 @@ The ``--add`` argument will add the stats iterator.
 ``configure-table``
 ^^^^^^^^^^^^^^^^^^^
 
-The command will list and update properties on the Accumulo tables used by GeoMesa. It has two
+This command will list and update properties on the Accumulo tables used by GeoMesa. It has two
 sub-commands:
 
 * ``list`` List the configuration options for a table
@@ -291,6 +291,30 @@ The ``--key`` argument can be used during both list and update. For list, it wil
 only show the one requested. For update, it is required as the property to update.
 
 The ``--value`` argument is only used during update.
+
+``query-audit-logs``
+^^^^^^^^^^^^^^^^^^^^
+
+This command will query the audit logs produced by GeoMesa.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-f, --feature-name *`` The name of the schema
+``-b, --begin``          Lower bound (inclusive) on the date of log entries to return, in ISO 8601 format
+``-e, --end``            Upper bound (exclusive) on the date of log entries to return, in ISO 8601 format
+``-q, --cql``            CQL predicate used to filter log entries
+``--output-format``      Output format for result, one of either ``csv`` (default) or ``json``
+======================== =============================================================
+
+The ``--begin`` and ``--end`` arguments can be used to filter logs by date. For more advanced filtering,
+the ``--cql`` argument accepts GeoTools `filter expressions <https://docs.geotools.org/stable/userguide/library/cql/ecql.html>`_.
+The schema to use for filtering is::
+
+    date:Date,user:String,filter:String,hints:String,planTimeMillis:Long,scanTimeMillis:Long,hits:Long
+
+The ``--output-format`` argument can be used to return logs as CSV or as JSON (JSON lines).
 
 .. _accumulo_tools_stats_analyze:
 

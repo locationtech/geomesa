@@ -43,6 +43,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
       new tools.status.AccumuloGetSftConfigCommand,
       new tools.status.AccumuloGetTypeNamesCommand,
       new tools.status.AccumuloVersionRemoteCommand,
+      new tools.stats.AccumuloQueryAuditCommand,
       new tools.stats.AccumuloStatsAnalyzeCommand,
       new tools.stats.AccumuloStatsBoundsCommand,
       new tools.stats.AccumuloStatsConfigureCommand,

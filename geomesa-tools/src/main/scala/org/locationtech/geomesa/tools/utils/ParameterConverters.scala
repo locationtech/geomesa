@@ -85,6 +85,20 @@ object ParameterConverters {
     }
   }
 
+  class DateConverter(name: String) extends BaseConverter[Date](name) {
+    override def convert(value: String): Date = {
+      try {
+        val date = FastConverter.convert(value, classOf[Date])
+        if (date == null) {
+          throw new IllegalArgumentException(s"Could not convert $value to date")
+        }
+        date
+      } catch {
+        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      }
+    }
+  }
+
   class IntervalConverter(name: String) extends BaseConverter[(Date, Date)](name) {
     override def convert(value: String): (Date, Date) = {
       try {

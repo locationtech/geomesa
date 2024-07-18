@@ -22,11 +22,12 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
-import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditWriter, ParamsAuditProvider}
+import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
-import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
+import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -207,9 +208,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
     val authProvider = buildAuthsProvider(connector, params)
     val auditProvider = buildAuditProvider(params)
-    val auditQueries = AuditQueriesParam.lookup(params).booleanValue()
-    
-    val auditService = new AccumuloAuditService(connector, authProvider, s"${catalog}_queries", auditQueries)
+    val auditWriter =
+      new AccumuloAuditWriter(connector, s"${catalog}_queries", auditProvider, AuditQueriesParam.lookup(params).booleanValue())
 
     val queries = AccumuloQueryConfig(
       threads = QueryThreadsParam.lookup(params),
@@ -230,7 +230,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       catalog = catalog,
       generateStats = GenerateStatsParam.lookup(params),
       authProvider = authProvider,
-      audit = Some(auditService, auditProvider, AccumuloAuditService.StoreType),
+      auditWriter = auditWriter,
       queries = queries,
       remote = remote,
       writeThreads = WriteThreadsParam.lookup(params),
@@ -279,7 +279,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
    * @param catalog table in Accumulo used to store feature type metadata
    * @param generateStats write stats on data during ingest
    * @param authProvider provides the authorizations used to access data
-   * @param audit optional implementations to audit queries
+   * @param auditWriter to audit queries
    * @param queries query config
    * @param remote remote query configs
    * @param writeThreads number of threads used for writing
@@ -288,12 +288,14 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       catalog: String,
       generateStats: Boolean,
       authProvider: AuthorizationsProvider,
-      audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
+      auditWriter: AccumuloAuditWriter,
       queries: AccumuloQueryConfig,
       remote: RemoteScansEnabled,
       writeThreads: Int,
       namespace: Option[String]
-    ) extends GeoMesaDataStoreConfig
+    ) extends GeoMesaDataStoreConfig {
+    lazy val audit: Option[AuditWriter] = Some(auditWriter)
+  }
 
   case class AccumuloQueryConfig(
       threads: Int,

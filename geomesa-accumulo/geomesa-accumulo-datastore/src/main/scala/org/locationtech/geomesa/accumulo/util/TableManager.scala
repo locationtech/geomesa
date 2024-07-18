@@ -174,16 +174,17 @@ object TableManager {
     /**
      * Creates the namespace if it doesn't exist
      *
-     * @param namespace namespace
+     * @param namespace namespace (or table name with namespace included)
      * @return true if namespace was created, false if it already existed
      */
     def ensureNamespaceExists(namespace: String): Unit = {
-      nsCache.get(namespace, _ => {
-        withLock(nsPath(namespace), timeoutMillis, {
+      val ns = namespace.takeWhile(_ != '.')
+      nsCache.get(ns, _ => {
+        withLock(nsPath(ns), timeoutMillis, {
           val nsOps = client.namespaceOperations
-          if (!nsOps.exists(namespace)) {
-            try { nsOps.create(namespace) } catch {
-              case _: NamespaceExistsException => onNamespaceExists(namespace)
+          if (!nsOps.exists(ns)) {
+            try { nsOps.create(ns) } catch {
+              case _: NamespaceExistsException => onNamespaceExists(ns)
             }
           }
         })
