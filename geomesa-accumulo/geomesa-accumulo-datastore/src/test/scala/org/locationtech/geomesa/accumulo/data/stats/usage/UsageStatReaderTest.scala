@@ -32,6 +32,8 @@ class UsageStatReaderTest extends TestWithDataStore {
   lazy val reader = new AccumuloEventReader(ds.connector, statsTable)
 
   step {
+    // we have to create the namespace here (normally created by the ds when you create a feature type)
+    ds.adapter.ensureNamespaceExists(catalog.substring(0, catalog.indexOf(".")))
     val stats = Seq(
       QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T13:20:01Z"), "user1", "query1", "hint1=true", 101L, 201L, 11),
       QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T14:20:01Z"), "user1", "query2", "hint2=true", 102L, 202L, 12),

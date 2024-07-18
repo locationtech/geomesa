@@ -8,6 +8,8 @@
 
 export LC_ALL=C # ensure stable sort order across different locales
 
+cd "$(dirname "$0")/../.." || exit
+
 rm build/cqs.tsv 2>/dev/null
 mvn dependency:tree -Dstyle.color=never > build/deps-raw
 grep ':compile' build/deps-raw | grep -v 'omitted' | grep -v 'org.locationtech.geomesa' | sed -e 's/\[INFO\] //' -e 's/[\| +-]*//' -e 's/(.*)//' -e 's/ //g' -e 's/\(.*\):\(.*\):jar:\(.*\):\(\w*\)/\1:\2\t\3\t\4/' | sort | uniq > build/cqs.tsv

@@ -2,7 +2,7 @@
 
 to="$(date +%Y)"
 from="$((to - 1))"
-dir="$(cd "$(dirname "$0")/.." || exit; pwd)"
+dir="$(dirname "$0")/../.."
 
 sed -i "s|<copyright.year>$from</copyright.year>|<copyright.year>$to</copyright.year>|" "$dir/pom.xml"
 

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
-import org.locationtech.geomesa.index.utils.LocalLocking
+import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -229,6 +229,7 @@ class KafkaDataStore(
     val topic = KafkaDataStore.topic(sft)
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
     config.producers.properties.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>
@@ -266,6 +267,7 @@ class KafkaDataStore(
     val topic = KafkaDataStore.topic(sft)
     val props = new Properties()
     props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, config.brokers)
+    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
     config.producers.properties.foreach { case (k, v) => props.put(k, v) }
 
     WithClose(AdminClient.create(props)) { admin =>

@@ -32,10 +32,11 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
     try {
       ds.getTypeNames.map(ds.getSchema).foreach { sft =>
         Command.user.info(s"Configuring stats iterator for '${sft.getTypeName}'...")
+        ds.adapter.ensureTableExists(ds.stats.metadata.table)
         ds.stats.configureStatCombiner(ds.connector, sft)
       }
     } finally {
-      lock.release()
+      lock.close()
     }
     Command.user.info("done")
   }
@@ -51,7 +52,7 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
           ds.stats.removeStatCombiner(ds.connector, sft)
         }
       } finally {
-        lock.release()
+        lock.close()
       }
       Command.user.info("done")
     }

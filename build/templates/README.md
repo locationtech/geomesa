@@ -198,7 +198,7 @@ To run unit tests, omit the `-DskipTests` (note: requires `docker` to be availab
 GeoMesa also provides experimental support for the [Bloop](https://scalacenter.github.io/bloop/) compile server,
 which provides fast incremental compilation. To export the GeoMesa build to Bloop, run:
 
-    ./build/bloop-export.sh
+    ./build/scripts/bloop-export.sh
 
 For more information on using Bloop, refer to the
 [Bloop documentation](https://scalacenter.github.io/bloop/docs/build-tools/maven).
@@ -221,7 +221,7 @@ environment variable to point to the root of your JDK. Example from a Mac:
 
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
-    ./build/change-scala-version.sh 2.13
+    ./build/scripts/change-scala-version.sh 2.13
 
 ### Building on OS X
 

@@ -34,7 +34,7 @@ class IngestCommandTest extends Specification {
     "--zookeepers",    AccumuloContainer.zookeepers,
     "--user",          AccumuloContainer.user,
     "--password",      AccumuloContainer.password,
-    "--catalog",       s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}",
+    "--catalog",       s"gm.${getClass.getSimpleName}${sftCounter.getAndIncrement()}",
     "--compact-stats", "false"
   )
 

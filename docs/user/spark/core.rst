@@ -52,7 +52,7 @@ to the ``spark-submit`` command via the ``--jars`` option:
 
 .. code-block:: bash
 
-    --jars file://path/to/geomesa-accumulo-spark-runtime-accumulo2_${VERSION}.jar
+    --jars file://path/to/geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar
 
 or passed to Spark via the appropriate mechanism in notebook servers such as
 Jupyter (see :doc:`jupyter`) or Zeppelin.

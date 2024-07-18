@@ -172,7 +172,7 @@
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
         <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
         <maven.dependency.plugin.version>3.6.1</maven.dependency.plugin.version>
-        <maven.assembly.plugin.version>3.6.0</maven.assembly.plugin.version>
+        <maven.assembly.plugin.version>3.7.1</maven.assembly.plugin.version>
         <maven.shade.plugin.version>3.5.1</maven.shade.plugin.version>
         <!-- note: we use an older version that still supports using zinc compile server -->
         <scala.maven.plugin.version>3.4.4</scala.maven.plugin.version>
@@ -208,7 +208,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>5.0.0</geomesa.release.version>
+        <geomesa.release.version>5.0.1</geomesa.release.version>
         <geomesa.devel.version>5.1.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2024</copyright.year>
 
@@ -291,61 +291,15 @@
                             </execution>
                         </executions>
                     </plugin>
-                </plugins>
-            </build>
-            <distributionManagement>
-                <repository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-
-        <profile>
-            <id>locationtech</id>
-            <distributionManagement>
-                <repository>
-                    <id>repo.eclipse.org</id>
-                    <name>GeoMesa Repository - Releases</name>
-                    <url>https://repo.eclipse.org/content/repositories/geomesa-releases/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>repo.eclipse.org</id>
-                    <name>GeoMesa Repository - Snapshots</name>
-                    <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-
-        <profile>
-            <id>dash</id>
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>dash-licenses-releases</id>
-                    <url>https://repo.eclipse.org/content/repositories/dash-licenses-releases/</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
-
-        <profile>
-            <id>scoverage</id>
-            <properties>
-                <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>cyclonedx</id>
-            <build>
-                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <configuration>
+                            <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
+                            scala versions. we can discard the staging repo if there is an error in the build. -->
+                            <deployAtEnd>false</deployAtEnd>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
@@ -366,6 +320,24 @@
                     </plugin>
                 </plugins>
             </build>
+            <distributionManagement>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+
+        <profile>
+            <id>scoverage</id>
+            <properties>
+                <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
+                <skipTests>true</skipTests>
+            </properties>
         </profile>
 
         <profile>
@@ -383,7 +355,7 @@
                 </dependency>
             </dependencies>
             <repositories>
-                <!-- secondary repo used by confluent -->
+                <!-- secondary repo used by confluent, required explicitly for some reason -->
                 <repository>
                     <id>jitpack.io</id>
                     <url>https://jitpack.io</url>
@@ -3396,7 +3368,7 @@
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
-                                    <directory>build</directory>
+                                    <directory>build/templates</directory>
                                     <includes>
                                         <include>README.md</include>
                                     </includes>
@@ -3417,9 +3389,9 @@
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
-                                    <directory>build</directory>
+                                    <directory>build/templates</directory>
                                     <includes>
-                                        <include>*.svg</include>
+                                        <include>maven-badge.svg</include>
                                     </includes>
                                     <filtering>true</filtering>
                                 </resource>
@@ -3599,7 +3571,7 @@
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
-        <tag>geomesa-5.0.0-m.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
@@ -3613,6 +3585,11 @@
             <name>geomesa.org</name>
             <url>https://www.geomesa.org/</url>
         </site>
+        <snapshotRepository>
+            <id>repo.eclipse.org</id>
+            <name>GeoMesa Repository - Snapshots</name>
+            <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <developers>
@@ -3695,5 +3672,27 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <!-- include central so that it is searched before our alternate repos -->
+        <pluginRepository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>dash-licenses-releases</id>
+            <url>https://repo.eclipse.org/content/repositories/dash-licenses-releases/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
 </project>

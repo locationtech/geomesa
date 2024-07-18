@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.util
 import org.apache.accumulo.core.client.admin.{NewTableConfiguration, TimeType}
 import org.apache.accumulo.core.client.{AccumuloClient, NamespaceExistsException, TableExistsException}
 
+@deprecated("use AccumuloDataStore.adapter or TableManager to ensure caching and distributed synchronization")
 object TableUtils {
 
   /**

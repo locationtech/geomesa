@@ -23,7 +23,7 @@ class AccumuloDataStoreFactoryTest extends Specification {
   import scala.collection.JavaConverters._
 
   // we use class name to prevent spillage between unit tests
-  lazy val catalog = s"${AccumuloContainer.Namespace}.${getClass.getSimpleName}"
+  lazy val catalog = s"gm.${getClass.getSimpleName}"
 
   "AccumuloDataStoreFactory" should {
 

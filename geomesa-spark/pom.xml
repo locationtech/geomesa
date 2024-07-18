@@ -22,14 +22,4 @@
         <module>geomesa_pyspark</module>
     </modules>
 
-    <profiles>
-        <profile>
-            <!-- built in a profile for licensing reasons -->
-            <id>vegas</id>
-            <modules>
-                <module>geomesa-spark-jupyter-vegas</module>
-            </modules>
-        </profile>
-    </profiles>
-
 </project>

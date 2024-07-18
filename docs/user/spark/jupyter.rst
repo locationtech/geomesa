@@ -73,7 +73,7 @@ GeoMesa:
 
     # bundled GeoMesa Accumulo Spark and Spark SQL runtime JAR
     # (contains geomesa-accumulo-spark, geomesa-spark-core, geomesa-spark-sql, and dependencies)
-    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime-accumulo2_$VERSION.jar"
+    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime-accumulo21_$VERSION.jar"
 
     # uncomment to use the converter RDD provider
     #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-converter_$VERSION.jar"
@@ -103,8 +103,7 @@ GeoMesa:
 You may also consider adding ``geomesa-tools_${VERSION}-data.jar`` to include prepackaged converters for
 publicly available data sources (as described in :ref:`prepackaged_converters`),
 ``geomesa-spark-jupyter-leaflet_${VERSION}.jar`` to include an interface for the `Leaflet`_ spatial visualization
-library (see :ref:`jupyter_leaflet`, below), and/or ``geomesa-spark-jupyter-vegas_${VERSION}.jar`` to use the `Vegas`_ data
-plotting library (see :ref:`jupyter_vegas`, below).
+library (see :ref:`jupyter_leaflet`, below).
 
 Running Jupyter
 ---------------
@@ -236,49 +235,6 @@ fillOpacity Number Fill opacity
 
 Note: Options are comma-separated (i.e. ``{ color: "#ff0000", fillColor: "#0000ff" }``)
 
-.. _jupyter_vegas:
-
-Vegas for Plotting
-------------------
-
-The `Vegas`_ library may be used with GeoMesa, Spark, and Toree in Jupyter to plot quantitative data. The
-``geomesa-spark-jupyter-vegas`` module builds a shaded JAR containing all of the dependencies needed to run Vegas in
-Jupyter+Toree. This module must be built from source, using the ``vegas`` profile:
-
-.. code-block:: bash
-
-    $ mvn clean install -Pvegas -pl geomesa-spark/geomesa-spark-jupyter-vegas
-
-This will build ``geomesa-spark-jupyter-vegas_${VERSION}.jar`` in the ``target`` directory of the module, and
-should be added to the list of JARs in the ``jupyter toree install`` command described in
-:ref:`jupyter_configure_toree`:
-
-.. code-block:: bash
-
-    jars="$jars,file:///path/to/geomesa-spark-jupyter-vegas_${VERSION}.jar"
-    # then continue with "jupyter toree install" as before
-
-To use Vegas within Jupyter, load the appropriate libraries and a displayer:
-
-.. code-block:: scala
-
-    import vegas._
-    import vegas.render.HTMLRenderer._
-    import vegas.sparkExt._
-
-    implicit val displayer: String => Unit = { s => kernel.display.content("text/html", s) }
-
-Then use the ``withDataFrame`` method to plot data in a ``DataFrame``:
-
-.. code-block:: scala
-
-    Vegas("Simple bar chart").
-      withDataFrame(df).
-      encodeX("a", Ordinal).
-      encodeY("b", Quantitative).
-      mark(Bar).
-      show(displayer)
-
 .. _Apache Toree: https://toree.apache.org/
 .. _Docker: https://www.docker.com/
 .. _JupyterLab: https://jupyterlab.readthedocs.io/
@@ -287,4 +243,3 @@ Then use the ``withDataFrame`` method to plot data in a ``DataFrame``:
 .. _Python: https://www.python.org/
 .. _SBT: https://www.scala-sbt.org/
 .. _Spark: https://spark.apache.org/
-.. _Vegas: https://github.com/vegas-viz/Vegas
