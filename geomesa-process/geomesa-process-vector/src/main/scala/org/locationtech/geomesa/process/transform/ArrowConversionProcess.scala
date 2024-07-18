@@ -88,10 +88,9 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
-    val flatten = Option(flattenStruct).map(_.booleanValue())
 
     val visitor =
-      new ArrowVisitor(sft, encoding, ipcVersion, toEncode, Option(sortField), reverse, false, batch, flatten)
+      new ArrowVisitor(sft, encoding, ipcVersion, toEncode, Option(sortField), reverse, false, batch, flattenStruct)
     GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
@@ -108,7 +107,7 @@ object ArrowConversionProcess {
       sortReverse: Option[Boolean],
       preSorted: Boolean,
       batchSize: Int,
-      flattenStruct: Option[Boolean]
+      flattenStruct: Boolean
     ) extends GeoMesaProcessVisitor with LazyLogging {
 
     import scala.collection.JavaConverters._
@@ -152,7 +151,7 @@ object ArrowConversionProcess {
       query.getHints.put(QueryHints.ARROW_PROXY_FID, encoding.fids.contains(Encoding.Min))
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
       query.getHints.put(QueryHints.ARROW_FORMAT_VERSION, ipcVersion)
-      query.getHints.put(QueryHints.ARROW_FLATTEN, flattenStruct.getOrElse(false))
+      query.getHints.put(QueryHints.ARROW_FLATTEN_STRUCT, flattenStruct)
       sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
       sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
@@ -180,7 +179,7 @@ object ArrowConversionProcess {
       ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       batchSize: Int,
-      flattenStruct: Option[Boolean]
+      flattenStruct: Boolean
     ) extends ArrowManualVisitor {
 
     private val out = new ByteArrayOutputStream()
@@ -188,7 +187,7 @@ object ArrowConversionProcess {
     private var count = 0L
 
     private val writer =
-      SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, ipcOpts, sort, flattenStruct.getOrElse(false))
+      SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, ipcOpts, sort, flattenStruct)
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature)
@@ -224,7 +223,7 @@ object ArrowConversionProcess {
       sort: Option[(String, Boolean)],
       preSorted: Boolean,
       batchSize: Int,
-      flattenStruct: Option[Boolean]
+      flattenStruct: Boolean
     ) extends ArrowManualVisitor {
 
     private val features = ArrayBuffer.empty[SimpleFeature]
@@ -263,7 +262,7 @@ object ArrowConversionProcess {
       val out = new ByteArrayOutputStream()
       val bytes = ListBuffer.empty[Array[Byte]]
 
-      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort, flattenStruct.getOrElse(false))) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort, flattenStruct)) { writer =>
         while (sorted.hasNext) { // send batches
           var i = 0
           while (i < batchSize && sorted.hasNext) {
