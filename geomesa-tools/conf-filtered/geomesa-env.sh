@@ -172,7 +172,7 @@ function find_jars() {
     local find_args
     find_args=("-type" "f" "-iname" "*.jar" "-not" "-iname" "*-sources.jar" "-not" "-iname" "*-tests.jar")
     if [[ "$2" == "true" ]]; then
-      find_args+=("-maxdepth" "1")
+      find_args=("-maxdepth" "1" "${find_args[@]}")
     fi
     jars="$(find "-L" "$home" "${find_args[@]}" | paste -sd: -)"
     if [[ -d "${home}/native" ]]; then
