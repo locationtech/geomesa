@@ -8,6 +8,8 @@
 
 export LC_ALL=C # ensure stable sort order across different locales
 
+cd "$(dirname "$0")/../.." || exit
+
 rm build/cqs.tsv 2>/dev/null
 rm build/eclipse-dependencies.list 2>/dev/null
 mvn dependency:tree -Dstyle.color=never > build/deps-raw
