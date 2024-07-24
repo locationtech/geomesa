@@ -58,8 +58,8 @@
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <!-- geotools -->
-        <gt.version>30.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.24.2</geoserver.version>
+        <gt.version>30.4</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.24.4</geoserver.version>
         <jts.version>1.19.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
