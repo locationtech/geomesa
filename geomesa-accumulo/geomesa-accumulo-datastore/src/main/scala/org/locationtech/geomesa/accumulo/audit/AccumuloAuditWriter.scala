@@ -52,7 +52,7 @@ class AccumuloAuditWriter(
 
   private val scheduledRun =
     AccumuloAuditWriter.WriteInterval.toDuration.collect {
-      case d if enabled && d.isFinite() =>
+      case d if enabled && d.isFinite =>
         val millis = d.toMillis
         logger.debug(s"Scheduling audit writer for ${millis}ms")
         AccumuloAuditWriter.executor.scheduleWithFixedDelay(this, millis, millis, TimeUnit.MILLISECONDS)
