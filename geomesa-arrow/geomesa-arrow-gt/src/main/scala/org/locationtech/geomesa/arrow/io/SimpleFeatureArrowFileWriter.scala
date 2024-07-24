@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.io
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.arrow.vector.VectorSchemaRoot
 import org.apache.arrow.vector.dictionary.{Dictionary, DictionaryProvider}
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
@@ -35,11 +36,19 @@ class SimpleFeatureArrowFileWriter private (
     provider: DictionaryProvider with Closeable,
     os: OutputStream,
     ipcOpts: IpcOption,
-    sort: Option[(String, Boolean)]
+    sort: Option[(String, Boolean)],
+    flattenStruct: Boolean = false
   ) extends Closeable with Flushable with LazyLogging {
-
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
-  private val root = createRoot(vector.underlying, metadata)
+  private val root = {
+    val potentialRoot = createRoot(vector.underlying, metadata)
+
+    if (flattenStruct) {
+      new VectorSchemaRoot(potentialRoot.getVector(sft.getTypeName))
+    } else {
+      potentialRoot
+    }
+  }
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)
 
   private var index = 0
@@ -106,7 +115,8 @@ object SimpleFeatureArrowFileWriter {
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
       ipcOpts: IpcOption,
-      sort: Option[(String, Boolean)]): SimpleFeatureArrowFileWriter = {
+      sort: Option[(String, Boolean)],
+      flattenStruct: Boolean = false): SimpleFeatureArrowFileWriter = {
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     // convert the dictionary values into arrow vectors
     // make sure we load dictionaries before instantiating the stream writer
@@ -116,7 +126,7 @@ object SimpleFeatureArrowFileWriter {
       override def getDictionaryIds: java.util.Set[java.lang.Long] = dictionaries.keys.map(Long.box).toSet.asJava
       override def close(): Unit = CloseWithLogging(dictionaries.values)
     }
-    new SimpleFeatureArrowFileWriter(vector, provider, os, ipcOpts, sort)
+    new SimpleFeatureArrowFileWriter(vector, provider, os, ipcOpts, sort, flattenStruct)
   }
 
   // convert the dictionary values into arrow vectors

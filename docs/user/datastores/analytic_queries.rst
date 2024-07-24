@@ -271,6 +271,8 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_PROCESS_DELTAS     | Boolean (optional) | processDeltas                      |
 +-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_FLATTEN_STRUCT     | Boolean (optional) | flattenStruct                      |
++-------------------------------------+--------------------+------------------------------------+
 
 Explanation of Hints
 ++++++++++++++++++++
@@ -327,6 +329,12 @@ ARROW_PROCESS_DELTAS
 This is an advanced hint, which can be used to disable normal processing on Arrow queries. When set to false,
 data will be returned in a custom binary format, and needs to be processed before it can be read by standard
 Arrow libraries. When returned un-processed, data can begin streaming back to the client immediately.
+
+ARROW_FLATTEN_STRUCT
+^^^^^^^^^^^^^^^^^^^^
+
+This hint will remove the outer struct named after the feature type and will instead return the attribute fields directly
+in the RecordBatch. Note that this hint is currently only supported for PostGIS and geoserver native stores.
 
 Example Query
 +++++++++++++

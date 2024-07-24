@@ -43,7 +43,8 @@ class DictionaryBuildingWriter(
     dictionaries: Seq[String],
     encoding: SimpleFeatureEncoding,
     ipcOpts: IpcOption,
-    maxSize: Int = Short.MaxValue
+    maxSize: Int = Short.MaxValue,
+    flattenStruct: Boolean = false
   ) extends Closeable {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -63,7 +64,13 @@ class DictionaryBuildingWriter(
 
   private val root = {
     val fields = Collections.singletonList[Field](underlying.getField)
-    new VectorSchemaRoot(fields, Collections.singletonList[FieldVector](underlying), 0)
+
+    val potentialRoot = new VectorSchemaRoot(fields, Collections.singletonList[FieldVector](underlying), 0)
+    if(flattenStruct){
+      new VectorSchemaRoot(potentialRoot.getVector(sft.getTypeName))
+    } else {
+      potentialRoot
+    }
   }
 
   private var index = 0
