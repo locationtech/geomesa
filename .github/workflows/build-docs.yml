@@ -31,7 +31,7 @@ jobs:
       - name: Install python dependencies
         run: pip install -r docs/requirements.txt
       - name: Build with Maven
-        run: mvn $MAVEN_CLI_OPTS -Pdocs -pl docs
+        run: mvn clean install $MAVEN_CLI_OPTS -Pdocs -pl docs
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
