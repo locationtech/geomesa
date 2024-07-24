@@ -331,7 +331,7 @@ data will be returned in a custom binary format, and needs to be processed befor
 Arrow libraries. When returned un-processed, data can begin streaming back to the client immediately.
 
 ARROW_FLATTEN_STRUCT
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 This hint will remove the outer struct named after the feature type and will instead return the attribute fields directly
 in the RecordBatch. Note that this hint is currently only supported for PostGIS and geoserver native stores.
