@@ -71,7 +71,6 @@ Building from Source
 
 GeoMesa Cassandra may also be built from source. For more information, refer to the instructions on
 `GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
-`GitHub <https://github.com/locationtech/geomesa#building-from-source>`__.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Cassandra
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
 ``geomesa-cassandra/geomesa-cassandra-dist``.

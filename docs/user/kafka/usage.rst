@@ -1,28 +1,7 @@
-Using the Kafka Data Store Programmatically
-===========================================
-
-Creating a Data Store
----------------------
-
-An instance of a Kafka data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath. To create a ``KafkaDataStore`` there are two
-required properties, one for the Apache Kafka connection, ``kafka.brokers``, and one for the Apache
-Zookeeper connection, ``kafka.zookeepers``. An optional parameter, ``kafka.zk.path`` is
-used to specify a path in Zookeeper under which schemas are stored. If no zk path is specified then
-a default path will be used. Configuration parameters are described fully below.
-
-.. code-block:: java
-
-    Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("kafka.brokers", "localhost:9092");
-    parameters.put("kafka.zookeepers", "localhost:2181");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
 .. _kafka_parameters:
 
 Kafka Data Store Parameters
----------------------------
+===========================
 
 The Kafka data store differs from most data stores in that the data set is kept entirely in memory. Because of this,
 the in-memory indexing can be configured at runtime through data store parameters. See :ref:`kafka_index_config` for
@@ -31,7 +10,7 @@ more information on the available indexing options.
 Because configuration options can reference attributes from a particular SimpleFeatureType, it may be necessary to
 create multiple Kafka data store instances when dealing with multiple schemas.
 
-The Kafka data store accepts the following parameters (required parameters are marked with ``*``):
+Use the following parameters for a Kafka data store (required parameters are marked with ``*``):
 
 ==================================== ======= ====================================================================================================
 Parameter                            Type    Description
@@ -83,5 +62,17 @@ Parameter                            Type    Description
 ``geomesa.security.auths``           String  Default authorizations used to query data, comma-separated
 ==================================== ======= ====================================================================================================
 
-More information on using GeoTools can be found in the `GeoTools user guide
-<https://docs.geotools.org/stable/userguide/>`__.
+Programmatic Access
+-------------------
+
+An instance of a Kafka data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
+
+.. code-block:: java
+
+    Map<String, Serializable> parameters = new HashMap<>();
+    parameters.put("kafka.brokers", "localhost:9092");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
