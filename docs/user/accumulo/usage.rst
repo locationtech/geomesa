@@ -1,37 +1,9 @@
-Using the Accumulo Data Store Programmatically
-==============================================
-
-Creating a Data Store
----------------------
-
-An instance of an Accumulo data store can be obtained through the normal GeoTools discovery methods, assuming
-that the GeoMesa code is on the classpath:
-
-.. code-block:: java
-
-    Map<String, String> parameters = new HashMap<>;
-    parameters.put("accumulo.instance.name", "myInstance");
-    parameters.put("accumulo.zookeepers", "myZoo1,myZoo2,myZoo3");
-    parameters.put("accumulo.user", "myUser");
-    parameters.put("accumulo.password", "myPassword");
-    parameters.put("accumulo.catalog", "myNamespace.myTable");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
-Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` may be added
-to the classpath. See the
-`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
-for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
-the configuration file.
-
-More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
-
 .. _accumulo_parameters:
 
 Accumulo Data Store Parameters
-------------------------------
+==============================
 
-The Accumulo Data Store takes several parameters (required parameters are marked with ``*``):
+Use the following parameters for an Accumulo data store (required parameters are marked with ``*``):
 
 ====================================== ======= ==========================================================================
 Parameter                              Type    Description
@@ -69,4 +41,31 @@ Parameter                              Type    Description
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ====================================== ======= ==========================================================================
 
-Note: it is an error to specify both ``accumulo.password`` and ``accumulo.keytab.path``.
+.. note::
+
+    It is an error to specify both ``accumulo.password`` and ``accumulo.keytab.path``.
+
+Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` may be added
+to the classpath. See the
+`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
+for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
+the configuration file.
+
+Programmatic Access
+-------------------
+
+An instance of an Accumulo data store can be obtained through the normal GeoTools discovery methods, assuming
+that the GeoMesa code is on the classpath:
+
+.. code-block:: java
+
+    Map<String, String> parameters = new HashMap<>;
+    parameters.put("accumulo.instance.name", "myInstance");
+    parameters.put("accumulo.zookeepers", "myZoo1,myZoo2,myZoo3");
+    parameters.put("accumulo.user", "myUser");
+    parameters.put("accumulo.password", "myPassword");
+    parameters.put("accumulo.catalog", "myNamespace.myTable");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
