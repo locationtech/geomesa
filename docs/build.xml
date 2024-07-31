@@ -52,7 +52,7 @@
 
   <target name="sphinx" if="sphinx.available">
     <exec executable="${sphinx.binary}" failonerror="true" dir="${basedir}/${id}">
-      <arg line="-b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
+      <arg line="-W -b ${build} -d &quot;${build.directory}/${id}/doctrees&quot; . &quot;${build.directory}/${id}/${build}&quot;" />
     </exec>
   </target>
   

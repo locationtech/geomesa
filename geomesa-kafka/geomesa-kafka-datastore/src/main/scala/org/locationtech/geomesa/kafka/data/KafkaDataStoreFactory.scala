@@ -16,6 +16,7 @@ import org.geotools.api.data.DataStoreFactorySpi
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
@@ -24,7 +25,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSeria
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
-import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
@@ -219,7 +220,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val looseBBox = LooseBBox.lookup(params).booleanValue()
 
     val audit = if (!AuditQueries.lookup(params)) { None } else {
-      Some((AuditLogger, buildAuditProvider(params), "kafka"))
+      Some(new AuditLogger("kafka", AuditProvider.Loader.loadOrNone(params)))
     }
     val authProvider = buildAuthProvider(params)
 
@@ -259,9 +260,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty).toSeq).getOrElse(Seq.empty)
     AuthUtils.getProvider(params, auths)
   }
-
-  private def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider =
-    Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider)
 
   /**
     * Parse SSI tiers from parameters

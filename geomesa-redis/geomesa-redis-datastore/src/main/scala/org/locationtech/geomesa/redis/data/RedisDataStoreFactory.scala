@@ -12,11 +12,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.index.audit.AuditWriter
+import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
-import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.util.JedisURIHelper
 import redis.clients.jedis.{Jedis, JedisPool}
@@ -128,7 +130,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val pipeline = PipelineParam.lookup(params)
 
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
-      Some((AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "redis"))
+      Some(new AuditLogger("redis", AuditProvider.Loader.loadOrNone(params)))
     }
     // get the auth params passed in as a comma-delimited string
     val authProvider = AuthUtils.getProvider(params,
@@ -151,7 +153,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   case class RedisDataStoreConfig(
       catalog: String,
       generateStats: Boolean,
-      audit: Option[(AuditWriter, AuditProvider, String)],
+      audit: Option[AuditWriter],
       authProvider: AuthorizationsProvider,
       queries: RedisQueryConfig,
       pipeline: Boolean,

@@ -12,9 +12,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.index.audit.QueryEvent
-import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{ExplainLogger, Explainer}
@@ -30,6 +27,11 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+  private val audit = persistence match {
+    case ds: GeoMesaDataStore[_] => ds.config.audit
+    case _ => None
+  }
+
   // TODO pass explain through?
 
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
@@ -43,20 +45,8 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
     } else {
       def run(): CloseableIterator[SimpleFeature] = {
         // ensure that we still audit the query
-        val audit = Option(persistence).collect { case ds: GeoMesaDataStore[_] => ds.config.audit }.flatten
-        audit.foreach { case (writer, provider, typ) =>
-          val stat = QueryEvent(
-            s"$typ-lambda",
-            sft.getTypeName,
-            System.currentTimeMillis(),
-            provider.getCurrentUserId,
-            filterToString(query.getFilter),
-            ViewParams.getReadableHints(query),
-            0,
-            0,
-            0
-          )
-          writer.writeEvent(stat) // note: implementations should be asynchronous
+        audit.foreach { writer =>
+          writer.writeQueryEvent(sft.getTypeName, query.getFilter, query.getHints, 0, 0, 0)
         }
         transients.get(sft.getTypeName)
             .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)

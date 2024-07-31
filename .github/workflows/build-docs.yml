@@ -1,0 +1,37 @@
+name: build-docs
+
+on:
+  push:
+  pull_request:
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    # avoid duplicate jobs on PRs from the main repo
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      - uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: docs/requirements.txt
+      - name: Install python dependencies
+        run: pip install -r docs/requirements.txt
+      - name: Build with Maven
+        run: mvn clean install $MAVEN_CLI_OPTS -Pdocs -pl docs
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa

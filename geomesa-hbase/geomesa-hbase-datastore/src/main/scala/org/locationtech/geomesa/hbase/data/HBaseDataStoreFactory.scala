@@ -19,10 +19,12 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseDataStore.NoAuthsProvider
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
+import org.locationtech.geomesa.index.audit.AuditWriter
+import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
-import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
+import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -41,7 +43,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val remoteFilters = RemoteFilteringParam.lookup(params).booleanValue
 
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
-      Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
+      Some(new AuditLogger("hbase", AuditProvider.Loader.loadOrNone(params)))
     }
     val auths = if (!EnableSecurityParam.lookup(params)) { NoAuthsProvider } else {
       HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params)
@@ -177,7 +179,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       queries: HBaseQueryConfig,
       coprocessors: CoprocessorConfig,
       authProvider: AuthorizationsProvider,
-      audit: Option[(AuditWriter, AuditProvider, String)],
+      audit: Option[AuditWriter],
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig
 
