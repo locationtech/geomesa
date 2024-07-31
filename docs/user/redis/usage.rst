@@ -1,26 +1,9 @@
-Using the Redis Data Store Programmatically
-===========================================
-
-Creating a Data Store
----------------------
-
-An instance of a Redis data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath.
-
-.. code-block:: java
-
-    Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("redis.url", "redis://localhost:6379");
-    parameters.put("redis.catalog", "geomesa");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
 .. _redis_parameters:
 
 Redis Data Store Parameters
----------------------------
+===========================
 
-The data store takes several parameters (required parameters are marked with ``*``):
+Use the following parameters for a Redis data store (required parameters are marked with ``*``):
 
 ====================================== ======= ====================================================================================
 Parameter                              Type    Description
@@ -47,5 +30,18 @@ Parameter                              Type    Description
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ====================================== ======= ====================================================================================
 
-More information on using GeoTools can be found in the `GeoTools user guide
-<https://docs.geotools.org/stable/userguide/>`__.
+Creating a Data Store
+---------------------
+
+An instance of a Redis data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
+
+.. code-block:: java
+
+    Map<String, Serializable> parameters = new HashMap<>();
+    parameters.put("redis.url", "redis://localhost:6379");
+    parameters.put("redis.catalog", "geomesa");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.

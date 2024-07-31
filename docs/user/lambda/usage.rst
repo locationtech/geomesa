@@ -1,34 +1,9 @@
-Using the Lambda Data Store Programmatically
-============================================
-
-Creating a Data Store
----------------------
-
-An instance of a Lambda data store can be obtained through the normal GeoTools discovery methods, assuming
-that the GeoMesa code is on the classpath:
-
-.. code-block:: java
-
-    Map<String, String> parameters = new HashMap<>;
-    parameters.put("lambda.accumulo.instance.name", "myInstance");
-    parameters.put("lambda.accumulo.zookeepers", "zoo1,zoo2,zoo3");
-    parameters.put("lambda.accumulo.user", "myUser");
-    parameters.put("lambda.accumulo.password", "myPassword");
-    parameters.put("lambda.accumulo.tableName", "my_table");
-    parameters.put("lambda.kafka.brokers", "kafka1:9092,kafka2:9092");
-    parameters.put("lambda.kafka.zookeepers", "zoo1,zoo2,zoo3");
-    parameters.put("lambda.expiry", "10 minutes");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
-More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
-
 .. _lambda_parameters:
 
 Lambda Data Store Parameters
-----------------------------
+============================
 
-The data store takes several parameters (required parameters are marked with ``*``):
+Use the following parameters for a Lambda data store (required parameters are marked with ``*``):
 
 ====================================== ======= ==================================================================================================
 Parameter                              Type    Description
@@ -64,4 +39,28 @@ Parameter                              Type    Description
 ``geomesa.stats.enable``               Boolean Toggle collection of statistics for newly created feature types
 ====================================== ======= ==================================================================================================
 
-Note: one (but not both) of ``lambda.accumulo.password`` and ``lambda.accumulo.keytab.path`` must be provided.
+.. note:
+
+    One (but not both) of ``lambda.accumulo.password`` and ``lambda.accumulo.keytab.path`` must be provided.
+
+Programmatic Access
+-------------------
+
+An instance of a Lambda data store can be obtained through the normal GeoTools discovery methods, assuming
+that the GeoMesa code is on the classpath:
+
+.. code-block:: java
+
+    Map<String, String> parameters = new HashMap<>;
+    parameters.put("lambda.accumulo.instance.name", "myInstance");
+    parameters.put("lambda.accumulo.zookeepers", "zoo1,zoo2,zoo3");
+    parameters.put("lambda.accumulo.user", "myUser");
+    parameters.put("lambda.accumulo.password", "myPassword");
+    parameters.put("lambda.accumulo.tableName", "my_table");
+    parameters.put("lambda.kafka.brokers", "kafka1:9092,kafka2:9092");
+    parameters.put("lambda.kafka.zookeepers", "zoo1,zoo2,zoo3");
+    parameters.put("lambda.expiry", "10 minutes");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.

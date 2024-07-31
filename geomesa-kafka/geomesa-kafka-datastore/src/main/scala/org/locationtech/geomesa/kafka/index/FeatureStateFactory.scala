@@ -31,12 +31,6 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -45,6 +39,13 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -52,9 +53,6 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -104,6 +102,11 @@ package org.locationtech.geomesa.kafka.index
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -134,6 +137,9 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -193,6 +199,7 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -201,6 +208,8 @@ package org.locationtech.geomesa.kafka.index
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -275,6 +284,9 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -314,6 +326,7 @@ package org.locationtech.geomesa.kafka.index
 =======
 >>>>>>> 56698b9664 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -380,6 +393,8 @@ package org.locationtech.geomesa.kafka.index
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -400,6 +415,9 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -457,12 +475,15 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -521,11 +542,15 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 90d3a58a5d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 90d3a58a5d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 90d3a58a5d (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locatelli-main
@@ -602,11 +627,14 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -662,9 +690,12 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -722,6 +753,9 @@ package org.locationtech.geomesa.kafka.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -760,6 +794,7 @@ package org.locationtech.geomesa.kafka.index
 import java.io.Closeable
 import java.util.Date
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -840,6 +875,8 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======
 >>>>>>> f1f9dcf7d1 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
@@ -860,6 +897,9 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -921,6 +961,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -929,6 +970,8 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 =======
 >>>>>>> e062806100 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -984,6 +1027,9 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1045,11 +1091,14 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1109,11 +1158,14 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1174,6 +1226,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1193,6 +1246,11 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
@@ -1294,9 +1352,12 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1372,11 +1433,15 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 712c22c70c (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 >>>>>>> locatelli-main
@@ -1453,6 +1518,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -1467,6 +1533,8 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1651,6 +1719,9 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1711,8 +1782,14 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, Schedule
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> b2d7d521a4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+=======
+>>>>>>> 8252893b4e (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
+>>>>>>> locatelli-main
 =======
 >>>>>>> b2d7d521a4 (GEOMESA-3151 Fix CLI GT dependency versions (#2812))
 =======

@@ -17,7 +17,6 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
@@ -43,6 +42,7 @@ import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, 
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 =======
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClose}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -155,6 +155,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -179,6 +183,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -218,6 +225,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -318,6 +326,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -340,9 +352,12 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -406,6 +421,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -489,16 +507,12 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
 
   override def delete(): Unit = {
     // note: don't delete the query audit table
-    val all = getTypeNames.toSeq.flatMap(getAllTableNames).distinct
-    val toDelete = config.audit match {
-      case Some((a: AccumuloAuditService, _, _)) => all.filter(_ != a.table)
-      case _ => all
-    }
+    val toDelete = getTypeNames.toSeq.flatMap(getAllTableNames).distinct.filter(_ != config.auditWriter.table)
     adapter.deleteTables(toDelete)
   }
 
   override def getAllTableNames(typeName: String): Seq[String] = {
-    val others = Seq(stats.metadata.table) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    val others = Seq(stats.metadata.table) :+ config.auditWriter.table
     super.getAllTableNames(typeName) ++ others
   }
 

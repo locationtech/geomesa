@@ -10,36 +10,26 @@ package org.locationtech.geomesa.accumulo.audit
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Scanner
-import org.apache.accumulo.core.data.{Key, Mutation, Value}
+import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.utils.audit.AuditedEvent
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.accumulo.audit.AccumuloEventTransform.RowGrouper
+import org.locationtech.geomesa.index.audit.AuditedEvent
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Map.Entry
 import scala.util.Random
+import scala.util.control.NonFatal
 
 /**
  * Trait for mapping stats to accumulo and back
  */
 trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
 
-  import AccumuloEventTransform.dateFormat
-
-  private val RowId = "(.*)~(.*)".r
-
-  protected def createMutation(stat: T): Mutation =
-    new Mutation(s"${stat.typeName}~${DateParsing.formatMillis(stat.date, dateFormat)}")
-
-  protected def typeNameAndDate(key: Key): (String, Long) = {
-    val RowId(typeName, dateString) = key.getRow.toString
-    val date = ZonedDateTime.parse(dateString, dateFormat).toInstant.toEpochMilli
-    (typeName, date)
-  }
-
-  protected def createRandomColumnFamily: Text = new Text(Random.nextInt(9999).formatted("%1$04d"))
+  import AccumuloEventTransform.toRowKey
 
   /**
    * Convert an event to a mutation
@@ -61,40 +51,95 @@ trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
    * Creates an iterator that returns Stats from accumulo scans
    *
    * @param scanner accumulo scanner over stored events
+   * @param typeName type name to scan
+   * @param dates dates to scan
    * @return
    */
-  def iterator(scanner: Scanner): CloseableIterator[T] = {
-    val iter = scanner.iterator()
-
-    val wrappedIter = new CloseableIterator[T] {
-
-      var last: Option[Entry[Key, Value]] = None
-
-      override def close(): Unit = scanner.close()
-
-      override def next(): T = {
-        // get the data for the stat entry, which consists of a several CQ/values
-        val entries = collection.mutable.ListBuffer.empty[Entry[Key, Value]]
-        if (last.isEmpty) {
-          last = Some(iter.next())
-        }
-        val lastRowKey = last.get.getKey.getRow.toString
-        var next: Option[Entry[Key, Value]] = last
-        while (next.isDefined && next.get.getKey.getRow.toString == lastRowKey) {
-          entries.append(next.get)
-          next = if (iter.hasNext) Some(iter.next()) else None
-        }
-        last = next
-        // use the row data to return a Stat
-        toEvent(entries)
-      }
-
-      override def hasNext: Boolean = last.isDefined || iter.hasNext
+  def iterator(scanner: Scanner, typeName: String, dates: (ZonedDateTime, ZonedDateTime)): CloseableIterator[T] = {
+    try {
+      scanner.setRange(new Range(toRowKey(typeName, dates._1), true, toRowKey(typeName, dates._2), false))
+      new RowGrouper(scanner).flatMap(_.groupBy(_.getKey.getColumnFamily).values).map(toEvent)
+    } catch {
+      case NonFatal(e) =>
+        CloseQuietly(scanner).foreach(e.addSuppressed)
+        throw e
     }
-    SelfClosingIterator(wrappedIter)
   }
 }
 
 object AccumuloEventTransform {
+
   val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
+
+  private val RowId = "(.*)~(.*)".r
+
+  /**
+   * Extract type name and date from a row key
+   *
+   * @param key row key
+   * @return
+   */
+  private[audit] def typeNameAndDate(key: Key): (String, Long) = {
+    val RowId(typeName, dateString) = key.getRow.toString
+    val date = ZonedDateTime.parse(dateString, dateFormat).toInstant.toEpochMilli
+    (typeName, date)
+  }
+
+  /**
+   * Create a row key from a type name and date
+   *
+   * @param typeName feature type name
+   * @param date event date
+   * @return
+   */
+  private[audit] def toRowKey(typeName: String, date: Long): String =
+    s"$typeName~${DateParsing.formatMillis(date, dateFormat)}"
+
+  /**
+   * Create a row key from a type name and date
+   *
+   * @param typeName feature type name
+   * @param date event date
+   * @return
+   */
+  private[audit] def toRowKey(typeName: String, date: ZonedDateTime): String =
+    s"$typeName~${DateParsing.format(date, dateFormat)}"
+
+  /**
+   * Create a random col family
+   *
+   * @return
+   */
+  private[audit] def createRandomColumnFamily: Text = new Text("%1$04d".format(Random.nextInt(10000)))
+
+  /**
+   * Groups scan entries by row
+   *
+   * @param scanner scanner
+   */
+  private class RowGrouper(scanner: Scanner) extends CloseableIterator[Seq[Entry[Key, Value]]] {
+
+    private val iter = scanner.iterator()
+    private var nextEntry: Entry[Key, Value] = if (iter.hasNext) { iter.next() } else { null }
+
+    override def hasNext: Boolean = nextEntry != null
+
+    override def next(): Seq[Entry[Key, Value]] = {
+      if (nextEntry == null) {
+        return null
+      }
+      val currentRowKey = nextEntry.getKey.getRow.toString
+      val entries = Seq.newBuilder[Entry[Key, Value]]
+      entries += nextEntry
+      var currentEntry: Entry[Key, Value] = null
+      while (iter.hasNext && { currentEntry = iter.next(); currentEntry.getKey.getRow.toString == currentRowKey }) {
+        entries += currentEntry
+        currentEntry = null
+      }
+      nextEntry = currentEntry
+      entries.result()
+    }
+
+    override def close(): Unit = scanner.close()
+  }
 }

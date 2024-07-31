@@ -1,33 +1,9 @@
-Using the HBase Data Store Programmatically
-===========================================
-
-Creating a Data Store
----------------------
-
-An instance of an HBase data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath.
-
-The HBase data store also requires that an appropriate ``hbase-site.xml`` file is available on the classpath; the
-connection parameters for HBase are obtained from this file, including ``hbase.zookeeper.quorum`` and
-``hbase.zookeeper.property.clientPort``.
-
-As an alternative to providing ``hbase-site.xml``, the Zookeeper connection can be specified through the
-parameter ``hbase.zookeepers``. However, this method is not recommended, as other important configurations
-(including security, if any) from ``hbase-site.xml`` may be required for correct operation.
-
-.. code-block:: java
-
-    Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("hbase.catalog", "geomesa");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
 .. _hbase_parameters:
 
 HBase Data Store Parameters
----------------------------
+===========================
 
-The data store takes several parameters (required parameters are marked with ``*``):
+Use the following parameters for an HBase data store (required parameters are marked with ``*``):
 
 ===========================================  ======= ========================================================================================
 Parameter                                    Type    Description
@@ -64,7 +40,30 @@ Parameter                                    Type    Description
 ``geomesa.partition.scan.parallel``          Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ===========================================  ======= ========================================================================================
 
-Note: the ``hbase.coprocessor.*.enable`` parameters will be superseded by ``hbase.remote.filtering=false``.
+.. note::
 
-More information on using GeoTools can be found in the `GeoTools user guide
-<https://docs.geotools.org/stable/userguide/>`__.
+    The HBase data store will also load any ``hbase-site.xml`` file that is available on the classpath.
+
+.. note::
+
+    The ``hbase.coprocessor.*.enable`` parameters will be superseded by ``hbase.remote.filtering=false``.
+
+The HBase data store needs an ``hbase-site.xml`` file in order to connect to HBase. This can be provided in multiple ways.
+For simple use cases, the Zookeeper connection can be specified through the parameter ``hbase.zookeepers``. For normal use,
+``hbase-site.xml`` can be provided at the root of the classpath, at an arbitrary location pointed to by ``hbase.config.paths``,
+inline using ``hbase.config.xml``, or any combination of the above.
+
+Programmatic Access
+-------------------
+
+An instance of an HBase data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
+
+.. code-block:: java
+
+    Map<String, Serializable> parameters = new HashMap<>();
+    parameters.put("hbase.catalog", "geomesa");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.

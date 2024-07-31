@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import org.apache.arrow.vector.ipc.message.IpcOption
+import org.apache.arrow.memory.RootAllocator
+import org.apache.arrow.vector.VarCharVector
+import org.apache.arrow.vector.ipc.{ArrowFileReader, ArrowStreamReader}
+import org.apache.arrow.vector.ipc.message.{ArrowBlock, IpcOption}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
@@ -22,7 +25,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -102,6 +105,34 @@ class SimpleFeatureArrowFileTest extends Specification {
         }
       }
     }
+    "write and read values with flatten" >> {
+      withTestFile("simple") { file =>
+        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None, true)) { writer =>
+          features0.foreach(writer.add)
+          writer.flush()
+          features1.foreach(writer.add)
+        }
+
+        var totalRecords = 0
+        val rootAllocator = new RootAllocator()
+
+        val bytes = Files.readAllBytes(file.toPath)
+        val reader = new ArrowStreamReader(new ByteArrayInputStream(bytes), rootAllocator)
+
+        while (reader.loadNextBatch()) {
+          val root = reader.getVectorSchemaRoot
+
+          // Flatten removes the outer StructVector which is the SFT name
+          root.getFieldVectors.get(0) must haveClass[VarCharVector]
+          totalRecords += root.getRowCount
+        }
+
+        reader.close()
+        rootAllocator.close()
+
+        totalRecords mustEqual (features0.size + features1.size)
+      }
+    }
     "optimize queries for sorted files" >> {
       withTestFile("sorted") { file =>
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, Some(("dtg", false)))) { writer =>
@@ -164,6 +195,35 @@ class SimpleFeatureArrowFileTest extends Specification {
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
         }
+      }
+    }
+    "write and read dictionary encoded values with flatten" >> {
+      val dictionaries = Map("foo:String" -> ArrowDictionary.create(sft.getTypeName, 0, Array("foo0", "foo1", "foo2")))
+      withTestFile("dictionary") { file =>
+        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None, true)) { writer =>
+          features0.foreach(writer.add)
+          writer.flush()
+          features1.foreach(writer.add)
+        }
+
+        var totalRecords = 0
+        val rootAllocator = new RootAllocator()
+
+        val bytes = Files.readAllBytes(file.toPath)
+        val reader = new ArrowStreamReader(new ByteArrayInputStream(bytes), rootAllocator)
+
+        while (reader.loadNextBatch()) {
+          val root = reader.getVectorSchemaRoot
+
+          // Flatten removes the outer StructVector which is the SFT name
+          root.getFieldVectors.get(0) must haveClass[VarCharVector]
+          totalRecords += root.getRowCount
+        }
+
+        reader.close()
+        rootAllocator.close()
+
+        totalRecords mustEqual (features0.size + features1.size)
       }
     }
     "write and read dictionary encoded ints" >> {

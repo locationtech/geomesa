@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWr
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
+import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
@@ -30,7 +31,6 @@ import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
-import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.stats.Stat
@@ -218,7 +218,7 @@ object TestGeoMesaDataStore {
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
     override val authProvider = new DefaultAuthorizationsProvider()
-    override val audit: Option[(AuditWriter, AuditProvider, String)] = None
+    override val audit: Option[AuditWriter] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {
       override val threads: Int = 1

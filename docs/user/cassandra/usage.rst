@@ -1,27 +1,9 @@
-Using the Cassandra DataStore Programmatically
-==============================================
-
-Creating a Data Store
----------------------
-
-An instance of a Cassandra data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath.
-
-.. code-block:: java
-
-    Map<String, Serializable> parameters = new HashMap<>();
-    parameters.put("cassandra.contact.point", "127.0.0.1:9142");
-    parameters.put("cassandra.keyspace", "geomesa");
-    parameters.put("cassandra.catalog", "mycatalog");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
 .. _cassandra_parameters:
 
 Cassandra Data Store Parameters
--------------------------------
+===============================
 
-The data store takes several parameters (required parameters are marked with ``*``):
+Use the following parameters for a Cassandra data store (required parameters are marked with ``*``):
 
 ==================================== ======= ========================================================================================
 Parameter                            Type    Description
@@ -40,5 +22,19 @@ Parameter                            Type    Description
 ``geomesa.stats.enable``             Boolean Toggle collection of statistics (currently not implemented)
 ==================================== ======= ========================================================================================
 
-More information on using GeoTools can be found in the `GeoTools user guide
-<https://docs.geotools.org/stable/userguide/>`__.
+Programmatic Access
+-------------------
+
+An instance of a Cassandra data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
+
+.. code-block:: java
+
+    Map<String, Serializable> parameters = new HashMap<>();
+    parameters.put("cassandra.contact.point", "127.0.0.1:9142");
+    parameters.put("cassandra.keyspace", "geomesa");
+    parameters.put("cassandra.catalog", "mycatalog");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.

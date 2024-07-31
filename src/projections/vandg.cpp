@@ -134,18 +134,16 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -195,6 +193,11 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -220,6 +223,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -279,6 +285,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -287,6 +294,8 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -360,6 +369,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -418,6 +430,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -427,6 +440,10 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -523,6 +540,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
             // This code path is triggered for coordinates generated in the forward path when |long|>180deg and +over
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -530,6 +548,8 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -591,6 +611,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 >>>>>>> location-main
@@ -629,6 +650,10 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -711,6 +736,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -752,6 +780,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -820,6 +849,8 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -848,6 +879,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -910,11 +944,14 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -971,11 +1008,14 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1048,11 +1088,14 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1109,6 +1152,7 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
             // This code path is triggered for coordinates generated in the forward path when |lon|>180deg and +over
@@ -1118,6 +1162,8 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1249,6 +1295,9 @@ static PJ_LP vandg_s_inverse (PJ_XY xy, PJ *P) {           /* Spheroidal, invers
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

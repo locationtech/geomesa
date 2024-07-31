@@ -10,9 +10,14 @@ package org.locationtech.geomesa.accumulo.audit
 
 import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.security.Authorizations
+import org.geotools.api.data.Query
+import org.geotools.filter.text.cql2.CQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.AccumuloContainer
-import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -27,7 +32,7 @@ class AccumuloQueryEventTransformTest extends Specification {
   "AccumuloQueryEventTransform" should {
     "Convert from and to mutations" in {
       val event = QueryEvent(
-        AccumuloAuditService.StoreType, // note: this isn't actually stored
+        StoreType, // note: this isn't actually stored
         "type-name",
         System.currentTimeMillis(),
         "user",
@@ -35,8 +40,7 @@ class AccumuloQueryEventTransformTest extends Specification {
         "hints",
         Long.MaxValue - 100,
         Long.MaxValue - 200,
-        Long.MaxValue - 300,
-        deleted = true
+        Long.MaxValue - 300
       )
 
       connector.tableOperations().create("AccumuloQueryEventTransformTest")
@@ -49,6 +53,20 @@ class AccumuloQueryEventTransformTest extends Specification {
       }
 
       restored mustEqual event
+    }
+
+    "convert hints to readable string" in {
+      val query = new Query("test", CQL.toFilter("INCLUDE"))
+      val env = new ReferencedEnvelope()
+      query.getHints.put(QueryHints.DENSITY_BBOX, env)
+      query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+      query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
+
+      val hints = ViewParams.getReadableHints(query)
+
+      hints must contain(s"DENSITY_BBOX=$env")
+      hints must contain("DENSITY_WIDTH=500")
+      hints must contain("DENSITY_HEIGHT=500")
     }
   }
 

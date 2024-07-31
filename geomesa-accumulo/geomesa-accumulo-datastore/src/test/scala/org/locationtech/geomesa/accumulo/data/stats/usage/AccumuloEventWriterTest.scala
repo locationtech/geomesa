@@ -9,12 +9,20 @@
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import org.apache.accumulo.core.security.Authorizations
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventReader, AccumuloEventWriter, AccumuloQueryEventTransform}
-import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditReader, AccumuloAuditWriter}
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.audit.AuditProvider
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.specs2.runner.JUnitRunner
+
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloEventWriterTest extends TestWithDataStore {
@@ -26,50 +34,36 @@ class AccumuloEventWriterTest extends TestWithDataStore {
   "StatWriter" should {
 
     "write query stats asynchronously" in {
-      val writer = new AccumuloEventWriter(ds.connector, catalog)
-      val statReader = new AccumuloEventReader(ds.connector, catalog)
-      implicit val transform: AccumuloQueryEventTransform.type = AccumuloQueryEventTransform
+      // normally this is done by create schema
+      ds.adapter.ensureNamespaceExists(catalog)
+      // disable scheduled run, and call it manually
+      AccumuloAuditWriter.WriteInterval.threadLocalValue.set("Inf")
+      val writer = try {
+        new AccumuloAuditWriter(ds.connector, catalog, new AuditProvider {
+          override def configure(params: java.util.Map[String, _]): Unit = {}
+          override def getCurrentUserId: String = "user1"
+          override def getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = null
+        }, enabled = true)
+      } finally {
+        AccumuloAuditWriter.WriteInterval.threadLocalValue.remove()
+      }
+      val statReader = new AccumuloAuditReader(ds.connector, catalog, ds.config.authProvider)
 
-      writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
-                                  featureName,
-                                  DateParsing.parseMillis("2014-07-26T13:20:01Z"),
-                                  "user1",
-                                  "query1",
-                                  "hint1=true",
-                                  101L,
-                                  201L,
-                                  11))
-      writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
-                                  featureName,
-                                  DateParsing.parseMillis("2014-07-26T14:20:01Z"),
-                                  "user1",
-                                  "query2",
-                                  "hint2=true",
-                                  102L,
-                                  202L,
-                                  12))
-      writer.queueStat(QueryEvent(AccumuloAuditService.StoreType,
-                                  featureName,
-                                  DateParsing.parseMillis("2014-07-27T13:20:01Z"),
-                                  "user1",
-                                  "query3",
-                                  "hint3=true",
-                                  102L,
-                                  202L,
-                                  12))
+      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), 101L, 201L, 11)
+      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), 102L, 202L, 12)
+      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query3')"), new Hints(QueryHints.BIN_TRACK, "trackId"), 102L, 202L, 12)
 
-      val dates = (DateParsing.Epoch, DateParsing.parse("2014-07-29T00:00:00Z"))
-      val unwritten = statReader.query[QueryEvent](featureName, dates, auths).toList
+      val dates = (DateParsing.Epoch, ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(1))
+      val unwritten = WithClose(statReader.getQueryEvents(featureName, dates))(_.toList)
       unwritten must not(beNull)
-      unwritten.size mustEqual 0
+      unwritten must beEmpty
 
-      // this should write the queued stats
+      // write the queued stats
       writer.run()
 
-      val written = statReader.query[QueryEvent](featureName, dates, auths).toList
-
+      val written = WithClose(statReader.getQueryEvents(featureName, dates))(_.toList)
       written must not(beNull)
-      written.size mustEqual 3
+      written must haveSize(3)
     }
   }
 }

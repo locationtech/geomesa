@@ -12,18 +12,18 @@ import org.geotools.api.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.audit.ParamsAuditProvider
+import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditWriter, ParamsAuditProvider}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.audit.QueryEvent
+import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
+import org.locationtech.geomesa.index.audit.{AuditReader, AuditedEvent}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.utils.audit.{AuditReader, AuditWriter, AuditedEvent}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.time.ZonedDateTime
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.ClassTag
+import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloFeatureReaderTest extends Specification with TestWithFeatureType {
@@ -45,11 +45,12 @@ class AccumuloFeatureReaderTest extends Specification with TestWithFeatureType {
   val filter = ECQL.toFilter("bbox(geom, -10, -10, 10, 10) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z")
 
   def dataStoreWithAudit(events: ArrayBuffer[AuditedEvent]) =
-    new AccumuloDataStore(ds.connector, ds.config.copy(audit = Some(new MockAuditWriter(events), new ParamsAuditProvider, "")))
+    new AccumuloDataStore(ds.connector, ds.config.copy(auditWriter = new MockAuditWriter(events)))
 
-  class MockAuditWriter(events: ArrayBuffer[AuditedEvent]) extends AuditWriter with AuditReader {
-    override def writeEvent[T <: AuditedEvent](stat: T)(implicit ct: ClassTag[T]): Unit = events.append(stat)
-    override def getEvents[T <: AuditedEvent](typeName: String, dates: (ZonedDateTime, ZonedDateTime))(implicit ct: ClassTag[T]): Iterator[T] = null
+  class MockAuditWriter(events: ArrayBuffer[AuditedEvent])
+    extends AccumuloAuditWriter(null, "", new ParamsAuditProvider, enabled = false) with AuditReader {
+    override protected def write(event: QueryEvent): Future[Unit] = Future.successful(events.append(event))
+    override def getQueryEvents(typeName: String, dates: (ZonedDateTime, ZonedDateTime)): CloseableIterator[QueryEvent] = null
     override def close(): Unit = {}
   }
 

@@ -1,28 +1,7 @@
-Using the Partitioned PostGIS Data Store Programmatically
-=========================================================
-
-Creating a Data Store
----------------------
-
-An instance of a PostGIS data store can be obtained through the normal GeoTools discovery methods,
-assuming that the GeoMesa code is on the classpath.
-
-.. code-block:: java
-
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.put("dbtype", "postgis-partitioned");
-    parameters.put("host", "localhost");
-    parameters.put("port", "5432");
-    parameters.put("database", "geomesa");
-    parameters.put("user", "postgres");
-    parameters.put("passwd", "postgres");
-    org.geotools.api.data.DataStore dataStore =
-        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
-
 .. _pg_partition_parameters:
 
 Partitioned PostGIS Data Store Parameters
------------------------------------------
+=========================================
 
 The partitioned PostGIS data store uses the same parameters as the standard PostGIS data store, except
 that ``dbtype`` **must** be set to ``postgis-partitioned``. See the
@@ -39,3 +18,23 @@ Parameter                               Type     Description
                                                  for more information. Setting this timeout may help prevent
                                                  abandoned queries from slowing down database operations.
 ======================================= ======== ===================================================================================================================================
+
+Programmatic Access
+-------------------
+
+An instance of a PostGIS data store can be obtained through the normal GeoTools discovery methods,
+assuming that the GeoMesa code is on the classpath.
+
+.. code-block:: java
+
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("dbtype", "postgis-partitioned");
+    parameters.put("host", "localhost");
+    parameters.put("port", "5432");
+    parameters.put("database", "geomesa");
+    parameters.put("user", "postgres");
+    parameters.put("passwd", "postgres");
+    org.geotools.api.data.DataStore dataStore =
+        org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
+
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
