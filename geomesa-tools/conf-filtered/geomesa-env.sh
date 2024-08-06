@@ -175,7 +175,10 @@ function find_jars() {
       find_args=("-maxdepth" "1" "${find_args[@]}")
     fi
     # read results of find into jars array
-    mapfile -d '' jars < <(find "-L" "$home" "${find_args[@]}")
+    # don't use mapfile to support bash < 4.4 (RHEL 7)
+    while IFS= read -r -d $'\0'; do
+      jars+=("$REPLY")
+    done < <(find "-L" "$home" "${find_args[@]}")
     if [[ -d "${home}/native" ]]; then
       # TODO this doesn't export back to the parent shell... fix it
       if [[ -z "${JAVA_LIBRARY_PATH}" ]]; then
