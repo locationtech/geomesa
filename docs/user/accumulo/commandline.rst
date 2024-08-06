@@ -88,6 +88,38 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+``bulk-copy``
+^^^^^^^^^^^^^
+
+The bulk copy command will directly copy Accumulo RFiles between two feature types, bypassing
+the normal write path. The main use case it to move data between different storage tiers, e.g. ``hdfs`` and ``s3``.
+See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
+in the Accumulo documentation for additional details.
+
+.. warn::
+
+    The two feature types must be identical, and both must be partitioned (see :ref:`partitioned_indices`).
+
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``-c, --catalog *``        The catalog table containing schema metadata
+``--to-catalog *``         The catalog table containing the destination feature type
+``-f, --feature-name *``   The name of the schema
+``--export-path *``        HDFS path to used for file export - the filesystem must match the preferred volume of the
+                           destination table
+``--partition``            Partition(s) to copy
+``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``)
+``--hadoop-conf``          Additional Hadoop configuration file(s) to use
+``-t, --threads``          Number of concurrent threads to use for bulk file copies, default 1
+========================== ==================================================================================================
+
+.. note::
+
+    At least one ``--partition`` or ``--partition-value`` must be specified.
+
+``--partition`` and/or ``--partition-value`` may be specified multiple times in order to copy multiple partitions.
+
 ``bulk-ingest``
 ^^^^^^^^^^^^^^^
 
@@ -117,7 +149,7 @@ Argument                   Description
 ``-q, --cql``              If using a partitioned store, a filter that covers the ingest data
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
-```--index``               Specify a particular GeoMesa index to write to, instead of all indices
+``--index``                Specify a particular GeoMesa index to write to, instead of all indices
 ``--temp-path``            A temporary path to write the output. When using Accumulo on S3, it may be faster to write the
                            output to HDFS first using this parameter
 ``--no-tracking``          This application closes when ingest job is submitted. Note that this will require manual import
