@@ -96,7 +96,7 @@ the normal write path. The main use case it to move data between different stora
 See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
 in the Accumulo documentation for additional details.
 
-.. warn::
+.. warning::
 
     The two feature types must be identical, and both must be partitioned (see :ref:`partitioned_indices`).
 
