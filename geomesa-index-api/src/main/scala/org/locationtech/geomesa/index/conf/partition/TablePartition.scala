@@ -49,6 +49,8 @@ trait TablePartition {
 
 object TablePartition extends StrictLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   import scala.collection.JavaConverters._
 
   private val factories = ServiceLoader.load(classOf[TablePartitionFactory]).asScala.toList
@@ -76,5 +78,5 @@ object TablePartition extends StrictLogging {
     * @param sft simple feature type
     * @return
     */
-  def partitioned(sft: SimpleFeatureType): Boolean = sft.getUserData.containsKey(Configs.TablePartitioning)
+  def partitioned(sft: SimpleFeatureType): Boolean = sft.isPartitioned
 }

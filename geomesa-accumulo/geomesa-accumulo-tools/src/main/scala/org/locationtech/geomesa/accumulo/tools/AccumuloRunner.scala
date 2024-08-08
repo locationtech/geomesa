@@ -32,6 +32,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
       new tools.export.AccumuloExplainCommand,
       new tools.export.AccumuloExportCommand,
       new tools.export.AccumuloPlaybackCommand,
+      new tools.ingest.AccumuloBulkCopyCommand,
       new tools.ingest.AccumuloBulkIngestCommand,
       new tools.ingest.AccumuloDeleteFeaturesCommand,
       new tools.ingest.AccumuloIngestCommand,

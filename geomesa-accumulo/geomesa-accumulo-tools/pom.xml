@@ -172,7 +172,7 @@
                 </executions>
                 <configuration>
                     <executable>java</executable>
-                    <classpathScope>runtime</classpathScope>
+                    <classpathScope>provided</classpathScope>
                     <arguments>
                         <argument>-classpath</argument>
                         <!-- automatically creates the classpath using all project dependencies,
