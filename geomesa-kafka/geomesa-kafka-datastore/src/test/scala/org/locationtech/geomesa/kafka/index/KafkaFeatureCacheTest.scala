@@ -47,6 +47,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   val track3v0 = track("track3", "POINT (0 60)")
 
+  val track4v0 = track("track4", "POINT (null null)")
+
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
   def caches(expiry: Option[(Duration, ScheduledExecutorService, Ticker)] = None) = {
@@ -183,6 +185,22 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           cache.put(track1v0)
           cache.size() mustEqual 2
           cache.query(ECQL.toFilter("trackId ILIKE 'T%'")).toSeq must containTheSameElementsAs(Seq(track0v0, track1v0))
+        } finally {
+          cache.close()
+        }
+      }
+    }
+
+    "query with null geometries inserted into cache" >> {
+      foreach(caches()) { cache =>
+        try {
+          cache.put(track0v0)
+          cache.put(track1v0)
+          cache.put(track4v0)
+          cache.size() mustEqual 2
+
+          val res = cache.query(wholeWorldFilter).toSeq
+          res must containTheSameElementsAs(Seq(track0v0, track1v0))
         } finally {
           cache.close()
         }
