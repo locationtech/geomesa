@@ -16,6 +16,7 @@ import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.{MessageType, OriginalType, Type}
+import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -63,6 +64,7 @@ class ParquetConverterFactory
         // note: get the path as a URI so that we handle local files appropriately
         val filePath = new Path(PathUtils.getUrl(p).toURI)
         val footer = ParquetFileReader.readFooter(new Configuration(), filePath, ParquetMetadataConverter.NO_FILTER)
+        val parquetSchemaVersion = footer.getFileMetaData.getKeyValueMetaData.getOrDefault("geomesa.parquet.version", "0").toInt
         val (schema, fields, id) = SimpleFeatureParquetSchema.read(footer.getFileMetaData) match {
           case Some(parquet) =>
             // this is a geomesa encoded parquet file
@@ -71,16 +73,7 @@ class ParquetConverterFactory
               // note: parquet converter stores the generic record under index 0
               val path = s"avroPath($$0, '/$name')"
               // some types need a function applied to the underlying avro value
-              val expression = ObjectType.selectType(descriptor) match {
-                case Seq(ObjectType.GEOMETRY, ObjectType.POINT)           => s"parquetPoint($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOINT)      => s"parquetMultiPoint($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.LINESTRING)      => s"parquetLineString($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTILINESTRING) => s"parquetMultiLineString($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.POLYGON)         => s"parquetPolygon($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOLYGON)    => s"parquetMultiPolygon($$0, '/$name')"
-                case Seq(ObjectType.UUID)                                 => s"avroBinaryUuid($path)"
-                case _                                                    => path
-              }
+              val expression = computeTransformFunction(name, path, descriptor, parquetSchemaVersion)
               BasicField(descriptor.getLocalName, Some(Expression(expression)))
             }
             val id = Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.FeatureIdField}')")
@@ -113,6 +106,41 @@ class ParquetConverterFactory
 
         (schema, config)
       }
+    }
+  }
+
+  private def computeTransformFunction(name: String, path: String, descriptor: AttributeDescriptor, schemaVersion: Int): String = {
+    def expressionV2(name: String, path: String, descriptor: AttributeDescriptor): String = {
+      ObjectType.selectType(descriptor) match {
+        case Seq(ObjectType.GEOMETRY, ObjectType.POINT) => s"point(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOINT) => s"multipoint(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.GEOMETRY, ObjectType.LINESTRING) => s"linestring(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTILINESTRING) => s"multilinestring(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.GEOMETRY, ObjectType.POLYGON) => s"polygon(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOLYGON) => s"multipolygon(avroPath($$0, '/$name'))"
+        case Seq(ObjectType.UUID) => s"avroBinaryUuid($path)"
+        case _ => path
+      }
+    }
+
+    def expressionV0V1(name: String, path: String, descriptor: AttributeDescriptor): String = {
+      ObjectType.selectType(descriptor) match {
+        case Seq(ObjectType.GEOMETRY, ObjectType.POINT) => s"parquetPoint($$0, '/$name')"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOINT) => s"parquetMultiPoint($$0, '/$name')"
+        case Seq(ObjectType.GEOMETRY, ObjectType.LINESTRING) => s"parquetLineString($$0, '/$name')"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTILINESTRING) => s"parquetMultiLineString($$0, '/$name')"
+        case Seq(ObjectType.GEOMETRY, ObjectType.POLYGON) => s"parquetPolygon($$0, '/$name')"
+        case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOLYGON) => s"parquetMultiPolygon($$0, '/$name')"
+        case Seq(ObjectType.UUID) => s"avroBinaryUuid($path)"
+        case _ => path
+      }
+    }
+
+    schemaVersion match {
+      case 2 => expressionV2(name, path, descriptor)
+      case 1 => expressionV0V1(name, path, descriptor)
+      case 0 => expressionV0V1(name, path, descriptor)
+      case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
     }
   }
 }

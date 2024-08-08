@@ -29,23 +29,22 @@ import scala.collection.mutable.ArrayBuffer
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 
-  private var schema: SimpleFeatureParquetSchema = _
+  private var schema: SimpleFeatureParquetSchema = null
 
   override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context).getOrElse {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
     }
+
     // ensure that our read schema matches the geomesa parquet version
-    new ReadContext(schema.schema, schema.metadata)
+    new ReadContext(schema.schema, schema.metadata.build())
   }
 
   override def prepareForRead(
       configuration: Configuration,
       keyValueMetaData: java.util.Map[String, String],
       fileSchema: MessageType,
-      readContext: ReadSupport.ReadContext): RecordMaterializer[SimpleFeature] = {
-    new SimpleFeatureRecordMaterializer(schema)
-  }
+      readContext: ReadSupport.ReadContext): RecordMaterializer[SimpleFeature] = new SimpleFeatureRecordMaterializer(schema)
 }
 
 object SimpleFeatureReadSupport {
@@ -86,7 +85,7 @@ object SimpleFeatureReadSupport {
 
   class SimpleFeatureRecordMaterializer(schema: SimpleFeatureParquetSchema)
       extends RecordMaterializer[SimpleFeature] {
-    private val converter = new SimpleFeatureGroupConverter(schema.sft)
+    private val converter = new SimpleFeatureGroupConverter(schema.sft, schema.version.toInt)
     override def getRootConverter: GroupConverter = converter
     override def getCurrentRecord: SimpleFeature = converter.materialize
   }
@@ -107,7 +106,7 @@ object SimpleFeatureReadSupport {
     * which will mean they are only converted and then added to simple features if a
     * record passes the parquet filters and needs to be materialized.
     */
-  class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter with Settable {
+  class SimpleFeatureGroupConverter(sft: SimpleFeatureType, schemaVersion: Integer) extends GroupConverter with Settable {
 
     // temp placeholders
     private var id: Binary = _
@@ -128,7 +127,7 @@ object SimpleFeatureReadSupport {
     }
 
     protected def attribute(i: Int): Converter =
-      SimpleFeatureReadSupport.attribute(ObjectType.selectType(sft.getDescriptor(i)), i, this)
+      SimpleFeatureReadSupport.attribute(ObjectType.selectType(sft.getDescriptor(i)), schemaVersion, i, this)
 
     override def start(): Unit = {
       id = null
@@ -148,9 +147,9 @@ object SimpleFeatureReadSupport {
   // unless a record is materialized so we can likely speed this up by not creating any of
   // the true SFT types util a record passes a filter in the SimpleFeatureRecordMaterializer
 
-  private def attribute(bindings: Seq[ObjectType], i: Int, callback: Settable): Converter = {
+  private def attribute(bindings: Seq[ObjectType], schemaVersion: Int, i: Int, callback: Settable): Converter = {
     bindings.head match {
-      case ObjectType.GEOMETRY => geometry(bindings.last, i, callback)
+      case ObjectType.GEOMETRY => geometry(schemaVersion, bindings.last, i, callback)
       case ObjectType.DATE     => new DateConverter(i, callback)
       case ObjectType.STRING   => new StringConverter(i, callback)
       case ObjectType.INT      => new IntConverter(i, callback)
@@ -159,14 +158,23 @@ object SimpleFeatureReadSupport {
       case ObjectType.FLOAT    => new FloatConverter(i, callback)
       case ObjectType.BOOLEAN  => new BooleanConverter(i, callback)
       case ObjectType.BYTES    => new BytesConverter(i, callback)
-      case ObjectType.LIST     => new ListConverter(bindings(1), i, callback)
-      case ObjectType.MAP      => new MapConverter(bindings(1), bindings(2), i, callback)
+      case ObjectType.LIST     => new ListConverter(schemaVersion, bindings(1), i, callback)
+      case ObjectType.MAP      => new MapConverter(schemaVersion, bindings(1), bindings(2), i, callback)
       case ObjectType.UUID     => new UuidConverter(i, callback)
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
     }
   }
 
-  private def geometry(binding: ObjectType, i: Int, callback: Settable): Converter = {
+  private def geometry(schemaVersion: Int, binding: ObjectType, i: Int, callback: Settable): Converter = {
+    schemaVersion match {
+      case 2 => new GeometryWkbConverter(i, callback)
+      case 1 => geometryV0V1(binding, i, callback)
+      case 0 => geometryV0V1(binding, i, callback)
+      case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
+    }
+  }
+
+  private def geometryV0V1(binding: ObjectType, i: Int, callback: Settable): Converter = {
     binding match {
       case ObjectType.POINT           => new PointConverter(i, callback)
       case ObjectType.LINESTRING      => new LineStringConverter(i, callback)
@@ -217,12 +225,12 @@ object SimpleFeatureReadSupport {
     override def addBinary(value: Binary): Unit = callback.set(index, value.getBytes)
   }
 
-  class ListConverter(binding: ObjectType, index: Int, callback: Settable) extends GroupConverter {
+  class ListConverter(schemaVersion: Int, binding: ObjectType, index: Int, callback: Settable) extends GroupConverter {
 
     private var list: java.util.List[AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
-      private val converter = attribute(Seq(binding), 0, (value: AnyRef) => list.add(value))
+      private val converter = attribute(Seq(binding), schemaVersion, 0, (value: AnyRef) => list.add(value))
       override def getConverter(fieldIndex: Int): Converter = converter // better only be one field (0)
       override def start(): Unit = {}
       override def end(): Unit = {}
@@ -233,7 +241,7 @@ object SimpleFeatureReadSupport {
     override def end(): Unit = callback.set(index, list)
   }
 
-  class MapConverter(keyBinding: ObjectType, valueBinding: ObjectType, index: Int, callback: Settable)
+  class MapConverter(schemaVersion: Int, keyBinding: ObjectType, valueBinding: ObjectType, index: Int, callback: Settable)
       extends GroupConverter {
 
     private var map: java.util.Map[AnyRef, AnyRef] = _
@@ -241,8 +249,8 @@ object SimpleFeatureReadSupport {
     private val group: GroupConverter = new GroupConverter {
       private var k: AnyRef = _
       private var v: AnyRef = _
-      private val keyConverter = attribute(Seq(keyBinding), 0, (value: AnyRef) => k = value)
-      private val valueConverter = attribute(Seq(valueBinding), 1, (value: AnyRef) => v = value)
+      private val keyConverter = attribute(Seq(keyBinding), schemaVersion, 0, (value: AnyRef) => k = value)
+      private val valueConverter = attribute(Seq(valueBinding), schemaVersion, 1, (value: AnyRef) => v = value)
 
       override def getConverter(fieldIndex: Int): Converter =
         if (fieldIndex == 0) { keyConverter } else { valueConverter }
