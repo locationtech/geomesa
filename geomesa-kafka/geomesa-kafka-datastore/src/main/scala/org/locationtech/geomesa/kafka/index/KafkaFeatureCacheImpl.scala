@@ -48,7 +48,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
     * due to kafka consumer partitioning
     */
   override def put(feature: SimpleFeature): Unit = {
-    if(feature.getDefaultGeometry == null){
+    if (feature.getDefaultGeometry == null) {
       logger.warn(s"Null geometry detected for feature ${feature.getID}. Skipping loading into cache.")
       return
     }
