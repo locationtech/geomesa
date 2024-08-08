@@ -112,6 +112,7 @@ This command will list, add and delete partitioned tables used by GeoMesa. It ha
 
 * ``list`` - list the partitions for a given schema
 * ``add`` - create new partitions
+* ``adopt`` - adopt an existing table as a partition
 * ``delete`` - delete existing partitions
 * ``name`` - display the partition name associated with an attribute (i.e. date)
 
@@ -147,6 +148,26 @@ Argument                 Description
 ======================== =============================================================
 
 To determine the appropriate partition name, use the ``name`` sub-command.
+
+``adopt``
+^^^^^^^^^
+
+The ``adopt`` sub-command will add an existing table as a partition. The new table must have the same
+schema as the existing feature type. This command is useful to migrate from a non-partitioned
+feature type to a partitioned one - the old (non-partitioned) tables can be adopted into the new feature type.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``--partition *``        The name of the partition to adopt. Name must be unique
+                         across all partitions for the feature type
+``--table *``            The name of the index table(s) to adopt. Each index in the
+                         feature type (e.g. ``z3``, ``attr``, etc) must have a
+                         corresponding table specified
+``--value *``            A value used to specify the bounds of the partition, for
+                         example a date partition might use
+                         ``2024-01-01T00:00:00.000Z/2024-02-01T00:00:00.000Z``
+======================== =============================================================
 
 ``name``
 ^^^^^^^^
