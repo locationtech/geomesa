@@ -152,7 +152,7 @@ To determine the appropriate partition name, use the ``name`` sub-command.
 ``adopt``
 ^^^^^^^^^
 
-The ``adopt``sub-command will add an existing table as a partition. The new table must have the same
+The ``adopt`` sub-command will add an existing table as a partition. The new table must have the same
 schema as the existing feature type. This command is useful to migrate from a non-partitioned
 feature type to a partitioned one - the old (non-partitioned) tables can be adopted into the new feature type.
 
