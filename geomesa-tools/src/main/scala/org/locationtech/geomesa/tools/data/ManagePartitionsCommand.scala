@@ -135,7 +135,7 @@ object ManagePartitionsCommand {
           }
         }
       tableToIndexName.foreach { case (table, indexName) =>
-          ds.metadata.insert(sft.getTypeName, indexName._1.tableNameKey(Some(params.partition)), table)
+        ds.metadata.insert(sft.getTypeName, indexName._1.tableNameKey(Some(params.partition)), table)
       }
       time.register(params.partition, start, end)
 
