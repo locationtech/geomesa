@@ -17,6 +17,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
+import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.{InMemoryOffsetManager, LambdaContainerTest}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -41,7 +42,7 @@ class KafkaStoreTest extends LambdaContainerTest {
   def newNamespace(): String = s"ks-test-${namespaces.getAndIncrement()}"
 
   def createTopic(ns: String, sft: SimpleFeatureType): Unit = {
-    val topic = KafkaStore.topic(ns, sft)
+    val topic = LambdaDataStore.topic(sft, ns)
     val props = new Properties()
     props.put("bootstrap.servers", brokers)
     WithClose(AdminClient.create(props)) { admin =>
