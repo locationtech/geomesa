@@ -40,18 +40,16 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -92,14 +90,20 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -138,6 +142,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -205,6 +211,9 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -250,6 +259,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -267,6 +277,11 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> locatelli-main
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 7c6dac7c346 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
@@ -344,12 +359,15 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -409,6 +427,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -417,6 +436,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 706bcb3d36 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -498,6 +519,9 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -562,6 +586,7 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -588,6 +613,9 @@ import java.util.Collections
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -656,9 +684,12 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -719,6 +750,9 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -780,6 +814,7 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 import java.io.InputStream
@@ -788,6 +823,8 @@ import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
 
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -877,33 +914,31 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -956,6 +991,11 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1063,6 +1103,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1126,11 +1169,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1190,11 +1236,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1254,11 +1303,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1318,11 +1370,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1382,11 +1437,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1446,11 +1504,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1510,11 +1571,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1574,11 +1638,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1638,11 +1705,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1702,11 +1772,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1763,9 +1836,12 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1934,6 +2010,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1954,6 +2031,8 @@ import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1994,6 +2073,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2031,8 +2113,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3b338b30f9b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3b338b30f9b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -2081,6 +2168,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2172,6 +2260,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d9df30f610b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -2198,6 +2288,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2265,6 +2358,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2296,6 +2390,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 727d0966f1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 81124cda89 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 727d0966f1 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2394,6 +2493,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2425,6 +2525,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a2eb05093d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 6b2ee508d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a2eb05093d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -2523,6 +2628,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2554,6 +2660,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 6eb7d73613 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> b63a4a7b59 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6eb7d73613 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2652,6 +2763,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2683,6 +2795,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 399cb4eca6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 399cb4eca6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -2781,6 +2898,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2812,6 +2930,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -2910,6 +3033,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2941,6 +3065,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5869a55e95 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3036,6 +3165,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locationtech-main
@@ -3091,6 +3221,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 264c9fa240 (Merge branch 'feature/postgis-fixes')
@@ -3112,6 +3244,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3176,11 +3311,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -3258,12 +3397,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3324,12 +3466,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3390,8 +3535,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3480,6 +3628,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3543,6 +3694,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -3560,6 +3712,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 >>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3617,6 +3771,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3682,6 +3839,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -3694,6 +3852,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -3806,11 +3969,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3867,9 +4033,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3940,6 +4109,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4003,6 +4175,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -4021,6 +4194,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c0205a0050 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c0205a0050 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -4129,11 +4307,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4195,11 +4376,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4261,11 +4445,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4327,6 +4514,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
@@ -4366,9 +4554,12 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> f669e5c3e5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a79eaecf5b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4426,6 +4617,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4533,6 +4726,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4609,6 +4805,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -4645,6 +4842,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4682,6 +4881,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4745,11 +4947,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4806,9 +5011,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4883,6 +5091,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4900,6 +5109,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 91dbd747cb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4934,6 +5145,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4990,6 +5204,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5015,6 +5230,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 9f4dc60aaa (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 727d0966f1 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 9f4dc60aaa (GEOMESA-3071 Move all converter state into evaluation context)
@@ -5116,6 +5336,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5194,6 +5415,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 13d53e6b02 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 72b57b3b08 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -5219,6 +5443,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5282,6 +5509,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -5296,6 +5524,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -5375,11 +5606,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5436,6 +5670,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -5448,6 +5683,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5522,6 +5759,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5596,6 +5836,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -5623,6 +5864,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5666,6 +5909,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5729,11 +5975,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5790,9 +6039,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5865,6 +6117,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5882,6 +6135,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 686339d050 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5916,6 +6171,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5944,6 +6202,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> cb7d3570f5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6012,6 +6271,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 81124cda89 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6033,6 +6294,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6096,11 +6360,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> ad3d211d1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -6178,9 +6446,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6245,6 +6516,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6299,6 +6573,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6332,6 +6607,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 01f7701037b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 01f7701037b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -6428,6 +6708,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6494,6 +6777,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 >>>>>>> 626b1ac8ca (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -6539,6 +6823,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> fc00100ff0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e35ff95571 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6554,8 +6840,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 367955da6da (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 367955da6da (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -6625,6 +6916,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6643,6 +6935,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 6289007008 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6678,6 +6972,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6715,6 +7012,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6777,6 +7075,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> de8896ccfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2f4fd68a3c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -6858,6 +7161,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6866,6 +7170,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 >>>>>>> 30b2505101 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6934,6 +7240,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6951,6 +7258,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 149b7a7809 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6985,6 +7294,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7022,8 +7334,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 29d4d5036d7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 29d4d5036d7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -7082,8 +7399,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> adc8eabfb02 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> adc8eabfb02 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -7143,6 +7465,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7169,6 +7492,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 0699408297d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0699408297d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -7245,6 +7573,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7302,6 +7633,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7357,6 +7689,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a68681cf5f1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
@@ -7371,6 +7705,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7396,6 +7733,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 5824ba4b77 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 455aae09d3 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7442,6 +7780,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a4 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7492,6 +7832,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7519,6 +7862,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7552,6 +7896,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 0736678d1d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -7627,6 +7974,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7688,9 +8038,12 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7746,8 +8099,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> abc9ceb3d7d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> abc9ceb3d7d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -7807,8 +8165,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a82d3e0f0b9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a82d3e0f0b9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -7871,6 +8234,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7929,6 +8293,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> cb7d3570f5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7983,6 +8349,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8016,6 +8385,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8077,6 +8447,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a2eb05093d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 6b2ee508d0 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -8100,6 +8472,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8162,6 +8537,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -8169,6 +8545,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8227,8 +8605,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8297,6 +8678,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8359,6 +8743,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -8393,6 +8778,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 399cb4eca6 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 399cb4eca6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -8490,11 +8880,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8553,9 +8946,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8626,6 +9022,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8696,6 +9095,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -8740,6 +9140,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -8799,9 +9202,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8868,6 +9274,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8887,6 +9294,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> f63186e675 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8923,6 +9332,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8949,6 +9361,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9017,6 +9430,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 399cb4eca6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9038,6 +9453,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9101,11 +9519,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -9183,9 +9605,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9250,6 +9675,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9316,6 +9744,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -9342,6 +9771,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -9410,9 +9842,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9477,6 +9912,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9545,6 +9981,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 6ac55e1ef7 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -9563,6 +10001,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9609,6 +10050,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8caee74520 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -9687,6 +10129,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9727,6 +10171,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9775,6 +10222,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locationtech-main
@@ -9818,6 +10266,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 626b1ac8c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> e4e4766a49 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -9834,6 +10284,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9871,8 +10324,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 60df807de4a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 60df807de4a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -9932,6 +10390,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -9987,6 +10446,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7349caccc38 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -10001,6 +10462,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10049,6 +10513,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10128,6 +10593,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10169,6 +10636,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10214,6 +10684,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> d1cf3ad8b5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -10280,6 +10751,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d1cf3ad8b5 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> d1d849c5d0e (GEOMESA-3071 Move all converter state into evaluation context)
@@ -10296,6 +10769,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10344,6 +10820,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10372,6 +10849,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -10438,8 +10918,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c8dc147f252 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c8dc147f252 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -10512,6 +10997,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10578,6 +11066,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -10614,6 +11103,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -10683,6 +11175,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10700,6 +11193,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 3ea600ce08 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10734,6 +11229,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10780,6 +11278,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -10797,6 +11296,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -10872,6 +11374,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10889,6 +11392,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10923,6 +11428,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10949,6 +11457,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa2 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11041,6 +11550,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10be5d2340b (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -11070,6 +11581,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11092,7 +11604,10 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
 =======
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11163,6 +11678,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
@@ -11184,6 +11701,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11247,6 +11767,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -11263,6 +11784,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
@@ -11369,6 +11895,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -11377,6 +11904,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11441,6 +11970,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11542,18 +12074,16 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -11606,6 +12136,11 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -11637,6 +12172,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11698,12 +12236,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11762,12 +12303,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11827,6 +12371,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -11835,6 +12380,8 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 71adb695c5 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11924,6 +12471,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12004,6 +12554,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -12035,6 +12586,11 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -12131,6 +12687,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -12138,6 +12695,8 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12214,8 +12773,11 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12320,6 +12882,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12453,6 +13018,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -12484,6 +13050,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -12580,6 +13151,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -12587,6 +13159,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12645,8 +13219,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12715,6 +13292,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12777,6 +13357,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12809,6 +13390,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -12880,6 +13464,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12945,6 +13532,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -12959,6 +13547,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -13035,6 +13626,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13043,6 +13635,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 >>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13111,6 +13705,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13175,6 +13772,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -13237,6 +13835,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b17adcecc4 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 4d245d0d00f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -13252,6 +13852,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13303,6 +13906,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -13381,6 +13985,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3c7455c057 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -13403,9 +14010,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13470,6 +14080,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13487,6 +14098,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 9fcae81780 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13521,6 +14134,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13551,6 +14167,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> ebe98296ac (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13622,6 +14239,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -13643,6 +14262,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13706,11 +14328,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -13788,11 +14414,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 54cfc0cf1a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13859,6 +14488,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13926,6 +14558,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14004,6 +14637,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0d409de049 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -14029,6 +14665,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14092,6 +14731,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -14106,6 +14746,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -14180,9 +14823,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14247,6 +14893,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14315,6 +14964,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a27f5014e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -14359,6 +15009,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> eccc16ddf9 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 9a7539a7217 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -14373,6 +15025,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14429,9 +15084,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14514,6 +15172,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14543,6 +15202,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -14611,9 +15273,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14678,6 +15343,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14695,6 +15361,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 71edb3b56e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14729,6 +15397,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14762,6 +15433,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14832,6 +15504,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -14853,6 +15527,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14917,11 +15594,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -14999,9 +15680,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15066,6 +15750,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15149,6 +15836,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 6c850ef227 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -15211,6 +15899,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 6c850ef227 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> f55112e2dd9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -15226,6 +15916,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15272,7 +15965,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15335,6 +16031,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15400,6 +16099,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> f7f5195405 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -15451,6 +16151,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> f7f5195405 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 101b2c45778 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -15465,6 +16167,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15516,6 +16221,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15559,6 +16267,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> f3a49e082 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15662,6 +16371,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 84bc7e0e2a (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 3e81ddad5ab (GEOMESA-3071 Move all converter state into evaluation context)
@@ -15679,6 +16390,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15726,6 +16440,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -15748,6 +16463,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -15851,11 +16571,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -15933,9 +16657,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16000,6 +16727,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16070,6 +16800,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -16116,6 +16847,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> e3f60478f6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 71312acd822 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -16130,6 +16863,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16167,8 +16903,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 69d0250eb0c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 69d0250eb0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -16228,6 +16969,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16259,6 +17001,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 3e1e323980f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e1e323980f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -16339,6 +17086,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 83b0de52f6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -16401,6 +17149,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 83b0de52f6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 194497ed923 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -16416,6 +17166,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16465,6 +17218,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 25e967804 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -16543,6 +17297,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 0d78cbc0a5 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 0d78cbc0a5 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8bdc705b7b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 58df64af5a (GEOMESA-3071 Move all converter state into evaluation context)
@@ -16565,9 +17322,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16632,6 +17392,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16649,6 +17410,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 54cfc0cf1a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16683,6 +17446,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16715,6 +17481,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16828,6 +17595,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 58df64af5a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> 58df64af5a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 >>>>>>> 9be5107268 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -16854,6 +17625,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16916,6 +17690,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -16928,6 +17703,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 0d78cbc0a5 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 0d78cbc0a5 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -17002,9 +17780,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17069,6 +17850,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17133,6 +17917,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3ea600ce0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -17177,6 +17962,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 02ce9d8126 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 8ed2e555e44 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -17191,6 +17978,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17239,9 +18029,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17312,6 +18105,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -17390,6 +18184,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 32415f6b4d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> d554ef0b1a (GEOMESA-3071 Move all converter state into evaluation context)
@@ -17412,9 +18209,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17479,6 +18279,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17496,6 +18297,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 32bd718240 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17530,6 +18333,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17575,6 +18381,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 868c873f5c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -17594,6 +18401,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17644,6 +18453,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17707,11 +18519,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -17789,9 +18605,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17838,6 +18657,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> afa165aef3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17924,6 +18744,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 81b8eb5aeb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -17941,6 +18763,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17965,6 +18790,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18033,6 +18859,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 1b25d7ddb4 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> aaac9bf1b27 (Merge branch 'feature/postgis-fixes')
@@ -18047,6 +18875,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18097,9 +18928,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18173,6 +19007,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -18228,6 +19063,8 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7a670e5d35 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> db99a96dac1 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18242,6 +19079,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18279,8 +19119,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> af3ad095e35 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> af3ad095e35 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -18340,8 +19185,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1de0c0109c0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1de0c0109c0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -18401,8 +19251,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 49d78f3faf5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 49d78f3faf5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -18462,8 +19317,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 392f0ed1292 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 392f0ed1292 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -18523,8 +19383,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 32a3a53f7b2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 32a3a53f7b2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -18585,6 +19450,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18616,6 +19482,11 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 8c068b490fe (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8c068b490fe (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -18700,6 +19571,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 1b95f558e5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -18762,6 +19634,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 1b95f558e5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 230d23e4efd (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -18777,6 +19651,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18824,6 +19701,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 79e839e899 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18886,6 +19764,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 79e839e899 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 3c5c29f94e1 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -18901,6 +19781,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18948,6 +19831,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 9870b2cd8e (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19010,6 +19894,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 9870b2cd8e (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 1eff02937fd (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19025,6 +19911,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19073,6 +19962,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 6ded1d4370 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -19135,6 +20025,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 6ded1d4370 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 280f7eb6b70 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -19150,6 +20042,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19212,6 +20107,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 2f9ede2971 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19274,6 +20170,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 2f9ede2971 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> cfaead7e54a (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19289,6 +20187,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19342,6 +20243,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 773beb5125 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19404,6 +20306,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 773beb5125 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 42e4fa76b0b (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19419,6 +20323,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19475,6 +20382,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 945b52f102 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -19537,6 +20445,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 945b52f102 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 291a4503c9f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -19552,6 +20462,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19600,6 +20513,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -19609,6 +20523,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 09c7932a85 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -19687,6 +20604,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> aaef016326 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19749,6 +20667,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> aaef016326 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 0727aaeebdc (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19764,6 +20684,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19812,6 +20735,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -19821,6 +20745,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e4c3f19de7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -19899,6 +20826,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19961,6 +20889,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> f4291966d2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 1c6ccd26e0c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -19976,6 +20906,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20025,6 +20958,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 667969827b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 =======
@@ -20120,6 +21054,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8a5ee02602 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 667969827b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
@@ -20138,6 +21074,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20183,6 +21122,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
@@ -20278,6 +21218,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0d78cbc0a5 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 354930933d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -20296,6 +21238,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20341,6 +21286,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
@@ -20436,6 +21382,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> afa165aef3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 6889ac2407 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -20454,6 +21402,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20499,6 +21450,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> acca663a98 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 =======
@@ -20594,6 +21546,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7802b2e058 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> acca663a98 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
@@ -20612,6 +21566,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20659,6 +21616,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
@@ -20754,6 +21712,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0a5b74c946 (Merge branch 'feature/postgis-fixes')
 >>>>>>> 74df8be7bc (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -20772,6 +21732,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20817,6 +21780,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 =======
@@ -20912,6 +21876,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
@@ -20930,6 +21896,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20975,6 +21944,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 09d87762c5 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 =======
@@ -20991,6 +21961,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21046,6 +22018,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21115,6 +22088,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 15b6bf02d15 (GEOMESA-3254 Add Bloop build support)
@@ -21132,6 +22107,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21180,6 +22158,7 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -21189,6 +22168,9 @@ import java.nio.file.{Files, Paths}
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -21280,28 +22262,26 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -21354,6 +22334,11 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21408,6 +22393,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21469,12 +22457,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21534,6 +22525,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -21542,6 +22534,8 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 30559ea5c9 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21643,6 +22637,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21693,6 +22690,7 @@ import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 149b7a780 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21766,6 +22764,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e4688de07e (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21787,6 +22787,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21850,11 +22853,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21913,6 +22919,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -21920,6 +22927,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> af069a542a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22016,6 +23025,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22079,11 +23091,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b9e5c92638 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22155,6 +23170,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22208,6 +23226,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -22245,6 +23264,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> f960fee3bbb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -22259,6 +23280,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22295,10 +23319,6 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
->>>>>>> locatelli-main
-=======
-=======
-<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
@@ -22330,6 +23350,13 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22379,11 +23406,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22440,11 +23470,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1ba2f23b3d (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 3bdeec0098 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22515,6 +23548,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22580,6 +23616,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9fcae8178 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> baee3d5af7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -22599,6 +23636,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3b82d3a71e (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 3b82d3a71e (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -22689,9 +23730,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22756,6 +23800,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22809,6 +23856,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22840,6 +23888,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 01394c7a2bc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 01394c7a2bc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
@@ -22920,6 +23973,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22998,6 +24052,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 0d6289c684 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 0d6289c684 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> a53589eff3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5452e830aa (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -23023,6 +24080,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23069,6 +24129,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23157,6 +24218,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3b82d3a71e (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 3b82d3a71e (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> af069a542a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 0d6289c684 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -23179,9 +24243,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23246,6 +24313,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23311,12 +24381,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> eccc16ddf (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> ccaae60e3f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23371,6 +24444,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23402,6 +24476,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 52e4edb8ff7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 52e4edb8ff7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -23482,12 +24561,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23555,6 +24637,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 71edb3b56 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 2a5fd16e2a (GEOMESA-3071 Move all converter state into evaluation context)
@@ -23574,6 +24657,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5452e830aa (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 5452e830aa (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -23664,9 +24751,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23731,6 +24821,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23784,6 +24877,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23831,9 +24925,13 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 04ff4c2eabd (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 04ff4c2eabd (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 =======
 =======
+=======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -23890,6 +24988,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23937,11 +25037,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24005,6 +25108,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -24066,7 +25172,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24130,6 +25239,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
@@ -24164,6 +25274,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 8cbc51e901 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8cbc51e901 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -24264,11 +25379,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7f3de5ffd1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 7f3de5ffd1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7f3de5ffd1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -24352,11 +25471,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -24442,11 +25565,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24505,9 +25631,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24582,6 +25711,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -24625,6 +25757,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24759,9 +25892,14 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7733b864f9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24786,6 +25924,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24856,6 +25996,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -24898,6 +26041,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> c0b7ef9ee3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> ef6333d869 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -24962,6 +26106,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 794721b29f1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
@@ -24977,6 +26123,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25002,6 +26151,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25070,6 +26220,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8cbc51e901 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -25091,6 +26243,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25154,11 +26309,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -25236,9 +26395,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25303,6 +26465,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25366,6 +26531,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25407,6 +26573,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -25489,11 +26659,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 686339d05 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25560,6 +26733,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25602,6 +26778,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 4bf896fb5b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 1814f5456f (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -25666,6 +26843,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 10892515265 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -25681,6 +26860,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25730,6 +26912,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 84bc7e0e2 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 4f23877e26 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -25740,6 +26923,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25794,6 +26979,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -25847,6 +27033,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 80e53781872 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -25862,6 +27050,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25914,12 +27105,17 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e3f60478f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> b4b8bd326c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 8cbc51e901 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 8cbc51e901 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26012,6 +27208,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26098,6 +27295,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> de72b46b988 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 =======
 >>>>>>> 628900700 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26106,6 +27308,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26133,6 +27336,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 947eaa5c00 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 947eaa5c00 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -26211,6 +27417,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 955a17fa3d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26273,6 +27480,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 955a17fa3d (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 9a1c0e7c9da (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26288,6 +27497,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26318,6 +27530,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26399,9 +27612,13 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 5452e830aa (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
+=======
+>>>>>>> 5452e830aa (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 >>>>>>> d9a9062a0 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> da62907bfd (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26529,6 +27746,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> e5af7e7136 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 702db0bfee9 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26548,6 +27767,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26570,6 +27792,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 >>>>>>> 91dbd747c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26634,6 +27857,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3b82d3a71e (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> ddc2cffa3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
@@ -26655,6 +27880,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26697,6 +27925,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> cff5fc6422 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> d9af6b6d65 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26761,6 +27990,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 49afbf56035 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
@@ -26776,6 +28007,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26824,6 +28058,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 54cfc0cf1 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> b0af051989 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26834,6 +28069,10 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> ec43ea66f9 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> ec43ea66f9 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -26926,6 +28165,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -26979,6 +28219,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> c4bb86aba42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -26994,6 +28236,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27043,6 +28288,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 02ce9d812 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 1c19ca660e (GEOMESA-3071 Move all converter state into evaluation context)
@@ -27053,6 +28299,10 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 =======
 >>>>>>> locationtech-main
+=======
+=======
+>>>>>>> 2a828f5c13 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 =======
 >>>>>>> 2a828f5c13 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -27145,6 +28395,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -27198,6 +28449,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 397dc9e36f2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -27213,6 +28466,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27265,6 +28521,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 32bd71824 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> bf2c26ed43 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -27273,6 +28530,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 5c45c012a4 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -27364,6 +28625,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27450,6 +28712,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> fce63d06811 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -27458,6 +28725,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27485,6 +28753,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
 =======
 >>>>>>> a30a0c1a2a (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
@@ -27563,6 +28834,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 7dc0abee74 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -27625,6 +28897,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7dc0abee74 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> a1218cc4a1c (GEOMESA-3071 Move all converter state into evaluation context)
@@ -27640,6 +28914,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27668,6 +28945,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> 1b25d7ddb (Merge branch 'feature/postgis-fixes')
 >>>>>>> 699117eca9 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27737,6 +29015,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> c69897d7bd (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 >>>>>>> 8dd024f6791 (Merge branch 'feature/postgis-fixes')
@@ -27751,6 +29031,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27783,6 +29066,7 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27843,6 +29127,8 @@ import java.util.Collections
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 81529b2a85 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -27866,6 +29152,9 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27942,27 +29231,25 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -28015,6 +29302,11 @@ import com.codahale.metrics.Counter
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28074,6 +29366,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28135,12 +29430,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28200,6 +29498,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -28208,6 +29507,8 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28285,6 +29586,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28350,8 +29654,11 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28413,7 +29720,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28486,11 +29796,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28549,6 +29862,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -28556,6 +29870,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 0850f4f171 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28670,6 +29986,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28733,9 +30052,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 86ee6359ba (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28829,6 +30151,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28848,6 +30171,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 6e6d5a01cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28884,6 +30209,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28922,6 +30250,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28980,6 +30309,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9e1eb00741 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 9e1eb00741 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -29039,9 +30371,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29108,6 +30443,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29125,6 +30461,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29159,6 +30497,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29191,6 +30532,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29283,6 +30625,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 1d9a0a9e20 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 1d9a0a9e20 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
+=======
 >>>>>>> b47a69821b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 8d02c596fb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -29308,6 +30653,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29371,6 +30719,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -29389,6 +30738,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 1bc7395204 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 9e1eb00741 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 1bc7395204 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -29497,11 +30851,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29558,9 +30915,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29632,6 +30992,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29696,6 +31059,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29728,6 +31092,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 1d9a0a9e20 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1d9a0a9e20 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -29799,6 +31166,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29816,6 +31184,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 67d0823d3f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29850,6 +31220,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29905,6 +31278,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -29931,6 +31305,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 8d02c596fb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8d02c596fb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -29999,6 +31376,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -30038,6 +31416,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> dc0485bb65 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 001e9598d37 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -30052,6 +31432,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30115,6 +31498,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30157,6 +31543,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> d9cbd16a76 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -30229,6 +31616,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> e056e395ff (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -30256,6 +31645,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30326,6 +31718,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -30348,6 +31741,11 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 178908119f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 178908119f (GEOMESA-3071 Move all converter state into evaluation context)
@@ -30450,11 +31848,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -30532,9 +31934,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -30604,6 +32009,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30673,6 +32081,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -30705,6 +32114,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -30770,9 +32182,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -30837,6 +32252,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30856,6 +32272,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 96745b4434 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -30892,6 +32310,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -30938,6 +32359,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -30957,6 +32379,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31007,6 +32431,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31070,11 +32497,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -31152,9 +32583,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31219,6 +32653,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31285,6 +32722,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -31311,6 +32749,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -31379,9 +32820,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31446,6 +32890,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31465,6 +32910,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 8ba157e9a8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31501,6 +32948,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31541,6 +32991,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -31568,6 +33019,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31602,6 +33055,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31645,6 +33101,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31707,6 +33166,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -31728,6 +33188,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 9cd57b64d7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31764,6 +33226,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31810,6 +33275,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -31827,6 +33293,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 86ee6359ba (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 86ee6359ba (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -31902,6 +33371,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31919,6 +33389,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> c9d6a275e8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -31953,6 +33425,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -31999,6 +33474,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -32016,6 +33492,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 0850f4f171 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 0850f4f171 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -32091,6 +33570,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32108,6 +33588,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> d9cbd16a76 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -32142,6 +33624,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32173,6 +33658,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32260,6 +33746,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 8d02c596fb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 9e1eb00741 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -32279,6 +33767,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32318,8 +33809,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1316cb79ab5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1316cb79ab5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -32391,6 +33887,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32423,6 +33920,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> eb5c49104f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> eb5c49104f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -32494,6 +33994,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32511,6 +34012,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -32545,6 +34048,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32597,6 +34103,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32629,6 +34136,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e5009bc661 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -32700,6 +34210,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32717,6 +34228,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> be9ef91d8a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -32751,6 +34264,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32783,6 +34299,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32875,6 +34392,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
 =======
+>>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+>>>>>>> locatelli-main
+=======
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -32882,6 +34402,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
 >>>>>>> cc93e0930d (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -32917,6 +34438,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 319ecdc02f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -32951,6 +34474,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -32977,6 +34503,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> da00c7bd68 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -33065,6 +34592,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 64a645069b5 (Merge branch 'feature/postgis-fixes')
 =======
 =======
@@ -33089,6 +34618,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33133,12 +34665,15 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33199,6 +34734,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -33220,6 +34756,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> afff6fd74b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -33256,6 +34794,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33294,8 +34835,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 4b59906e258 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4b59906e258 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -33358,6 +34904,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a72d5e76aa8 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -33404,7 +34951,12 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> a72d5e76aa8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 302df4295a (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -33473,6 +35025,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> e703f8474af (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -33495,6 +35049,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33540,11 +35097,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 05e9052b26 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 9ac92c0689 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -33613,6 +35173,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33674,12 +35237,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33740,6 +35306,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 1ba2f23b3 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -33748,6 +35315,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -33817,6 +35386,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33879,8 +35451,6 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -33889,6 +35459,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -33942,6 +35517,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -33961,6 +35537,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 1eeec89cf0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -33997,6 +35575,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34044,11 +35625,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 97b80a2974 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -34127,7 +35712,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34189,6 +35777,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34209,6 +35798,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 1db60d5575 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34245,6 +35836,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34298,6 +35892,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e35ff95571 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -34326,6 +35921,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> 857dd0a396 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34361,6 +35958,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34407,6 +36007,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -34439,6 +36040,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 >>>>>>> ca4bea4f41 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34474,6 +36077,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34518,6 +36124,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -34541,6 +36148,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 3bdeec0098 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34577,6 +36186,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34622,6 +36234,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -34643,6 +36256,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 05e9052b26 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -34679,6 +36294,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34720,6 +36338,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -34770,6 +36389,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 07fd0942d49 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -34784,6 +36405,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34830,6 +36454,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -34887,6 +36514,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -34956,6 +36584,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 41e9ed1c37d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -34972,6 +36602,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35019,6 +36652,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -35042,6 +36676,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> 1833cacd09 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -35081,6 +36717,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35118,8 +36757,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 29b01d02901 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 29b01d02901 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -35185,8 +36829,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5aaa49b4df0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5aaa49b4df0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -35248,8 +36897,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 15cb7c5b2de (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 15cb7c5b2de (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -35308,6 +36962,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -35345,6 +37000,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -35383,6 +37040,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35422,6 +37082,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -35450,6 +37111,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -35487,6 +37150,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35527,8 +37193,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7365c58ca32 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7365c58ca32 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -35602,6 +37273,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> dd5d6434b (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 =======
@@ -35616,6 +37288,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 52d038f6a1 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 52d038f6a1 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -35683,8 +37358,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 001e2fde484 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 001e2fde484 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -35755,6 +37435,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -35776,6 +37457,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 94cb6806e0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -35812,6 +37495,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35863,6 +37549,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -35884,6 +37571,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> d64b1bd01f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -35920,6 +37609,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -35965,6 +37657,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -35986,6 +37679,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> f669e5c3e5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36022,6 +37717,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36060,6 +37758,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> b398d4187e0 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -36106,9 +37805,14 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> b398d4187e0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36133,6 +37837,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36184,8 +37890,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> fa83950256b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> fa83950256b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -36248,8 +37959,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b4bd39326ff (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b4bd39326ff (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -36309,6 +38025,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36339,6 +38056,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 235643d3d2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36381,6 +38100,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36405,6 +38127,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> a2ac294bf3 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 2f79835b1b (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36447,6 +38170,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 42e8565e9b (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36488,6 +38213,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36526,6 +38254,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -36554,6 +38283,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36591,6 +38322,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36637,10 +38371,13 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36698,6 +38435,9 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36787,8 +38527,6 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -36833,6 +38571,11 @@ import com.codahale.metrics.Counter
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -36872,6 +38615,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36933,12 +38679,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -36997,12 +38746,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -37061,12 +38813,15 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -37127,6 +38882,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -37134,6 +38890,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> bc642b27fb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -37228,6 +38986,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -37299,6 +39060,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> e014d8c87 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> a27f5014e (GEOMESA-3071 Move all converter state into evaluation context)
@@ -37307,6 +39069,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -37366,6 +39130,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -37430,11 +39197,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7680dddcc9 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 7680dddcc9 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7680dddcc9 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -37516,11 +39287,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6998848c4a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 6998848c4a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 6998848c4a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -37602,11 +39377,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ca2f767d2a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ca2f767d2a (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> ca2f767d2a (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -37688,11 +39467,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 305611f128 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 305611f128 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 305611f128 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -37774,11 +39557,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 790ed5f51e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 790ed5f51e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 790ed5f51e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -37860,11 +39647,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4ebf06cf99 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 4ebf06cf99 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4ebf06cf99 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -37945,7 +39736,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38028,6 +39822,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38081,8 +39878,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d788072e189 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d788072e189 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -38149,8 +39951,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ea67435711d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ea67435711d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -38228,11 +40035,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6db68267b9 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 6db68267b9 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 6db68267b9 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -38313,7 +40124,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38373,6 +40187,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38441,8 +40258,6 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -38451,6 +40266,11 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38506,6 +40326,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38525,6 +40346,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 49471dea7a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38561,6 +40384,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38610,10 +40436,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38671,6 +40500,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38735,12 +40567,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38803,7 +40638,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -38867,6 +40705,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -38934,6 +40775,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -38979,6 +40821,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 0292e04e31 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -39018,6 +40862,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -39070,6 +40917,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -39078,6 +40926,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 6ded1d4370 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -39136,6 +40986,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -39202,6 +41055,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -39209,6 +41063,8 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> f63186e67 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -39267,6 +41123,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -39335,6 +41194,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -39345,6 +41205,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> abee93f02d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 6998848c4a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> abee93f02d (GEOMESA-3071 Move all converter state into evaluation context)
@@ -39447,8 +41312,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2ee4acccaee (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2ee4acccaee (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -39522,8 +41392,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> df56e0b4fd4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> df56e0b4fd4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -39590,8 +41465,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3a2237177d5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3a2237177d5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -39662,11 +41542,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -39725,7 +41608,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -39787,6 +41673,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -39853,6 +41742,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -39863,6 +41753,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> ca2f767d2a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 4ebf06cf99 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> ca2f767d2a (GEOMESA-3071 Move all converter state into evaluation context)
@@ -39965,8 +41860,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 582945a456a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 582945a456a (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -40029,8 +41929,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e1bc7bc0c7d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e1bc7bc0c7d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -40093,8 +41998,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b712cf79eb0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b712cf79eb0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -40160,8 +42070,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0d8a845d6eb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0d8a845d6eb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -40231,6 +42146,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -40252,6 +42168,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 55474e65f0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -40288,6 +42206,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -40340,6 +42261,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4820ac9224 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -40370,6 +42292,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 3b3b527400 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -40407,6 +42331,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -40455,8 +42382,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0f71e17ddc3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0f71e17ddc3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -40524,6 +42456,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -40545,6 +42478,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> b59955740a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -40581,6 +42516,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -40631,6 +42569,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -40677,6 +42616,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 67de3c3202 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -40716,6 +42657,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -40764,11 +42708,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9f784746bb (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9f784746bb (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 9f784746bb (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -40849,11 +42797,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7abee1f968 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 7abee1f968 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7abee1f968 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -40933,7 +42885,10 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -40993,6 +42948,9 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41057,6 +43015,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -41067,6 +43026,11 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 9f784746bb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 7abee1f968 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 9f784746bb (GEOMESA-3071 Move all converter state into evaluation context)
@@ -41169,8 +43133,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8e6907185ac (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8e6907185ac (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -41233,8 +43202,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c4561e0da47 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c4561e0da47 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -41302,6 +43276,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -41323,6 +43298,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> 2486842735 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -41359,6 +43336,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41404,6 +43384,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -41425,6 +43406,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> 622d048a77 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -41461,6 +43444,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41506,6 +43492,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -41527,6 +43514,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> 476df18562 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -41563,6 +43552,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41608,6 +43600,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -41629,6 +43622,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> 638b68d081 (Merge branch 'feature/postgis-fixes')
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -41665,6 +43660,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41711,6 +43709,7 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -41732,6 +43731,8 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 >>>>>>> 1bd75453df (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -41768,6 +43769,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41815,8 +43819,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> cdd323759f7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cdd323759f7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -41885,8 +43894,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -41940,8 +43952,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 58dd8d20ca1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58dd8d20ca1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42010,8 +44027,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42065,8 +44085,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8ab33667700 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8ab33667700 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42136,8 +44161,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42191,8 +44219,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 90d1607d00b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 90d1607d00b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -42273,8 +44306,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0100ea68c90 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0100ea68c90 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42346,8 +44384,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> f9a29f55978 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f9a29f55978 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42423,8 +44466,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42480,8 +44526,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> f543164b453 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f543164b453 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -42552,8 +44603,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42609,8 +44663,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6ed24c3a4d4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6ed24c3a4d4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42681,8 +44740,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42738,8 +44800,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 994cb7be424 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 994cb7be424 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -42813,8 +44880,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42868,8 +44938,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> debf6617578 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> debf6617578 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -42939,8 +45014,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -42994,8 +45072,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 03ad1e4fcb3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 03ad1e4fcb3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -43065,8 +45148,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43120,8 +45206,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c11cab6e6c4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c11cab6e6c4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -43191,8 +45282,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43246,8 +45340,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a5843d8391f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a5843d8391f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -43319,8 +45418,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43374,8 +45476,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9a1e75a1629 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9a1e75a1629 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -43445,8 +45552,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43500,8 +45610,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b2c5cb17bee (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b2c5cb17bee (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -43571,8 +45686,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43626,8 +45744,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a104e87b93f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a104e87b93f (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -43699,8 +45822,11 @@ import java.util.Collections
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43765,11 +45891,14 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -43828,7 +45957,10 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -43890,6 +46022,9 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -43947,8 +46082,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bca28211b26 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bca28211b26 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -44019,8 +46159,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44076,8 +46219,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 967de7cfd6c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 967de7cfd6c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -44150,8 +46298,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44207,8 +46358,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a1bf28a76ed (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a1bf28a76ed (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -44281,12 +46437,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44340,8 +46499,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> cb81be58288 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cb81be58288 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -44411,8 +46575,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44477,8 +46644,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e3efab26f73 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e3efab26f73 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -44553,8 +46725,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44610,8 +46785,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> cafe159b7cd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cafe159b7cd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -44684,8 +46864,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44741,8 +46924,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 719dfe82334 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 719dfe82334 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -44819,8 +47007,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -44876,8 +47067,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 55c84ed6d36 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 55c84ed6d36 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -44948,8 +47144,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45005,8 +47204,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> f5e2a645c4f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f5e2a645c4f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -45077,8 +47281,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45134,8 +47341,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> db5190d175c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> db5190d175c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -45207,8 +47419,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45266,8 +47481,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2280dceaa7e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2280dceaa7e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -45340,8 +47560,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45397,8 +47620,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a937c867113 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a937c867113 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -45472,8 +47700,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45518,6 +47749,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 37e26bc137 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
 >>>>>>> 9cf623a4be (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -45582,6 +47814,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d91d2864ea2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 =======
@@ -45599,6 +47833,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45648,7 +47885,12 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> 21308670a5 (GEOMESA-3071 Move all converter state into evaluation context)
 <<<<<<< HEAD
@@ -45743,8 +47985,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 03c4c6ddbb4 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 03c4c6ddbb4 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -45815,8 +48062,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -45872,8 +48122,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9d0c0b4b7c7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9d0c0b4b7c7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -45939,6 +48194,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -45979,6 +48235,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46016,6 +48274,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46060,8 +48321,11 @@ import java.nio.file.{Files, Paths}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46118,8 +48382,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ada7bd61a61 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ada7bd61a61 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -46181,8 +48450,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> edff244c611 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> edff244c611 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -46242,6 +48516,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -46279,6 +48554,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46317,6 +48594,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46361,8 +48641,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46422,6 +48705,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46484,6 +48770,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -46507,6 +48794,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> 5ff20be1be (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46543,6 +48832,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46588,7 +48880,10 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46648,6 +48943,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46711,8 +49009,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -46766,8 +49067,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> af0a6473c3d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> af0a6473c3d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -46835,8 +49141,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> cb806ae80dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cb806ae80dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -46907,6 +49218,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
@@ -46928,6 +49240,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 >>>>>>> b1641c8158 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -46964,6 +49278,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47015,6 +49332,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 9cd57b64d7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -47060,6 +49378,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 0e6f4968b8 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 <<<<<<< HEAD
 >>>>>>> 416cef9f6be (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -47080,6 +49400,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47117,6 +49440,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47145,6 +49469,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -47182,6 +49508,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47221,8 +49550,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> f1893cc8808 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f1893cc8808 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -47285,8 +49619,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 86960a6ce6d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 86960a6ce6d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -47346,6 +49685,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47376,6 +49716,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> eb5c49104f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -47418,6 +49760,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47455,8 +49800,11 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -47493,6 +49841,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47516,6 +49867,7 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> ec6d06b576 (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47558,6 +49910,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locationtech-main
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -47595,6 +49949,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47643,8 +50000,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 34df37a8ab7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 34df37a8ab7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -47705,8 +50067,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 89c99f24395 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 89c99f24395 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -47768,6 +50135,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0d80bae0c6 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 915bd11f55 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -47776,6 +50144,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> aede893190 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -47820,6 +50190,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -47864,8 +50237,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d3c5fe654a8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d3c5fe654a8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -47928,8 +50306,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a505f780a3e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a505f780a3e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -47994,8 +50377,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 766ea7ef3bb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 766ea7ef3bb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -48054,8 +50442,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3682b9aa54b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3682b9aa54b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48117,8 +50510,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6ff1c5d96fd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6ff1c5d96fd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48181,8 +50579,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 63165955fd1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 63165955fd1 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -48243,12 +50646,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 89bb58cf10 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 401c676c9c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -48291,6 +50697,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -48328,8 +50737,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 770e2116972 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 770e2116972 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48390,8 +50804,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9f498804883 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9f498804883 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -48460,8 +50879,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b5ebb94d7f5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b5ebb94d7f5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48523,10 +50947,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e36fb99905 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -48564,6 +50991,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -48601,8 +51031,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 53f18cee999 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 53f18cee999 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48666,8 +51101,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ee65eb2840f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ee65eb2840f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -48735,8 +51175,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a52e3000fdb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a52e3000fdb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48802,8 +51247,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ac3ee34514f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ac3ee34514f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48872,8 +51322,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ea24b8bb36c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ea24b8bb36c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -48936,8 +51391,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b296180bc91 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b296180bc91 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -48998,8 +51458,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 887587c92a3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 887587c92a3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -49062,8 +51527,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5db0d72ecfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5db0d72ecfc (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -49126,11 +51596,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25e967804c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 39ae2e950c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -49169,6 +51642,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -49205,8 +51681,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ecac48aef61 (d)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ecac48aef61 (d)
 =======
 >>>>>>> locatelli-main
@@ -49270,8 +51751,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c15c2fd67b5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c15c2fd67b5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -49334,8 +51820,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7da9848b0f1 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7da9848b0f1 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -49395,8 +51886,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 75ae649304a (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -49566,8 +52062,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6501d48f425 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6501d48f425 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -49634,8 +52135,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 344c1755b45 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 344c1755b45 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -49720,8 +52226,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 723df302a3d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 723df302a3d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -49809,8 +52320,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1473c8276eb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1473c8276eb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -49900,8 +52416,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7c3d8044c9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7c3d8044c9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -49975,8 +52496,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 29996a8f7d0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 29996a8f7d0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50043,8 +52569,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2b00898f5e5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2b00898f5e5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50121,8 +52652,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 145663004f3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 145663004f3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -50185,8 +52721,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> caeb7ab9e14 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> caeb7ab9e14 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50249,8 +52790,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7c26da3217b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7c26da3217b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50316,8 +52862,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 19f46a24d5c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 19f46a24d5c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -50382,8 +52933,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 40d5c8674e1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 40d5c8674e1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50450,8 +53006,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8b600496e92 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8b600496e92 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50522,8 +53083,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a22d946ec42 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a22d946ec42 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -50586,8 +53152,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 398dfb6ea60 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 398dfb6ea60 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50653,8 +53224,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 718bbd04559 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 718bbd04559 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -50733,8 +53309,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3dea70dc8f3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3dea70dc8f3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50797,8 +53378,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 4b964e84af2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4b964e84af2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50861,8 +53447,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7b7092807df (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7b7092807df (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50925,8 +53516,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> aedde84520c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> aedde84520c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -50989,8 +53585,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b63583293ad (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b63583293ad (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51053,8 +53654,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2d065142884 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2d065142884 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -51118,8 +53724,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 112c59e8739 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 112c59e8739 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51189,8 +53800,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1cee036a915 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1cee036a915 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -51256,8 +53872,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 03b8b5b8401 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 03b8b5b8401 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51323,8 +53944,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 60499f94ee1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 60499f94ee1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51391,8 +54017,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7579c9b2728 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7579c9b2728 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -51473,8 +54104,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d8a16c2f14f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d8a16c2f14f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51546,8 +54182,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b807e377d61 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b807e377d61 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51622,8 +54263,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8c33e1ca35b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8c33e1ca35b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -51693,8 +54339,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 30cc3cd7c69 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30cc3cd7c69 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51764,8 +54415,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 16076e4fe5e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 16076e4fe5e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51836,8 +54492,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d3df6041ff0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d3df6041ff0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -51904,8 +54565,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 49cd815eb71 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 49cd815eb71 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -51972,8 +54638,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a55aef2101e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a55aef2101e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52040,8 +54711,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 10603577f27 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 10603577f27 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -52110,8 +54786,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 068ff0cf35a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 068ff0cf35a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52178,8 +54859,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5f3ccee3596 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5f3ccee3596 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -52246,8 +54932,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9f1e983c633 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9f1e983c633 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -52323,8 +55014,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9c405d88824 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9c405d88824 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52394,8 +55090,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> adaba454d20 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> adaba454d20 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -52467,8 +55168,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 00adabdeb65 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 00adabdeb65 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52541,8 +55247,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 62437d5a1a4 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 62437d5a1a4 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52620,8 +55331,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bfbc8e5a9e2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bfbc8e5a9e2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -52695,8 +55411,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5a6c971bddc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5a6c971bddc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52768,8 +55489,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6dfb868f0cf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6dfb868f0cf (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52845,8 +55571,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 74f80baabcf (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 74f80baabcf (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -52916,8 +55647,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 05b5cbfcd1e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 05b5cbfcd1e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -52987,8 +55723,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 122dff1a4f3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 122dff1a4f3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53061,8 +55802,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0b4e3d64126 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0b4e3d64126 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -53134,8 +55880,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 311317fcc27 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 311317fcc27 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53208,8 +55959,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3adc0830f9d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3adc0830f9d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53285,8 +56041,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 03870d155c5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 03870d155c5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -53356,8 +56117,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 4e8d4604b16 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4e8d4604b16 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53423,8 +56189,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0c7866362b3 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0c7866362b3 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -53492,8 +56263,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8fb57d6adc0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53555,6 +56331,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 67d0823d3f (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> fa3a7f1ad7 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -53563,6 +56340,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 14a9a5aa60 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -53607,6 +56386,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -53648,8 +56430,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3b978ee3b9f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3b978ee3b9f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -53717,8 +56504,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 53ee02d6e42 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 53ee02d6e42 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53784,8 +56576,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2abda19c54f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2abda19c54f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53852,8 +56649,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 537e17ba69b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 537e17ba69b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -53916,8 +56718,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7713fa15f47 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7713fa15f47 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -53980,8 +56787,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3ce804a3018 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3ce804a3018 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -54047,8 +56859,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 15dcef6c846 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 15dcef6c846 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -54111,6 +56928,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9ddbf4df0c (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> eab43d23c8 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -54124,6 +56942,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> 354b5e5ae5 (Merge branch 'feature/postgis-fixes')
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -54179,6 +56999,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -54226,8 +57049,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bf730185bcd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -54291,8 +57119,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 95eeebee369 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 95eeebee369 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -54356,10 +57189,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 6d51efa18f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -54397,6 +57233,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -54434,8 +57273,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3b5b7c270f2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3b5b7c270f2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -54504,8 +57348,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ec6e183e7d5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ec6e183e7d5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -54571,8 +57420,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 176ab8960ae (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 176ab8960ae (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -54639,11 +57493,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ca4bea4f41 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> e35ff95571 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -54682,6 +57539,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -54722,8 +57582,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> fbfc5af7096 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> fbfc5af7096 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -54790,8 +57655,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 43503809040 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 43503809040 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -54854,11 +57724,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 7f7bfc7004 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> 5f12c5b15a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -54897,6 +57770,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -54945,8 +57821,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 60df9d2b0f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 60df9d2b0f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -55006,8 +57887,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2b98687c7a5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2b98687c7a5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55070,8 +57956,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 93b9463a003 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -55140,8 +58031,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 96ac861bf32 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 96ac861bf32 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55205,12 +58101,15 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 727d0966f1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> 81124cda89 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -55253,6 +58152,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -55297,8 +58199,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5f49b06253d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5f49b06253d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -55369,8 +58276,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 011b5b93e1d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 011b5b93e1d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55440,8 +58352,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5f7884f8a7c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5f7884f8a7c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55514,8 +58431,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 605aee4c3a6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 605aee4c3a6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -55582,8 +58504,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9d6561b602c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9d6561b602c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55646,8 +58573,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 27231f6a5c5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 27231f6a5c5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -55714,8 +58646,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bef208d1db0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bef208d1db0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -55780,10 +58717,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> a3506f6924 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -55821,6 +58761,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -55858,10 +58801,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 946abd08d0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -55899,6 +58845,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -55935,10 +58884,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -55976,6 +58928,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -56083,8 +59038,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ca54ac65b4e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ca54ac65b4e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56153,8 +59113,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a95a379fbd7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a95a379fbd7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -56230,8 +59195,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 58a2747cebe (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58a2747cebe (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56304,8 +59274,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> cc81bad1c87 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cc81bad1c87 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56387,8 +59362,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3070ff68eb7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3070ff68eb7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -56462,8 +59442,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e5e749512e0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e5e749512e0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56532,8 +59517,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1fe6edf90d9 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1fe6edf90d9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56605,8 +59595,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 47b24db3d05 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 47b24db3d05 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -56672,8 +59667,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 4e5e646e721 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4e5e646e721 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56739,8 +59739,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 87d3866c394 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 87d3866c394 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56809,8 +59814,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d8c0b870828 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d8c0b870828 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -56879,8 +59889,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> aaa6f8b21f3 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> aaa6f8b21f3 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -56950,8 +59965,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bf82ec8f3b2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bf82ec8f3b2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57023,8 +60043,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a5642e2e0d8 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a5642e2e0d8 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -57091,8 +60116,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ceb747f41b2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ceb747f41b2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57160,8 +60190,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> af82831665f (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> af82831665f (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -57230,8 +60265,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9b50cec5e34 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9b50cec5e34 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57297,8 +60337,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1842df7c13f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1842df7c13f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57365,8 +60410,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2634f00d17d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2634f00d17d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57433,8 +60483,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 64c0eeed6a2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 64c0eeed6a2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57501,8 +60556,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 407a37875cb (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 407a37875cb (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57569,8 +60629,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0c6fa1983b2 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0c6fa1983b2 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -57638,8 +60703,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bcc84473d6e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bcc84473d6e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57712,8 +60782,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 13b43fc51d3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 13b43fc51d3 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -57783,8 +60858,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 281e45f2bd2 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 281e45f2bd2 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57854,8 +60934,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b866aaef6f1 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b866aaef6f1 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -57926,8 +61011,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2f2b67cffa7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2f2b67cffa7 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -58006,8 +61096,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 087c3f13ee9 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 087c3f13ee9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58082,8 +61177,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2de2bdf9dd8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2de2bdf9dd8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58162,8 +61262,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e012c487d55 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e012c487d55 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -58236,8 +61341,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5a411c97e1d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5a411c97e1d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58310,8 +61420,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8f294975ea9 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8f294975ea9 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58385,8 +61500,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a6400403133 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a6400403133 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -58456,8 +61576,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 57350cad90f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 57350cad90f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58527,8 +61652,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> abecaaf5e25 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> abecaaf5e25 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58598,8 +61728,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 346bc984614 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 346bc984614 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -58671,8 +61806,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8e3cfa39d2e (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8e3cfa39d2e (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58742,8 +61882,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c5c2b3b46e4 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c5c2b3b46e4 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -58813,8 +61958,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8f244c4b80a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8f244c4b80a (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -58893,8 +62043,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 050ce8a304f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 050ce8a304f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -58968,8 +62123,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a9260a289b8 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a9260a289b8 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -59045,8 +62205,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 34e8898179c (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 34e8898179c (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59122,8 +62287,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5e0c1213f7f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5e0c1213f7f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59204,8 +62374,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1c874bb23eb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1c874bb23eb (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -59283,8 +62458,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 17efa2d2987 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 17efa2d2987 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59360,8 +62540,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6b738fda2dc (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6b738fda2dc (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59440,8 +62625,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ec81a84a4c5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ec81a84a4c5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -59514,8 +62704,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> c4660c21698 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c4660c21698 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59588,8 +62783,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 55d3bf24f9b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 55d3bf24f9b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59665,8 +62865,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8453dfc1727 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8453dfc1727 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -59741,8 +62946,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7a8213a82a8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7a8213a82a8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59818,8 +63028,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d92ae55f22d (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d92ae55f22d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -59898,8 +63113,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 54b7fb772ab (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 54b7fb772ab (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -59972,8 +63192,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ad62a44966a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ad62a44966a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -60041,8 +63266,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e28f59c12a6 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e28f59c12a6 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -60110,8 +63340,13 @@ import com.codahale.metrics.Counter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 248f90d2891 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 248f90d2891 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -60175,10 +63410,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1bc7395204 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -60216,6 +63454,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -60256,8 +63497,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b283bfa5dd8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b283bfa5dd8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -60332,8 +63578,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 94f646270b6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 94f646270b6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -60404,8 +63655,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9f3fed9a2fd (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9f3fed9a2fd (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -60475,8 +63731,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ed86f3d1d6a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ed86f3d1d6a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -60546,8 +63807,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 60ec44bae7f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 60ec44bae7f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -60607,10 +63873,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dcfc490cde (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -60648,6 +63917,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -60691,8 +63963,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 84e128f902f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 84e128f902f (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -60757,10 +64034,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 08a86d3e33 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -60798,6 +64078,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -60835,10 +64118,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e9e87d87e6 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -60876,6 +64162,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -60912,8 +64201,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5f4f3b71589 (Merge branch 'feature/postgis-fixes')
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5f4f3b71589 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
@@ -61001,8 +64295,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 91fff88c9ab (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 91fff88c9ab (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61068,8 +64367,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 936229caa62 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 936229caa62 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -61142,8 +64446,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6084ed818ac (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6084ed818ac (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61213,8 +64522,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6426cccb118 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6426cccb118 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61296,8 +64610,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e7b94304439 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e7b94304439 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -61371,8 +64690,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b32afb1d1f8 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b32afb1d1f8 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61438,8 +64762,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a4147eb61c5 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a4147eb61c5 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61508,8 +64837,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7357c50a187 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7357c50a187 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -61572,8 +64906,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 82755cf988f (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 82755cf988f (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61636,8 +64975,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> b54d4a65398 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> b54d4a65398 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61703,8 +65047,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5fb8d77abb5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5fb8d77abb5 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -61769,8 +65118,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 3ef00337129 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3ef00337129 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61836,8 +65190,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 60c0ae729c0 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 60c0ae729c0 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -61906,8 +65265,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 93e675925a2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 93e675925a2 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -61970,8 +65334,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 936ef45367a (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 936ef45367a (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62040,6 +65409,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -62053,6 +65423,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 958e42e01c9 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> locatelli-main
 =======
@@ -62150,8 +65524,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 23958d04d32 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 23958d04d32 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62214,8 +65593,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bbcb573f101 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bbcb573f101 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -62285,8 +65669,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 4ba419e6660 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4ba419e6660 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62353,8 +65742,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> e3185a81e26 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> e3185a81e26 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62433,8 +65827,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7866f249f8e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7866f249f8e (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -62505,8 +65904,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ab46608c6a7 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ab46608c6a7 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62569,8 +65973,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 2547ab8c0bf (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2547ab8c0bf (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62636,8 +66045,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 1bdfd5c27ae (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 1bdfd5c27ae (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -62697,8 +66111,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7963ccef783 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7963ccef783 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62758,8 +66177,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 531b84349ca (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 531b84349ca (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62822,8 +66246,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> aca958fa3e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> aca958fa3e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -62885,8 +66314,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5f74f276a31 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5f74f276a31 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -62949,8 +66383,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 30d06ffb26b (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30d06ffb26b (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -63016,8 +66455,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> deeefa10499 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> deeefa10499 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> locatelli-main
@@ -63077,8 +66521,13 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> a75f894bf78 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> a75f894bf78 (GEOMESA-3071 Move all converter state into evaluation context)
 =======
 >>>>>>> locatelli-main
@@ -63146,6 +66595,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 455aae09d (GEOMESA-3071 Move all converter state into evaluation context)
 =======
@@ -63167,6 +66617,9 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 5e58d73246e (Merge branch 'feature/postgis-fixes')
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5e58d73246e (Merge branch 'feature/postgis-fixes')
@@ -63362,6 +66815,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       val source = io.Source.fromFile(cpgPath.toFile)
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -63391,6 +66845,9 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -63535,6 +66992,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -63576,6 +67035,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -63637,12 +67099,15 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -63704,6 +67169,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -63714,6 +67180,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 6033c1b7af (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -63800,6 +67268,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -63868,6 +67339,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -63899,6 +67371,11 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -64000,6 +67477,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -64031,6 +67509,11 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 4d5be61f70 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 4d5be61f70 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -64130,6 +67613,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -64208,6 +67692,9 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
+>>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
+=======
 >>>>>>> bf3b8e427c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -64233,6 +67720,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -64275,6 +67765,7 @@ object ShapefileConverter extends LazyLogging {
       val source = io.Source.fromFile(cpgPath.toFile)
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -64381,6 +67872,10 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
+=======
+=======
       val source = io.Source.fromFile(cpgPath.toFile)
 <<<<<<< HEAD
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -64415,11 +67910,15 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -64500,11 +67999,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -64566,11 +68068,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -64629,10 +68134,13 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -64746,6 +68254,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -64808,6 +68319,10 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b2a599de5b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> b2a599de5b (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -64888,7 +68403,11 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 091d323f5d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 091d323f5d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
@@ -64983,11 +68502,6 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -64995,15 +68509,18 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -65056,6 +68573,11 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -65088,6 +68610,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65150,6 +68675,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -65158,6 +68684,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> f46b17eca9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -65233,6 +68761,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65274,6 +68805,7 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -65343,6 +68875,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -65364,6 +68898,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65424,12 +68961,15 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65493,11 +69033,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -65558,10 +69101,13 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -65637,6 +69183,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65697,10 +69246,13 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -65759,6 +69311,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65823,6 +69378,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 <<<<<<< HEAD
@@ -65888,6 +69444,8 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -65919,6 +69477,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -65982,11 +69543,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -66043,9 +69607,12 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -66122,6 +69689,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -66186,6 +69756,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -66217,6 +69788,11 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 36ff9b69f0 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
@@ -66320,6 +69896,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -66351,6 +69928,11 @@ object ShapefileConverter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4d5be61f70 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -66450,6 +70032,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -66553,11 +70136,17 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 5350b4ba78 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 9a64765dd6 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 401e627535 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -66663,6 +70252,10 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 897d36ccff (GEOMESA-2679 Infer encoding of shapefile from cpg file)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 20b0d52e9d (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> 490baa117c (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 =======
@@ -66689,11 +70282,15 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -66774,11 +70371,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -66841,11 +70441,14 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -66909,6 +70512,7 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -66918,6 +70522,8 @@ object ShapefileConverter extends LazyLogging {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -67018,6 +70624,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -67078,10 +70687,13 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 20b0d52e9 (GEOMESA-2679 Infer encoding of shapefile from cpg file)
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -67140,6 +70752,9 @@ object ShapefileConverter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

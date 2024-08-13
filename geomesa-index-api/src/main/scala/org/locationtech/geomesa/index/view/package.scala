@@ -20,7 +20,10 @@ package org.locationtech.geomesa.index
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -132,6 +135,9 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -197,6 +203,7 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -403,7 +410,10 @@ import org.geotools.data.simple.SimpleFeatureWriter
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -496,6 +506,8 @@ import org.geotools.data.simple.SimpleFeatureWriter
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -524,6 +536,9 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -549,6 +564,7 @@ import org.geotools.data.simple.SimpleFeatureWriter
 =======
 >>>>>>> bdd2bd6424 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -616,6 +632,8 @@ import org.geotools.data.simple.SimpleFeatureWriter
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -637,6 +655,9 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -702,11 +723,14 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -765,9 +789,12 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -833,6 +860,9 @@ import org.geotools.data.simple.SimpleFeatureWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -897,6 +927,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -948,11 +979,14 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1070,6 +1104,8 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b71311c31d (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
 >>>>>>> 6a4ff24d14c (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -1103,6 +1139,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1146,6 +1185,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locationtech-main
@@ -1155,6 +1195,8 @@ import org.geotools.data._
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1215,6 +1257,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1278,6 +1323,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -1298,6 +1344,8 @@ import org.geotools.data._
 <<<<<<< HEAD
 >>>>>>> 6f8af866fb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1334,6 +1382,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1382,6 +1433,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1410,6 +1462,8 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 >>>>>>> 26e758e6b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1445,6 +1499,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1470,6 +1527,7 @@ import org.geotools.data._
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1512,6 +1570,8 @@ import org.geotools.data._
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1553,6 +1613,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1590,10 +1653,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1635,6 +1701,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1662,6 +1731,7 @@ import org.geotools.data._
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1693,6 +1763,8 @@ import org.geotools.data._
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1746,6 +1818,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1811,6 +1886,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
@@ -1839,6 +1915,8 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1874,6 +1952,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1912,6 +1993,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1938,6 +2020,8 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1975,6 +2059,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2023,8 +2110,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> bd279a782eb (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> bd279a782eb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2084,8 +2176,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 8d705f40286 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 8d705f40286 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2144,10 +2241,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2185,6 +2285,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2224,8 +2327,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d862b7df687 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d862b7df687 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2285,8 +2393,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 9f1e983c633 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9f1e983c633 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -2346,8 +2459,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 629e7e42b13 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 629e7e42b13 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2407,8 +2525,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 6f0edfc1258 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 6f0edfc1258 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2476,8 +2599,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 5068ffbadcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5068ffbadcf (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> locatelli-main
@@ -2539,10 +2667,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2580,6 +2711,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2616,10 +2750,13 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2657,6 +2794,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2682,6 +2822,7 @@ import org.geotools.data._
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2723,6 +2864,8 @@ import org.geotools.data._
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2767,6 +2910,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2811,6 +2957,7 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locationtech-main
@@ -2855,6 +3002,8 @@ import org.geotools.data._
 >>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2892,6 +3041,9 @@ import org.geotools.data._
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2949,6 +3101,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -3005,6 +3158,8 @@ package object view extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -3028,6 +3183,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3079,6 +3237,7 @@ package object view extends LazyLogging {
       }
     })
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3156,6 +3315,9 @@ package object view extends LazyLogging {
 =======
 >>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
+=======
+>>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
 
   private val dateBounds: LoadingCache[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]] =
     Caffeine.newBuilder().build(new CacheLoader[(String, Filter), Option[FilterValues[Bounds[ZonedDateTime]]]]() {
@@ -3186,6 +3348,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3197,6 +3360,11 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> b1c2b3e2a4 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
 =======
 >>>>>>> b1c2b3e2a4 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
@@ -3317,7 +3485,10 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3391,6 +3562,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3458,6 +3632,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -3471,6 +3646,8 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3531,6 +3708,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3591,10 +3771,13 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3656,6 +3839,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3700,6 +3886,7 @@ package object view extends LazyLogging {
         Some(FilterHelper.extractIntervals(filter, dtg)).filter(_.nonEmpty)
       }
     })
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3775,6 +3962,8 @@ package object view extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 <<<<<<< HEAD
 >>>>>>> 5e0c1295b9 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -3812,10 +4001,13 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3881,9 +4073,12 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3959,6 +4154,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4028,6 +4226,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -4042,6 +4241,9 @@ package object view extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
 =======
 >>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
@@ -4116,9 +4318,12 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4183,6 +4388,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4252,6 +4460,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -4270,6 +4479,11 @@ package object view extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -4377,6 +4591,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4385,6 +4600,8 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 =======
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4450,6 +4667,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4518,6 +4738,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -4552,6 +4773,11 @@ package object view extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -4649,11 +4875,15 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -4731,9 +4961,12 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4798,6 +5031,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4911,6 +5147,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
           dateBounds.get((dtg, f)).flatMap { left =>
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -4940,6 +5177,9 @@ package object view extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5084,6 +5324,8 @@ package object view extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5125,6 +5367,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5186,12 +5431,15 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5253,6 +5501,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -5263,6 +5512,8 @@ package object view extends LazyLogging {
 >>>>>>> 226f1d6822 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5349,6 +5600,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5417,6 +5671,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5448,6 +5703,11 @@ package object view extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -5549,6 +5809,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5580,6 +5841,11 @@ package object view extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 99b5e2f0db (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -5679,6 +5945,7 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5757,6 +6024,9 @@ package object view extends LazyLogging {
 >>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
 =======
+>>>>>>> a2184c3082 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
+=======
 >>>>>>> c5c38a96d0 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 =======
 >>>>>>> 9b782cefcb (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -5782,6 +6052,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5824,6 +6097,7 @@ package object view extends LazyLogging {
           dateBounds.get((dtg, f)).flatMap { left =>
 >>>>>>> 96cd783e7 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> 985fbd05df (GEOMESA-3202 Check for disjoint date queries in merged view store)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5930,6 +6204,10 @@ package object view extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> ac63541952 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
+=======
+=======
           dateBounds.get((dtg, f)).flatMap { left =>
 <<<<<<< HEAD
 >>>>>>> 96cd783e70 (GEOMESA-3202 Check for disjoint date queries in merged view store)
@@ -5964,11 +6242,15 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -6049,11 +6331,14 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6115,11 +6400,14 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6178,10 +6466,13 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6295,6 +6586,9 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6357,6 +6651,10 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b1c2b3e2a4 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
 =======
 >>>>>>> b1c2b3e2a4 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main
@@ -6437,7 +6735,11 @@ package object view extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
+>>>>>>> locatelli-main
 =======
 >>>>>>> b4d1f55060 (GEOMESA-3202 Check for disjoint date queries in merged view store)
 >>>>>>> locatelli-main

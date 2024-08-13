@@ -40,6 +40,7 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d022c4bef (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -99,6 +100,8 @@ package org.locationtech.geomesa.index.api
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -146,6 +149,7 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -186,6 +190,8 @@ package org.locationtech.geomesa.index.api
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -254,6 +260,9 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -315,12 +324,15 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -379,12 +391,15 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -443,12 +458,15 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -507,12 +525,15 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -571,12 +592,15 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -638,6 +662,7 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -648,6 +673,8 @@ package org.locationtech.geomesa.index.api
 >>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -772,6 +799,9 @@ package org.locationtech.geomesa.index.api
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -835,6 +865,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -866,6 +897,11 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 6033751879 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> bc58bb16eb (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6033751879 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -964,6 +1000,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -995,6 +1032,11 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 6e41de2827 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -1090,6 +1132,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1f18a80880 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 =======
@@ -1110,6 +1153,8 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1160,6 +1205,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1200,6 +1248,7 @@ import java.util.UUID
 >>>>>>> 1f18a80880 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1270,6 +1319,8 @@ import java.util.UUID
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 37b4aef862 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
@@ -1280,6 +1331,7 @@ import java.util.UUID
 <<<<<<< HEAD
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1311,6 +1363,8 @@ import java.util.UUID
 <<<<<<< HEAD
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1388,7 +1442,10 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1452,6 +1509,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> e53e7db1e2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -1461,6 +1519,8 @@ import java.util.UUID
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1548,6 +1608,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1556,6 +1617,8 @@ import java.util.UUID
 <<<<<<< HEAD
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1727,6 +1790,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1793,16 +1859,17 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1811,9 +1878,6 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -1866,6 +1930,11 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1905,6 +1974,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1968,11 +2040,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2032,11 +2107,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2096,11 +2174,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2157,9 +2238,12 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2254,6 +2338,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2321,6 +2408,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2352,6 +2440,11 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -2452,6 +2545,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2483,6 +2577,11 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 8e01f6263e (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> c73145a433 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8e01f6263e (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -2580,6 +2679,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> location-main
 =======
@@ -2600,6 +2700,8 @@ import java.util.UUID
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2650,6 +2752,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2713,11 +2818,15 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -2795,9 +2904,12 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2862,6 +2974,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2923,6 +3038,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -2932,6 +3048,10 @@ import java.util.UUID
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -3033,6 +3153,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3041,6 +3162,8 @@ import java.util.UUID
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3105,6 +3228,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3137,6 +3261,9 @@ import java.util.UUID
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -3208,6 +3335,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3270,6 +3400,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> location-main
@@ -3308,6 +3439,10 @@ import java.util.UUID
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -3395,6 +3530,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3457,6 +3595,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -3469,6 +3608,8 @@ import java.util.UUID
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3534,6 +3675,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3597,6 +3741,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -3614,6 +3759,10 @@ import java.util.UUID
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -3709,11 +3858,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3789,11 +3941,15 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -3874,11 +4030,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3936,12 +4095,15 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4019,11 +4181,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4084,11 +4249,15 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -4170,6 +4339,7 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -4179,6 +4349,8 @@ import java.util.UUID
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4371,6 +4543,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4432,7 +4607,13 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -4553,8 +4734,11 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4619,6 +4803,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4680,10 +4867,13 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4779,8 +4969,11 @@ import org.opengis.filter.{ExcludeFilter, Filter}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4818,6 +5011,7 @@ import org.opengis.filter.{ExcludeFilter, Filter}
 =======
 >>>>>>> locatelli-main
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4909,6 +5103,8 @@ import org.opengis.filter.{ExcludeFilter, Filter}
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5029,6 +5225,9 @@ import org.opengis.filter.{ExcludeFilter, Filter}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5092,9 +5291,12 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5170,11 +5372,14 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5240,8 +5445,11 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5365,8 +5573,11 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5576,6 +5787,9 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5639,8 +5853,11 @@ import java.util.UUID
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5947,6 +6164,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -6004,6 +6222,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6049,6 +6269,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6089,6 +6310,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6153,6 +6376,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6214,12 +6440,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6278,12 +6507,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6342,12 +6574,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6406,12 +6641,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6473,6 +6711,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -6483,6 +6722,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6601,6 +6842,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6662,6 +6906,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6694,6 +6939,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c7527e3843 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c7527e3843 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -6765,6 +7013,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6829,6 +7080,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -6860,6 +7112,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 6e41de2827 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 6e41de2827 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -6956,6 +7213,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6988,6 +7246,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> a3651df0c4 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> a3651df0c4 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -7059,6 +7320,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7123,6 +7387,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7154,6 +7419,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 8e01f6263e (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> c73145a433 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 8e01f6263e (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -7251,6 +7521,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 83be617313 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -7302,6 +7573,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 2582e9f50b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -7323,6 +7596,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7386,6 +7662,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -7398,6 +7675,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -7476,6 +7756,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -7484,6 +7765,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7554,6 +7837,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7615,6 +7901,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -7624,6 +7911,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -7725,6 +8016,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d845d7c1b (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7733,6 +8025,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7797,6 +8091,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7829,6 +8124,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -7900,6 +8198,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7962,6 +8263,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> location-main
@@ -8000,6 +8302,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -8087,6 +8393,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8149,6 +8458,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -8161,6 +8471,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8226,6 +8538,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8289,6 +8604,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -8306,6 +8622,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 029ad6f319 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -8401,11 +8721,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8465,11 +8788,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -8550,11 +8877,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8614,11 +8944,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8697,11 +9030,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8762,11 +9098,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -8846,6 +9186,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -8859,6 +9200,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9035,6 +9378,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9095,10 +9441,13 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9180,6 +9529,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -9236,6 +9586,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9279,6 +9631,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9343,6 +9698,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -9367,6 +9723,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -9469,6 +9828,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9530,12 +9892,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9594,12 +9959,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9658,12 +10026,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9722,12 +10093,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9786,12 +10160,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9851,6 +10228,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -9859,6 +10237,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9980,6 +10360,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10042,6 +10425,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10074,6 +10458,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 29d406f66f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 29d406f66f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -10145,6 +10532,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10210,6 +10600,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -10241,6 +10632,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 6e41de2827 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -10337,11 +10733,6 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -10354,6 +10745,12 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10362,6 +10759,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10416,8 +10815,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10492,6 +10894,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10539,6 +10944,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 4c943341c (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> 37b4aef862 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10608,6 +11014,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 19e80a7633 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -10629,6 +11037,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10694,11 +11105,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10758,11 +11172,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -10840,9 +11258,12 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10919,6 +11340,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10976,6 +11400,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11049,6 +11474,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 19e80a7633 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> e14a4b4a14 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 19e80a7633 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -11120,6 +11550,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -11128,6 +11559,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11198,6 +11631,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11241,6 +11677,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> 592e71a19e (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11312,6 +11749,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c73145a433 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 19e80a7633 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
@@ -11333,6 +11772,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11396,10 +11838,13 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11469,6 +11914,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11533,7 +11981,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11575,6 +12026,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
             QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11705,6 +12157,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> 5b15f98fad (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+=======
+>>>>>>> locatelli-main
             QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -11729,6 +12186,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11792,6 +12252,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11824,6 +12285,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3d9764749f (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3d9764749f (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -11895,6 +12359,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11958,6 +12425,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11990,6 +12458,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -12061,6 +12532,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12123,6 +12597,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> location-main
@@ -12161,6 +12636,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -12248,6 +12727,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12312,6 +12794,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1f18a8088 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> locationtech-main
@@ -12350,6 +12833,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 9ddab1e4ef (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
@@ -12421,6 +12907,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12484,6 +12973,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12516,6 +13006,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -12587,6 +13080,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12636,6 +13132,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12728,6 +13225,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
+>>>>>>> ee55e5ab74 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9f601af8cc (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 =======
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -12753,6 +13253,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12817,6 +13320,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -12828,6 +13332,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -12882,6 +13388,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12946,11 +13455,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13010,6 +13522,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -13025,6 +13538,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13085,6 +13600,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -13093,6 +13609,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> f1532f2313 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13152,6 +13670,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13216,6 +13737,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -13230,6 +13752,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 7254911963 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13418,6 +13942,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13460,6 +13987,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 9e5293be2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13577,6 +14105,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
 >>>>>>> locatelli-main
 =======
+>>>>>>> bad30768f2 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> 089a9f3f18 (GEOMESA-3214 Fix warning about full table scan with Filter.EXCLUDE)
+>>>>>>> locatelli-main
+=======
 =======
             QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -13607,8 +14139,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -13691,6 +14226,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         } else if (secondary == null) {
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -13720,6 +14256,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13864,6 +14403,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13905,6 +14446,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13966,12 +14510,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14033,6 +14580,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -14043,6 +14591,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> b2a371f6ff (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14129,6 +14679,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14197,6 +14750,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -14228,6 +14782,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -14329,6 +14888,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -14360,6 +14920,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -14459,6 +15024,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14537,6 +15103,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
+>>>>>>> c973459fb6 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 9d271849b7 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 2582e9f50b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -14562,6 +15131,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14604,6 +15176,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
         } else if (secondary == null) {
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> e53e7db1e2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14710,6 +15283,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
+=======
+=======
         } else if (secondary == null) {
 <<<<<<< HEAD
 >>>>>>> b26fc9b517 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -14744,11 +15321,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -14829,11 +15410,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14895,11 +15479,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14958,10 +15545,13 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15075,6 +15665,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15137,6 +15730,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> e85778a06f (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -15217,7 +15814,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -15322,6 +15923,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -15338,6 +15940,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15392,6 +15996,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15470,6 +16077,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -15488,6 +16096,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15560,6 +16170,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15601,6 +16214,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 8caa458e72 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> e53e7db1e2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15666,6 +16280,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -15687,6 +16303,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15755,12 +16374,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15885,6 +16507,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15904,6 +16527,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -16017,6 +16643,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16027,6 +16654,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16086,8 +16715,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16146,6 +16778,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16187,6 +16822,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 5b15f98fad (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -16252,6 +16888,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 7254911963 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -16281,6 +16919,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 5666197b2a (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -16292,6 +16931,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16369,6 +17010,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16447,6 +17091,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
 =======
@@ -16461,6 +17106,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16514,6 +17161,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16539,6 +17187,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16587,7 +17237,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16646,6 +17299,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16709,6 +17365,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> locatelli-main
@@ -16743,6 +17400,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 9d271849b7 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 9d271849b7 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -16833,8 +17494,12 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fd58203632 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 9d271849b7 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 9d271849b7 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
@@ -16937,8 +17602,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17000,11 +17668,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17061,9 +17732,12 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17140,6 +17814,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17204,6 +17881,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -17235,6 +17913,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> aae8270e82 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -17334,6 +18017,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -17437,6 +18121,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+>>>>>>> b76027496d (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
@@ -17448,6 +18137,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17570,6 +18260,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 >>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 2582e9f50b (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+=======
+>>>>>>> 00d9ed0bf2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
+>>>>>>> locatelli-main
+=======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> e53e7db1e2 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 =======
@@ -17597,11 +18292,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17663,11 +18361,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17729,11 +18430,14 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17795,10 +18499,13 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17893,6 +18600,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17953,10 +18663,13 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b26fc9b51 (GEOMESA-3203 Short-circuit disjoint filters in index scans (#2862))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18015,6 +18728,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
