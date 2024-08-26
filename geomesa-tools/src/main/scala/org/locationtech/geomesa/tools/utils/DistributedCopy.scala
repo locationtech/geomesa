@@ -73,18 +73,11 @@ object DistributedCopy {
 
   // hadoop 3 API
   private def distCpOptions3(sources: Either[Seq[Path], Path], dest: Path): DistCpOptions = {
-    val clas = Class.forName("org.apache.hadoop.tools.DistCpOptions$Builder")
     val builder = sources match {
-      case Right(file) =>
-        clas.getConstructor(classOf[Path], classOf[Path]).newInstance(file, dest)
-      case Left(dirs) =>
-        clas.getConstructor(classOf[java.util.List[Path]], classOf[Path]).newInstance(dirs.asJava, dest)
+      case Right(file) => new DistCpOptions.Builder(file, dest)
+      case Left(dirs)  => new DistCpOptions.Builder(dirs.asJava, dest)
     }
-    clas.getMethod("withAppend", classOf[Boolean]).invoke(builder, java.lang.Boolean.FALSE)
-    clas.getMethod("withOverwrite", classOf[Boolean]).invoke(builder, java.lang.Boolean.TRUE)
-    clas.getMethod("withBlocking", classOf[Boolean]).invoke(builder, java.lang.Boolean.FALSE)
-    clas.getMethod("withCopyStrategy", classOf[String]).invoke(builder, "dynamic")
-    clas.getMethod("build").invoke(builder).asInstanceOf[DistCpOptions]
+    builder.withAppend(false).withOverwrite(true).withBlocking(false).withCopyStrategy("dynamic").build()
   }
 
   // hadoop 2 API
