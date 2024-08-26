@@ -103,15 +103,28 @@ in the Accumulo documentation for additional details.
 ========================== ==================================================================================================
 Argument                   Description
 ========================== ==================================================================================================
-``-c, --catalog *``        The catalog table containing schema metadata
-``--to-catalog *``         The catalog table containing the destination feature type
-``-f, --feature-name *``   The name of the schema
-``--export-path *``        HDFS path to used for file export - the filesystem must match the preferred volume of the
-                           destination table
+``--from-catalog *``       Catalog table containing the source feature type
+``--from-instance *``      Source Accumulo instance name
+``--from-zookeepers *``    Zookeepers for the source instance (host[:port], comma separated)
+``--from-user *``          User name for the source instance
+``--from-password``        Connection password for the source instance
+``--from-keytab``          Path to Kerberos keytab file for the source instance (instead of using a password)
+``--from-config``          Additional Hadoop configuration file(s) to use for the source instance
+``--to-catalog *``         Catalog table containing the destination feature type
+``--to-instance *``        Destination Accumulo instance name
+``--to-zookeepers *``      Zookeepers for the destination instance (host[:port], comma separated)
+``--to-user *``            User name for the destination instance
+``--to-password``          Connection password for the destination instance
+``--to-keytab``            Path to Kerberos keytab file for the destination instance (instead of using a password)
+``--to-config``            Additional Hadoop configuration file(s) to use for the destination instance
+``-f, --feature-name *``   The name of the schema to copy
+``--export-path *``        HDFS path to used for file export - the scheme and authority (e.g. bucket name) must match the
+                           destination table filesystem
 ``--partition``            Partition(s) to copy
 ``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``)
-``--hadoop-conf``          Additional Hadoop configuration file(s) to use
-``-t, --threads``          Number of concurrent threads to use for bulk file copies, default 1
+``-t, --threads``          Number of index tables to copy concurrently, default 1
+``--file-threads``         Number of files to copy concurrently, per table, default 2
+``--distcp``               Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies
 ========================== ==================================================================================================
 
 .. note::

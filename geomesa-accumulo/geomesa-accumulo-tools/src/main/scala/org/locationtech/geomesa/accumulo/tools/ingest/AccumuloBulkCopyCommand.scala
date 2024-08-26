@@ -96,19 +96,24 @@ object AccumuloBulkCopyCommand extends LazyLogging {
     @Parameter(names = Array("--partition-value"), description = "Value(s) used to indicate partitions to copy (e.g. dates)")
     var partitionValues: java.util.List[String] = _
 
+    @Parameter(names = Array("--index"), description = "Specific index(es) to copy, instead of all indices")
+    var indices: java.util.List[String] = _
+
     @Parameter(
       names = Array("-t", "--threads"),
-      description = "Number of tables to copy concurrently",
+      description = "Number of index tables to copy concurrently",
       validateWith = Array(classOf[PositiveInteger]))
     var tableThreads: java.lang.Integer = 1
 
     @Parameter(
-      names = Array("--copy-threads"),
-      description = "Number of files to copy concurrently",
+      names = Array("--file-threads"),
+      description = "Number of files to copy concurrently, per table",
       validateWith = Array(classOf[PositiveInteger]))
-    var copyThreads: java.lang.Integer = 2
+    var fileThreads: java.lang.Integer = 2
 
-    @Parameter(names = Array("--distcp"), description = "Use Hadoop Distcp to move files from one cluster to the other")
+    @Parameter(
+      names = Array("--distcp"),
+      description = "Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies")
     var distCp: Boolean = false
   }
 
@@ -168,8 +173,25 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       builder.result.distinct.sorted
     }
 
-    // validate our params/setup
-    private def validate(): Unit = {
+    lazy private val indices = {
+      val all = from.ds.manager.indices(sft)
+      if (params.indices == null || params.indices.isEmpty) { all } else {
+        val builder = Seq.newBuilder[GeoMesaFeatureIndex[_, _]]
+        params.indices.asScala.foreach { ident =>
+          val filtered = all.filter(_.identifier.contains(ident))
+          if (filtered.isEmpty) {
+            throw new ParameterException(
+              s"Index '$ident' does not exist in the schema. Available indices: ${all.map(_.identifier).mkString(", ")}")
+          }
+          logger.debug(s"Mapped identifier $ident to ${filtered.map(_.identifier).mkString(", ")}")
+          builder ++= filtered
+        }
+        builder.result.distinct
+      }
+    }
+
+    override def run(): Unit = {
+      // validate our params/setup
       if (exportPath.toUri.getScheme == "file") {
         throw new RuntimeException("Could not read defaultFS - this may be caused by a missing Hadoop core-site.xml file")
       }
@@ -190,13 +212,11 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       if (partitions.isEmpty) {
         throw new ParameterException("At least one of --partition or --partition-value is required")
       }
-    }
 
-    override def run(): Unit = {
-      validate()
+      // now execute the copy
       CachedThreadPool.executor(params.tableThreads) { executor =>
         partitions.foreach { partition =>
-          from.ds.manager.indices(sft).map { fromIndex =>
+          indices.map { fromIndex =>
             val toIndex = to.ds.manager.index(sft, fromIndex.identifier)
             val runnable: Runnable = () => try { copy(fromIndex, toIndex, partition) } catch {
               case NonFatal(e) => logger.error(s"Error copying partition $partition ${fromIndex.identifier}", e)
@@ -277,7 +297,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       } else {
         logger.debug(s"Reading $distcpPath")
         WithClose(IOUtils.lineIterator(exportFs.open(distcpPath), StandardCharsets.UTF_8)) { files =>
-          CachedThreadPool.executor(params.copyThreads) { executor =>
+          CachedThreadPool.executor(params.fileThreads) { executor =>
             files.asScala.foreach { file =>
               val runnable: Runnable = () => {
                 val path = new Path(file)
