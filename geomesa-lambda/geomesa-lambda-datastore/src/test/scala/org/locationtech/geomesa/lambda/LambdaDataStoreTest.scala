@@ -107,24 +107,45 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 
   "LambdaDataStore" should {
     "write and read features" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[LambdaDataStore]
+      readAndWriteTest()
+    }
+  }
+
+
+  def readAndWriteTest(): MatchResult[Any] = {
+    foreach(Seq(None, Some("my-lambda-topic"))) { customTopic =>
+      def dsParams(extras: (String, String)*): java.util.Map[String, _] = {
+        val catalog = s"${getClass.getSimpleName}${customTopic.getOrElse("").replaceAll("[^A-Za-z0-9]", "_")}"
+        (this.dsParams ++ Map("lambda.accumulo.catalog" -> catalog) ++ extras.toMap).asJava
+      }
+
+      clock.tick = 0
+
+      val sft = SimpleFeatureTypes.mutable(SimpleFeatureTypes.copy(this.sft))
+      customTopic.foreach(sft.getUserData.put(LambdaDataStore.TopicKey, _))
+
+      val ds = DataStoreFinder.getDataStore(dsParams()).asInstanceOf[LambdaDataStore]
       ds must not(beNull)
 
       try {
         ds.createSchema(sft)
-        ds.getSchema(sft.getTypeName) mustEqual sft
+        SimpleFeatureTypes.compare(ds.getSchema(sft.getTypeName), sft) mustEqual 0
+
+        customTopic.foreach { topic =>
+          LambdaDataStore.topic(ds.getSchema(sft.getTypeName), "") mustEqual topic
+        }
 
         // check namespaces
-        val ns = DataStoreFinder.getDataStore((dsParams ++ Map("namespace" -> "ns0")).asJava).getSchema(sft.getTypeName).getName
+        val ns = DataStoreFinder.getDataStore(dsParams("namespace" -> "ns0")).getSchema(sft.getTypeName).getName
         ns.getNamespaceURI mustEqual "ns0"
         ns.getLocalPart mustEqual sft.getTypeName
 
         // note: instantiate after creating the schema so it's not cached as missing
-        val readOnly = DataStoreFinder.getDataStore((dsParams ++ Map("expiry" -> "Inf")).asJava).asInstanceOf[LambdaDataStore]
+        val readOnly = DataStoreFinder.getDataStore(dsParams("expiry" -> "Inf")).asInstanceOf[LambdaDataStore]
         readOnly must not(beNull)
 
         try {
-          readOnly.getSchema(sft.getTypeName) mustEqual sft
+          SimpleFeatureTypes.compare(readOnly.getSchema(sft.getTypeName), sft) mustEqual 0
 
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             features.foreach { feature =>
@@ -136,9 +157,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           // test queries against the transient store
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
-                containTheSameElementsAs(features))
+              containTheSameElementsAs(features))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-                containTheSameElementsAs(features)
+              containTheSameElementsAs(features)
           }
           testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
           testBin(ds)
@@ -151,9 +172,9 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           // test mixed queries against both stores
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()).toSeq must
-                beEqualTo(features.drop(1)))
+              beEqualTo(features.drop(1)))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-                containTheSameElementsAs(features)
+              containTheSameElementsAs(features)
           }
           testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
           testBin(ds)
@@ -162,7 +183,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
 
           // test query_persistent/query_transient hints
           forall(Seq((features.take(1), QueryHints.LAMBDA_QUERY_TRANSIENT, "LAMBDA_QUERY_TRANSIENT"),
-                     (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
+            (features.drop(1) , QueryHints.LAMBDA_QUERY_PERSISTENT, "LAMBDA_QUERY_PERSISTENT"))) {
             case (feature, hint, string) =>
               val hints = Seq((hint, java.lang.Boolean.FALSE),
                 (Hints.VIRTUAL_TABLE_PARAMETERS, Map(string -> "false").asJava))
@@ -180,7 +201,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-                containTheSameElementsAs(features)
+              containTheSameElementsAs(features)
           }
           testTransforms(ds, SimpleFeatureTypes.createType("lambda", "*geom:Point:srid=4326"))
           testBin(ds)
@@ -195,7 +216,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(
               SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-                  containTheSameElementsAs(Seq(update, features.last))
+                containTheSameElementsAs(Seq(update, features.last))
             )
           }
 
@@ -205,7 +226,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
           forall(Seq(ds, readOnly)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read().iterator()) must beEmpty)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
-                containTheSameElementsAs(Seq(update, features.last))
+              containTheSameElementsAs(Seq(update, features.last))
           }
         } finally {
           readOnly.dispose()

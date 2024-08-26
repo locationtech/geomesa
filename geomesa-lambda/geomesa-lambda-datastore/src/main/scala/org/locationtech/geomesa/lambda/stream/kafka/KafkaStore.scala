@@ -25,6 +25,7 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
+import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
@@ -53,7 +54,7 @@ class KafkaStore(
 
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 
-  private val topic = KafkaStore.topic(config.zkNamespace, sft)
+  private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 
   private val cache = new KafkaFeatureCache(topic)
 
@@ -173,8 +174,10 @@ object KafkaStore {
     val Delete: Byte = 1
   }
 
-  def topic(ns: String, sft: SimpleFeatureType): String = topic(ns, sft.getTypeName)
+  @deprecated("Replaced with LambdaDataStore.topic")
+  def topic(ns: String, sft: SimpleFeatureType): String = LambdaDataStore.topic(sft, ns)
 
+  @deprecated("Does not return correct topic if topic is overridden in the feature type - replaced with LambdaDataStore.topic")
   def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
   def producer(sft: SimpleFeatureType, connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {

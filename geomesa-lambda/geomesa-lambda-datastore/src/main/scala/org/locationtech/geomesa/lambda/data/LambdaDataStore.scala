@@ -68,13 +68,16 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
   override def getNames: java.util.List[Name] = persistence.getNames
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
+    val topic = LambdaDataStore.topic(sft, config.zkNamespace)
+    if (topic.contains("/")) {
+      // note: kafka doesn't allow slashes in topic names
+      throw new IllegalArgumentException(s"Topic cannot contain '/': $topic")
+    }
     persistence.createSchema(sft)
     // TODO for some reason lambda qs consumers don't rebalance when the topic is created after the consumers...
     // transients.get(sft.getTypeName).createSchema()
-    val topic = KafkaStore.topic(config.zkNamespace, sft)
     val props = new Properties()
     config.producerConfig.foreach { case (k, v) => props.put(k, v) }
-
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
         logger.warn(s"Topic [$topic] already exists - it may contain stale data")
@@ -189,6 +192,23 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
 }
 
 object LambdaDataStore {
+
+  val TopicKey = "geomesa.lambda.topic"
+
+  /**
+   * Gets the kafka topic configured in the sft, or a default topic if nothing is configured.
+   *
+   * @param sft simple feature type
+   * @param namespace namespace to use for default topic
+   * @return
+   */
+  def topic(sft: SimpleFeatureType, namespace: String): String = {
+    sft.getUserData.get(TopicKey) match {
+      case topic: String => topic
+      case _ => s"${namespace}_${sft.getTypeName}".replaceAll("[^a-zA-Z0-9_\\-]", "_")
+    }
+  }
+
   case class LambdaConfig(
       zookeepers: String,
       zkNamespace: String,
