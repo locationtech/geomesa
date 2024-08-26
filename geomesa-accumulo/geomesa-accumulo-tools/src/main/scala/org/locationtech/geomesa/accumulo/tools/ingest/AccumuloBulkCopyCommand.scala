@@ -133,7 +133,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
 
     private val tryFrom = Try {
       new Cluster(params.fromInstance, params.fromZookeepers, params.fromUser, Option(params.fromPassword).toRight(params.fromKeytab),
-        params.fromCatalog, Option(params.fromConfigs).map(_.asScala).getOrElse(Seq.empty))
+        params.fromCatalog, Option(params.fromConfigs))
     }
 
     // the cluster we are exporting to
@@ -141,7 +141,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
 
     private val tryTo = Try {
       new Cluster(params.toInstance, params.toZookeepers, params.toUser, Option(params.toPassword).toRight(params.toKeytab),
-        params.toCatalog, Option(params.toConfigs).map(_.asScala).getOrElse(Seq.empty))
+        params.toCatalog, Option(params.toConfigs))
     }
 
     lazy private val exportPath: Path = {
@@ -365,7 +365,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       user: String,
       credentials: Either[String, String],
       catalog: String,
-      configs: Seq[File]
+      configs: Option[java.util.List[File]]
     ) extends Closeable {
 
     private val params = Map(
@@ -378,7 +378,9 @@ object AccumuloBulkCopyCommand extends LazyLogging {
     )
 
     val conf = new Configuration()
-    configs.foreach(f => conf.addResource(f.toURI.toURL))
+    configs.foreach { files =>
+      files.asScala.foreach(f => conf.addResource(f.toURI.toURL))
+    }
 
     val ds: AccumuloDataStore =
       try { DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore] } catch {
