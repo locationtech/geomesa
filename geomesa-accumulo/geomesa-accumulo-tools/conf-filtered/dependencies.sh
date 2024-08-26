@@ -39,37 +39,42 @@ function dependencies() {
     "org.apache.accumulo:accumulo-start:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
-    "org.apache.commons:commons-configuration2:2.8.0:jar"
-    "org.apache.commons:commons-text:1.10.0:jar"
+    "org.apache.commons:commons-configuration2:2.10.1:jar"
+    "org.apache.commons:commons-text:1.11.0:jar"
     "org.apache.commons:commons-collections4:4.4:jar"
     "org.apache.commons:commons-vfs2:2.9.0:jar"
-    "commons-collections:commons-collections:3.2.2:jar"
-    "commons-logging:commons-logging:1.2:jar"
+    "commons-logging:commons-logging:1.3.3:jar"
     "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
-    "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
     "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
-    "io.netty:netty-codec:%%netty.version%%:jar"
-    "io.netty:netty-handler:%%netty.version%%:jar"
-    "io.netty:netty-resolver:%%netty.version%%:jar"
-    "io.netty:netty-transport:%%netty.version%%:jar"
-    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
-    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
-    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
   )
 
   # add accumulo 2.1 jars if needed
   if version_ge "${accumulo_version}" 2.1.0; then
+    local micrometer_version
+    local opentelemetry_version
+
+    if version_ge "${accumulo_version}" 2.1.3; then
+      micrometer_version="1.12.2"
+      opentelemetry_version="1.34.1"
+    else
+      # these versions seem compatible even though they're not the exact versions shipped
+      micrometer_version="1.11.1"
+      opentelemetry_version="1.27.0"
+      gavs+=(
+        "io.opentelemetry:opentelemetry-semconv:${opentelemetry_version}-alpha:jar"
+      )
+    fi
+
     gavs+=(
       "org.apache.thrift:libthrift:%%thrift.version%%:jar"
-      "io.opentelemetry:opentelemetry-api:1.19.0:jar"
-      "io.opentelemetry:opentelemetry-context:1.19.0:jar"
-      "io.opentelemetry:opentelemetry-semconv:1.19.0-alpha:jar"
-      "io.micrometer:micrometer-core:1.9.6:jar"
+      "io.micrometer:micrometer-core:${micrometer_version}:jar"
+      "io.micrometer:micrometer-commons:${micrometer_version}:jar"
+      "io.opentelemetry:opentelemetry-api:${opentelemetry_version}:jar"
+      "io.opentelemetry:opentelemetry-context:${opentelemetry_version}:jar"
     )
   else
     gavs+=(
