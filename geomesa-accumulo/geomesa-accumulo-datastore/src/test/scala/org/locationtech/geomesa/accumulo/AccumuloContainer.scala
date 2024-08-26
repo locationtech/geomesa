@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.{Authorizations, NamespacePermission, SystemPermission}
+import org.apache.accumulo.core.security.{Authorizations, SystemPermission}
 import org.geomesa.testcontainers.AccumuloContainer
 import org.locationtech.geomesa.utils.io.WithClose
 import org.testcontainers.utility.DockerImageName

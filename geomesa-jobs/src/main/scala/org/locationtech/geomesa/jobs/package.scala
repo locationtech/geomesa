@@ -88,4 +88,9 @@ package object jobs {
     def reset(): Unit
     def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit
   }
+
+  object NoStatus extends StatusCallback {
+    override def reset(): Unit = {}
+    override def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit = {}
+  }
 }

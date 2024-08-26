@@ -31,7 +31,7 @@ import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
-import org.locationtech.geomesa.tools.utils.StorageJobUtils
+import org.locationtech.geomesa.tools.utils.DistributedCopy
 
 import java.io.File
 
@@ -79,7 +79,7 @@ abstract class FileSystemConverterJob(
     super.await(reporter).merge {
       tmpPath.map { tp =>
         reporter.reset()
-        StorageJobUtils.distCopy(tp, root, reporter) match {
+        new DistributedCopy().copy(Seq(tp), root, reporter) match {
           case JobSuccess(message, counts) =>
             Command.user.info(message)
             JobSuccess("", counts)

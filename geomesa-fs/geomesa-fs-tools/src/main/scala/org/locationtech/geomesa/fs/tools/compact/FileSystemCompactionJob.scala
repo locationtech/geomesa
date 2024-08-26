@@ -28,7 +28,7 @@ import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounter
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.utils.{JobRunner, StorageJobUtils}
+import org.locationtech.geomesa.tools.utils.{DistributedCopy, JobRunner}
 import org.locationtech.geomesa.utils.text.TextTools
 
 import java.io.File
@@ -92,7 +92,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
     val result = JobRunner.run(job, statusCallback, mapCounters, Seq.empty).merge {
       qualifiedTempPath.map { tp =>
-        StorageJobUtils.distCopy(tp, storage.context.root, statusCallback)
+        new DistributedCopy().copy(Seq(tp), storage.context.root, statusCallback)
       }
     }
 
