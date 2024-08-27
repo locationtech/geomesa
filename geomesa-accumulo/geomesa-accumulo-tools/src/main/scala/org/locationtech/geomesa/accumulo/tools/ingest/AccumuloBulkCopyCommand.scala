@@ -219,7 +219,8 @@ object AccumuloBulkCopyCommand extends LazyLogging {
           indices.map { fromIndex =>
             val toIndex = to.ds.manager.index(sft, fromIndex.identifier)
             val runnable: Runnable = () => try { copy(fromIndex, toIndex, partition) } catch {
-              case NonFatal(e) => logger.error(s"Error copying partition $partition ${fromIndex.identifier}", e)
+              // catch Throwable so NoClassDefFound still gets logged
+              case e: Throwable => logger.error(s"Error copying partition $partition ${fromIndex.identifier}", e)
             }
             executor.submit(runnable)
           }
@@ -261,7 +262,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       }
 
       // ensures the destination table exists
-      logger.debug("Creating destination table (if it doesn't exist)")
+      logger.debug(s"Checking destination table for $fromTable")
       to.ds.adapter.createTable(toIndex, Some(partition), Seq.empty)
       val toTable = toIndex.getTableNames(Some(partition)).headOption.getOrElse {
         throw new RuntimeException(s"Could not get destination table for index ${fromIndex.identifier} and partition $partition")
@@ -277,7 +278,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
           Command.user.warn(warning)
           logger.warn(warning)
         }
-        logger.debug("Adding splits to destination table")
+        logger.debug(s"Adding splits to destination table $toTable")
         to.tableOps.addSplits(toTable, splits)
       }
 
@@ -312,7 +313,8 @@ object AccumuloBulkCopyCommand extends LazyLogging {
                     logger.error(s"Failed to copy $path to $copy")
                   }
                 } catch {
-                  case NonFatal(e) =>
+                  // catch Throwable so NoClassDefFound still gets logged
+                  case e: Throwable =>
                     Command.user.error(s"Failed to copy $path to $copy")
                     logger.error(s"Failed to copy $path to $copy", e)
                 }
@@ -324,7 +326,7 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       }
 
       dirs.asScala.toSeq.sorted.foreach { dir =>
-        logger.debug(s"Loading rfiles from $dir")
+        logger.debug(s"Loading rfiles from $dir to $toTable")
         val importDir = to.tableOps.importDirectory(dir).to(toTable)
         try { importDir.ignoreEmptyDir(true) } catch {
           case _: NoSuchMethodError => // accumulo 2.0, ignore

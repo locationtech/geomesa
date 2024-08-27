@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
+import scala.util.Try
 
 /**
  * Executor service that will grow up to the number of threads specified.
@@ -163,11 +164,13 @@ object CachedThreadPool {
    */
   def executor(threads: Int)(func: ExecutorService => Unit): Unit = {
     val executor = new CachedThreadPool(threads)
+    val shutdown = sys.addShutdownHook(executor.shutdownNow())
     try { func(executor) } finally {
       executor.shutdown()
     }
     while (!executor.isTerminated) {
       executor.awaitTermination(1, TimeUnit.MINUTES)
     }
+    Try(shutdown.remove())
   }
 }
