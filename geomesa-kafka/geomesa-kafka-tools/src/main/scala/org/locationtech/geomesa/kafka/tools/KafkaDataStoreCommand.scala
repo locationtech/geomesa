@@ -30,10 +30,20 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
     val readBack = Option(params.readBack).map(_.toString).getOrElse {
       if (params.fromBeginning) { "Inf" } else { null }
     }
-    val consumerProps =
-      Option(params.consumerProperties).map(FileUtils.readFileToString(_, StandardCharsets.UTF_8)).orNull
-    val producerProps =
-      Option(params.producerProperties).map(FileUtils.readFileToString(_, StandardCharsets.UTF_8)).orNull
+
+    val genericProps = if (params.genericProperties == null) { null } else {
+       FileUtils.readFileToString(params.genericProperties, StandardCharsets.UTF_8)
+    }
+
+    def mergeProps(f: File): String = {
+      if (f == null) { genericProps } else {
+        val p = FileUtils.readFileToString(f, StandardCharsets.UTF_8)
+        if (genericProps == null) { p } else { s"$genericProps\n$p" } // note: later keys overwrite earlier ones
+      }
+    }
+
+    val consumerProps = mergeProps(params.consumerProperties)
+    val producerProps = mergeProps(params.producerProperties)
 
     Map[String, String](
       KafkaDataStoreParams.Brokers.getName           -> params.brokers,
