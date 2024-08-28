@@ -200,7 +200,7 @@
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.accumulo.docker.tag>2.1.2</test.accumulo.docker.tag>
+        <test.accumulo.docker.tag>2.1.3</test.accumulo.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
