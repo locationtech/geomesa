@@ -67,7 +67,7 @@ class KafkaStore(
 
   private val interceptors = QueryInterceptorFactory(ds)
 
-  private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider, interceptors)
+  private val queryRunner = new KafkaQueryRunner(cache, authProvider, interceptors)
 
   private val loader = {
     val consumers = KafkaStore.consumers(config.consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)

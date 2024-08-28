@@ -16,7 +16,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 class KafkaQueryRunner(ds: KafkaDataStore, caches: String => KafkaFeatureCache)
-    extends LocalQueryRunner(ds.stats, Option(ds.config.authProvider)) {
+    extends LocalQueryRunner(Option(ds.config.authProvider)) {
 
   override protected def name: String = "Kafka"
 
