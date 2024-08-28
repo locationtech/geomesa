@@ -22,11 +22,18 @@ General Arguments
 -----------------
 
 Most commands require you to specify the connection to Kafka. This generally includes the list of
-Kafka brokers and Zookeeper servers. Specify brokers with the ``--brokers`` (or ``-b``) argument, and
-specify Zookeepers with ``--zookeepers`` (or ``-z``).
+Kafka brokers, specified with ``--brokers`` (or ``-b``). Connection properties can be specified with
+``--producer-config`` for producers, ``--consumer-config`` for consumers, or ``--config`` which will
+be applied to both. See the official Kafka documentation for the available
+`producer <https://kafka.apache.org/documentation.html#producerconfigs>`_ and
+`consumer <https://kafka.apache.org/documentation.html#consumerconfigs>`_ configs.
 
-Kafka stores metadata under a particular path in Zookeeper - this can be thought of as a namespace
-for feature types. Use ``--zkpath`` (or ``-p``) to override the default path.
+When using Zookeeper to store GeoMesa metadata, the Zookeeper servers must be specified with ``--zookeepers`` (or ``-z``).
+The Zookeeper path for storing metadata can be specified with ``--zkpath`` (or ``-p``). See :ref:`no_zookeeper` for
+details on when to use Zookeeper.
+
+When not using Zookeeper, the GeoMesa catalog topic for storing metadata may be specified with ``--catalog`` (or ``-c``).
+A catalog or path can be thought of as a namespace for feature types.
 
 To connect to :ref:`Confluent Schema Registry <confluent_kds>` topics, use ``--schema-registry``
 to provide the registry URL.
