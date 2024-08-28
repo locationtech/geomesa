@@ -46,10 +46,9 @@ function get_accumulo_classpath() {
     if [[ -d "$ACCUMULO_LIB" ]]; then
       accumulo_cp="$accumulo_cp:$(find_jars "$ACCUMULO_LIB" true)"
     fi
-    # for zookeeper only include the single root jar
     if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-      ZOOKEEPER_JAR="$(find -L "$ZOOKEEPER_HOME" -maxdepth 1 -type f -name "*zookeeper*jar" | head -n 1)"
-      accumulo_cp="$accumulo_cp:${ZOOKEEPER_JAR}"
+      ZK_JARS="$(find -L "$ZOOKEEPER_HOME" -maxdepth 2 -name 'zookeeper*.jar' | paste -sd: -)"
+      accumulo_cp="$accumulo_cp:${ZK_JARS}"
     fi
     # if there's a geomesa runtime jar in accumulo, exclude it from the classpath
     echo "$accumulo_cp" | sed -E 's/[^:]*geomesa-accumulo-distributed-runtime[^:]*jar//'
