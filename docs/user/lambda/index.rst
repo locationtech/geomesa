@@ -20,4 +20,5 @@ To get started with the Lambda data store, try the :doc:`/tutorials/geomesa-quic
    geoserver
    commandline
    configuration
+   index_config
    advanced

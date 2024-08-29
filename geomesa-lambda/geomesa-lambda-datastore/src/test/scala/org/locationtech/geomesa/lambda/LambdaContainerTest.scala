@@ -22,18 +22,18 @@ class LambdaContainerTest extends KafkaContainerTest {
   val offsetManager = new InMemoryOffsetManager
 
   lazy val dsParams = Map(
-    "lambda.accumulo.instance.id" -> AccumuloContainer.instanceName,
-    "lambda.accumulo.zookeepers"  -> AccumuloContainer.zookeepers,
-    "lambda.accumulo.user"        -> AccumuloContainer.user,
-    "lambda.accumulo.password"    -> AccumuloContainer.password,
+    "lambda.accumulo.instance.name" -> AccumuloContainer.instanceName,
+    "lambda.accumulo.zookeepers"    -> AccumuloContainer.zookeepers,
+    "lambda.accumulo.user"          -> AccumuloContainer.user,
+    "lambda.accumulo.password"      -> AccumuloContainer.password,
     // note the table needs to be different to prevent testing errors
-    "lambda.accumulo.catalog"     -> sftName,
-    "lambda.kafka.brokers"        -> brokers,
-    "lambda.kafka.zookeepers"     -> zookeepers,
-    "lambda.kafka.partitions"     -> 2,
-    "lambda.expiry"               -> "100ms",
-    "lambda.clock"                -> clock,
-    "lambda.offset-manager"       -> offsetManager
+    "lambda.accumulo.catalog"       -> sftName,
+    "lambda.kafka.brokers"          -> brokers,
+    "lambda.kafka.zookeepers"       -> zookeepers,
+    "lambda.kafka.partitions"       -> 2,
+    "lambda.expiry"                 -> "100ms",
+    "lambda.clock"                  -> clock,
+    "lambda.offset-manager"         -> offsetManager
   )
 }
 

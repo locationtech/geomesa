@@ -33,8 +33,15 @@ trait KafkaDataStoreParams {
   @Parameter(names = Array("--schema-registry"), description = "URL to a Confluent Schema Registry")
   var schemaRegistryUrl: String = _
 
-  def consumerProperties: File
-  def producerProperties: File
+  @Parameter(names = Array("--producer-config"), description = "Properties file used to configure the Kafka producer")
+  var producerProperties: File = _
+
+  @Parameter(names = Array("--consumer-config"), description = "Properties file used to configure the Kafka consumer")
+  var consumerProperties: File = _
+
+  @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka consumer/producer")
+  var genericProperties: File = _
+
   def zookeepers: String
   def numConsumers: Int
   def replication: Int
@@ -55,15 +62,11 @@ trait ProducerDataStoreParams extends KafkaDataStoreParams {
   @Parameter(names = Array("--partitions"), description = "Number of partitions for the Kafka topic")
   var partitions: Int = 1 // note: can't use override modifier since it's a var
 
-  @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka producer")
-  var producerProperties: File = _
-
   @Parameter(names = Array("--serialization"),
     description = "Serialization format to use, ones of 'kryo', 'avro', or 'avro-native'",
     validateValueWith = Array(classOf[SerializationValidator]))
   var serialization: String = _
 
-  override val consumerProperties: File = null
   override val numConsumers: Int = 0
   override val readBack: Duration = null
   override val fromBeginning: Boolean = false
@@ -83,12 +86,7 @@ trait ConsumerDataStoreParams extends KafkaDataStoreParams {
   @Parameter(names = Array("--read-back"), description = "Consume messages written within this time frame, e.g. '1 hour'", converter = classOf[DurationConverter])
   var readBack: Duration = _
 
-  @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka consumer")
-  var consumerProperties: File = _
-
-  override val producerProperties: File = null
   override val serialization: String = null
-
   override val replication: Int = 1
   override val partitions: Int = 1
 }
@@ -98,11 +96,7 @@ trait StatusDataStoreParams extends KafkaDataStoreParams {
   @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
   var zookeepers: String = _
 
-  @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka admin client")
-  var producerProperties: File = _
-
   override val serialization: String = null
-  override val consumerProperties: File = null
   override val numConsumers: Int = 0
   override val replication: Int = 1
   override val partitions: Int = 1

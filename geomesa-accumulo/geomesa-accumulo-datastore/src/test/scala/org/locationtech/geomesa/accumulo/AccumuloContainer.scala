@@ -22,7 +22,7 @@ case object AccumuloContainer extends StrictLogging {
 
   val ImageName =
     DockerImageName.parse("ghcr.io/geomesa/accumulo-uno")
-        .withTag(sys.props.getOrElse("accumulo.docker.tag", "2.1.2"))
+        .withTag(sys.props.getOrElse("accumulo.docker.tag", "2.1.3"))
 
   val Namespace = "gm"
 
