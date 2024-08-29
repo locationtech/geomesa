@@ -24,6 +24,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
+import org.locationtech.geomesa.tools.utils.TerminalCallback
 import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
@@ -70,7 +71,7 @@ object FsCompactCommand {
       Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
       val start = System.currentTimeMillis()
-      val status = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
+      val status = TerminalCallback()
 
       mode match {
         case RunModes.Local =>

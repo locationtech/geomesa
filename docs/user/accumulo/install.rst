@@ -99,7 +99,7 @@ Once in the shell:
     The path above is just an example; you can included nested folders with project
     names, version numbers, and other information in order to have different versions of GeoMesa on
     the same Accumulo instance. You should remove any GeoMesa JARs under
-    ``$ACCUMULO_HOME/lib/ext`` to prevent classpath conflicts.
+    ``$ACCUMULO_HOME/lib/`` to prevent classpath conflicts.
 
 .. note::
 
@@ -115,7 +115,8 @@ System Install
 .. warning::
 
     This approach is not recommended, as the GeoMesa classes will be on the global
-    Accumulo classpath, and may conflict with other custom JARs installed in Accumulo.
+    Accumulo classpath, and may conflict with other custom JARs installed in Accumulo. In addition,
+    upgrading GeoMesa versions will require an Accumulo restart.
 
 Alternatively, the GeoMesa runtime JAR can be copied into the ``$ACCUMULO_HOME/lib/`` folder on
 each tablet server.

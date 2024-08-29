@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
+import scala.util.Try
 
 /**
  * Executor service that will grow up to the number of threads specified.
@@ -109,6 +110,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
     }
   }
 
+  // noinspection SameParameterValue
   override protected def newTaskFor[T](runnable: Runnable, value: T): TrackableFutureTask[T] =
     new TrackableFutureTask[T](runnable, value)
 
@@ -152,4 +154,23 @@ object CachedThreadPool {
    * @return
    */
   def submit(command: Runnable): Future[_] = pool.submit(command)
+
+  /**
+   * Run commands in a executor with a fixed level of concurrency, potentially re-using threads. Will block
+   * until any submitted tasks are complete.
+   *
+   * @param threads number of concurrent threads to use
+   * @param func function
+   */
+  def executor(threads: Int)(func: ExecutorService => Unit): Unit = {
+    val executor = new CachedThreadPool(threads)
+    val shutdown = sys.addShutdownHook(executor.shutdownNow())
+    try { func(executor) } finally {
+      executor.shutdown()
+    }
+    while (!executor.isTerminated) {
+      executor.awaitTermination(1, TimeUnit.MINUTES)
+    }
+    Try(shutdown.remove())
+  }
 }

@@ -88,6 +88,51 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+``bulk-copy``
+^^^^^^^^^^^^^
+
+The bulk copy command will directly copy Accumulo RFiles between two feature types, bypassing
+the normal write path. The main use case it to move data between different storage tiers, e.g. ``hdfs`` and ``s3``.
+See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
+in the Accumulo documentation for additional details.
+
+.. warning::
+
+    The two feature types must be identical, and both must be partitioned (see :ref:`partitioned_indices`).
+
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``--from-catalog *``       Catalog table containing the source feature type
+``--from-instance *``      Source Accumulo instance name
+``--from-zookeepers *``    Zookeepers for the source instance (host[:port], comma separated)
+``--from-user *``          User name for the source instance
+``--from-password``        Connection password for the source instance
+``--from-keytab``          Path to Kerberos keytab file for the source instance (instead of using a password)
+``--from-config``          Additional Hadoop configuration file(s) to use for the source instance
+``--to-catalog *``         Catalog table containing the destination feature type
+``--to-instance *``        Destination Accumulo instance name
+``--to-zookeepers *``      Zookeepers for the destination instance (host[:port], comma separated)
+``--to-user *``            User name for the destination instance
+``--to-password``          Connection password for the destination instance
+``--to-keytab``            Path to Kerberos keytab file for the destination instance (instead of using a password)
+``--to-config``            Additional Hadoop configuration file(s) to use for the destination instance
+``-f, --feature-name *``   The name of the schema to copy
+``--export-path *``        HDFS path to used for file export - the scheme and authority (e.g. bucket name) must match the
+                           destination table filesystem
+``--partition``            Partition(s) to copy
+``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``)
+``-t, --threads``          Number of index tables to copy concurrently, default 1
+``--file-threads``         Number of files to copy concurrently, per table, default 2
+``--distcp``               Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies
+========================== ==================================================================================================
+
+.. note::
+
+    At least one ``--partition`` or ``--partition-value`` must be specified.
+
+``--partition`` and/or ``--partition-value`` may be specified multiple times in order to copy multiple partitions.
+
 ``bulk-ingest``
 ^^^^^^^^^^^^^^^
 
@@ -117,7 +162,7 @@ Argument                   Description
 ``-q, --cql``              If using a partitioned store, a filter that covers the ingest data
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
-```--index``               Specify a particular GeoMesa index to write to, instead of all indices
+``--index``                Specify a particular GeoMesa index to write to, instead of all indices
 ``--temp-path``            A temporary path to write the output. When using Accumulo on S3, it may be faster to write the
                            output to HDFS first using this parameter
 ``--no-tracking``          This application closes when ingest job is submitted. Note that this will require manual import

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.tools.utils
 
-import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{JCommander, Parameter}
 import com.codahale.metrics.{MetricRegistry, Timer}
 import com.facebook.nailgun.{NGConstants, NGServer}
@@ -16,6 +15,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.NailgunServer.{CommandStat, NailgunAware}
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
+import org.locationtech.geomesa.tools.utils.ParameterValidators.PositiveInteger
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import java.net.InetAddress
