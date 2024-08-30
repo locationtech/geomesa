@@ -17,7 +17,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan._
-import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.accumulo.data.writer.ColumnFamilyMapper
 import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.accumulo.iterators.ArrowIterator.AccumuloArrowResultsToFeatures
@@ -32,7 +31,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.Stat
 
@@ -91,10 +90,7 @@ object AccumuloJoinIndexAdapter {
     lazy val returnSchema = hints.getTransformSchema.getOrElse(indexSft)
     lazy val fti = visibilityIter(index) ++ FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq
     lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
-    lazy val localReducer = {
-      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
-    }
+    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
 
     val qp = if (hints.isBinQuery) {
       // check to see if we can execute against the index values
@@ -301,8 +297,7 @@ object AccumuloJoinIndexAdapter {
       }
     }
     val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
-    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-    val reducer = new LocalTransformReducer(resultSft, None, None, None, hints, hook)
+    val reducer = new LocalTransformReducer(resultSft, None, None, None, hints)
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)
     val recordThreads = ds.config.queries.recordThreads

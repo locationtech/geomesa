@@ -24,7 +24,7 @@ import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
@@ -100,10 +100,7 @@ object TestGeoMesaDataStore {
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform
-      val reducer = {
-        val arrowHook = Some(ArrowDictionaryHook(ds.stats, strategy.filter.filter))
-        Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints, arrowHook))
-      }
+      val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints))
       val maxFeatures = strategy.hints.getMaxFeatures
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection

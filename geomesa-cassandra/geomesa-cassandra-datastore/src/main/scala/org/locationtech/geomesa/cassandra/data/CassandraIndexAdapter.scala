@@ -24,7 +24,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, Require
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import java.nio.ByteBuffer
@@ -84,8 +84,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, ecql, hints, _) = strategy
 
-    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-    val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints, hook))
+    val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints))
 
     if (keyRanges.isEmpty) { EmptyPlan(filter, reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)

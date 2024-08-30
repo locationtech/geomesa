@@ -51,7 +51,7 @@ import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -217,11 +217,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
-      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
-      val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints, arrowHook))
+      val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints))
       empty(reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
@@ -272,10 +271,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
       lazy val resultsToFeatures = new HBaseResultsToFeatures(index, returnSchema)
-      lazy val localReducer = {
-        val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-        Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
-      }
+      lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
 
       if (hints.isDensityQuery) {
         empty(None).getOrElse {

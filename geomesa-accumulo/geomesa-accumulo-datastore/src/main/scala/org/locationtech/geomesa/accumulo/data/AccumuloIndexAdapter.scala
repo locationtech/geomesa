@@ -34,7 +34,7 @@ import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.VisibilityLevel
@@ -158,10 +158,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connec
     lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
     lazy val fti = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
     lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
-    lazy val localReducer = {
-      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
-    }
+    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
 
     index match {
       case i: AttributeJoinIndex =>
