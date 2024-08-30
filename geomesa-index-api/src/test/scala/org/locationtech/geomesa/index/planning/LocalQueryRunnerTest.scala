@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.planning
 
+import org.apache.arrow.vector.complex.StructVector
+import org.apache.arrow.vector.ipc.ArrowStreamReader
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -24,6 +26,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+
+import java.io.ByteArrayInputStream
 
 @RunWith(classOf[JUnitRunner])
 class LocalQueryRunnerTest extends Specification {
@@ -132,6 +136,28 @@ class LocalQueryRunnerTest extends Specification {
           case _: Exception => // Swallowing exception from intentionally failing iterator.
         }
         ArrowAllocator.getAllocatedMemory("LocalQueryRunnerTest") mustEqual 0
+      }
+    }
+
+    "query for Arrow and correctly set validity bits" in {
+      val q = new Query("LocalQueryRunnerTest", Filter.INCLUDE, "name", "dtg", "geom")
+      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+      val bytes =
+        runQuery(runner, q)
+          .map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+          .reduceLeftOption(_ ++ _)
+          .getOrElse(Array.empty[Byte])
+
+      WithClose(ArrowAllocator("local-query-runner-test")) { allocator =>
+        WithClose(new ArrowStreamReader(new ByteArrayInputStream(bytes), allocator)) { reader =>
+          val root = reader.getVectorSchemaRoot
+          root.getFieldVectors must haveSize(1)
+          root.getFieldVectors.get(0) must beAnInstanceOf[StructVector]
+          val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
+          reader.loadNextBatch()
+          underlying.getValueCount mustEqual 4
+          underlying.getNullCount mustEqual 0
+        }
       }
     }
 
