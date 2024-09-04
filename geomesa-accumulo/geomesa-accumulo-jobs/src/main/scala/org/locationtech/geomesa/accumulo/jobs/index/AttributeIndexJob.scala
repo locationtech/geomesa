@@ -108,7 +108,7 @@ object AttributeIndexJob {
           (i.name == AttributeIndex.name || i.name == JoinIndex.name) &&
               i.attributes.headOption.exists(attributes.contains)
         }
-        wrapper = AccumuloWritableFeature.wrapper(sft, ds.adapter.groups, indices)
+        wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
         converters = indices.map(_.createConverter()).zipWithIndex
         colFamilyMappings = indices.map(ColumnFamilyMapper.apply).toIndexedSeq
         defaultVis = new ColumnVisibility()

@@ -17,8 +17,8 @@ import org.apache.hadoop.mapreduce.lib.output.{LazyOutputFormat, MultipleOutputs
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper, Reducer}
 import org.geotools.api.data.DataStoreFinder
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.writer.VisibilityCache
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloWritableFeature}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -138,7 +138,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
       val indexIds = GeoMesaConfigurator.getIndicesOut(context.getConfiguration).orNull
       require(indexIds != null, "Indices to write was not set in the job configuration")
       val indices = indexIds.map(ds.manager.index(sft, _, IndexMode.Write))
-      wrapper = AccumuloWritableFeature.wrapper(sft, ds.adapter.groups, indices)
+      wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
       partitioner = TablePartition(ds, sft)
       writers = indices.map(i => (i, i.createConverter()))
 
