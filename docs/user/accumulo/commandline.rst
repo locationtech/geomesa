@@ -353,11 +353,11 @@ Argument                 Description
 ``--output-format``      Output format for result, one of either ``csv`` (default) or ``json``
 ======================== =============================================================
 
-The ``--begin`` and ``--end`` arguments can be used to filter logs by date. For more advanced filtering,
-the ``--cql`` argument accepts GeoTools `filter expressions <https://docs.geotools.org/stable/userguide/library/cql/ecql.html>`_.
-The schema to use for filtering is::
+The ``--begin`` and ``--end`` arguments can be used to filter logs by date (based on when the query completed). For more
+advanced filtering, the ``--cql`` argument accepts GeoTools
+`filter expressions <https://docs.geotools.org/stable/userguide/library/cql/ecql.html>`_. The schema to use for filtering is::
 
-    date:Date,user:String,filter:String,hints:String,planTimeMillis:Long,scanTimeMillis:Long,hits:Long
+    user:String,filter:String,hints:String:json=true,metadata:String:json=true,start:Date,end:Date,planTimeMillis:Long,scanTimeMillis:Long,hits:Long
 
 The ``--output-format`` argument can be used to return logs as CSV or as JSON (JSON lines).
 

@@ -14,6 +14,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -84,6 +85,8 @@ object GeoMesaFeatureReader extends MethodProfiling {
 
     private class ResultReaderWithAudit extends SimpleFeatureReader with MethodProfiling {
 
+      private val start = System.currentTimeMillis()
+      private val user = auditWriter.auditProvider.getCurrentUserId
       private val closed = new AtomicBoolean(false)
       private val count = new AtomicLong(0L)
       private val iter = profile(time => timings.occurrence("planning", time)) {
@@ -107,9 +110,13 @@ object GeoMesaFeatureReader extends MethodProfiling {
       override def close(): Unit = {
         if (closed.compareAndSet(false, true)) {
           try { iter.close() } finally {
+            val plans = result match {
+              case r: QueryPlanResult[_] => r.plans
+              case _ => Seq.empty
+            }
             // note: implementations should be asynchronous
-            auditWriter.writeQueryEvent(typeName, filter, hints, timings.time("planning"),
-              timings.time("next") + timings.time("hasNext"), count.get)
+            auditWriter.writeQueryEvent(typeName, user, filter, hints, plans, start, System.currentTimeMillis(),
+              timings.time("planning"), timings.time("next") + timings.time("hasNext"), count.get)
           }
         }
       }

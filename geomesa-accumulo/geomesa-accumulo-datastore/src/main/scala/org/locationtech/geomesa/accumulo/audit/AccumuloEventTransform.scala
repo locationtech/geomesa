@@ -69,7 +69,7 @@ trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
 
 object AccumuloEventTransform {
 
-  val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
+  val DateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH:mm:ss.SSS").withZone(ZoneOffset.UTC)
 
   private val RowId = "(.*)~(.*)".r
 
@@ -81,7 +81,7 @@ object AccumuloEventTransform {
    */
   private[audit] def typeNameAndDate(key: Key): (String, Long) = {
     val RowId(typeName, dateString) = key.getRow.toString
-    val date = ZonedDateTime.parse(dateString, dateFormat).toInstant.toEpochMilli
+    val date = ZonedDateTime.parse(dateString, DateFormat).toInstant.toEpochMilli
     (typeName, date)
   }
 
@@ -93,7 +93,7 @@ object AccumuloEventTransform {
    * @return
    */
   private[audit] def toRowKey(typeName: String, date: Long): String =
-    s"$typeName~${DateParsing.formatMillis(date, dateFormat)}"
+    s"$typeName~${DateParsing.formatMillis(date, DateFormat)}"
 
   /**
    * Create a row key from a type name and date
@@ -103,7 +103,7 @@ object AccumuloEventTransform {
    * @return
    */
   private[audit] def toRowKey(typeName: String, date: ZonedDateTime): String =
-    s"$typeName~${DateParsing.format(date, dateFormat)}"
+    s"$typeName~${DateParsing.format(date, DateFormat)}"
 
   /**
    * Create a random col family

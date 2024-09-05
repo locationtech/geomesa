@@ -46,7 +46,8 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
       def run(): CloseableIterator[SimpleFeature] = {
         // ensure that we still audit the query
         audit.foreach { writer =>
-          writer.writeQueryEvent(sft.getTypeName, query.getFilter, query.getHints, 0, 0, 0)
+          val start = System.currentTimeMillis()
+          writer.writeQueryEvent(sft.getTypeName, writer.auditProvider.getCurrentUserId, query.getFilter, query.getHints, Seq.empty, start, start, 0, 0, 0)
         }
         transients.get(sft.getTypeName)
             .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)

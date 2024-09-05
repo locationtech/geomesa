@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
-import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.accumulo.audit._
-import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
 import org.locationtech.geomesa.utils.io.WithClose
@@ -23,7 +21,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class UsageStatReaderTest extends Specification {
@@ -31,26 +28,16 @@ class UsageStatReaderTest extends Specification {
   val featureName = "stat_reader_test"
 
   lazy val client = AccumuloContainer.Container.client()
-  // noinspection TypeAnnotation
-  lazy val writer = new AccumuloAuditWriter(client, "UsageStatReaderTest_queries", new ParamsAuditProvider, enabled = true) {
-    private val timestamps = new ThreadLocal[Long]()
-    def writeWithTimestamp(filter: Filter, hints: Hints, planTime: Long, scanTime: Long, hits: Long, timestamp: Long): Future[Unit] = {
-      timestamps.set(timestamp)
-      try { writeQueryEvent(featureName, filter, hints, planTime, scanTime, hits) } finally {
-        timestamps.remove()
-      }
-    }
-    override protected def write(event: QueryEvent): Future[Unit] = super.write(event.copy(date = timestamps.get()))
-  }
+  lazy val writer = new AccumuloAuditWriter(client, "UsageStatReaderTest_queries", new ParamsAuditProvider, enabled = true)
   lazy val reader = new AccumuloAuditReader(client, writer.table, new DefaultAuthorizationsProvider())
 
   step {
-    writer.writeWithTimestamp(ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), 101L, 201L, 11,
-      DateParsing.parseMillis("2014-07-26T13:20:01Z"))
-    writer.writeWithTimestamp(ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), 102L, 202L, 12,
-      DateParsing.parseMillis("2014-07-26T14:20:01Z"))
-    writer.writeWithTimestamp(ECQL.toFilter("IN('query3')"), new Hints(QueryHints.BIN_TRACK, "trackId"), 102L, 202L, 12,
-      DateParsing.parseMillis("2014-07-27T13:20:01Z"))
+    writer.writeQueryEvent(featureName, "root", ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), Seq.empty,
+      DateParsing.parseMillis("2014-07-26T13:20:00Z"), DateParsing.parseMillis("2014-07-26T13:20:01Z"), 101L, 201L, 11)
+    writer.writeQueryEvent(featureName, "root", ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), Seq.empty,
+      DateParsing.parseMillis("2014-07-26T14:20:00Z"), DateParsing.parseMillis("2014-07-26T14:20:01Z"), 102L, 202L, 12)
+    writer.writeQueryEvent(featureName, "root", ECQL.toFilter("IN('query3')"), new Hints(QueryHints.BIN_TRACK, "trackId"), Seq.empty,
+      DateParsing.parseMillis("2014-07-27T13:20:00Z"), DateParsing.parseMillis("2014-07-27T13:20:01Z"), 102L, 202L, 12)
     writer.run()
   }
 

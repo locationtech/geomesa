@@ -5,7 +5,7 @@ Query Auditing
 
 GeoMesa provides a Java SPI to audit queries. Auditing can be enabled when creating a ``DataStore`` by setting
 the parameter ``geomesa.query.audit`` to ``true`` in the connection map. Audits are written to log files under
-the logger name ``org.locationtech.geomesa.utils.audit.AuditLogger$``. In Accumulo, audits are also written
+the logger name ``org.locationtech.geomesa.index.audit.AuditWriter``. In Accumulo, audits are also written
 to the ``<catalog>_queries`` table.
 
 As GeoMesa can run in many environments, determining **who** executed a query is delegated to a service class.

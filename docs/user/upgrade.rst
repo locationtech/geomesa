@@ -100,6 +100,12 @@ The following dependencies have been upgraded:
 
 * arrow ``15.0.2`` -> ``16.1.0``
 
+Audit Logger Changes
+--------------------
+
+The package for configuring audit logging has changed from ``org.locationtech.geomesa.utils.audit`` to
+``org.locationtech.geomesa.index.audit``. See :ref:`audit_provider` for additional details on audit logging.
+
 Version 5.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

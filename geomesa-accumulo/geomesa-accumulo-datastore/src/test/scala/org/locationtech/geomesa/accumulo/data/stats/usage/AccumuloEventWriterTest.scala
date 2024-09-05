@@ -37,7 +37,7 @@ class AccumuloEventWriterTest extends TestWithDataStore {
       // normally this is done by create schema
       ds.adapter.ensureNamespaceExists(catalog)
       // disable scheduled run, and call it manually
-      AccumuloAuditWriter.WriteInterval.threadLocalValue.set("Inf")
+      AccumuloAuditWriter.WriteInterval.threadLocalValue.set("12 hours")
       val writer = try {
         new AccumuloAuditWriter(ds.connector, catalog, new AuditProvider {
           override def configure(params: java.util.Map[String, _]): Unit = {}
@@ -49,9 +49,9 @@ class AccumuloEventWriterTest extends TestWithDataStore {
       }
       val statReader = new AccumuloAuditReader(ds.connector, catalog, ds.config.authProvider)
 
-      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), 101L, 201L, 11)
-      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), 102L, 202L, 12)
-      writer.writeQueryEvent(featureName, ECQL.toFilter("IN('query3')"), new Hints(QueryHints.BIN_TRACK, "trackId"), 102L, 202L, 12)
+      writer.writeQueryEvent(featureName, "user", ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), Seq.empty, 0L, 10L, 101L, 201L, 11)
+      writer.writeQueryEvent(featureName, "user", ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), Seq.empty, 0L, 10L, 102L, 202L, 12)
+      writer.writeQueryEvent(featureName, "user", ECQL.toFilter("IN('query3')"), new Hints(QueryHints.BIN_TRACK, "trackId"), Seq.empty, 0L, 10L, 102L, 202L, 12)
 
       val dates = (DateParsing.Epoch, ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(1))
       val unwritten = WithClose(statReader.getQueryEvents(featureName, dates))(_.toList)
