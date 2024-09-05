@@ -17,7 +17,6 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.RunnableStats
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.ConvertCommand.ConvertParameters
@@ -153,8 +152,7 @@ object ConvertCommand extends LazyLogging {
           }
         }
       }
-      val hook = Some(ArrowDictionaryHook(stats, Option(query.getFilter).filter(_ != Filter.INCLUDE)))
-      LocalQueryRunner.transform(converter.targetSft, iter, query.getHints.getTransform, query.getHints, hook)
+      LocalQueryRunner.transform(converter.targetSft, iter, query.getHints.getTransform, query.getHints)
     }
 
     transform(limit(filter(convert())))

@@ -12,16 +12,15 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.{Filter, Id}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ReadableFeatureCache
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-class KafkaQueryRunner(features: ReadableFeatureCache,
-                       stats: GeoMesaStats,
-                       authProvider: Option[AuthorizationsProvider],
-                       override protected val interceptors: QueryInterceptorFactory)
-    extends LocalQueryRunner(stats, authProvider) {
+class KafkaQueryRunner(
+    features: ReadableFeatureCache,
+    authProvider: Option[AuthorizationsProvider],
+    override protected val interceptors: QueryInterceptorFactory
+  ) extends LocalQueryRunner(authProvider) {
 
   override protected val name: String = "Kafka lambda"
 

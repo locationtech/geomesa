@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
@@ -65,8 +65,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
 
     val reducer = {
       val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints, hook))
+      Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints))
     }
 
     if (byteRanges.isEmpty) { EmptyPlan(filter, reducer) } else {

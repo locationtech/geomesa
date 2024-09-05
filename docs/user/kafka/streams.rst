@@ -123,21 +123,19 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -197,6 +195,11 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -229,6 +232,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -302,6 +308,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -312,6 +319,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -399,6 +408,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -540,6 +552,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -562,6 +575,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -621,6 +636,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -693,6 +711,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -705,6 +724,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -791,8 +813,11 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -957,11 +982,15 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -1055,6 +1084,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -1064,6 +1094,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1368,6 +1400,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1437,10 +1472,13 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1508,6 +1546,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1609,6 +1650,11 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -1730,10 +1776,13 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1804,6 +1853,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1874,8 +1926,13 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -1990,8 +2047,13 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> locatelli-main
@@ -2105,6 +2167,7 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2112,6 +2175,8 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2183,6 +2248,9 @@ __ https://kafka.apache.org/31/documentation/streams/developer-guide/dsl-api.htm
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2322,21 +2390,19 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -2396,6 +2462,11 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 7a84c9d22d (GEOMESA-3254 Add Bloop build support)
@@ -2428,6 +2499,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2501,6 +2575,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -2511,6 +2586,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2598,6 +2675,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2736,6 +2816,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2758,6 +2839,8 @@ The following shows how to persist data back to a GeoMesa topic:
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2817,6 +2900,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2889,6 +2975,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -2901,6 +2988,9 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -2987,8 +3077,11 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3150,11 +3243,15 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -3248,6 +3345,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -3257,6 +3355,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3555,6 +3655,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3624,10 +3727,13 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3695,6 +3801,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3795,6 +3904,11 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -3916,10 +4030,13 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3990,6 +4107,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4060,8 +4180,13 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -4176,8 +4301,13 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> locatelli-main
@@ -4291,6 +4421,7 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -4298,6 +4429,8 @@ The following shows how to persist data back to a GeoMesa topic:
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4369,6 +4502,9 @@ The following shows how to persist data back to a GeoMesa topic:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

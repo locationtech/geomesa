@@ -55,8 +55,6 @@ object EnrichmentCacheFunctionFactory {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -116,6 +114,11 @@ object EnrichmentCacheFunctionFactory {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
@@ -143,6 +146,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -219,7 +225,11 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 537a54b7ef (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -346,6 +356,10 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4b0ab66d74 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -440,7 +454,10 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -523,6 +540,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -599,6 +619,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -612,6 +633,8 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -681,6 +704,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -750,10 +776,13 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     }
 
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -844,6 +873,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -929,11 +961,15 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -1023,9 +1059,12 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1116,6 +1155,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1191,6 +1233,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1205,6 +1248,9 @@ object EnrichmentCacheFunctionFactory {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
+>>>>>>> locatelli-main
 =======
 >>>>>>> dc03ef5832 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
@@ -1291,9 +1337,12 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1367,6 +1416,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1442,6 +1494,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -1460,6 +1513,11 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 115257ee37 (GEOMESA-3071 Move all converter state into evaluation context)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1585,6 +1643,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1593,6 +1652,8 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 =======
 >>>>>>> b117271d95 (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1667,6 +1728,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1741,6 +1805,7 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 63a045a753 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -1775,6 +1840,11 @@ object EnrichmentCacheFunctionFactory {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> a8f97df2ea (GEOMESA-3071 Move all converter state into evaluation context)
@@ -1890,11 +1960,15 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1984,9 +2058,12 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2060,6 +2137,9 @@ object EnrichmentCacheFunctionFactory {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

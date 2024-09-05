@@ -331,6 +331,8 @@ object RichSimpleFeatureType extends Conversions {
 
     def isTemporalPriority: Boolean = boolean(sft.getUserData.get(TemporalPriority))
 
+    def isPartitioned: Boolean = sft.getUserData.containsKey(Configs.TablePartitioning)
+
     def getRemoteVersion: Option[SemanticVersion] = userData[String](RemoteVersion).map(SemanticVersion.apply)
 
     def getKeywords: Set[String] =

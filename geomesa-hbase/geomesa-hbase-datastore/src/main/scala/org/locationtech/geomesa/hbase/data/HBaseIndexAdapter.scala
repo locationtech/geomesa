@@ -51,7 +51,7 @@ import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -217,11 +217,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
-      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
-      val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints, arrowHook))
+      val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints))
       empty(reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
@@ -272,10 +271,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
       lazy val resultsToFeatures = new HBaseResultsToFeatures(index, returnSchema)
-      lazy val localReducer = {
-        val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-        Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
-      }
+      lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
 
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
@@ -626,6 +622,7 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -826,6 +823,11 @@ object HBaseIndexAdapter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -858,6 +860,9 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -928,12 +933,15 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1004,6 +1012,7 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -1014,6 +1023,8 @@ object HBaseIndexAdapter extends LazyLogging {
 >>>>>>> b6d296bc29 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1109,6 +1120,9 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1186,6 +1200,7 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1217,6 +1232,11 @@ object HBaseIndexAdapter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -1336,6 +1356,7 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1367,6 +1388,11 @@ object HBaseIndexAdapter extends LazyLogging {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> aaf3337eb7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> aaf3337eb7 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1484,6 +1510,7 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1571,6 +1598,9 @@ object HBaseIndexAdapter extends LazyLogging {
 >>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 03a1d55f8d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4010468d90 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 =======
 >>>>>>> 735bf09be9 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1599,6 +1629,9 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1647,6 +1680,7 @@ object HBaseIndexAdapter extends LazyLogging {
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 >>>>>>> 1a21a3c30 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> 38876e069f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1768,6 +1802,10 @@ object HBaseIndexAdapter extends LazyLogging {
 >>>>>>> locatelli-main
 =======
 =======
+>>>>>>> 91a82cfd3f (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locatelli-main
+=======
+=======
     private val deleteVis = HBaseSystemProperties.DeleteVis.option.map(new CellVisibility(_))
 <<<<<<< HEAD
 >>>>>>> 1a21a3c300 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
@@ -1805,11 +1843,15 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1902,11 +1944,14 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1977,11 +2022,14 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2049,10 +2097,13 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2175,6 +2226,9 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2246,6 +2300,10 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 8832d83354 (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> locatelli-main
@@ -2338,7 +2396,11 @@ object HBaseIndexAdapter extends LazyLogging {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1b0b697d7d (GEOMESA-3113 Add system property to managing HBase deletes with visibilities (#2792))
 >>>>>>> locatelli-main

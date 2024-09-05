@@ -88,6 +88,51 @@ Argument                 Description
 
 For a description of index coverage, see :ref:`accumulo_attribute_indices`.
 
+``bulk-copy``
+^^^^^^^^^^^^^
+
+The bulk copy command will directly copy Accumulo RFiles between two feature types, bypassing
+the normal write path. The main use case it to move data between different storage tiers, e.g. ``hdfs`` and ``s3``.
+See `Bulk Ingest <https://accumulo.apache.org/docs/2.x/development/high_speed_ingest#bulk-ingest>`__
+in the Accumulo documentation for additional details.
+
+.. warning::
+
+    The two feature types must be identical, and both must be partitioned (see :ref:`partitioned_indices`).
+
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``--from-catalog *``       Catalog table containing the source feature type
+``--from-instance *``      Source Accumulo instance name
+``--from-zookeepers *``    Zookeepers for the source instance (host[:port], comma separated)
+``--from-user *``          User name for the source instance
+``--from-password``        Connection password for the source instance
+``--from-keytab``          Path to Kerberos keytab file for the source instance (instead of using a password)
+``--from-config``          Additional Hadoop configuration file(s) to use for the source instance
+``--to-catalog *``         Catalog table containing the destination feature type
+``--to-instance *``        Destination Accumulo instance name
+``--to-zookeepers *``      Zookeepers for the destination instance (host[:port], comma separated)
+``--to-user *``            User name for the destination instance
+``--to-password``          Connection password for the destination instance
+``--to-keytab``            Path to Kerberos keytab file for the destination instance (instead of using a password)
+``--to-config``            Additional Hadoop configuration file(s) to use for the destination instance
+``-f, --feature-name *``   The name of the schema to copy
+``--export-path *``        HDFS path to used for file export - the scheme and authority (e.g. bucket name) must match the
+                           destination table filesystem
+``--partition``            Partition(s) to copy
+``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``)
+``-t, --threads``          Number of index tables to copy concurrently, default 1
+``--file-threads``         Number of files to copy concurrently, per table, default 2
+``--distcp``               Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies
+========================== ==================================================================================================
+
+.. note::
+
+    At least one ``--partition`` or ``--partition-value`` must be specified.
+
+``--partition`` and/or ``--partition-value`` may be specified multiple times in order to copy multiple partitions.
+
 ``bulk-ingest``
 ^^^^^^^^^^^^^^^
 
@@ -122,12 +167,6 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -136,6 +175,13 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -143,9 +189,6 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -207,6 +250,11 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -245,6 +293,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -316,6 +367,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -324,6 +376,8 @@ in the Accumulo documentation for additional details.
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> 541079bbd0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -410,6 +464,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -457,6 +514,7 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -535,6 +593,8 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -559,6 +619,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -628,12 +691,15 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -704,11 +770,15 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locatelli-main
@@ -801,11 +871,14 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -875,10 +948,13 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -965,6 +1041,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1034,10 +1113,13 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1105,6 +1187,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1178,6 +1263,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 <<<<<<< HEAD
@@ -1243,6 +1329,8 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1283,6 +1371,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1355,11 +1446,14 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1425,9 +1519,12 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1513,6 +1610,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1586,6 +1686,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1617,6 +1718,11 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 0283274bf0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
@@ -1733,6 +1839,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1764,6 +1871,11 @@ in the Accumulo documentation for additional details.
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0b090a0ead (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -1881,6 +1993,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1999,11 +2112,17 @@ in the Accumulo documentation for additional details.
 >>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 38df2fe8ca (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 19646771be (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 5e469d5cd9 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2124,6 +2243,10 @@ in the Accumulo documentation for additional details.
 >>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 1765bd4159 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 51a90e7f04 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> 9b0960d94d (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
@@ -2153,11 +2276,15 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -2250,11 +2377,14 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2326,11 +2456,14 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2403,6 +2536,7 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -2412,6 +2546,8 @@ in the Accumulo documentation for additional details.
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2521,6 +2657,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2590,10 +2729,13 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 51a90e7f0 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2661,6 +2803,9 @@ in the Accumulo documentation for additional details.
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2726,7 +2871,7 @@ Argument                   Description
 ``-q, --cql``              If using a partitioned store, a filter that covers the ingest data
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
-```--index``               Specify a particular GeoMesa index to write to, instead of all indices
+``--index``                Specify a particular GeoMesa index to write to, instead of all indices
 ``--temp-path``            A temporary path to write the output. When using Accumulo on S3, it may be faster to write the
                            output to HDFS first using this parameter
 ``--no-tracking``          This application closes when ingest job is submitted. Note that this will require manual import

@@ -45,8 +45,13 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -73,10 +78,6 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -240,6 +241,11 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -274,6 +280,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -344,12 +353,15 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -420,6 +432,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -430,6 +443,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 >>>>>>> d4039e3d9a (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> ad362b1341 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -525,6 +540,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, listeners: K
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -603,6 +621,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -634,6 +653,11 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -747,6 +771,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ccfb3bd95e (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> 337ecd16e5 (GEOMESA-3100 Kafka layer views (#2784))
@@ -776,6 +801,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -842,6 +869,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -918,10 +948,13 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -989,6 +1022,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1062,6 +1098,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -1073,6 +1110,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1136,6 +1175,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1206,12 +1248,15 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1288,11 +1333,15 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1385,11 +1434,14 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1474,6 +1526,7 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 59dea284e8 (GEOMESA-3100 Kafka layer views (#2784))
@@ -1484,6 +1537,8 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1644,6 +1699,9 @@ class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: Quer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

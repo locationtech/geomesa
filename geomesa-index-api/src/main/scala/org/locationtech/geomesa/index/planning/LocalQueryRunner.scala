@@ -22,9 +22,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
@@ -43,10 +41,9 @@ import scala.util.control.NonFatal
   * Query runner that handles transforms, visibilities and analytic queries locally. Subclasses are responsible
   * for implementing basic filtering.
   *
-  * @param stats stats
   * @param authProvider auth provider
   */
-abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
+abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
 
   import LocalQueryRunner.transform
@@ -81,8 +78,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     val visible = LocalQueryRunner.visible(authProvider)
     val iter = features(sft, filter).filter(visible.apply)
 
-    val hook = Some(ArrowDictionaryHook(stats, filter))
-    var result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)
+    var result = transform(sft, iter, query.getHints.getTransform, query.getHints)
 
     query.getHints.getMaxFeatures.foreach { maxFeatures =>
       if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
@@ -123,8 +119,6 @@ object LocalQueryRunner extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
-
   /**
     * Filter to checking visibilities
     *
@@ -143,7 +137,6 @@ object LocalQueryRunner extends LazyLogging {
     *
     * @param sft simple feature type being queried
     * @param hints query hints
-    * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
     * @return
     */
   class LocalTransformReducer(
@@ -151,11 +144,10 @@ object LocalQueryRunner extends LazyLogging {
       private var filter: Option[Filter],
       private var visibility: Option[SimpleFeature => Boolean],
       private var transform: Option[(String, SimpleFeatureType)],
-      private var hints: Hints,
-      private var arrow: Option[ArrowDictionaryHook] = None
+      private var hints: Hints
     ) extends FeatureReducer with LazyLogging {
 
-    def this() = this(null, null, None, null, null, None) // no-arg constructor required for serialization
+    def this() = this(null, null, None, None, null) // no-arg constructor required for serialization
 
     override def init(state: Map[String, String]): Unit = {
       sft = SimpleFeatureTypes.createType(state("name"), state("spec"))
@@ -192,7 +184,7 @@ object LocalQueryRunner extends LazyLogging {
         case (None, Some(v))    => features.filter(v.apply)
         case (Some(f), Some(v)) => features.filter(feature => v(feature) && f.evaluate(feature))
       }
-      LocalQueryRunner.transform(sft, filtered, transform, hints, arrow)
+      LocalQueryRunner.transform(sft, filtered, transform, hints)
     }
   }
 
@@ -202,15 +194,13 @@ object LocalQueryRunner extends LazyLogging {
     * @param sft simple feature type being queried
     * @param features plain, untransformed features matching the simple feature type
     * @param hints query hints
-    * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
     * @return
     */
   def transform(
       sft: SimpleFeatureType,
       features: CloseableIterator[SimpleFeature],
       transform: Option[(String, SimpleFeatureType)],
-      hints: Hints,
-      arrow: Option[ArrowDictionaryHook] = None): CloseableIterator[SimpleFeature] = {
+      hints: Hints): CloseableIterator[SimpleFeature] = {
     val sampled = hints.getSampling match {
       case None => features
       case Some((percent, field)) => sample(sft, percent, field)(features)
@@ -222,7 +212,7 @@ object LocalQueryRunner extends LazyLogging {
       val sorting = hints.isBinSorting
       binTransform(sampled, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf), sorting)
     } else if (hints.isArrowQuery) {
-      arrowTransform(sampled, sft, transform, hints, arrow)
+      arrowTransform(sampled, sft, transform, hints)
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
@@ -270,8 +260,7 @@ object LocalQueryRunner extends LazyLogging {
       original: CloseableIterator[SimpleFeature],
       sft: SimpleFeatureType,
       transform: Option[(String, SimpleFeatureType)],
-      hints: Hints,
-      hook: Option[ArrowDictionaryHook]): CloseableIterator[SimpleFeature] = {
+      hints: Hints): CloseableIterator[SimpleFeature] = {
 
     val sort = hints.getArrowSort.map(Seq.fill(1)(_))
     val batchSize = ArrowScan.getBatchSize(hints)
@@ -281,10 +270,6 @@ object LocalQueryRunner extends LazyLogging {
     val (features, arrowSft) = transform match {
       case None => (noTransform(original, sort), sft)
       case Some((definitions, tsft)) => (projectionTransform(original, sft, tsft, definitions, sort), tsft)
-    }
-
-    lazy val ArrowDictionaryHook(stats, filter) = hook.getOrElse {
-      throw new IllegalStateException("Arrow query called without required hooks for dictionary lookups")
     }
 
     val dictionaryFields = hints.getArrowDictionaryFields

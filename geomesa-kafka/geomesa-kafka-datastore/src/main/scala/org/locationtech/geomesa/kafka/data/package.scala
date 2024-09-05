@@ -19,6 +19,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
@@ -141,6 +147,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -249,6 +256,10 @@
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -277,6 +288,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -284,6 +296,8 @@
 >>>>>>> locatelli-main
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -342,6 +356,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -382,6 +399,7 @@
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -463,6 +481,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a7c0500a81 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -496,6 +516,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -538,6 +561,7 @@
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -609,6 +633,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 67d93e2791 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 =======
@@ -642,6 +668,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -703,6 +732,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -714,6 +744,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -773,6 +805,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -851,10 +886,8 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
 <<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -880,6 +913,9 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -929,26 +965,6 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -985,6 +1001,26 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -1105,6 +1141,15 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1118,6 +1163,7 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1158,6 +1204,9 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -1254,6 +1303,9 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1324,12 +1376,15 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1398,6 +1453,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -1406,6 +1462,8 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1504,6 +1562,9 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1576,6 +1637,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1607,6 +1669,11 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -1721,6 +1788,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1808,6 +1876,9 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -1836,6 +1907,9 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1890,6 +1964,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2029,6 +2104,11 @@ import org.apache.kafka.clients.producer.Producer
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2057,11 +2137,14 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2130,11 +2213,14 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2205,11 +2291,14 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2280,11 +2369,14 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2353,11 +2445,15 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -2447,6 +2543,7 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2457,6 +2554,8 @@ import org.apache.kafka.clients.producer.Producer
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2579,6 +2678,9 @@ import org.apache.kafka.clients.producer.Producer
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2666,6 +2768,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2737,6 +2840,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -2772,6 +2877,9 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2842,9 +2950,12 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2926,6 +3037,9 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2972,6 +3086,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 =======
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3110,6 +3225,10 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> e792102d4b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e792102d4b (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 57d901cb17 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -3138,6 +3257,9 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3184,6 +3306,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> 1b8cbf843d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d845d7c1bd (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3257,6 +3380,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -3281,6 +3406,9 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3354,6 +3482,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3385,6 +3514,11 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -3507,6 +3641,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -3524,6 +3659,10 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3633,11 +3772,14 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3708,11 +3850,14 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3780,12 +3925,15 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3860,9 +4008,12 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3988,6 +4139,9 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageParti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4052,6 +4206,7 @@ package object data {
       }
     }
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4184,6 +4339,10 @@ package object data {
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -4212,6 +4371,9 @@ package object data {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4259,6 +4421,7 @@ package object data {
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4379,6 +4542,10 @@ package object data {
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> de758f45a6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -4405,9 +4572,12 @@ package object data {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4483,6 +4653,9 @@ package object data {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

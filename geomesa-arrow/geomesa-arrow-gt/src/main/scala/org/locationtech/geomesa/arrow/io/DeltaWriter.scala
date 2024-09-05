@@ -378,6 +378,11 @@ object DeltaWriter extends StrictLogging {
           count += toRead
           total += toRead
         }
+        var i = 0
+        while (i < count) {
+          result.underlying.setIndexDefined(i)
+          i += 1
+        }
 
         if (writeHeader) {
           // write the header in the first result, which includes the metadata and dictionaries
