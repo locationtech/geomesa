@@ -155,7 +155,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
           HBaseVersions.disableTableAsync(admin, table)
-          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
+          val timeout = TableAvailabilityTimeout.toUnboundedDuration.filter(_.isFinite)
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
           val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
@@ -542,7 +542,7 @@ object HBaseIndexAdapter extends LazyLogging {
    */
   def waitForTable(admin: Admin, table: TableName): Unit = {
     if (!admin.isTableAvailable(table)) {
-      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite)
+      val timeout = TableAvailabilityTimeout.toUnboundedDuration.filter(_.isFinite)
       logger.debug(s"Waiting for table '$table' to become available with " +
           s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
       val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)

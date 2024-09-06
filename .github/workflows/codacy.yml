@@ -47,7 +47,6 @@ jobs:
           - SQLint
           - shellcheck
           - stylelint
-          - tsqllint
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code

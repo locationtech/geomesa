@@ -13,12 +13,14 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection, SortingSimpleFeatureIterator}
@@ -55,10 +57,10 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
       output: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] =
     getQueryPlans(sft, configureQuery(sft, query), query.getFilter, index, output).toList // toList forces evaluation of entire iterator
 
-  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
+  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryPlanResult[DS] = {
     val query = configureQuery(sft, original)
     val plans = getQueryPlans(sft, query, original.getFilter, None, explain)
-    QueryResult(query.getHints.getReturnSft, query.getHints, run(query, plans))
+    new QueryPlanResult(query.getHints.getReturnSft, query.getHints, plans, run(query, plans))
   }
 
   private def run(query: Query, plans: Seq[QueryPlan[DS]])(): CloseableIterator[SimpleFeature] = {
@@ -308,4 +310,11 @@ object QueryPlanner extends LazyLogging {
       query.getHints.put(QueryHints.Internal.MAX_FEATURES, Int.box(query.getMaxFeatures))
     }
   }
+
+  class QueryPlanResult[DS <: GeoMesaDataStore[DS]](
+      schema: SimpleFeatureType,
+      hints: Hints,
+      val plans: Seq[QueryPlan[DS]],
+      iterator: () => CloseableIterator[SimpleFeature]
+    ) extends QueryResult(schema, hints, iterator)
 }
