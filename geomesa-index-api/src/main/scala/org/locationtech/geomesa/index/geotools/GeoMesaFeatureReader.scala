@@ -13,9 +13,11 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
@@ -43,6 +45,8 @@ class GeoMesaFeatureReader(result: QueryResult) {
 }
 
 object GeoMesaFeatureReader extends MethodProfiling {
+
+  val EventData: ThreadLocal[(Seq[QueryPlan[_]], Hints, Long)] = new ThreadLocal[(Seq[QueryPlan[_]], Hints, Long)]()
 
   def apply(
       sft: SimpleFeatureType,
@@ -88,6 +92,7 @@ object GeoMesaFeatureReader extends MethodProfiling {
 
     private class ResultReaderWithAudit extends SimpleFeatureReader with MethodProfiling {
 
+      private val start = System.currentTimeMillis()
       private val closed = new AtomicBoolean(false)
       private val count = new AtomicLong(0L)
       private val iter = profile(time => timings.occurrence("planning", time)) {
@@ -122,7 +127,16 @@ object GeoMesaFeatureReader extends MethodProfiling {
               timings.time("next") + timings.time("hasNext"),
               count.get
             )
-            auditWriter.writeEvent(stat) // note: implementations should be asynchronous
+            val plans = result match {
+              case r: QueryPlanResult[_] => (r.plans, r.hints, start)
+              case _ => (Seq.empty, new Hints(), start)
+            }
+            EventData.set(plans)
+            try {
+              auditWriter.writeEvent(stat) // note: implementations should be asynchronous
+            } finally {
+              EventData.remove()
+            }
           }
         }
       }
