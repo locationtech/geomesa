@@ -218,13 +218,16 @@ class AttributeIndexJob extends Tool {
       AttributeIndexJob.setAttributes(job.getConfiguration, attributes.toSeq)
       AttributeIndexJob.setTypeName(job.getConfiguration, sft.getTypeName)
 
-      val config = new Properties()
-      config.put(ClientProperty.INSTANCE_NAME.getKey, parsedArgs.inInstanceId)
-      config.put(ClientProperty.INSTANCE_ZOOKEEPERS.getKey, parsedArgs.inZookeepers)
-      config.put(ClientProperty.AUTH_PRINCIPAL.getKey, parsedArgs.inUser)
-      config.put(ClientProperty.AUTH_TOKEN.getKey, parsedArgs.inPassword)
+      val props = AccumuloDataStoreFactory.buildAccumuloClientConfig(
+        java.util.Map.of(
+          AccumuloDataStoreParams.InstanceNameParam.key, parsedArgs.inInstanceId,
+          AccumuloDataStoreParams.ZookeepersParam.key, parsedArgs.inZookeepers,
+          AccumuloDataStoreParams.UserParam.key, parsedArgs.inUser,
+          AccumuloDataStoreParams.PasswordParam.key, parsedArgs.inPassword
+        )
+      )
 
-      AccumuloOutputFormat.configure().clientProperties(config).createTables(true).store(job)
+      AccumuloOutputFormat.configure().clientProperties(props).createTables(true).store(job)
 
       val result = job.waitForCompletion(true)
 
