@@ -31,8 +31,7 @@ class JoinIndex(ds: GeoMesaDataStore[_],
                               tier: Array[Byte],
                               id: Array[Byte],
                               lenient: Boolean): RowKeyValue[AttributeIndexKey] = {
-        val kv = super.toIndexKey(writable, tier, id, lenient)
-        kv.copy(values = writable.asInstanceOf[ReducedIndexValues].indexValues)
+        super.toIndexKey(writable, tier, id, lenient).copy(writable.reducedValues)
       }
     }
 }

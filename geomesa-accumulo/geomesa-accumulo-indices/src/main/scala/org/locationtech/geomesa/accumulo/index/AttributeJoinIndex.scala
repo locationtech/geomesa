@@ -8,11 +8,12 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.features.kryo.serialization.IndexValueSerializer
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey, AttributeIndexValues}
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 
 /**
   * Mixin trait to add join support to the normal attribute index class
@@ -27,7 +28,7 @@ trait AttributeJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], 
   private val attributeIndex = sft.indexOf(attribute)
   private val descriptor = sft.getDescriptor(attributeIndex)
   private val binding = descriptor.getType.getBinding
-  val indexSft: SimpleFeatureType = IndexValueEncoder.getIndexSft(sft)
+  val indexSft: SimpleFeatureType = IndexValueSerializer.getIndexSft(sft)
 
   override val name: String = JoinIndex.name
   override val identifier: String = GeoMesaFeatureIndex.identifier(name, version, attributes)

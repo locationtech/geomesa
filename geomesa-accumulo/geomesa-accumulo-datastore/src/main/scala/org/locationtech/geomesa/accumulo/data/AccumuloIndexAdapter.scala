@@ -264,7 +264,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connec
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       partition: Option[String],
       atomic: Boolean): IndexWriter = {
-    val wrapper = AccumuloWritableFeature.wrapper(sft, groups, indices)
+    val wrapper = WritableFeature.wrapper(sft, groups)
     (atomic, sft.isVisibilityRequired) match {
       case (false, false) => new AccumuloIndexWriter(ds, indices, wrapper, partition)
       case (false, true)  => new AccumuloIndexWriter(ds, indices, wrapper, partition)  with RequiredVisibilityWriter
