@@ -39,7 +39,7 @@ trait AccumuloEventTransform[T <: AuditedEvent] extends LazyLogging {
     (typeName, date)
   }
 
-  protected def createRandomColumnFamily: Text = new Text(Random.nextInt(9999).formatted("%1$04d"))
+  def createRandomColumnFamily: Text = new Text(Random.nextInt(9999).formatted("%1$04d"))
 
   /**
    * Convert an event to a mutation

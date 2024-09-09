@@ -29,9 +29,10 @@ object AccumuloQueryEventTransform extends AccumuloEventTransform[QueryEvent] {
   private [audit] val CQ_HITS     = new Text("hits")
   private [audit] val CQ_DELETED  = new Text("deleted")
 
-  override def toMutation(event: QueryEvent): Mutation = {
+  override def toMutation(event: QueryEvent): Mutation = toMutation(event, createRandomColumnFamily)
+
+  def toMutation(event: QueryEvent, cf: Text): Mutation = {
     val mutation = createMutation(event)
-    val cf = createRandomColumnFamily
     mutation.put(cf, CQ_USER,     new Value(event.user.getBytes(StandardCharsets.UTF_8)))
     mutation.put(cf, CQ_FILTER,   new Value(event.filter.getBytes(StandardCharsets.UTF_8)))
     mutation.put(cf, CQ_HINTS,    new Value(event.hints.getBytes(StandardCharsets.UTF_8)))
