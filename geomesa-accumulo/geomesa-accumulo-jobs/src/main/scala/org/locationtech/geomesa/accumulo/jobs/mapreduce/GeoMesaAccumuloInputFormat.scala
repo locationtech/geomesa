@@ -22,7 +22,7 @@ import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
-import org.locationtech.geomesa.accumulo.data.{AccumuloClientConfig, AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat.{GeoMesaRecordReader, GroupedSplit}
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
@@ -34,7 +34,7 @@ import java.io._
 import java.net.{URL, URLClassLoader}
 import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.Map.Entry
-import java.util.{Collections, Properties}
+import java.util.{Collections, Locale}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -150,36 +150,13 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
-    val props = new Properties()
-    // set zookeeper instance
-    props.put(ClientProperty.INSTANCE_NAME.getKey, AccumuloDataStoreParams.InstanceNameParam.lookup(params))
-    props.put(ClientProperty.INSTANCE_ZOOKEEPERS.getKey, AccumuloDataStoreParams.ZookeepersParam.lookup(params))
-    // set connector info
-    val password = AccumuloDataStoreParams.PasswordParam.lookupOpt(params)
-    password.orElse(AccumuloDataStoreParams.KeytabPathParam.lookupOpt(params)).foreach { token =>
-      props.put(ClientProperty.AUTH_PRINCIPAL.getKey, AccumuloDataStoreParams.UserParam.lookup(params))
-      props.put(ClientProperty.AUTH_TOKEN.getKey, token)
-      if (password.isDefined) {
-        props.put(ClientProperty.AUTH_TYPE.getKey, AccumuloClientConfig.PasswordAuthType)
-      } else {
-        props.put(ClientProperty.AUTH_TYPE.getKey, AccumuloClientConfig.KerberosAuthType)
-        props.put(ClientProperty.SASL_ENABLED.getKey, "true")
-      }
+    val props = AccumuloDataStoreFactory.buildAccumuloClientConfig(params)
+    // TODO verify kerberos still works
+    if (ClientProperty.AUTH_TYPE.getValue(props).toLowerCase(Locale.US).contains("kerberos")) {
+      props.put(ClientProperty.SASL_ENABLED.getKey, "true")
+      // // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
+      // AbstractInputFormat.setConnectorInfo(job, user, token)
     }
-
-        // TODO verify kerberos still works
-//    val token = AccumuloDataStoreParams.PasswordParam.lookupOpt(params) match {
-//      case Some(p) => new PasswordToken(p.getBytes(StandardCharsets.UTF_8))
-//      case None =>
-//        // must be using Kerberos
-//        val file = new java.io.File(keytabPath)
-//        // mimic behavior from accumulo 1.9 and earlier:
-//        // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
-//        UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
-//        new KerberosToken(user, file)
-//    }
-//    // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
-//    AbstractInputFormat.setConnectorInfo(job, user, token)
 
     // use the query plan to set the accumulo input format options
     require(plan.tables.lengthCompare(1) == 0, s"Can only query from a single table: ${plan.tables.mkString(", ")}")
