@@ -47,6 +47,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
     val props = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    // note: serializer will registry schemas with the registry automatically
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
     props.put("schema.registry.url", schemaRegistryUrl)
     new KafkaProducer[String, GenericRecord](props)
@@ -58,7 +59,6 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
     val params = Map(
       "kafka.schema.registry.url" -> schemaRegistryUrl,
       "kafka.brokers" -> brokers,
-      "kafka.zookeepers" -> zookeepers,
       "kafka.topic.partitions" -> 1,
       "kafka.topic.replication" -> 1,
       "kafka.consumer.read-back" -> "Inf",

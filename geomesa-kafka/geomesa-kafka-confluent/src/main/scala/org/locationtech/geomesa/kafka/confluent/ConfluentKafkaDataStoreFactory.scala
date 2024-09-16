@@ -75,8 +75,18 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
       largeText = true
     )
 
+  private val UnusedParams =
+    Seq(
+      KafkaDataStoreParams.Brokers, // note: added separately so it's first in the list
+      KafkaDataStoreParams.Catalog,
+      KafkaDataStoreParams.Zookeepers,
+      KafkaDataStoreParams.ZkPath,
+      KafkaDataStoreParams.SerializationType,
+    )
+
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
-    SchemaRegistryUrl +: KafkaDataStoreFactory.ParameterInfo :+ SchemaOverrides
+    Array(KafkaDataStoreParams.Brokers, SchemaRegistryUrl, SchemaOverrides) ++
+      KafkaDataStoreFactory.ParameterInfo.filterNot(UnusedParams.contains)
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     KafkaDataStoreParams.Brokers.exists(params) && SchemaRegistryUrl.exists(params)
