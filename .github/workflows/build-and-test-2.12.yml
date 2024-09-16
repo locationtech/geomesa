@@ -41,6 +41,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   accumulo-unit-tests:
+    needs: build-scala
     runs-on: ubuntu-latest
     # avoid duplicate jobs on PRs from the main repo
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
@@ -81,6 +82,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   kafka-unit-tests:
+    needs: build-scala
     runs-on: ubuntu-latest
     # avoid duplicate jobs on PRs from the main repo
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
