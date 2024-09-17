@@ -1,22 +1,19 @@
-name: integration-tests-2.13
+name: integration-tests
 
 on:
-  push:
-  pull_request:
+  workflow_call:
+    inputs:
+      scala-version:
+        required: false
+        type: string
+        default: "2.12"
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
-env:
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
-  MAVEN_TEST_OPTS: -Dtest.fork.count=1
-
 jobs:
-  build-scala:
+  integration-tests:
     runs-on: ubuntu-latest
-    # avoid duplicate jobs on PRs from the main repo
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - uses: actions/setup-java@6a0805fcefea3d4657a47ac4c165951e33482018 # v4.2.2
@@ -25,9 +22,18 @@ jobs:
           java-version: '11'
           cache: 'maven'
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh 2.13
-      - name: Build with Maven
-        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+        run: |
+          echo ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+          ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: classes-and-jars
+      - name: Install artifacts
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Integration Tests
         run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
       - name: Remove geomesa artifacts
