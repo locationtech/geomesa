@@ -1,4 +1,4 @@
-name: module-unit-tests
+name: unit-tests
 
 on:
   workflow_call:
@@ -14,12 +14,8 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
-env:
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
-  MAVEN_TEST_OPTS: -Dtest.fork.count=1
-
 jobs:
-  module-unit-tests:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7

@@ -1,0 +1,58 @@
+name: build-and-test
+
+on:
+  workflow_call:
+    inputs:
+      scala-version:
+        required: false
+        type: string
+        default: "2.12"
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
+
+jobs:
+  build-scala:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-java@6a0805fcefea3d4657a47ac4c165951e33482018 # v4.2.2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+      - name: Build with Maven
+        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+      - name: Collect artifacts
+        run: |
+          mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
+          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -type d | tr '\n' ' ')
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: classes-and-jars
+          retention-days: 1
+          path: |
+            m2-geomesa
+            classes.tgz
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
+  accumulo-tests:
+    needs: build-scala
+    uses: ./.github/workflows/module-unit-tests.yml
+    with:
+      module-selector: :geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      scala-version: ${{ inputs.scala-version }}
+  non-accumulo-tests:
+    needs: build-scala
+    uses: ./.github/workflows/module-unit-tests.yml
+    with:
+      module-selector: -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      scala-version: ${{ inputs.scala-version }}
