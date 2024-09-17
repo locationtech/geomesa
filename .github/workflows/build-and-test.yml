@@ -48,11 +48,11 @@ jobs:
     needs: build-scala
     uses: ./.github/workflows/module-unit-tests.yml
     with:
-      module-selector: :geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      module-selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }}
       scala-version: ${{ inputs.scala-version }}
   non-accumulo-tests:
     needs: build-scala
     uses: ./.github/workflows/module-unit-tests.yml
     with:
-      module-selector: -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      module-selector: -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
       scala-version: ${{ inputs.scala-version }}
