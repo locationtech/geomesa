@@ -3,7 +3,7 @@
 In-Memory Indexing
 ==================
 
-The **geomesa-memory** module provides a in-memory cache of ``SimpleFeature``\ s that supports indexing and filtering,
+The **geomesa-cqengine** module provides a in-memory cache of ``SimpleFeature``\ s that supports indexing and filtering,
 using the `CQEngine <https://github.com/npgall/cqengine>`__ collection query engine. This is implemented by the
 ``GeoCQEngine`` class.
 
