@@ -29,11 +29,9 @@ jobs:
           java-version: '11'
           cache: 'maven'
       - name: Set Scala version
-        with:
-          scala-version: ${{ inputs.scala-version }}
         run: |
-          echo ./build/scripts/change-scala-version.sh ${scala-version}
-          ./build/scripts/change-scala-version.sh ${scala-version}
+          echo ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+          ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -46,12 +44,10 @@ jobs:
       - name: Unit tests
         id: test
         continue-on-error: true
-        with:
-          module-selector: ${{ inputs.module-selector }}
         run: |
           set -o pipefail
-          echo mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${module-selector}
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${module-selector} | tee -a test.log
+          echo mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ inputs.module-selector }}
+          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ inputs.module-selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
@@ -59,14 +55,14 @@ jobs:
         run: |
           set -o pipefail
           RESUME_FROM="$(grep --text 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${module-selector} | tee -a test.log
+          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry-retry
         if: steps.test-retry.outcome=='failure'
         run: |
           set -o pipefail
           RESUME_FROM="$(grep --text 'mvn <args> -rf ' test.log | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${module-selector} | tee -a test.log
+          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
