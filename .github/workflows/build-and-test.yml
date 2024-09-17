@@ -78,7 +78,7 @@ jobs:
     needs: build-scala
     uses: ./.github/workflows/unit-tests.yml
     with:
-      module-selector: -f geomesa-cqengine-parent
+      module-selector: -f geomesa-memory
       scala-version: ${{ inputs.scala-version }}
   features-tests:
     needs: build-scala
