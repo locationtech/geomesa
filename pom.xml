@@ -26,7 +26,6 @@
         <module>geomesa-arrow</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
-        <module>geomesa-cqengine-parent</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
@@ -36,6 +35,7 @@
         <module>geomesa-jobs</module>
         <module>geomesa-kafka</module>
         <module>geomesa-lambda</module>
+        <module>geomesa-memory</module>
         <module>geomesa-metrics</module>
         <module>geomesa-process</module>
         <module>geomesa-redis</module>
