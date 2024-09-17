@@ -1,4 +1,4 @@
-name: build-and-test-2.13
+name: scala-2.13
 
 on:
   push:
