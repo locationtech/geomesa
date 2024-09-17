@@ -34,6 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: classes-and-jars
+          retention-days: 1
           path: |
             m2-geomesa
             classes.tgz
@@ -59,8 +60,9 @@ jobs:
           name: classes-and-jars
       - name: Install artifacts
         run: |
-          tar -xf classes.tgz
-          mv m2-geomesa ~/.m2/repository/org/locationtech/geomesa
+          tar -xvf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Unit tests
         id: test
         continue-on-error: true
@@ -104,9 +106,10 @@ jobs:
           name: classes-and-jars
       - name: Install artifacts
         run: |
-          ls -la
-          tar -xf classes.tgz
-          mv m2-geomesa ~/.m2/repository/org/locationtech/geomesa
+          find m2-geomesa/
+          tar -xvf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Unit tests
         id: test
         continue-on-error: true
