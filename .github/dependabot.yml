@@ -6,7 +6,6 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "[dependabot] "
-      include: "scope"
     groups:
       actions:
         update-types:
@@ -14,12 +13,30 @@ updates:
           - "minor"
           - "patch"
 
-  - package-ecosystem: pip
-    directory: /docs
+  - package-ecosystem: "pip"
+    directory: "/docs"
     schedule:
-      interval: weekly
+      interval: "weekly"
+    commit-message:
+      prefix: "[dependabot] "
+    groups:
+      docs:
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
 
-  - package-ecosystem: maven
-    directory: /
+  - package-ecosystem: "maven"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
+    commit-message:
+      prefix: "[dependabot] "
+    groups:
+      major:
+        update-types:
+          - "major"
+      minor:
+        update-types:
+          - "minor"
+          - "patch"
