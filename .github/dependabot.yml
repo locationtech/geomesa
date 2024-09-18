@@ -16,3 +16,13 @@ updates:
           - "major"
           - "minor"
           - "patch"
+
+  - package-ecosystem: pip
+    directory: /docs
+    schedule:
+      interval: daily
+
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: daily

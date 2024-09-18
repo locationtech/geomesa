@@ -34,7 +34,7 @@ jobs:
           mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
           tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -type d | tr '\n' ' ')
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: classes-and-jars
           retention-days: 1
