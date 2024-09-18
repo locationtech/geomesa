@@ -1,11 +1,8 @@
-# Set update schedule for GitHub Actions
-
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      # Check for updates to GitHub Actions every week
       interval: "weekly"
     commit-message:
       prefix: "[dependabot] "
@@ -16,3 +13,13 @@ updates:
           - "major"
           - "minor"
           - "patch"
+
+  - package-ecosystem: pip
+    directory: /docs
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
