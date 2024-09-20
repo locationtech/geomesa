@@ -16,6 +16,7 @@
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-spark*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
+        <exclude>org.locationtech.geomesa:docs</exclude>
         <exclude>com.google.guava:guava</exclude>
       </excludes>
     </dependencySet>
@@ -88,7 +89,6 @@
       <outputDirectory>conf</outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>0644</fileMode>
-      <filtered>false</filtered>
     </fileSet>
     <fileSet>
       <directory>../geomesa-${tools.module}-tools/conf-filtered</directory>
@@ -115,7 +115,6 @@
       <outputDirectory>conf</outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>0644</fileMode>
-      <filtered>false</filtered>
     </fileSet>
     <fileSet>
       <directory>../../geomesa-tools/conf-filtered</directory>
@@ -129,14 +128,12 @@
       <outputDirectory>examples</outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>0644</fileMode>
-      <filtered>false</filtered>
     </fileSet>
     <fileSet>
       <directory>../../geomesa-tools/examples</directory>
       <outputDirectory>conf/sfts/examples</outputDirectory>
       <directoryMode>755</directoryMode>
       <fileMode>0644</fileMode>
-      <filtered>false</filtered>
       <includes>
         <include>**/application.conf</include>
       </includes>
@@ -148,6 +145,12 @@
       <excludes>
         <exclude>*/**</exclude>
       </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>../../docs/target/html</directory>
+      <outputDirectory>docs</outputDirectory>
+      <directoryMode>0700</directoryMode>
+      <fileMode>0644</fileMode>
     </fileSet>
   </fileSets>
 
