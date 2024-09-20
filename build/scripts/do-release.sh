@@ -107,6 +107,9 @@ copyReleaseArtifacts
 # reset pom changes
 ./build/scripts/change-scala-version.sh 2.12
 
+# exit virtualenv
+deactivate
+
 # push commits and tags
 git checkout "$BRANCH"
 git push lt "$BRANCH"
