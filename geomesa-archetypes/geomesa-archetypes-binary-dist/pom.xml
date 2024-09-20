@@ -63,6 +63,14 @@
             <artifactId>scala-compiler</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- required for reactor ordering -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>docs</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
     </dependencies>
 
     <build>
