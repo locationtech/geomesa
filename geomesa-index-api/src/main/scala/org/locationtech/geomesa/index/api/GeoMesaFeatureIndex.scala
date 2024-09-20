@@ -193,7 +193,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     val partitioned = for { f <- filter; tp <- TablePartition(ds, sft); partitions <- tp.partitions(f) } yield {
       partitions.flatMap(p => getTableNames(Some(p)))
     }
-    partitioned.getOrElse(getTableNames(None))
+    partitioned.getOrElse(getTableNames())
   }
 
   /**

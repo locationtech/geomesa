@@ -96,7 +96,7 @@ object TableConfCommand {
   }
 
   def getTableNames(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): Seq[String] = {
-    val tables = ds.manager.indices(sft).filter(_.name.equalsIgnoreCase(index)).flatMap(_.getTableNames(None))
+    val tables = ds.manager.indices(sft).filter(_.name.equalsIgnoreCase(index)).flatMap(_.getTableNames())
     if (tables.isEmpty) {
       throw new IllegalArgumentException(s"Index '$index' does not exist for schema '${sft.getTypeName}'. " +
           s"Available indices: ${ds.manager.indices(sft).map(_.name).distinct.mkString(", ")}")

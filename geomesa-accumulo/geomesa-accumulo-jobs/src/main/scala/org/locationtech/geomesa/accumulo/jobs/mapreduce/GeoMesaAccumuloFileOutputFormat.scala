@@ -65,7 +65,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
     }
 
     val tables = partitions match {
-      case None => indices.flatMap(_.getTableNames(None))
+      case None => indices.flatMap(_.getTableNames())
       case Some(parts) =>
         Configurator.setPartitions(job.getConfiguration, parts)
         logger.debug(s"Creating index tables for ${parts.length} partitions")
@@ -154,12 +154,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
         val feature = wrapper.wrap(value)
         val partition = partitioner.map(_.partition(value))
         writers.foreach { case (index, writer) =>
-          index.getTableNames(partition) match {
-            case Seq(table) => tableAndKey.getTable.set(table)
-            case tables =>
-              val msg = if (tables.isEmpty) { "No table found" } else { "Multiple tables found" }
-              throw new IllegalStateException(msg + partition.map(p => s" for partition $p").getOrElse(""))
-          }
+          tableAndKey.getTable.set(index.getTableName(partition))
 
           writer.convert(feature) match {
             case kv: SingleRowKeyValue[_] =>

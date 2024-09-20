@@ -188,10 +188,8 @@ object CassandraIndexAdapter extends LazyLogging {
 
     private val mappers = indices.toArray.map { index =>
       val mapper = CassandraColumnMapper(index)
-      val table = index.getTableNames(partition) match {
-        case Seq(t) => t // should always be writing to a single table here
-        case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-      }
+      // should always be writing to a single table here
+      val table = index.getTableName(partition)
       val insert = mapper.insert(ds.session, table)
       val delete = mapper.delete(ds.session, table)
       (mapper, insert, delete)
