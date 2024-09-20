@@ -26,7 +26,7 @@ jobs:
           java-version: '11'
       - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala.version }}
+          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala-version }}
           path: |
             ~/.m2/repository/
             build/zinc-0.3.15/
