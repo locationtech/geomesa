@@ -155,7 +155,23 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
   }
 
   /**
-    * Gets the table name for this index
+   * Gets the single table name for this index. If this is a partitioned index, then the partition argument
+   * must be defined. A runtime exception will be thrown if multiple or zero tables are found.
+   *
+   * @param partition get the name for a particular partition, if the index is partitioned
+   * @return
+   */
+  def getTableName(partition: Option[String] = None): String = {
+    val names = getTableNames(partition)
+    if (names.lengthCompare(1) == 0) { names.head } else {
+      val list = if (names.isEmpty) { "" } else { names.mkString(": ", ", ", "") }
+      throw new RuntimeException(
+        s"Expected 1 table but found ${names.length} for index $identifier${partition.fold("")(p => s" partition $p")}$list")
+    }
+  }
+
+  /**
+    * Gets table names for this index
     *
     * @param partition get the name for a particular partition, or all partitions
     * @return

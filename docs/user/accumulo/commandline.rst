@@ -98,7 +98,7 @@ in the Accumulo documentation for additional details.
 
 .. warning::
 
-    The two feature types must be identical, and both must be partitioned (see :ref:`partitioned_indices`).
+    The two feature types must be identical.
 
 ========================== ==================================================================================================
 Argument                   Description
@@ -120,18 +120,19 @@ Argument                   Description
 ``-f, --feature-name *``   The name of the schema to copy
 ``--export-path *``        HDFS path to used for file export - the scheme and authority (e.g. bucket name) must match the
                            destination table filesystem
-``--partition``            Partition(s) to copy
-``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``)
+``--partition``            Partition(s) to copy (if schema is partitioned)
+``--partition-value``      Value(s) used to indicate partitions to copy (e.g. ``2024-01-01T00:00:00.000Z``) (if schema is
+                           partitioned)
 ``-t, --threads``          Number of index tables to copy concurrently, default 1
 ``--file-threads``         Number of files to copy concurrently, per table, default 2
 ``--distcp``               Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies
+``--resume``               Resume a previously interrupted run from where it left off
 ========================== ==================================================================================================
 
 .. note::
 
-    At least one ``--partition`` or ``--partition-value`` must be specified.
-
-``--partition`` and/or ``--partition-value`` may be specified multiple times in order to copy multiple partitions.
+    ``--partition`` and/or ``--partition-value`` may be specified multiple times in order to copy multiple partitions, or omitted
+    to copy all existing partitions.
 
 ``bulk-ingest``
 ^^^^^^^^^^^^^^^
