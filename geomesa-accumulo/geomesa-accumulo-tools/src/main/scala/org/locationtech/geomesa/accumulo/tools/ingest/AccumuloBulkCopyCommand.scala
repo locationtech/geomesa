@@ -204,6 +204,16 @@ object AccumuloBulkCopyCommand extends LazyLogging {
         case NonFatal(e) => throw new RuntimeException("Could not get source table", e)
       }
 
+      val completeMarker = new Path(exportPath, s"$fromTable.complete")
+      if (exportFs.exists(completeMarker)) {
+        if (params.resume) {
+          logger.debug("Skipping already completed copy")
+          return
+        } else {
+          exportFs.delete(completeMarker, false)
+        }
+      }
+
       val tableExportPath = new Path(exportPath, fromTable)
       val distcpPath = new Path(tableExportPath, "distcp.txt")
       val copyToDir = new Path(tableExportPath, "files")
@@ -339,6 +349,10 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       try { importDir.load() } catch {
         case e: IllegalArgumentException => logger.trace("Error importing directory:", e) // should mean empty dir
       }
+
+      // create marker indicating this copy was successful
+      logger.debug(s"Creating completion marker $completeMarker")
+      exportFs.create(completeMarker).close()
 
       // cleanup
       logger.debug(s"Deleting export path $tableExportPath")
