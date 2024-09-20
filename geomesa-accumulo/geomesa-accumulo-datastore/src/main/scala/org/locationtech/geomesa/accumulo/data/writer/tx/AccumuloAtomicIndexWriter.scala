@@ -44,12 +44,8 @@ class AccumuloAtomicIndexWriter(
 
   import scala.collection.JavaConverters._
 
-  private val tables = indices.map { index =>
-    index.getTableNames(partition) match {
-      case Seq(t) => t // should always be writing to a single table here
-      case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-    }
-  }
+  // should always be writing to a single table here
+  private val tables = indices.map(_.getTableName(partition))
 
   private val writers: Array[ConditionalWriter] = {
     val config = new ConditionalWriterConfig()

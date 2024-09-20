@@ -597,10 +597,8 @@ object HBaseIndexAdapter extends LazyLogging {
     }
 
     private val mutators = indices.toArray.map { index =>
-      val table = index.getTableNames(partition) match {
-        case Seq(t) => t // should always be writing to a single table here
-        case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-      }
+      // should always be writing to a single table here
+      val table = index.getTableName(partition)
       val params = new BufferedMutatorParams(TableName.valueOf(table))
       batchSize.foreach(params.writeBufferSize)
       flushTimeout.foreach(params.setWriteBufferPeriodicFlushTimeoutMs)

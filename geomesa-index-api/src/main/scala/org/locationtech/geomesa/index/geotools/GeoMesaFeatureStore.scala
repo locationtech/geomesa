@@ -114,7 +114,7 @@ class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
         } else {
           def deleteOne(index: GeoMesaFeatureIndex[_, _]): Unit = {
             val prefix = Some(index.keySpace.sharing).filterNot(_.isEmpty)
-            gm.adapter.clearTables(index.getTableNames(None), prefix)
+            gm.adapter.clearTables(index.getTableNames(), prefix)
           }
           indices.map(i => CachedThreadPool.submit(() => deleteOne(i))).foreach(_.get)
         }

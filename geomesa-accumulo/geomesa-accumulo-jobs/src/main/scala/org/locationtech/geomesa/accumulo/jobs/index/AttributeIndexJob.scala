@@ -123,7 +123,7 @@ object AttributeIndexJob {
             }
 
           case None =>
-            val names = indices.map(i => new Text(i.getTableNames(None).head)).toIndexedSeq
+            val names = indices.map(i => new Text(i.getTableName())).toIndexedSeq
             _ => names
         }
       }
