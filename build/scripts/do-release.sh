@@ -56,6 +56,7 @@ if ! [[ $(which virtualenv) ]]; then
 fi
 
 # configure virtualenv for building the docs
+# shellcheck disable=SC1091
 virtualenv .sphinx && source .sphinx/bin/activate && pip install -r docs/requirements.txt
 
 # get current branch we're releasing off
