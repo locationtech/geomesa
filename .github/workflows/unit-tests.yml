@@ -23,11 +23,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-          cache: 'maven'
+      - name: Generate cache key
+        env:
+          MOD_SELECTOR: "${{ inputs.module-selector }}"
+        run: echo "MOD_SELECTOR=\"${MOD_SELECTOR// /}\"" >> $GITHUB_ENV
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ inputs.scala.version }}-${{ env.MOD_SELECTOR }}
+          path: ~/.m2/repository/
       - name: Set Scala version
-        run: |
-          echo ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
-          ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
@@ -42,7 +47,6 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          echo mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ inputs.module-selector }}
           mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ inputs.module-selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry
