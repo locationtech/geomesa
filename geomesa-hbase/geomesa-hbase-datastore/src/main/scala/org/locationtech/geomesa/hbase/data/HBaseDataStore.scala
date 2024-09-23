@@ -74,7 +74,7 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
     // just check the first table available
     val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
       manager.indices(sft).iterator.flatMap { index =>
-        index.getTableNames(None).flatMap { table =>
+        index.getTableNames().flatMap { table =>
           try {
             val name = TableName.valueOf(table)
             if (connection.getAdmin.tableExists(name)) {

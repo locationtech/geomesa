@@ -96,7 +96,7 @@ object DtgAgeOffIterator extends LazyLogging {
       index: GeoMesaFeatureIndex[_, _],
       expiry: Duration,
       dtg: String): Unit = {
-    index.getTableNames(None).foreach { table =>
+    index.getTableNames().foreach { table =>
       tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
     }
   }

@@ -85,7 +85,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
 
         val indices = ds.manager.indices(sft)
         indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name, IdIndex.name, AttributeIndex.name))
-        foreach(indices)(i => i.getTableNames(None) must haveLength(2))
+        foreach(indices)(i => i.getTableNames() must haveLength(2))
 
         // add the last two features to an alternate table and adopt them
         ds.createSchema(SimpleFeatureTypes.createType("testpartitionadoption", spec))
@@ -95,7 +95,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
         }
         // duplicates the logic in `org.locationtech.geomesa.tools.data.ManagePartitionsCommand.AdoptPartitionCommand`
         ds.manager.indices(ds.getSchema("testpartitionadoption")).foreach { index =>
-          val table = index.getTableNames(None).head
+          val table = index.getTableName()
           ds.metadata.insert(sft.getTypeName, index.tableNameKey(Some("foo")), table)
         }
         def zonedDateTime(sf: SimpleFeature) =
@@ -103,7 +103,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
         TablePartition(ds, sft).get.asInstanceOf[TimePartition].register("foo", zonedDateTime(toAdd(8)), zonedDateTime(toAdd(9)))
 
         // verify the table was adopted
-        foreach(indices)(i => i.getTableNames(None) must haveLength(3))
+        foreach(indices)(i => i.getTableNames() must haveLength(3))
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "attr", "name"))
 
