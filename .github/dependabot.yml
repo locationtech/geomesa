@@ -22,20 +22,4 @@ updates:
     groups:
       docs:
         update-types:
-          - "minor"
-          - "patch"
-
-  - package-ecosystem: "maven"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "[dependabot] "
-    groups:
-      major-versions:
-        update-types:
-          - "major"
-      minor-versions:
-        update-types:
-          - "minor"
           - "patch"
