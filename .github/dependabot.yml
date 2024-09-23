@@ -22,7 +22,6 @@ updates:
     groups:
       docs:
         update-types:
-          - "major"
           - "minor"
           - "patch"
 
@@ -33,10 +32,10 @@ updates:
     commit-message:
       prefix: "[dependabot] "
     groups:
-      major:
+      major-versions:
         update-types:
           - "major"
-      minor:
+      minor-versions:
         update-types:
           - "minor"
           - "patch"
