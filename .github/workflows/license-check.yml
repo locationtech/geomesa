@@ -27,7 +27,7 @@ jobs:
           java-version: '11'
       - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-license-header-check
           path: ~/.m2/repository/
       - name: Run license check
         run: mvn license:check $MAVEN_CLI_OPTS
