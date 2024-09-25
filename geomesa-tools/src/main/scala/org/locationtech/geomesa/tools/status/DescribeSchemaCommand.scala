@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.ParameterException
+import com.typesafe.scalalogging.Logger
 import org.geotools.api.data.DataStore
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -36,14 +37,14 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       throw new ParameterException(msg)
     }
     Command.user.info(s"Describing attributes of feature '${sft.getTypeName}'")
-    describe(ds, sft, Command.output.info)
+    describe(ds, sft, Command.output)
   }
 
   protected def getSchema(ds: DS): SimpleFeatureType = params match {
     case p: TypeNameParam => ds.getSchema(p.featureName)
   }
 
-  protected def describe(ds: DS, sft: SimpleFeatureType, output: String => Unit): Unit = {
+  protected def describe(ds: DS, sft: SimpleFeatureType, logger: Logger): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     val indices = ds match {
@@ -78,12 +79,12 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     val maxName = namesAndDescriptions.map(_._1.length).max
     val maxType = namesAndDescriptions.map(_._2.length).max
     namesAndDescriptions.foreach { case (n, t, d) =>
-      output(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} $d")
+      logger.info(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} $d")
     }
 
     val userData = sft.getUserData
     if (!userData.isEmpty) {
-      output("\nUser data:")
+      logger.info("\nUser data:")
       val namesAndValues = userData.asScala.toSeq.map { case (k, v) =>
         if (k == SimpleFeatureTypes.Configs.Keywords) {
           (SimpleFeatureTypes.Configs.Keywords, sft.getKeywords.mkString("'", "', '", "'"))
@@ -93,7 +94,7 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       }
       val maxName = namesAndValues.map(_._1.length).max
       namesAndValues.sortBy(_._1).foreach { case (n, v) =>
-        output(s"  ${n.padTo(maxName, ' ')} | $v")
+        logger.info(s"  ${n.padTo(maxName, ' ')} | $v")
       }
     }
   }

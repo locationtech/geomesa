@@ -73,7 +73,7 @@ class AccumuloQueryAuditCommand extends AccumuloDataStoreCommand {
 
     WithClose(new AccumuloAuditReader(ds)) { reader=>
       val writer = if ("json".equalsIgnoreCase(params.outputFormat)) { new JsonWriter() } else { new CsvWriter() }
-      writer.header().foreach(Command.output.info)
+      writer.header().foreach(h => Command.output.info(h))
       dateRanges.foreach { case (start, end) =>
         WithClose(reader.getQueryEvents(params.featureName, (start, end))) { events =>
           val out = cql match {

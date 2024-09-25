@@ -30,6 +30,10 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hadoop-utils_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-exporters_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
@@ -58,7 +62,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-filter_2.12</artifactId>
+            <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
