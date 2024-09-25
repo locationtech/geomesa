@@ -67,7 +67,7 @@ class EnvironmentCommand extends Command {
           case "spec" =>
             (sft: SimpleFeatureType) => s"${SimpleFeatureTypes.encodeType(sft, !params.excludeUserData)}"
         }
-        filtered.sortBy(_.getTypeName).map(s => s"${s.getTypeName} = ${formatFn(s)}").foreach(Command.output.info)
+        filtered.sortBy(_.getTypeName).map(s => s"${s.getTypeName} = ${formatFn(s)}").foreach(m => Command.output.info(m))
       } else {
         throw new ParameterException(s"Unknown format '${params.format}'. Valid values are 'typesafe' or 'spec'")
       }
@@ -84,19 +84,19 @@ class EnvironmentCommand extends Command {
       val options = ConfigRenderOptions.defaults().setJson(false).setOriginComments(false)
       def render(c: Config) = c.root().render(options)
       val strings = filtered.map { case (cname, conf)=> s"converter-name=$cname\n${render(conf)}\n" }
-      strings.toArray.sorted.foreach(Command.output.info)
+      strings.toArray.sorted.foreach(m => Command.output.info(m))
     }
   }
 
   def listSftsNames(): Unit = {
     Command.output.info("Simple Feature Types:")
     val all = SimpleFeatureTypeLoader.sfts
-    all.sortBy(_.getTypeName).map(s => s"${s.getTypeName}").foreach(Command.output.info)
+    all.sortBy(_.getTypeName).map(s => s"${s.getTypeName}").foreach(m => Command.output.info(m))
   }
   def listConverterNames(): Unit = {
     Command.output.info("Simple Feature Type Converters:")
     val all = ConverterConfigLoader.confs
-    all.map { case (cname, conf) => s"$cname"}.toArray.sorted.foreach(Command.output.info)
+    all.map { case (cname, conf) => s"$cname"}.toArray.sorted.foreach(m => Command.output.info(m))
   }
 }
 
