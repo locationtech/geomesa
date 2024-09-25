@@ -32,18 +32,18 @@ class AccumuloBulkCopyCommand extends Command with StrictLogging {
   override def execute(): Unit = {
     val fromCluster = {
       val auth = if (params.fromKeytab != null) { ClusterKeytab(params.fromKeytab) } else { ClusterPassword(params.fromPassword) }
-      val configs = if (params.fromConfigs == null) { Seq.empty } else { params.fromConfigs.asScala }
+      val configs = if (params.fromConfigs == null) { Seq.empty } else { params.fromConfigs.asScala.toSeq }
       ClusterConfig(params.fromInstance, params.fromZookeepers, params.fromUser, auth, params.fromCatalog, configs)
     }
     val toCluster = {
       val auth = if (params.toKeytab != null) { ClusterKeytab(params.toKeytab) } else { ClusterPassword(params.toPassword) }
-      val configs = if (params.toConfigs == null) { Seq.empty } else { params.toConfigs.asScala }
+      val configs = if (params.toConfigs == null) { Seq.empty } else { params.toConfigs.asScala.toSeq }
       ClusterConfig(params.toInstance, params.toZookeepers, params.toUser, auth, params.toCatalog, configs)
     }
-    val indices = if (params.indices == null) { Seq.empty } else { params.indices.asScala }
+    val indices = if (params.indices == null) { Seq.empty } else { params.indices.asScala.toSeq }
     val partitions: Seq[PartitionId] =
-      Option(params.partitions).fold(Seq.empty[PartitionId])(_.asScala.toSeq.map(PartitionName.apply)) ++
-        Option(params.partitionValues).fold(Seq.empty[PartitionId])(_.asScala.toSeq.map(PartitionValue.apply))
+      Option(params.partitions).fold(Seq.empty[PartitionId])(_.asScala.map(PartitionName.apply).toSeq) ++
+        Option(params.partitionValues).fold(Seq.empty[PartitionId])(_.asScala.map(PartitionValue.apply).toSeq)
     val opts = CopyOptions(params.tableThreads, params.fileThreads, params.distCp)
 
     WithClose(new SchemaCopier(fromCluster, toCluster, params.featureName, params.exportPath, indices, partitions, opts)) { copier =>
