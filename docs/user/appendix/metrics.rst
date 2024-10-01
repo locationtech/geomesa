@@ -179,3 +179,67 @@ Extensions
 Additional reporters can be added at runtime by implementing
 ``org.locationtech.geomesa.metrics.core.ReporterFactory`` and registering the new class as a
 `service provider <https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__.
+
+Micrometer Metrics
+==================
+
+GeoMesa also has initial support for `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ metrics. Metric
+implementations can be configured at runtime through `Typesafe Config <https://github.com/lightbend/config/tree/main>`__:
+
+.. code-block:: scala
+
+    org.locationtech.geomesa.metrics.micrometer.MicrometerSetup.configure()
+
+Configuration should be under the key ``geomesa.metrics``, and takes the following config:
+
+::
+
+    geomesa.metrics = {
+      reporters = []
+      # enable various metrics
+      bindings = {
+        classloader = false # enable jvm classloader metrics
+        memory = false # enable jvm memory usage metrics
+        gc = false # enable jvm garbage collection metrics
+        processor = false # enable jvm processor usage metrics
+        threads = false # enable jvm thread usage metrics
+      }
+    }
+
+The following reporters are supported:
+
+Prometheus
+----------
+
+::
+
+    {
+      type = "prometheus"
+      enabled = true
+      # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
+      rename = false
+      commonTags = { "application" = "my-app" }
+      port = 9090
+      # additional config can also be done via sys props - see https://prometheus.github.io/client_java/config/config/
+      properties = {}
+      # omit if not using pushgateway
+      pushGateway = {
+        host = "localhost:9091"
+        job = "my-job"
+        scheme = "http"
+        format = "PROMETHEUS_PROTOBUF" # or PROMETHEUS_TEXT
+      }
+    }
+
+Cloudwatch
+----------
+
+::
+
+    {
+      type = "cloudwatch"
+      enabled = true
+      namespace = "geomesa"
+      # properties for the cloudwatch client
+      properties = {}
+    }
