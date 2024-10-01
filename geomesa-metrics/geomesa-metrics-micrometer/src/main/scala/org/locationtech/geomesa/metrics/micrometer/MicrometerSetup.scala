@@ -24,7 +24,7 @@ import java.io.Closeable
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 
-object MicrometerConfig {
+object MicrometerSetup {
 
   import pureconfig.generic.semiauto._
 
@@ -40,7 +40,7 @@ object MicrometerConfig {
    *
    * @param conf conf
    */
-  def setup(conf: Config = ConfigFactory.load()): Unit = synchronized {
+  def configure(conf: Config = ConfigFactory.load()): Unit = synchronized {
     if (conf.hasPath(ConfigPath)) {
       // noinspection ScalaUnusedSymbol
       implicit val bindingsReader: ConfigReader[MetricsBindings] = deriveReader[MetricsBindings]

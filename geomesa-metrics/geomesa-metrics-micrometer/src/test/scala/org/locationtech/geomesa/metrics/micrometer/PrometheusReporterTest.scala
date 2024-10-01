@@ -33,7 +33,7 @@ class PrometheusReporterTest extends Specification {
     "expose metrics over http" in {
       val port = getFreePort
       val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port }")
-      val registry = MicrometerConfig.createRegistry(conf)
+      val registry = MicrometerSetup.createRegistry(conf)
       try {
         registry must beAnInstanceOf[PrometheusMeterRegistry]
         registry.counter("foo").increment(10)
@@ -57,7 +57,7 @@ class PrometheusReporterTest extends Specification {
     "expose metrics over http with custom suffix" in {
       val port = getFreePort
       val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port, common-tags = { foo = bar }}")
-      val registry = MicrometerConfig.createRegistry(conf)
+      val registry = MicrometerSetup.createRegistry(conf)
       try {
         registry must beAnInstanceOf[PrometheusMeterRegistry]
         registry.counter("foo").increment(10)
@@ -86,7 +86,7 @@ class PrometheusReporterTest extends Specification {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
         val conf = ConfigFactory.parseString(s"""{ type = prometheus, push-gateway = { host = "localhost:$port", job = job1, format = prometheus_text }}""")
-        val registry = MicrometerConfig.createRegistry(conf)
+        val registry = MicrometerSetup.createRegistry(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)
@@ -109,7 +109,7 @@ class PrometheusReporterTest extends Specification {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
         val conf = ConfigFactory.parseString(s"""{ type = prometheus, push-gateway = { host = "localhost:$port", job = job1 }}""")
-        val registry = MicrometerConfig.createRegistry(conf)
+        val registry = MicrometerSetup.createRegistry(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)
@@ -136,7 +136,7 @@ class PrometheusReporterTest extends Specification {
         val conf =
           ConfigFactory.parseString(
             s"""{ type = prometheus,  common-tags = { blu = baz }, push-gateway = { host = "localhost:$port", job = job1 }}""")
-        val registry = MicrometerConfig.createRegistry(conf)
+        val registry = MicrometerSetup.createRegistry(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)

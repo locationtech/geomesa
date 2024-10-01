@@ -188,7 +188,7 @@ implementations can be configured at runtime through `Typesafe Config <https://g
 
 .. code-block:: scala
 
-    org.locationtech.geomesa.metrics.micrometer.MicrometerConfig.setup()
+    org.locationtech.geomesa.metrics.micrometer.MicrometerSetup.configure()
 
 Configuration should be under the key ``geomesa.metrics``, and takes the following config:
 
