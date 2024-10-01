@@ -91,11 +91,13 @@
         <kryo.version>4.0.3</kryo.version>
         <mango.version>3.0.0</mango.version>
         <metrics.version>3.2.6</metrics.version>
+        <micrometer.version>1.13.4</micrometer.version>
         <orc.version>1.9.3</orc.version>
         <parboiled.version>1.4.1</parboiled.version>
         <parboiled.scala.version>1.3.1</parboiled.scala.version>
         <parquet.version>1.13.1</parquet.version>
         <postgres.version>42.7.2</postgres.version>
+        <prometheus.version>1.3.1</prometheus.version>
         <pureconfig.version>0.17.4</pureconfig.version>
         <rhino.js.version>1.7.14</rhino.js.version>
         <s2.geometry.version>1.0.1</s2.geometry.version>
@@ -1466,6 +1468,28 @@
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-cloudwatch2</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>prometheus-metrics-bom</artifactId>
+                <version>${prometheus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
