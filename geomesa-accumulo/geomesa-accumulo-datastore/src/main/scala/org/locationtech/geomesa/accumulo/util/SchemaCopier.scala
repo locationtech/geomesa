@@ -273,7 +273,7 @@ class SchemaCopier(
       logger.debug(s"Checking for existence and deleting any existing cloned table $cloneTable")
       from.ds.adapter.deleteTable(cloneTable) // no-op if table doesn't exist
       logger.debug(s"Cloning $fromTable to $cloneTable")
-      from.tableOps.clone(fromTable, cloneTable, false, Collections.emptyMap(), Collections.emptySet()) // use 2.0 method for compatibility
+      from.tableOps.clone(fromTable, cloneTable, true, Collections.emptyMap(), Collections.emptySet()) // use 2.0 method for compatibility
       logger.debug(s"Taking $cloneTable offline")
       from.tableOps.offline(cloneTable, true)
     }
