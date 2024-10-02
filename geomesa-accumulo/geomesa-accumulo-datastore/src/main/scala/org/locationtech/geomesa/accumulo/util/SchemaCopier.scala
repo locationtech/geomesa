@@ -31,8 +31,8 @@ import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.concurrent.{Callable, ConcurrentHashMap}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.util.Try
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
 
 /**
  * Copies a schema from one cluster (or catalog) to another, using bulk file operations
@@ -62,6 +62,7 @@ class SchemaCopier(
 
   private val tryFrom = Try(Cluster(fromCluster))
   private val tryTo = Try(Cluster(toCluster))
+  private var closed = false
 
   // note: all other class variables are lazy, so that we can instantiate an instance and then clean up connections on close()
 
@@ -414,9 +415,12 @@ class SchemaCopier(
     from.tableOps.delete(cloneTable)
   }
 
-  override def close(): Unit = {
-    CloseWithLogging(tryFrom.toOption)
-    CloseWithLogging(tryTo.toOption)
+  override def close(): Unit = synchronized {
+    if (!closed) {
+      closed = true
+      CloseWithLogging(tryFrom.toOption)
+      CloseWithLogging(tryTo.toOption)
+    }
   }
 }
 
