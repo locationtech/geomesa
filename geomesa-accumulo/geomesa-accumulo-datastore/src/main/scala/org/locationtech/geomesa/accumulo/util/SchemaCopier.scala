@@ -17,7 +17,7 @@ import org.apache.hadoop.tools.DistCp
 import org.geotools.api.data.DataStoreFinder
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.util.SchemaCopier.{Cluster, ClusterConfig, CopyOptions, PartitionId, PartitionName, PartitionValue}
+import org.locationtech.geomesa.accumulo.util.SchemaCopier._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -29,10 +29,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import java.io.{Closeable, File, IOException}
 import java.nio.charset.StandardCharsets
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
-import scala.collection.mutable.ListBuffer
-import scala.util.Try
+import java.util.concurrent.{Callable, ConcurrentHashMap}
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
  * Copies a schema from one cluster (or catalog) to another, using bulk file operations
@@ -54,7 +54,7 @@ class SchemaCopier(
     indices: Seq[String],
     partitions: Seq[PartitionId],
     options: CopyOptions,
-  ) extends Runnable with Closeable with StrictLogging {
+  ) extends Callable[Set[CopyResult]] with Closeable with StrictLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -100,9 +100,9 @@ class SchemaCopier(
     sft
   }
 
-  lazy private val fromIndices = {
+  lazy private val indexPairs: Seq[(GeoMesaFeatureIndex[_, _], GeoMesaFeatureIndex[_, _])] = {
     val all = from.ds.manager.indices(sft)
-    if (indices.isEmpty) { all } else {
+    val fromIndices = if (indices.isEmpty) { all } else {
       val builder = Seq.newBuilder[GeoMesaFeatureIndex[_, _]]
       indices.foreach { ident =>
         val filtered = all.filter(_.identifier.contains(ident))
@@ -115,6 +115,7 @@ class SchemaCopier(
       }
       builder.result.distinct
     }
+    fromIndices.map(from => from -> to.ds.manager.index(sft, from.identifier))
   }
 
   // these get passed into our index method calls - for partitioned schemas, it must be a Seq[Some[_]],
@@ -134,7 +135,7 @@ class SchemaCopier(
       }
       if (builder.isEmpty) {
         logger.debug("No partitions specified - loading all partitions from store")
-        builder ++= fromIndices.flatMap(_.getPartitions)
+        builder ++= indexPairs.flatMap(_._1.getPartitions)
       }
       builder.result.distinct.sorted.map(Option.apply)
     } else {
@@ -145,38 +146,50 @@ class SchemaCopier(
     }
   }
 
+  // planned copies
+  lazy val plans: Set[CopyPlan] =
+    fromPartitions.flatMap { partition =>
+      indexPairs.map { case (fromIndex, _) =>
+        CopyPlan(fromIndex.identifier, partition)
+      }
+    }.toSet
+
   /**
    * Execute the copy
+   *
+   * @return results
    */
-  override def run(): Unit = run(false)
+  override def call(): Set[CopyResult] = call(false)
 
   /**
    * Execute the copy
    *
    * @param resume resume from a previously interrupted run, vs overwrite any existing output
+   * @return results
    */
-  def run(resume: Boolean): Unit = {
+  def call(resume: Boolean): Set[CopyResult] = {
+    val results = Collections.newSetFromMap(new ConcurrentHashMap[CopyResult, java.lang.Boolean]())
     CachedThreadPool.executor(options.tableConcurrency) { executor =>
       fromPartitions.foreach { partition =>
-        fromIndices.foreach { fromIndex =>
-          val toIndex = to.ds.manager.index(sft, fromIndex.identifier)
+        indexPairs.foreach { case (fromIndex, toIndex) =>
           val partitionLogId = s"${partition.fold(s"index")(p => s"partition $p")} ${fromIndex.identifier}"
           val runnable: Runnable = () => {
-            try {
-              logger.info(s"Copying $partitionLogId")
-              copy(fromIndex, toIndex, partition, resume, partitionLogId)
-              logger.info(s"Bulk copy complete for $partitionLogId")
-            } catch {
-              // catch Throwable so NoClassDefFound still gets logged
-              case e: Throwable =>
+            logger.info(s"Copying $partitionLogId")
+            val result = copy(fromIndex, toIndex, partition, resume, partitionLogId)
+            result.error match {
+              case None =>
+                logger.info(s"Bulk copy complete for $partitionLogId")
+              case Some(e) =>
                 logger.error(s"Error copying $partitionLogId: ${e.getMessage}")
                 logger.debug(s"Error copying $partitionLogId", e)
             }
+            results.add(result)
           }
           executor.submit(runnable)
         }
       }
     }
+    results.asScala.toSet
   }
 
   /**
@@ -187,19 +200,50 @@ class SchemaCopier(
    * @param partition partition name - must be Some if schema is partitioned
    * @param resume use any partial results from a previous run, if present
    * @param partitionLogId identifier for log messages
+   * @return result
    */
   private def copy(
       fromIndex: GeoMesaFeatureIndex[_, _],
       toIndex: GeoMesaFeatureIndex[_, _],
       partition: Option[String],
       resume: Boolean,
-      partitionLogId: String): Unit = {
+      partitionLogId: String): CopyResult = {
+    val start = System.currentTimeMillis()
+    val files = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
+    var fromTable: String = ""
+    // lazy so that table, files and finish time are filled in appropriately
+    lazy val result =
+      CopyResult(fromIndex.identifier, partition, fromTable, files.asScala.toSeq, None, start, System.currentTimeMillis())
+    try {
+      fromTable = fromIndex.getTableName(partition)
+      copy(fromTable, toIndex, partition, resume, partitionLogId, files)
+      result
+    } catch {
+      // catch Throwable so NoClassDefFound still gets logged
+      case e: Throwable => result.withError(e)
+    }
+  }
+
+  /**
+   * Copy a single index + partition
+   *
+   * @param fromTable from table
+   * @param toIndex to index
+   * @param partition partition name - must be Some if schema is partitioned
+   * @param resume use any partial results from a previous run, if present
+   * @param partitionLogId identifier for log messages
+   * @param fileResults set to hold files that we've copied successfully
+   * @return result
+   */
+  private def copy(
+      fromTable: String,
+      toIndex: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      resume: Boolean,
+      partitionLogId: String,
+      fileResults: java.util.Set[String]): Unit = {
 
     require(sft.isPartitioned == partition.isDefined) // sanity check - this should always be true due to our setup
-
-    val fromTable = try { fromIndex.getTableName(partition) } catch {
-      case NonFatal(e) => throw new RuntimeException("Could not get source table", e)
-    }
 
     val completeMarker = new Path(exportPath, s"$fromTable.complete")
     if (exportFs.exists(completeMarker)) {
@@ -268,7 +312,7 @@ class SchemaCopier(
       to.tableOps.addSplits(toTable, splits)
     }
 
-    val hadCopyError = new AtomicBoolean(false)
+    val copyErrors = Collections.newSetFromMap(new ConcurrentHashMap[Throwable, java.lang.Boolean]())
     // read the distcp.txt file produced by the table export
     // consumer: (src, dest) => Unit
     def distCpConsumer(threads: Int)(consumer: (Path, Path) => Unit): Unit = {
@@ -289,7 +333,7 @@ class SchemaCopier(
               } catch {
                 // catch Throwable so NoClassDefFound still gets logged
                 case e: Throwable =>
-                  hadCopyError.set(true)
+                  copyErrors.add(e)
                   logger.error(s"Failed to copy $path to $copy: ${e.getMessage}")
                   logger.debug(s"Failed to copy $path to $copy", e)
               }
@@ -302,6 +346,7 @@ class SchemaCopier(
 
     if (options.distCp) {
       var inputPath = distcpPath
+      val distCpFiles = ArrayBuffer.empty[String]
       if (resume) {
         logger.debug(s"Checking copy status of files in $distcpPath")
         inputPath = new Path(tableExportPath, "distcp-remaining.txt")
@@ -309,7 +354,13 @@ class SchemaCopier(
           distCpConsumer(1) { (path, _) =>
             logger.debug(s"Adding $path to distcp")
             out.writeUTF(s"$path\n")
+            distCpFiles += path.getName
           }
+        }
+      } else {
+        logger.debug(s"Checking file list at $distcpPath")
+        distCpConsumer(1) { (path, _) =>
+          distCpFiles += path.getName
         }
       }
       val job = new DistCp(from.conf, DistributedCopyOptions(inputPath, copyToDir)).execute()
@@ -319,22 +370,28 @@ class SchemaCopier(
       }
       if (job.isSuccessful) {
         logger.info(s"Successfully copied data to $copyToDir")
+        fileResults.addAll(distCpFiles.asJava)
       } else {
-        hadCopyError.set(true)
-        logger.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+        val msg = s"DistCp job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}"
+        copyErrors.add(new RuntimeException(msg))
+        logger.error(msg)
       }
     } else {
       distCpConsumer(options.fileConcurrency) { (path, copy) =>
         logger.debug(s"Copying $path to $copy")
         val fs = path.getFileSystem(from.conf)
-        if (!FileUtil.copy(fs, path, exportFs, copy, false, true, to.conf)) {
+        if (FileUtil.copy(fs, path, exportFs, copy, false, true, to.conf)) {
+          fileResults.add(path.getName)
+        } else {
           // consolidate error handling in the catch block
           throw new IOException(s"Failed to copy $path to $copy, copy returned false")
         }
       }
     }
-    if (hadCopyError.get) {
-      throw new RuntimeException("Error copying data files")
+    if (!copyErrors.isEmpty) {
+      val e = new RuntimeException("Error copying data files")
+      copyErrors.asScala.foreach(e.addSuppressed)
+      throw e
     }
 
     logger.debug(s"Loading rfiles from $copyToDir to $toTable")
@@ -394,6 +451,36 @@ object SchemaCopier {
    * @param distCp use hadoop distcp to copy files, instead of the hadoop client
    */
   case class CopyOptions(tableConcurrency: Int = 1, fileConcurrency: Int = 4, distCp: Boolean = false)
+
+  /**
+   * Planned copy operations
+   *
+   * @param index index id planned to copy
+   * @param partition partition planned to copy
+   */
+  case class CopyPlan(index: String, partition: Option[String])
+
+  /**
+   * Result of a copy operation
+   *
+   * @param index index id being copied
+   * @param partition partition being copied, if table is partitioned
+   * @param table table being copied
+   * @param files list of files that were successfully copied
+   * @param error error, if any
+   * @param start start of operation, in unix time
+   * @param finish end of operation, in unix time
+   */
+  case class CopyResult(
+      index: String,
+      partition: Option[String],
+      table: String,
+      files: Seq[String],
+      error: Option[Throwable],
+      start: Long,
+      finish: Long) {
+    def withError(e: Throwable): CopyResult = copy(error = Option(e))
+  }
 
   /**
    * Holds state for a given Accumulo cluster
