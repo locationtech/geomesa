@@ -48,7 +48,7 @@ class AccumuloBulkCopyCommand extends Command with StrictLogging {
 
     WithClose(new SchemaCopier(fromCluster, toCluster, params.featureName, params.exportPath, indices, partitions, opts)) { copier =>
       try {
-        copier.run(params.resume)
+        copier.call(params.resume)
       } catch {
         case e: IllegalArgumentException => throw new ParameterException(e.getMessage)
       }
