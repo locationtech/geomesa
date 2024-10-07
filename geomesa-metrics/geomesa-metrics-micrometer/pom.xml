@@ -13,10 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
         </dependency>
@@ -27,6 +23,10 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>

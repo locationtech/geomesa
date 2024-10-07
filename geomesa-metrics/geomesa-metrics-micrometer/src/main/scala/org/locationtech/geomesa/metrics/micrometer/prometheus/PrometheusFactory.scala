@@ -9,19 +9,20 @@
 package org.locationtech.geomesa.metrics.micrometer
 package prometheus
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.{MeterRegistry, Tag}
 import io.micrometer.prometheusmetrics.{PrometheusMeterRegistry, PrometheusRenameFilter}
 import io.prometheus.metrics.exporter.httpserver.HTTPServer
 import io.prometheus.metrics.exporter.pushgateway.{Format, PushGateway, Scheme}
-import org.locationtech.geomesa.utils.io.CloseWithLogging
-import pureconfig.{ConfigReader, ConfigSource}
 import pureconfig.generic.semiauto.deriveReader
+import pureconfig.{ConfigReader, ConfigSource}
 
 import java.io.Closeable
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
+import scala.util.control.NonFatal
 
-object PrometheusFactory extends RegistryFactory {
+object PrometheusFactory extends RegistryFactory with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -33,7 +34,12 @@ object PrometheusFactory extends RegistryFactory {
     val dependentClose = new AtomicReference[Closeable]()
     val registry = new PrometheusMeterRegistry(k => config.properties.getOrElse(k, null)) {
       override def close(): Unit = {
-        CloseWithLogging(Option(dependentClose.get()))
+        val child = dependentClose.get()
+        if (child != null) {
+          try { child.close() } catch {
+            case NonFatal(e) => logger.error("Error on close:", e)
+          }
+        }
         super.close()
       }
     }

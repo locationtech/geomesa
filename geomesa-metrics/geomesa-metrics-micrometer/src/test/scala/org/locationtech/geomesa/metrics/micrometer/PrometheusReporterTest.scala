@@ -9,10 +9,9 @@
 package org.locationtech.geomesa.metrics.micrometer
 
 import com.typesafe.config.ConfigFactory
+import io.micrometer.core.instrument.util.IOUtils
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.io.WithClose
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
 import org.specs2.mutable.Specification
@@ -27,7 +26,12 @@ import scala.collection.mutable.ArrayBuffer
 @RunWith(classOf[JUnitRunner])
 class PrometheusReporterTest extends Specification {
 
-  private def getFreePort: Int = WithClose(new ServerSocket(0))(_.getLocalPort)
+  private def getFreePort: Int = {
+    val socket = new ServerSocket(0)
+    try { socket.getLocalPort } finally {
+      socket.close()
+    }
+  }
 
   "Prometheus reporter" should {
     "expose metrics over http" in {
@@ -40,12 +44,15 @@ class PrometheusReporterTest extends Specification {
 
         val metrics = ArrayBuffer.empty[String]
         val url = new URL(s"http://localhost:$port/metrics")
-        WithClose(new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) { is =>
-          var line = is.readLine()
+        val reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))
+        try {
+          var line = reader.readLine()
           while (line != null) {
             metrics += line
-            line = is.readLine()
+            line = reader.readLine()
           }
+        } finally {
+          reader.close()
         }
 
         metrics must contain("foo_total 10.0")
@@ -64,12 +71,15 @@ class PrometheusReporterTest extends Specification {
 
         val metrics = ArrayBuffer.empty[String]
         val url = new URL(s"http://localhost:$port/metrics")
-        WithClose(new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) { is =>
-          var line = is.readLine()
+        val reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))
+        try {
+          var line = reader.readLine()
           while (line != null) {
             metrics += line
-            line = is.readLine()
+            line = reader.readLine()
           }
+        } finally {
+          reader.close()
         }
 
         metrics must contain("""foo_total{foo="bar"} 10.0""")
