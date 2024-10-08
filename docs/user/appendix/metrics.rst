@@ -196,13 +196,32 @@ Configuration should be under the key ``geomesa.metrics``, and takes the followi
 
     geomesa.metrics = {
       reporters = []
-      # enable various metrics
-      bindings = {
-        classloader = false # enable jvm classloader metrics
-        memory = false # enable jvm memory usage metrics
-        gc = false # enable jvm garbage collection metrics
-        processor = false # enable jvm processor usage metrics
-        threads = false # enable jvm thread usage metrics
+      instrumentations = {
+        # jvm classloader metrics
+        classloader = {
+            enabled = false
+            tags = {}
+        }
+        # jvm memory usage metrics
+        memory = {
+          enabled = false
+          tags = {}
+        }
+         # jvm garbage collection metrics
+        gc = {
+          enabled = false
+          tags = {}
+        }
+         # jvm processor usage metrics
+        processor = {
+          enabled = false
+          tags = {}
+        }
+        # jvm thread usage metrics
+        threads = {
+          enabled = false
+          tags = {}
+        }
       }
     }
 
@@ -218,12 +237,12 @@ Prometheus
       enabled = true
       # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
       rename = false
-      commonTags = { "application" = "my-app" }
+      common-tags = { "application" = "my-app" }
       port = 9090
       # additional config can also be done via sys props - see https://prometheus.github.io/client_java/config/config/
       properties = {}
       # omit if not using pushgateway
-      pushGateway = {
+      push-gateway = {
         host = "localhost:9091"
         job = "my-job"
         scheme = "http"
