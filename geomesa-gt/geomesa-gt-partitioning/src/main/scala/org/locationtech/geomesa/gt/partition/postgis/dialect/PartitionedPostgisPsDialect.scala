@@ -15,6 +15,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.data.postgis.PostGISPSDialect
 import org.geotools.jdbc.JDBCDataStore
 
+import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -39,7 +40,20 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
           }
         })
 
-  override def setValue(value: Any, binding: Class[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
+  // reference to super.setValue, for back-compatibility with gt 30
+  private lazy val superSetValue: MethodHandle = {
+    val methodType =
+      MethodType.methodType(classOf[Unit], classOf[Object], classOf[Class[_]], classOf[PreparedStatement], classOf[Int], classOf[Connection])
+    MethodHandles.lookup.findSpecial(classOf[PostGISPSDialect], "setValue", methodType, classOf[PartitionedPostgisPsDialect])
+  }
+
+  override def setValue(
+      value: AnyRef,
+      binding: Class[_],
+      att: AttributeDescriptor,
+      ps: PreparedStatement,
+      column: Int,
+      cx: Connection): Unit = {
     // json columns are string type in geotools, but we have to use setObject or else we get a binding error
     if (binding == classOf[String] && jsonColumns.get(new PreparedStatementKey(ps, column))) {
       ps.setObject(column, value, Types.OTHER)
@@ -65,10 +79,45 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 
         case _ =>
           // this will almost certainly fail...
-          super.setValue(value, binding, ps, column, cx)
+          super.setValue(value, binding, att, ps, column, cx)
       }
     } else {
-      super.setValue(value, binding, ps, column, cx)
+      super.setValue(value, binding, att, ps, column, cx)
+    }
+  }
+
+  // for back-compatibility with gt 30
+  // noinspection ScalaUnusedSymbol
+  def setValue(value: AnyRef, binding: Class[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
+    // json columns are string type in geotools, but we have to use setObject or else we get a binding error
+    if (binding == classOf[String] && jsonColumns.get(new PreparedStatementKey(ps, column))) {
+      ps.setObject(column, value, Types.OTHER)
+    } else if (binding == classOf[java.util.List[_]]) {
+      // handle bug in jdbc store not calling setArrayValue in update statements
+      value match {
+        case null =>
+          ps.setNull(column, Types.ARRAY)
+
+        case list: java.util.Collection[_] =>
+          if (list.isEmpty) {
+            ps.setNull(column, Types.ARRAY)
+          } else {
+            setArray(list.toArray(), ps, column, cx)
+          }
+
+        case array: Array[_] =>
+          if (array.isEmpty) {
+            ps.setNull(column, Types.ARRAY)
+          } else {
+            setArray(array, ps, column, cx)
+          }
+
+        case _ =>
+          // this will almost certainly fail...
+          superSetValue.invoke(this, value, binding, ps, column, cx)
+      }
+    } else {
+      superSetValue.invoke(this, value, binding, ps, column, cx)
     }
   }
 
@@ -116,7 +165,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
 object PartitionedPostgisPsDialect {
 
   // uses eq on the prepared statement to ensure that we compute json fields exactly once per prepared statement/col
-  class PreparedStatementKey(val ps: PreparedStatement, val column: Int) {
+  private class PreparedStatementKey(val ps: PreparedStatement, val column: Int) {
 
     override def equals(other: Any): Boolean = {
       other match {
