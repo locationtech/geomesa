@@ -9,18 +9,21 @@
 package org.locationtech.geomesa.metrics.micrometer
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
+import com.typesafe.scalalogging.StrictLogging
 import io.micrometer.core.instrument.binder.jvm.{ClassLoaderMetrics, JvmGcMetrics, JvmMemoryMetrics, JvmThreadMetrics}
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
-import io.micrometer.core.instrument.{MeterRegistry, Metrics}
+import io.micrometer.core.instrument.{MeterRegistry, Metrics, Tag}
 import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
 import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 import pureconfig.{ConfigReader, ConfigSource}
 
 import java.util.Locale
 
-object MicrometerSetup {
+object MicrometerSetup extends StrictLogging {
 
   import pureconfig.generic.semiauto._
+
+  import scala.collection.JavaConverters._
 
   private val registries = scala.collection.mutable.Map.empty[String, String]
   private val bindings = scala.collection.mutable.Set.empty[String]
@@ -32,12 +35,13 @@ object MicrometerSetup {
    *
    * @param conf conf
    */
+  // noinspection ScalaUnusedSymbol
   def configure(conf: Config = ConfigFactory.load()): Unit = synchronized {
     if (conf.hasPath(ConfigPath)) {
-      // noinspection ScalaUnusedSymbol
-      implicit val bindingsReader: ConfigReader[MetricsBindings] = deriveReader[MetricsBindings]
-      implicit val metricsReader: ConfigReader[MetricsConfig] = deriveReader[MetricsConfig]
-      implicit val registryReader: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
+      implicit val r0: ConfigReader[Instrumentation] = deriveReader[Instrumentation]
+      implicit val r1: ConfigReader[JvmInstrumentations] = deriveReader[JvmInstrumentations]
+      implicit val r2: ConfigReader[MetricsConfig] = deriveReader[MetricsConfig]
+      implicit val r3: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
       val metricsConfig = ConfigSource.fromConfig(conf.getConfig(ConfigPath)).loadOrThrow[MetricsConfig]
       metricsConfig.registries.foreach { registryConfig =>
         val config = ConfigSource.fromConfig(registryConfig).loadOrThrow[RegistryConfig]
@@ -51,7 +55,7 @@ object MicrometerSetup {
                   s"\n  existing: $existing\n    update: $configString")
             }
           } else {
-            val registry = createRegistry(conf)
+            val registry = createRegistry(registryConfig)
             sys.addShutdownHook(registry.close())
             Metrics.addRegistry(registry)
             registries.put(config.`type`, configString)
@@ -59,20 +63,30 @@ object MicrometerSetup {
         }
       }
 
-      if (metricsConfig.bindings.classloader && bindings.add("classloader")) {
-        new ClassLoaderMetrics().bindTo(Metrics.globalRegistry)
+      if (metricsConfig.instrumentations.classloader.enabled && bindings.add("classloader")) {
+        logger.debug("Enabling JVM classloader metrics")
+        val tags = metricsConfig.instrumentations.classloader.tags.map { case (k, v) => Tag.of(k, v) }
+        new ClassLoaderMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.bindings.memory && bindings.add("memory")) {
-        new JvmMemoryMetrics().bindTo(Metrics.globalRegistry)
+      if (metricsConfig.instrumentations.memory.enabled && bindings.add("memory")) {
+        logger.debug("Enabling JVM memory metrics")
+        val tags = metricsConfig.instrumentations.memory.tags.map { case (k, v) => Tag.of(k, v) }
+        new JvmMemoryMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.bindings.gc && bindings.add("gc")) {
-        new JvmGcMetrics().bindTo(Metrics.globalRegistry)
+      if (metricsConfig.instrumentations.gc.enabled && bindings.add("gc")) {
+        logger.debug("Enabling JVM garbage collection metrics")
+        val tags = metricsConfig.instrumentations.gc.tags.map { case (k, v) => Tag.of(k, v) }
+        new JvmGcMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.bindings.processor && bindings.add("processor")) {
-        new ProcessorMetrics().bindTo(Metrics.globalRegistry)
+      if (metricsConfig.instrumentations.processor.enabled && bindings.add("processor")) {
+        logger.debug("Enabling JVM processor metrics")
+        val tags = metricsConfig.instrumentations.processor.tags.map { case (k, v) => Tag.of(k, v) }
+        new ProcessorMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.bindings.threads && bindings.add("threads")) {
-        new JvmThreadMetrics().bindTo(Metrics.globalRegistry)
+      if (metricsConfig.instrumentations.threads.enabled && bindings.add("threads")) {
+        logger.debug("Enabling JVM thread metrics")
+        val tags = metricsConfig.instrumentations.threads.tags.map { case (k, v) => Tag.of(k, v) }
+        new JvmThreadMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
     }
   }
@@ -87,23 +101,25 @@ object MicrometerSetup {
     implicit val reader: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
     val config = ConfigSource.fromConfig(conf).loadOrThrow[RegistryConfig]
     config.`type`.toLowerCase(Locale.US) match {
-      case "prometheus" => PrometheusFactory(conf)
-      case "cloudwatch" => CloudwatchFactory(conf)
+      case "prometheus" => logger.debug("Creating prometheus registry"); PrometheusFactory(conf)
+      case "cloudwatch" => logger.debug("Creating cloudwatch registry"); CloudwatchFactory(conf)
       case t => throw new IllegalArgumentException(s"No registry type defined for '$t' - valid values are: prometheus, cloudwatch")
     }
   }
 
   private case class MetricsConfig(
       registries: Seq[Config],
-      bindings: MetricsBindings
+      instrumentations: JvmInstrumentations,
     )
 
-  private case class MetricsBindings(
-      classloader: Boolean = false,
-      memory: Boolean = false,
-      gc: Boolean = false,
-      processor: Boolean = false,
-      threads: Boolean = false,
+  private case class Instrumentation(enabled: Boolean = false, tags: Map[String, String] = Map.empty)
+
+  private case class JvmInstrumentations(
+      classloader: Instrumentation = Instrumentation(),
+      memory: Instrumentation = Instrumentation(),
+      gc: Instrumentation = Instrumentation(),
+      processor: Instrumentation = Instrumentation(),
+      threads: Instrumentation = Instrumentation(),
     )
 
   private case class RegistryConfig(
