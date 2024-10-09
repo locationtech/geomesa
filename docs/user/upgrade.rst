@@ -66,7 +66,7 @@ Dependency Compatibility
 
 Dependency compatibility refers to the ability to update GeoMesa without updating other components
 (e.g. Accumulo, HBase, Hadoop, Spark, GeoServer, etc). Generally, GeoMesa supports a range of dependency versions
-(e.g. Accumulo 1.6 to 1.9). Spark versions are more tightly coupled, due to the use of private Spark APIs.
+(e.g. Accumulo 2.0 to 2.1). Spark versions are more tightly coupled, due to the use of private Spark APIs.
 
 Pre-Release Code
 ^^^^^^^^^^^^^^^^
@@ -93,12 +93,40 @@ Compatibility Matrix
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Version Compatibility
+---------------------
+
+GeoMesa 5.1.x is generally compatible with versions 5.0.x, 4.0.x and 3.5.x across different environments. This means that
+it is possible to upgrade in parts; i.e. upgrade GeoServer to 5.1.0 but keep NiFi at 3.5.2. Please note that
+previously deprecated functionality (see below) may no longer work once any part of the environment is upgraded to
+5.1.0.
+
 Dependency Version Upgrades
 ---------------------------
 
 The following dependencies have been upgraded:
 
-* arrow ``15.0.2`` -> ``16.1.0``
+* accumulo ``2.1.2`` -> ``2.1.3``
+* aircompressor ``0.25`` -> ``0.27``
+* arrow ``15.0.2`` -> ``17.0.0``
+* avro ``1.11.3`` -> ``1.11.4``
+* aws-java-sdk ``1.12.625`` -> ``1.12.735``
+* com.fasterxml.jackson ``2.16.1`` -> ``2.17.2``
+* commons-codec ``1.16.0`` -> ``1.17.1``
+* commons-io ``2.15.1`` -> ``2.16.1``
+* commons-lang3 ``3.14.0`` -> ``3.15.0``
+* commons-logging ``1.2`` -> ``1.3.3``
+* commons-text ``1.11.0`` -> ``1.12.0``
+* failureaccess ``1.0.1`` -> ``1.0.2``
+* flatbuffers ``23.5.26`` -> ``24.3.25``
+* geotools ``30.2`` -> ``32.0``
+* guava ``32.0.0-jre`` -> ``33.2.1-jre``
+* javax.measure ``2.1.2`` -> ``2.2``
+* jts ``1.19.0`` -> ``1.20.0``
+* micrometer ``1.11.1`` -> ``1.13.4``
+* netty ``4.1.106.Final`` -> ``4.1.114.Final``
+* opentelemetry ``1.27.0`` -> ``1.34.1``
+* snakeyaml ``2.0`` -> ``2.2``
 
 Audit Logger Changes
 --------------------
