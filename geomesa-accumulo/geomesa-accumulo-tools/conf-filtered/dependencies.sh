@@ -50,6 +50,13 @@ function dependencies() {
     "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
     "org.codehaus.woodstox:stax2-api:4.2.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
+    "io.netty:netty-codec:%%netty.version%%:jar"
+    "io.netty:netty-handler:%%netty.version%%:jar"
+    "io.netty:netty-resolver:%%netty.version%%:jar"
+    "io.netty:netty-transport:%%netty.version%%:jar"
+    "io.netty:netty-transport-classes-epoll:%%netty.version%%:jar"
+    "io.netty:netty-transport-native-epoll:%%netty.version%%:jar:linux-x86_64"
+    "io.netty:netty-transport-native-unix-common:%%netty.version%%:jar"
   )
 
   # add accumulo 2.1 jars if needed
@@ -79,6 +86,7 @@ function dependencies() {
   else
     gavs+=(
       "org.apache.thrift:libthrift:0.12.0:jar"
+      "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
     )
   fi
 
