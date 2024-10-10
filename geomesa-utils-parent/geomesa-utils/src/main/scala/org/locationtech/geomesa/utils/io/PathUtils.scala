@@ -28,9 +28,12 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
 
   // delegate allows us to avoid a runtime dependency on hadoop
   private val hadoopDelegate: FileSystemDelegate =
-    Try(Class.forName("org.locationtech.geomesa.utils.hadoop.HadoopDelegate").newInstance())
-        .getOrElse(null)
-        .asInstanceOf[FileSystemDelegate]
+    try {
+      Class.forName("org.locationtech.geomesa.utils.hadoop.HadoopDelegate")
+        .getDeclaredConstructor().newInstance().asInstanceOf[FileSystemDelegate]
+    } catch {
+      case _: Throwable => null
+    }
 
   override def interpretPath(path: String): Seq[FileHandle] = chooseDelegate(path).interpretPath(path)
 
