@@ -19,13 +19,13 @@ User Manual
    spark/index
    nifi/index
    process
-   hbase/index
    accumulo/index
+   hbase/index
    cassandra/index
+   postgis/index
    kafka/index
    redis/index
    filesystem/index
-   postgis/index
    lambda/index
    ds_views
    upgrade

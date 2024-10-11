@@ -27,8 +27,8 @@ geospatial analytics.
 * [Main documentation](https://www.geomesa.org/documentation/)
 * [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
-  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
   [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
@@ -40,8 +40,8 @@ geospatial analytics.
 **Current release: [5.1.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.1.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-hbase_2.12-5.1.0-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-accumulo_2.12-5.1.0-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-hbase_2.12-5.1.0-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-cassandra_2.12-5.1.0-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-kafka_2.12-5.1.0-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-redis_2.12-5.1.0-bin.tar.gz) |
@@ -79,9 +79,25 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-hbase-datastore_2.12</artifactId>
+  <artifactId>geomesa-accumulo-datastore_2.12</artifactId>
   <version>5.1.0</version>
 </dependency>
+```
+
+GeoMesa provides a bill-of-materials module, which can simplify version management:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.locationtech.geomesa</groupId>
+      <artifactId>geomesa-bom_2.12</artifactId>
+      <version>5.1.0</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
 ```
 
 GeoMesa depends on several third-party libraries that are only available in separate repositories. To include

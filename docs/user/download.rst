@@ -41,7 +41,7 @@ repositories to your pom:
       </repository>
     </repositories>
 
-and then include the desired ``geomesa-*`` dependencies:
+and then include the desired GeoMesa dependencies:
 
 .. parsed-literal::
 
@@ -57,6 +57,22 @@ and then include the desired ``geomesa-*`` dependencies:
       <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
       <version>${geomesa.version}</version>
     </dependency>
+
+GeoMesa provides a bill-of-materials module, which can simplify version management:
+
+.. code-block:: xml
+
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>org.locationtech.geomesa</groupId>
+          <artifactId>geomesa-bom_${scala.binary.version}</artifactId>
+          <version>${geomesa.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
 
 For cutting-edge development, nightly snapshots are available from Eclipse:
 
