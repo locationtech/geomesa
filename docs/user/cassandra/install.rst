@@ -135,7 +135,7 @@ Cassandra data stores in GeoServer. The plugin files are in the
 GeoMesa Cassandra distribution directory.
 
 To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``
-directory of your GeoServer installation::
+directory of your GeoServer installation:
 
 .. code-block:: bash
 
