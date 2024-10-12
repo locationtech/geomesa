@@ -16,7 +16,7 @@ import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.filter.GeometryProcessing
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.locationtech.jts.operation.distance.DistanceOp
 
 object FastDWithin {
@@ -35,20 +35,47 @@ object FastDWithin {
     */
   class DWithinLiteral(exp1: Expression, exp2: Literal, distance: Double, units: String) extends DWithin {
     private val geometry = FastConverter.evaluate(exp2, classOf[Geometry])
-    private val envelope = geometry.getEnvelopeInternal
+    private val envelope0 = geometry.getEnvelopeInternal
     private val meters = distance * GeometryProcessing.metersMultiplier(units)
     private val (minDegrees, maxDegrees) = GeometryUtils.distanceDegrees(geometry, meters)
 
     override def evaluate(obj: AnyRef): Boolean = {
       val geom = exp1.evaluate(obj).asInstanceOf[Geometry]
-      if (geom == null || envelope.distance(geom.getEnvelopeInternal) > maxDegrees) { false } else {
+      val dist0 = envelope0.distance(geom.getEnvelopeInternal)
+
+      // Translate the longitude +/- 360
+      val envelope1 = new Envelope(envelope0.getMinX - 360, envelope0.getMaxX - 360, envelope0.getMinY, envelope0.getMaxY)
+      val envelope2 = new Envelope(envelope0.getMinX + 360, envelope0.getMaxX + 360, envelope0.getMinY, envelope0.getMaxY)
+      val dist1 = envelope1.distance(geom.getEnvelopeInternal)
+      val dist2 = envelope2.distance(geom.getEnvelopeInternal)
+
+      if (geom == null || (dist0 > maxDegrees) && (dist1 > maxDegrees) && (dist2 > maxDegrees)) {
+        false
+      } else {
         val op = new DistanceOp(geometry, geom)
         op.distance <= minDegrees || {
           val Array(p1, p2) = op.nearestPoints()
           val calculator = calculators.get
+
           calculator.setStartingGeographicPoint(p1.x, p1.y)
           calculator.setDestinationGeographicPoint(p2.x, p2.y)
-          calculator.getOrthodromicDistance <= meters
+          val dist0 = calculator.getOrthodromicDistance
+          if (dist0 <= meters) {
+            return true
+          }
+
+          // Translate the longitude +/- 360
+          calculator.setStartingGeographicPoint(p1.x - 360, p1.y)
+          calculator.setDestinationGeographicPoint(p2.x, p2.y)
+          val dist1 = calculator.getOrthodromicDistance
+          if (dist1 <= meters) {
+            return true
+          }
+
+          calculator.setStartingGeographicPoint(p1.x + 360, p1.y)
+          calculator.setDestinationGeographicPoint(p2.x, p2.y)
+          val dist2 = calculator.getOrthodromicDistance
+          List(dist0, dist1, dist2).min <= meters
         }
       }
     }
