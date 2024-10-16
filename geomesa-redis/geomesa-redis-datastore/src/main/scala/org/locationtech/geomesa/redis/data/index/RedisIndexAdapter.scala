@@ -229,10 +229,8 @@ object RedisIndexAdapter extends LazyLogging {
     }
 
     private val tables = indices.toArray.map { index =>
-      index.getTableNames(partition) match {
-        case Seq(t) => t.getBytes(StandardCharsets.UTF_8) // should always be writing to a single table here
-        case names => throw new IllegalStateException(s"Expected a single table but got: ${names.mkString(", ")}")
-      }
+      // should always be writing to a single table here
+      index.getTableName(partition).getBytes(StandardCharsets.UTF_8)
     }
 
     private val inserts = Array.fill[java.util.Map[Array[Byte], java.lang.Double]](tables.length)(new java.util.HashMap[Array[Byte], java.lang.Double]())

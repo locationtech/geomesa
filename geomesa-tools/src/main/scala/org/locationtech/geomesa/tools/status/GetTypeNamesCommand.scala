@@ -17,6 +17,6 @@ trait GetTypeNamesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def execute(): Unit = {
     Command.output.info("Current feature types:")
-    withDataStore(_.getTypeNames.foreach(Command.output.info))
+    withDataStore(_.getTypeNames.foreach(m => Command.output.info(m)))
   }
 }

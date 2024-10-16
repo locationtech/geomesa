@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.utils.concurrent
 
+import org.locationtech.geomesa.utils.io.IsCloseable
+
 import java.io.Closeable
 
-class LazyCloseable[T <: Closeable](create: => T) extends Closeable {
+class LazyCloseable[T: IsCloseable](create: => T) extends Closeable {
 
   @volatile
   private var initialized = false
@@ -22,7 +24,7 @@ class LazyCloseable[T <: Closeable](create: => T) extends Closeable {
 
   override def close(): Unit = {
     if (initialized) {
-      instance.close()
+      implicitly[IsCloseable[T]].close(instance).get
     }
   }
 }

@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
-import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.index.{ByteArrays, VisibilityLevel}
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import scala.util.control.NonFatal
@@ -33,6 +33,8 @@ import scala.util.control.NonFatal
   */
 class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, geomField: String)
   extends IndexKeySpace[S2IndexValues, Long] {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   require(classOf[Point].isAssignableFrom(sft.getDescriptor(geomField).getType.getBinding),
     s"Expected field $geomField to have a point binding, but instead it has: " +
@@ -196,14 +198,14 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
                              config: Option[GeoMesaDataStoreFactory.GeoMesaDataStoreConfig],
                              hints: Hints): Boolean = {
     // if the user has requested strict bounding boxes, we apply the full filter
-    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
-    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
-    // fine resolutions, but the performance is worth it
-    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.queries.looseBBox))
-    lazy val simpleGeoms = values.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
-
-    !looseBBox || !simpleGeoms
+    !Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.queries.looseBBox)) ||
+      // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
+      // don't need to apply the filter on top of it. this may cause some minor errors at extremely
+      // fine resolutions, but the performance is worth it
+      // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+      values.exists(_.geometries.values.exists(g => !GeometryUtils.isRectangular(g))) ||
+      // for attribute-level vis, we need to re-evaluate the filter to account for visibility of the row key
+      (sft.getVisibilityLevel == VisibilityLevel.Attribute && values.exists(_.geometries.nonEmpty))
   }
 
 }

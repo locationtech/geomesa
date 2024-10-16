@@ -42,10 +42,8 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
 
     Command.user.info(s"Running HBase incremental load...")
     val start = System.currentTimeMillis()
-    val tableName = index.getTableNames(None) match {
-      case Seq(t) => TableName.valueOf(t) // should always be writing to a single table here
-      case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-    }
+    // should always be writing to a single table here
+    val tableName = TableName.valueOf(index.getTableName())
     val table = ds.connection.getTable(tableName)
     val locator = ds.connection.getRegionLocator(tableName)
     val config = new Configuration

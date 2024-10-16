@@ -1,0 +1,164 @@
+name: build-and-test
+
+on:
+  workflow_call:
+    inputs:
+      scala-version:
+        required: false
+        type: string
+        default: "2.12"
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  MAVEN_TEST_OPTS: -Dtest.fork.count=1
+
+jobs:
+  build-scala:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/setup-java@2dfa2011c5b2a0f1489bf9e433881c92c1631f88 # v4.3.0
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala-version }}
+          path: |
+            ~/.m2/repository/
+            build/zinc-0.3.15/
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+      - name: Build with Maven
+        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+      - name: Collect artifacts
+        run: |
+          mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
+          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -type d | tr '\n' ' ')
+      - name: Upload artifacts
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: classes-and-jars
+          retention-days: 1
+          path: |
+            m2-geomesa
+            classes.tgz
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
+  accumulo-ds-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      scala-version: ${{ inputs.scala-version }}
+  accumulo-other-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+      scala-version: ${{ inputs.scala-version }}
+  arrow-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-arrow
+      scala-version: ${{ inputs.scala-version }}
+  cassandra-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-cassandra
+      scala-version: ${{ inputs.scala-version }}
+  convert-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-convert
+      scala-version: ${{ inputs.scala-version }}
+  cqengine-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-memory
+      scala-version: ${{ inputs.scala-version }}
+  features-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-features
+      scala-version: ${{ inputs.scala-version }}
+  fs-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-fs
+      scala-version: ${{ inputs.scala-version }}
+  gt-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-gt
+      scala-version: ${{ inputs.scala-version }}
+  hbase-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-hbase
+      scala-version: ${{ inputs.scala-version }}
+  kafka-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-kafka
+      scala-version: ${{ inputs.scala-version }}
+  lambda-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-lambda
+      scala-version: ${{ inputs.scala-version }}
+  metrics-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-metrics
+      scala-version: ${{ inputs.scala-version }}
+  process-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-process
+      scala-version: ${{ inputs.scala-version }}
+  redis-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-redis
+      scala-version: ${{ inputs.scala-version }}
+  spark-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-spark
+      scala-version: ${{ inputs.scala-version }}
+  utils-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -f geomesa-utils-parent
+      scala-version: ${{ inputs.scala-version }}
+  other-tests:
+    needs: build-scala
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: -pl geomesa-filter,geomesa-index-api,geomesa-jobs,geomesa-security,geomesa-tools,geomesa-z3
+      scala-version: ${{ inputs.scala-version }}
+  integration-tests:
+    needs: build-scala
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      scala-version: ${{ inputs.scala-version }}

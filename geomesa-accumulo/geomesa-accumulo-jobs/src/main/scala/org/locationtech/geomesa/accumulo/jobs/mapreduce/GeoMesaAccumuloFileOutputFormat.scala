@@ -20,6 +20,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
@@ -148,6 +154,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -260,6 +267,10 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -289,6 +300,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -296,6 +308,8 @@
 >>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -357,6 +371,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -399,6 +416,7 @@
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -483,6 +501,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 9f430502b2 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -517,6 +537,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -561,6 +584,7 @@
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -635,6 +659,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b727e40f7c (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -669,6 +695,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -733,6 +762,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -744,6 +774,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -806,6 +838,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -862,8 +897,8 @@ import org.apache.hadoop.mapreduce.lib.output.{LazyOutputFormat, MultipleOutputs
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper, Reducer}
 import org.geotools.api.data.DataStoreFinder
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.data.writer.VisibilityCache
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloWritableFeature}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -910,7 +945,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
     }
 
     val tables = partitions match {
-      case None => indices.flatMap(_.getTableNames(None))
+      case None => indices.flatMap(_.getTableNames())
       case Some(parts) =>
         Configurator.setPartitions(job.getConfiguration, parts)
         logger.debug(s"Creating index tables for ${parts.length} partitions")
@@ -983,7 +1018,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
       val indexIds = GeoMesaConfigurator.getIndicesOut(context.getConfiguration).orNull
       require(indexIds != null, "Indices to write was not set in the job configuration")
       val indices = indexIds.map(ds.manager.index(sft, _, IndexMode.Write))
-      wrapper = AccumuloWritableFeature.wrapper(sft, ds.adapter.groups, indices)
+      wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
       partitioner = TablePartition(ds, sft)
       writers = indices.map(i => (i, i.createConverter()))
 
@@ -999,12 +1034,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
         val feature = wrapper.wrap(value)
         val partition = partitioner.map(_.partition(value))
         writers.foreach { case (index, writer) =>
-          index.getTableNames(partition) match {
-            case Seq(table) => tableAndKey.getTable.set(table)
-            case tables =>
-              val msg = if (tables.isEmpty) { "No table found" } else { "Multiple tables found" }
-              throw new IllegalStateException(msg + partition.map(p => s" for partition $p").getOrElse(""))
-          }
+          tableAndKey.getTable.set(index.getTableName(partition))
 
           writer.convert(feature) match {
             case kv: SingleRowKeyValue[_] =>

@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa
 
-package object tools {
+import com.beust.jcommander.ParameterException
+import com.typesafe.scalalogging.Logger
+import org.geotools.api.data.{DataStore, DataStoreFinder}
+import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
-  import com.beust.jcommander.ParameterException
-  import org.geotools.api.data.{DataStore, DataStoreFinder}
-  import org.locationtech.geomesa.tools.utils.Prompt
-  import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-  import org.slf4j.{Logger, LoggerFactory}
+package object tools {
 
   import java.io.File
   import scala.collection.JavaConverters._
@@ -42,9 +42,9 @@ package object tools {
 
   object Command {
     // send messages to the user - status, errors, etc
-    val user: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.user")
+    val user: Logger = Logger("org.locationtech.geomesa.tools.user")
     // send output from a command
-    val output: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.output")
+    val output: Logger = Logger("org.locationtech.geomesa.tools.output")
 
     /**
      * Exception used to indicate a failure in the command run, without printing a stack trace

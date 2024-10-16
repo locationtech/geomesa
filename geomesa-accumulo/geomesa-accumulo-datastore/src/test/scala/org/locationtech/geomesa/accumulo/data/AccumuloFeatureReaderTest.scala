@@ -9,19 +9,20 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.api.data.{Query, Transaction}
+import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditWriter, ParamsAuditProvider}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.QueryPlan
+import org.locationtech.geomesa.index.audit.AuditedEvent
 import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
-import org.locationtech.geomesa.index.audit.{AuditReader, AuditedEvent}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.time.ZonedDateTime
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Future
 
@@ -48,10 +49,20 @@ class AccumuloFeatureReaderTest extends Specification with TestWithFeatureType {
     new AccumuloDataStore(ds.connector, ds.config.copy(auditWriter = new MockAuditWriter(events)))
 
   class MockAuditWriter(events: ArrayBuffer[AuditedEvent])
-    extends AccumuloAuditWriter(null, "", new ParamsAuditProvider, enabled = false) with AuditReader {
-    override protected def write(event: QueryEvent): Future[Unit] = Future.successful(events.append(event))
-    override def getQueryEvents(typeName: String, dates: (ZonedDateTime, ZonedDateTime)): CloseableIterator[QueryEvent] = null
-    override def close(): Unit = {}
+    extends AccumuloAuditWriter(null, "", new ParamsAuditProvider, enabled = false) {
+    override def writeQueryEvent(
+        typeName: String,
+        user: String,
+        filter: Filter,
+        hints: Hints,
+        plans: Seq[QueryPlan[_]],
+        startTime: Long,
+        endTime: Long,
+        planTime: Long,
+        scanTime: Long,
+        hits: Long): Future[Unit] = {
+      Future.successful(events.append(QueryEvent("accumulo-vector", typeName, user, filter, hints, startTime, endTime, planTime, scanTime, hits)))
+    }
   }
 
   "AccumuloFeatureReader" should {

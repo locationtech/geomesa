@@ -33,11 +33,8 @@ class AccumuloIndexWriter(
 
   private val multiWriter = ds.connector.createMultiTableBatchWriter()
   private val writers = indices.toArray.map { index =>
-    val table = index.getTableNames(partition) match {
-      case Seq(t) => t // should always be writing to a single table here
-      case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
-    }
-    multiWriter.getBatchWriter(table)
+    // should always be writing to a single table here
+    multiWriter.getBatchWriter(index.getTableName(partition))
   }
 
   private val colFamilyMappings = indices.map(ColumnFamilyMapper.apply).toArray

@@ -8,6 +8,13 @@
 
 package org.locationtech.geomesa.index.audit
 
+import org.geotools.api.filter.Filter
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.index.geoserver.ViewParams
+
+import java.util.Collections
+
 /**
   * Basic trait for any 'event' that we may want to audit. Ties it to a particular data store, schema type name
   * and date
@@ -29,18 +36,18 @@ sealed trait AuditedEvent {
   def typeName: String
 
   /**
-    * Date of event, in millis since the Java epoch
+    * Start date of event, in millis since the Java epoch
     *
     * @return
     */
-  def date: Long
+  def start: Long
 
   /**
-   * Has the event been marked as deleted?
+   * End date of event, in millis since the Java epoch
    *
    * @return
    */
-//  def deleted: Boolean
+  def end: Long
 }
 
 object AuditedEvent {
@@ -48,12 +55,34 @@ object AuditedEvent {
   case class QueryEvent(
     storeType: String,
     typeName: String,
-    date:     Long,
     user:     String,
     filter:   String,
-    hints:    String,
+    hints:    java.util.Map[String, String],
+    metadata: java.util.Map[String, AnyRef],
+    start:    Long,
+    end:      Long,
     planTime: Long,
     scanTime: Long,
     hits:     Long
   ) extends AuditedEvent
+
+  object QueryEvent {
+    def apply(
+        storeType: String,
+        typeName: String,
+        user:     String,
+        filter:   Filter,
+        hints:    Hints,
+        start:    Long,
+        end:      Long,
+        planTime: Long,
+        scanTime: Long,
+        hits:     Long
+      ): QueryEvent = {
+      val filterString = filterToString(filter)
+      val readableHints = ViewParams.getReadableHints(hints)
+      val metadata = Collections.emptyMap[String, AnyRef]()
+      QueryEvent(storeType, typeName, user, filterString, readableHints, metadata, start, end, planTime, scanTime, hits)
+    }
+  }
 }

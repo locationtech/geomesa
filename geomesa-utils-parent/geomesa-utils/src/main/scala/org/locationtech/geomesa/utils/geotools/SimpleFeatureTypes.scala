@@ -72,7 +72,7 @@ object SimpleFeatureTypes {
     val ENABLED_INDEX_OPTS: Seq[String] = Seq(EnabledIndices, "geomesa.indexes.enabled", "table.indexes.enabled")
   }
 
-  private [geomesa] object InternalConfigs {
+  private[geomesa] object InternalConfigs {
     val GeomesaPrefix          = "geomesa."
     val TableSharingPrefix     = "geomesa.table.sharing.prefix"
     val UserDataPrefix         = "geomesa.user-data.prefix"
@@ -96,11 +96,37 @@ object SimpleFeatureTypes {
     val OptStats        = "keep-stats"
   }
 
-  private [geomesa] object AttributeConfigs {
+  private[geomesa] object AttributeConfigs {
     val UserDataListType     = "subtype"
     val UserDataMapKeyType   = "keyclass"
     val UserDataMapValueType = "valueclass"
   }
+
+  private val IndexChecks: Seq[SimpleFeatureType => Any] =
+    Seq(
+      _.getIndices,
+      _.getDtgField,
+      _.isUuidEncoded,
+      _.getAttributeShards,
+      _.getIdShards,
+      _.getZ3Shards,
+      _.getZ2Shards,
+      _.getVisibilityLevel,
+      _.getXZPrecision,
+      _.getZ3Interval,
+      _.getS3Interval,
+      _.getCompression,
+      _.isPartitioned,
+      _.getTableSharingPrefix,
+    )
+
+  private val AttributeChecks: Seq[AttributeDescriptor => Any] =
+    Seq(
+      _.getUserData.get(AttributeOptions.OptIndexValue),
+      _.getUserData.get(AttributeOptions.OptJson),
+      _.getUserData.get(AttributeOptions.OptPrecision),
+      _.getUserData.get(AttributeOptions.OptColumnGroups),
+    )
 
   private val cache = new ConcurrentHashMap[(String, String), ImmutableSimpleFeatureType]()
 
@@ -462,6 +488,27 @@ object SimpleFeatureTypes {
 
     if (exact) { 0 } else {
       1  // we haven't hit an absolute inequality, but we've found a reordering or subtype
+    }
+  }
+
+  /**
+   * Compares that index tables are the same format (key and value) between the two feature types
+   *
+   * @param a first type
+   * @param b second type
+   * @return 0 if indices are the same, non-zero otherwise
+   */
+  def compareIndexConfigs(a: SimpleFeatureType, b: SimpleFeatureType): Int = {
+    def compareAttributes(i: Int): Boolean = {
+      val (ad, bd) = (a.getDescriptor(i), b.getDescriptor(i))
+      ad.getType.getBinding == bd.getType.getBinding && AttributeChecks.forall(c => c(ad) == c(bd))
+    }
+    if (a.getAttributeCount == b.getAttributeCount &&
+        IndexChecks.forall(c => c(a) == c(b)) &&
+        Range(0, a.getAttributeCount).forall(compareAttributes)) {
+      0
+    } else {
+      1
     }
   }
 

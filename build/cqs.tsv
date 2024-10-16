@@ -9,11 +9,22 @@ com.esotericsoftware:kryo-shaded	4.0.3	compile
 com.esotericsoftware:minlog	1.3.0	compile
 com.facebook:nailgun-server	1.0.1	compile
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+com.fasterxml.jackson.core:jackson-annotations	2.17.2	compile
+com.fasterxml.jackson.core:jackson-core	2.17.2	compile
+com.fasterxml.jackson.core:jackson-databind	2.17.2	compile
+com.fasterxml.jackson.dataformat:jackson-dataformat-cbor	2.17.2	compile
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310	2.17.2	compile
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 com.fasterxml.jackson.core:jackson-annotations	2.16.1	compile
 com.fasterxml.jackson.core:jackson-core	2.16.1	compile
 com.fasterxml.jackson.core:jackson-databind	2.16.1	compile
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor	2.16.1	compile
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310	2.16.1	compile
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
 com.github.ben-manes.caffeine:caffeine	3.1.8	compile
 com.github.luben:zstd-jni	1.5.5-11	compile
 com.github.pureconfig:pureconfig-core_2.12	0.17.4	compile
@@ -24,6 +35,12 @@ com.google.code.gson:gson	2.10.1	compile
 com.google.errorprone:error_prone_annotations	2.21.1	compile
 com.google.flatbuffers:flatbuffers-java	24.3.25	compile
 com.google.guava:failureaccess	1.0	compile
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+com.google.guava:failureaccess	1.0.2	compile
+=======
+>>>>>>> locatelli-main
 =======
 com.fasterxml.jackson.core:jackson-annotations	2.14.1	compile
 com.fasterxml.jackson.core:jackson-core	2.14.1	compile
@@ -42,6 +59,7 @@ com.github.pureconfig:pureconfig_2.12	0.17.2	compile
 com.github.pureconfig:pureconfig-core_2.12	0.17.2	compile
 com.github.pureconfig:pureconfig-generic_2.12	0.17.2	compile
 com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -179,6 +197,10 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -208,6 +230,9 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -257,6 +282,7 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -382,6 +408,10 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -409,9 +439,12 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -490,6 +523,9 @@ com.github.pureconfig:pureconfig-generic-base_2.12	0.17.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -542,10 +578,11 @@ com.google.errorprone:error_prone_annotations	2.16	compile
 com.google.flatbuffers:flatbuffers-java	1.12.0	compile
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 com.google.guava:failureaccess	1.0.1	compile
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
 com.google.guava:guava	18.0	compile
 com.google.guava:guava	27.0-jre	compile
-com.google.guava:guava	28.0-jre	compile
-com.google.guava:guava	32.0.0-jre	compile
+com.google.guava:guava	33.0.0-jre	compile
+com.google.guava:guava	33.2.1-jre	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
 com.google.protobuf:protobuf-java	3.25.3	compile
 com.google.re2j:re2j	1.1	compile
@@ -622,6 +659,7 @@ com.google.re2j:re2j	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
 com.googlecode.cqengine:cqengine	3.0.0	compile
 <<<<<<< HEAD
@@ -924,6 +962,8 @@ com.google.re2j:re2j	1.6	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -958,6 +998,9 @@ com.google.re2j:re2j	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1031,9 +1074,12 @@ com.google.re2j:re2j	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1111,6 +1157,9 @@ com.google.re2j:re2j	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1167,9 +1216,9 @@ com.thoughtworks.paranamer:paranamer	2.8	compile
 com.typesafe.scala-logging:scala-logging_2.12	3.9.5	compile
 com.typesafe:config	1.4.3	compile
 commons-cli:commons-cli	1.6.0	compile
-commons-codec:commons-codec	1.16.0	compile
+commons-codec:commons-codec	1.17.1	compile
 commons-dbcp:commons-dbcp	1.4	compile
-commons-io:commons-io	2.15.1	compile
+commons-io:commons-io	2.16.1	compile
 commons-jxpath:commons-jxpath	1.3	compile
 commons-logging:commons-logging	1.3.3	compile
 commons-pool:commons-pool	1.6	compile
@@ -1189,6 +1238,7 @@ commons-pool:commons-pool	1.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 io.airlift:aircompressor	0.25	compile
 =======
@@ -1225,6 +1275,8 @@ io.airlift:aircompressor	0.25	compile
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1252,6 +1304,9 @@ io.airlift:aircompressor	0.25	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1274,6 +1329,7 @@ com.thoughtworks.paranamer:paranamer	2.8	compile
 com.typesafe:config	1.4.2	compile
 com.typesafe.scala-logging:scala-logging_2.12	3.9.5	compile
 com.yammer.metrics:metrics-core	2.2.0	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1411,6 +1467,10 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -1440,6 +1500,9 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1489,6 +1552,7 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1614,6 +1678,10 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -1641,9 +1709,12 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1722,6 +1793,9 @@ com.yammer.metrics:metrics-core	2.2.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1792,6 +1866,10 @@ io.airlift:aircompressor	0.21	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> eca30cb68af (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> eca30cb68af (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1820,6 +1898,7 @@ io.dropwizard.metrics:metrics-core	3.2.6	compile
 io.dropwizard.metrics:metrics-graphite	3.2.6	compile
 io.dropwizard.metrics:metrics-jvm	3.2.6	compile
 io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1881,6 +1960,56 @@ io.micrometer:micrometer-core	1.9.5	compile
 =======
 =======
 >>>>>>> locatelli-main
+=======
+io.micrometer:micrometer-commons	1.13.4	compile
+io.micrometer:micrometer-core	1.13.4	compile
+io.micrometer:micrometer-observation	1.13.4	compile
+io.netty:netty-all	4.1.114.Final	compile
+io.netty:netty-buffer	4.1.114.Final	compile
+io.netty:netty-codec	4.1.114.Final	compile
+io.netty:netty-codec-dns	4.1.114.Final	compile
+io.netty:netty-codec-haproxy	4.1.114.Final	compile
+io.netty:netty-codec-http	4.1.114.Final	compile
+io.netty:netty-codec-http2	4.1.114.Final	compile
+io.netty:netty-codec-memcache	4.1.114.Final	compile
+io.netty:netty-codec-mqtt	4.1.114.Final	compile
+io.netty:netty-codec-redis	4.1.114.Final	compile
+io.netty:netty-codec-smtp	4.1.114.Final	compile
+io.netty:netty-codec-socks	4.1.114.Final	compile
+io.netty:netty-codec-stomp	4.1.114.Final	compile
+io.netty:netty-codec-xml	4.1.114.Final	compile
+io.netty:netty-common	4.1.114.Final	compile
+io.netty:netty-handler	4.1.114.Final	compile
+io.netty:netty-handler-proxy	4.1.114.Final	compile
+io.netty:netty-handler-ssl-ocsp	4.1.114.Final	compile
+io.netty:netty-resolver	4.1.114.Final	compile
+io.netty:netty-resolver-dns	4.1.114.Final	compile
+io.netty:netty-resolver-dns-classes-macos	4.1.114.Final	compile
+io.netty:netty-transport	4.1.114.Final	compile
+io.netty:netty-transport-classes-epoll	4.1.114.Final	compile
+io.netty:netty-transport-classes-kqueue	4.1.114.Final	compile
+io.netty:netty-transport-native-epoll	linux-x86_64:4.1.114.Final	compile
+io.netty:netty-transport-native-unix-common	4.1.114.Final	compile
+io.netty:netty-transport-rxtx	4.1.114.Final	compile
+io.netty:netty-transport-sctp	4.1.114.Final	compile
+io.netty:netty-transport-udt	4.1.114.Final	compile
+=======
+=======
+>>>>>>> dba023747dd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 80c8e91bab2 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 03da13e6d31 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 36ca958d27d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ef3c1fdfa1f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 227e451f41f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 0d076484a6a (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 io.micrometer:micrometer-commons	1.12.2	compile
 io.micrometer:micrometer-core	1.12.2	compile
 io.micrometer:micrometer-observation	1.12.2	compile
@@ -1901,6 +2030,9 @@ io.micrometer:micrometer-observation	1.12.2	compile
 >>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1939,8 +2071,11 @@ io.netty:netty-transport-native-unix-common	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1957,6 +2092,9 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1969,6 +2107,7 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 =======
 =======
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2014,6 +2153,11 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
+=======
+=======
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -2105,6 +2249,9 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2153,6 +2300,7 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 =======
@@ -2165,6 +2313,9 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 =======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
@@ -2238,6 +2389,7 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2260,6 +2412,8 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2316,6 +2470,9 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2364,6 +2521,7 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -2390,6 +2548,8 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2437,6 +2597,9 @@ io.netty:netty-transport-udt	4.1.106.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2496,6 +2659,7 @@ io.micrometer:micrometer-observation	1.10.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2586,6 +2750,9 @@ io.micrometer:micrometer-observation	1.10.6	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -2615,6 +2782,9 @@ io.micrometer:micrometer-observation	1.10.6	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2665,6 +2835,7 @@ io.micrometer:micrometer-core	1.9.5	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2790,6 +2961,10 @@ io.micrometer:micrometer-core	1.9.5	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
@@ -2816,9 +2991,12 @@ io.micrometer:micrometer-core	1.9.5	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2895,6 +3073,9 @@ io.micrometer:micrometer-core	1.9.5	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2976,6 +3157,7 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -3088,6 +3270,10 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -3117,6 +3303,9 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3166,6 +3355,7 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3291,6 +3481,10 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -3318,9 +3512,12 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3399,6 +3596,9 @@ io.netty:netty-codec-http	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3481,6 +3681,7 @@ io.netty:netty-transport-udt	4.1.85.Final	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3530,12 +3731,18 @@ io.netty:netty-transport-udt	4.1.85.Final	compile
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 941b7ceb65c (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 941b7ceb65c (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 io.opentelemetry:opentelemetry-api	1.15.0	compile
 io.opentelemetry:opentelemetry-api	1.34.1	compile
 io.opentelemetry:opentelemetry-context	1.15.0	compile
 io.opentelemetry:opentelemetry-context	1.34.1	compile
 io.opentelemetry:opentelemetry-semconv	1.15.0-alpha	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3601,10 +3808,15 @@ io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 921430ab872 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3629,6 +3841,7 @@ io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3653,6 +3866,9 @@ io.opentelemetry:opentelemetry-semconv	1.25.0-alpha	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 87f87d63004 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 87f87d63004 (GEOMESA-3254 Add Bloop build support)
@@ -3689,6 +3905,9 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3732,6 +3951,7 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3822,6 +4042,8 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> d2a4c21745 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -3858,6 +4080,9 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3929,6 +4154,9 @@ io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4003,6 +4231,7 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> location-main
@@ -4054,7 +4283,10 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4088,6 +4320,8 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4162,6 +4396,9 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4230,6 +4467,7 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -4240,6 +4478,8 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4314,6 +4554,9 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4380,6 +4623,7 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -4388,6 +4632,8 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4453,6 +4699,9 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4495,45 +4744,45 @@ io.opentelemetry:opentelemetry-semconv	1.19.0-alpha	compile
 =======
 >>>>>>> locatelli-main
 io.sgr:s2-geometry-library-java	1.0.1	compile
-it.geosolutions.jaiext.affine:jt-affine	1.1.24	compile
-it.geosolutions.jaiext.algebra:jt-algebra	1.1.24	compile
-it.geosolutions.jaiext.bandcombine:jt-bandcombine	1.1.24	compile
-it.geosolutions.jaiext.bandmerge:jt-bandmerge	1.1.24	compile
-it.geosolutions.jaiext.bandselect:jt-bandselect	1.1.24	compile
-it.geosolutions.jaiext.binarize:jt-binarize	1.1.24	compile
-it.geosolutions.jaiext.border:jt-border	1.1.24	compile
-it.geosolutions.jaiext.buffer:jt-buffer	1.1.24	compile
-it.geosolutions.jaiext.classifier:jt-classifier	1.1.24	compile
-it.geosolutions.jaiext.colorconvert:jt-colorconvert	1.1.24	compile
-it.geosolutions.jaiext.colorindexer:jt-colorindexer	1.1.24	compile
-it.geosolutions.jaiext.crop:jt-crop	1.1.24	compile
-it.geosolutions.jaiext.errordiffusion:jt-errordiffusion	1.1.24	compile
-it.geosolutions.jaiext.format:jt-format	1.1.24	compile
-it.geosolutions.jaiext.imagefunction:jt-imagefunction	1.1.24	compile
-it.geosolutions.jaiext.iterators:jt-iterators	1.1.24	compile
-it.geosolutions.jaiext.lookup:jt-lookup	1.1.24	compile
-it.geosolutions.jaiext.mosaic:jt-mosaic	1.1.24	compile
-it.geosolutions.jaiext.nullop:jt-nullop	1.1.24	compile
-it.geosolutions.jaiext.orderdither:jt-orderdither	1.1.24	compile
-it.geosolutions.jaiext.piecewise:jt-piecewise	1.1.24	compile
-it.geosolutions.jaiext.rescale:jt-rescale	1.1.24	compile
-it.geosolutions.jaiext.rlookup:jt-rlookup	1.1.24	compile
-it.geosolutions.jaiext.scale2:jt-scale2	1.1.24	compile
-it.geosolutions.jaiext.scale:jt-scale	1.1.24	compile
-it.geosolutions.jaiext.shadedrelief:jt-shadedrelief	1.1.24	compile
-it.geosolutions.jaiext.stats:jt-stats	1.1.24	compile
-it.geosolutions.jaiext.translate:jt-translate	1.1.24	compile
-it.geosolutions.jaiext.utilities:jt-utilities	1.1.24	compile
-it.geosolutions.jaiext.vectorbin:jt-vectorbin	1.1.24	compile
-it.geosolutions.jaiext.warp:jt-warp	1.1.24	compile
-it.geosolutions.jaiext.zonal:jt-zonal	1.1.24	compile
+it.geosolutions.jaiext.affine:jt-affine	1.1.27	compile
+it.geosolutions.jaiext.algebra:jt-algebra	1.1.27	compile
+it.geosolutions.jaiext.bandcombine:jt-bandcombine	1.1.27	compile
+it.geosolutions.jaiext.bandmerge:jt-bandmerge	1.1.27	compile
+it.geosolutions.jaiext.bandselect:jt-bandselect	1.1.27	compile
+it.geosolutions.jaiext.binarize:jt-binarize	1.1.27	compile
+it.geosolutions.jaiext.border:jt-border	1.1.27	compile
+it.geosolutions.jaiext.buffer:jt-buffer	1.1.27	compile
+it.geosolutions.jaiext.classifier:jt-classifier	1.1.27	compile
+it.geosolutions.jaiext.colorconvert:jt-colorconvert	1.1.27	compile
+it.geosolutions.jaiext.colorindexer:jt-colorindexer	1.1.27	compile
+it.geosolutions.jaiext.crop:jt-crop	1.1.27	compile
+it.geosolutions.jaiext.errordiffusion:jt-errordiffusion	1.1.27	compile
+it.geosolutions.jaiext.format:jt-format	1.1.27	compile
+it.geosolutions.jaiext.imagefunction:jt-imagefunction	1.1.27	compile
+it.geosolutions.jaiext.iterators:jt-iterators	1.1.27	compile
+it.geosolutions.jaiext.lookup:jt-lookup	1.1.27	compile
+it.geosolutions.jaiext.mosaic:jt-mosaic	1.1.27	compile
+it.geosolutions.jaiext.nullop:jt-nullop	1.1.27	compile
+it.geosolutions.jaiext.orderdither:jt-orderdither	1.1.27	compile
+it.geosolutions.jaiext.piecewise:jt-piecewise	1.1.27	compile
+it.geosolutions.jaiext.rescale:jt-rescale	1.1.27	compile
+it.geosolutions.jaiext.rlookup:jt-rlookup	1.1.27	compile
+it.geosolutions.jaiext.scale2:jt-scale2	1.1.27	compile
+it.geosolutions.jaiext.scale:jt-scale	1.1.27	compile
+it.geosolutions.jaiext.shadedrelief:jt-shadedrelief	1.1.27	compile
+it.geosolutions.jaiext.stats:jt-stats	1.1.27	compile
+it.geosolutions.jaiext.translate:jt-translate	1.1.27	compile
+it.geosolutions.jaiext.utilities:jt-utilities	1.1.27	compile
+it.geosolutions.jaiext.vectorbin:jt-vectorbin	1.1.27	compile
+it.geosolutions.jaiext.warp:jt-warp	1.1.27	compile
+it.geosolutions.jaiext.zonal:jt-zonal	1.1.27	compile
 it.geosolutions.jgridshift:jgridshift-core	1.3	compile
 jakarta.annotation:jakarta.annotation-api	1.3.5	compile
 jakarta.inject:jakarta.inject-api	2.0.0	compile
 jakarta.inject:jakarta.inject-api	2.0.1	compile
 jakarta.transaction:jakarta.transaction-api	1.3.3	compile
 javax.annotation:javax.annotation-api	1.2	compile
-javax.measure:unit-api	2.1.2	compile
+javax.measure:unit-api	2.2	compile
 joda-time:joda-time	2.12.6	compile
 net.java.dev.jna:jna	5.14.0	compile
 net.java.dev.jna:jna-platform	5.14.0	compile
@@ -4545,6 +4794,7 @@ net.sf.saxon:Saxon-HE	12.4	compile
 org.antlr:antlr4-runtime	4.7.2	compile
 org.apache.accumulo:accumulo-access	1.0.0-beta	compile
 org.apache.accumulo:accumulo-core	2.0.1	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -4794,6 +5044,8 @@ org.apache.accumulo:accumulo-core	2.1.1	compile
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 org.apache.accumulo:accumulo-core	2.1.3	compile
 =======
 =======
@@ -4812,6 +5064,9 @@ org.apache.accumulo:accumulo-core	2.1.3	compile
 >>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4824,16 +5079,16 @@ org.apache.arrow:arrow-memory-core	17.0.0	compile
 org.apache.arrow:arrow-memory-netty	17.0.0	compile
 org.apache.arrow:arrow-memory-netty-buffer-patch	17.0.0	compile
 org.apache.arrow:arrow-vector	17.0.0	compile
-org.apache.avro:avro	1.11.3	compile
+org.apache.avro:avro	1.11.4	compile
 org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.26.0	compile
 org.apache.commons:commons-configuration2	2.10.1	compile
 org.apache.commons:commons-crypto	1.1.0	compile
 org.apache.commons:commons-csv	1.10.0	compile
 org.apache.commons:commons-dbcp2	2.11.0	compile
-org.apache.commons:commons-lang3	3.14.0	compile
+org.apache.commons:commons-lang3	3.15.0	compile
 org.apache.commons:commons-pool2	2.12.0	compile
-org.apache.commons:commons-text	1.11.0	compile
+org.apache.commons:commons-text	1.12.0	compile
 org.apache.curator:curator-client	5.6.0	compile
 org.apache.curator:curator-framework	5.6.0	compile
 org.apache.curator:curator-recipes	5.6.0	compile
@@ -4860,9 +5115,9 @@ org.apache.hbase:hbase-zookeeper	2.5.8-hadoop3	compile
 org.apache.htrace:htrace-core	3.2.0-incubating	compile
 org.apache.httpcomponents:httpclient	4.5.14	compile
 org.apache.httpcomponents:httpcore	4.4.16	compile
-org.apache.orc:orc-core	nohive:1.9.3	compile
-org.apache.orc:orc-mapreduce	nohive:1.9.3	compile
-org.apache.orc:orc-shims	1.9.3	compile
+org.apache.orc:orc-core	nohive:1.9.4	compile
+org.apache.orc:orc-mapreduce	nohive:1.9.4	compile
+org.apache.orc:orc-shims	1.9.4	compile
 org.apache.parquet:parquet-column	1.13.1	compile
 org.apache.parquet:parquet-common	1.13.1	compile
 org.apache.parquet:parquet-encoding	1.13.1	compile
@@ -4936,6 +5191,9 @@ org.apache.accumulo:accumulo-core	2.1.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5003,6 +5261,7 @@ org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -5029,6 +5288,9 @@ org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -5113,9 +5375,12 @@ org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5192,6 +5457,9 @@ org.apache.accumulo:accumulo-hadoop-mapreduce	2.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5267,6 +5535,7 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5357,6 +5626,9 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 >>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -5386,6 +5658,9 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5465,6 +5740,7 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -5523,6 +5799,9 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -5603,6 +5882,9 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5652,6 +5934,7 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 =======
 =======
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5727,6 +6010,8 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -5757,6 +6042,9 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5832,6 +6120,7 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -5840,6 +6129,8 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -5917,6 +6208,9 @@ org.apache.arrow:arrow-vector	11.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -5976,6 +6270,7 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6088,6 +6383,9 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -6117,6 +6415,9 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6191,6 +6492,7 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -6208,6 +6510,10 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -6322,11 +6628,14 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6396,9 +6705,12 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6488,6 +6800,9 @@ org.apache.arrow:arrow-vector	10.0.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6542,6 +6857,7 @@ org.apache.commons:commons-configuration2	2.8.0	compile
 org.apache.commons:commons-crypto	1.1.0	compile
 =======
 org.apache.commons:commons-crypto	1.0.0	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6679,6 +6995,10 @@ org.apache.commons:commons-crypto	1.0.0	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -6708,6 +7028,9 @@ org.apache.commons:commons-crypto	1.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -6757,6 +7080,7 @@ org.apache.commons:commons-crypto	1.0.0	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -6882,6 +7206,10 @@ org.apache.commons:commons-crypto	1.0.0	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -6909,9 +7237,12 @@ org.apache.commons:commons-crypto	1.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -6990,6 +7321,9 @@ org.apache.commons:commons-crypto	1.0.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7118,6 +7452,7 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -7230,6 +7565,10 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -7259,6 +7598,9 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7308,6 +7650,7 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7433,6 +7776,10 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7460,9 +7807,12 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -7541,6 +7891,9 @@ org.apache.hbase.thirdparty:hbase-shaded-protobuf	3.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7628,6 +7981,7 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -7740,6 +8094,10 @@ org.apache.orc:orc-shims	1.8.1	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -7769,6 +8127,9 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -7818,6 +8179,7 @@ org.apache.orc:orc-shims	1.8.1	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -7943,6 +8305,10 @@ org.apache.orc:orc-shims	1.8.1	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -7970,9 +8336,12 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8051,6 +8420,9 @@ org.apache.orc:orc-shims	1.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8122,7 +8494,10 @@ org.apache.yetus:audience-annotations	0.13.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8166,6 +8541,9 @@ org.apache.zookeeper:zookeeper-jute	3.9.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8201,6 +8579,7 @@ org.apiguardian:apiguardian-api	1.1.2	compile
 org.apache.yetus:audience-annotations	0.5.0	compile
 org.apache.zookeeper:zookeeper	3.5.10	compile
 org.apache.zookeeper:zookeeper-jute	3.5.10	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8341,6 +8720,10 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -8348,6 +8731,7 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8389,6 +8773,8 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8437,6 +8823,9 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8471,6 +8860,7 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8571,6 +8961,8 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -8599,6 +8991,9 @@ org.apache.zookeeper:zookeeper-jute	3.8.0	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8633,6 +9028,7 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -8708,6 +9104,8 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -8733,6 +9131,9 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8782,12 +9183,15 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -8842,6 +9246,9 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8897,6 +9304,7 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -8911,6 +9319,9 @@ org.apache.zookeeper:zookeeper-jute	3.8.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
@@ -8996,6 +9407,7 @@ org.ejml:ejml-simple	0.41	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
 =======
@@ -9088,6 +9500,60 @@ org.ejml:ejml-simple	0.41	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+org.geotools.jdbc:gt-jdbc-postgis	32.0	compile
+org.geotools.ogc:net.opengis.fes	32.0	compile
+org.geotools.ogc:net.opengis.ows	32.0	compile
+org.geotools.ogc:net.opengis.wfs	32.0	compile
+org.geotools.ogc:org.w3.xlink	32.0	compile
+org.geotools.xsd:gt-xsd-core	32.0	compile
+org.geotools.xsd:gt-xsd-fes	32.0	compile
+org.geotools.xsd:gt-xsd-filter	32.0	compile
+org.geotools.xsd:gt-xsd-gml2	32.0	compile
+org.geotools.xsd:gt-xsd-gml3	32.0	compile
+org.geotools.xsd:gt-xsd-ows	32.0	compile
+org.geotools.xsd:gt-xsd-wfs	32.0	compile
+org.geotools:gt-api	32.0	compile
+org.geotools:gt-coverage	32.0	compile
+org.geotools:gt-cql	32.0	compile
+org.geotools:gt-epsg-wkt	32.0	compile
+org.geotools:gt-grid	32.0	compile
+org.geotools:gt-http	32.0	compile
+org.geotools:gt-jdbc	32.0	compile
+org.geotools:gt-main	32.0	compile
+org.geotools:gt-metadata	32.0	compile
+org.geotools:gt-process	32.0	compile
+org.geotools:gt-process-feature	32.0	compile
+org.geotools:gt-referencing	32.0	compile
+org.geotools:gt-render	32.0	compile
+org.geotools:gt-shapefile	32.0	compile
+org.geotools:gt-transform	32.0	compile
+org.geotools:gt-xml	32.0	compile
+=======
+=======
+>>>>>>> 9dbf09df012 (Update cq list)
+=======
+>>>>>>> dba023747dd (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 80c8e91bab2 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> ef8215dae43 (Update cq list)
+=======
+>>>>>>> 03da13e6d31 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 36ca958d27d (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 961bf694e0f (Update cq list)
+=======
+>>>>>>> ef3c1fdfa1f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 227e451f41f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> dad40b174bf (Update cq list)
+=======
+>>>>>>> 0d076484a6a (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 org.geotools.jdbc:gt-jdbc-postgis	30.4	compile
 org.geotools.ogc:net.opengis.fes	30.4	compile
@@ -9145,6 +9611,9 @@ org.geotools:gt-xml	30.4	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9226,6 +9695,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9287,6 +9759,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9336,6 +9811,7 @@ org.geotools:gt-xml	30.2	compile
 >>>>>>> 4818f04155 (Update cq list)
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9431,6 +9907,8 @@ org.geotools:gt-xml	30.2	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -9462,6 +9940,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9495,6 +9976,7 @@ org.geotools:gt-xml	30.2	compile
 =======
 >>>>>>> 4818f04155 (Update cq list)
 >>>>>>> 1cb6d46e38 (Update cq list)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -9572,6 +10054,8 @@ org.geotools:gt-xml	30.2	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 8a255dd9ed8 (Update cq list)
 =======
 =======
@@ -9602,6 +10086,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9650,10 +10137,13 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9703,6 +10193,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9751,10 +10244,13 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> bca9b86f60 (Update cq list)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -9804,6 +10300,9 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9859,6 +10358,7 @@ org.geotools:gt-xml	30.2	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -9873,6 +10373,9 @@ org.geotools:gt-xml	30.2	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
@@ -10009,6 +10512,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -10121,6 +10625,10 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -10150,6 +10658,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10218,6 +10727,8 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -10231,6 +10742,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 941b7ceb65c (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -10244,11 +10756,19 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
+=======
+=======
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10360,6 +10880,15 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 85a5bb44c50 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> dba023747dd (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
@@ -10369,6 +10898,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 24dd2b8dca6 (GEOMESA-3254 Add Bloop build support)
@@ -10388,6 +10918,13 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> 24dd2b8dca6 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 24dd2b8dca6 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 80c8e91bab2 (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -10413,6 +10950,9 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10447,6 +10987,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10539,6 +11080,15 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 252e501e958 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 03da13e6d31 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -10551,6 +11101,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> bc966193e50 (GEOMESA-3254 Add Bloop build support)
@@ -10570,6 +11121,13 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> bc966193e50 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> bc966193e50 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 36ca958d27d (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -10582,6 +11140,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10634,6 +11193,14 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> 52191799568 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 52191799568 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> ef3c1fdfa1f (GEOMESA-3254 Add Bloop build support)
+=======
 =======
 =======
 >>>>>>> locatelli-main
@@ -10642,6 +11209,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10729,6 +11297,15 @@ org.hsqldb:hsqldb	2.4.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> c2bad1154e5 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 227e451f41f (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
@@ -10746,6 +11323,7 @@ org.hsqldb:hsqldb	2.4.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -10779,6 +11357,10 @@ org.hsqldb:hsqldb	2.4.1	compile
 >>>>>>> locatelli-main
 =======
 >>>>>>> 0d9cfe10fe5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 0d9cfe10fe5 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 0d076484a6a (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 org.huldra.math:bigint	0.7.1	compile
 org.jetbrains:annotations	17.0.0	compile
@@ -10789,8 +11371,16 @@ org.json4s:json4s-core_2.12	3.6.12	compile
 org.json4s:json4s-native_2.12	3.6.12	compile
 org.json4s:json4s-scalap_2.12	3.6.12	compile
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+org.locationtech.jts.io:jts-io-common	1.20.0	compile
+org.locationtech.jts:jts-core	1.20.0	compile
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 org.json:json	20220320	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -10928,6 +11518,10 @@ org.json:json	20220320	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -10957,6 +11551,9 @@ org.json:json	20220320	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11006,6 +11603,7 @@ org.json:json	20220320	compile
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11131,6 +11729,10 @@ org.json:json	20220320	compile
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -11158,9 +11760,12 @@ org.json:json	20220320	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11239,6 +11844,9 @@ org.json:json	20220320	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11286,7 +11894,9 @@ org.json:json	20220320	compile
 >>>>>>> locatelli-main
 org.locationtech.jts.io:jts-io-common	1.19.0	compile
 org.locationtech.jts:jts-core	1.19.0	compile
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
 org.locationtech.spatial4j:spatial4j	0.8	compile
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11310,6 +11920,8 @@ org.mortbay.jetty:jetty-util	6.1.26	compile
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -11358,6 +11970,9 @@ org.mortbay.jetty:jetty-util	6.1.26	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11445,6 +12060,7 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -11557,6 +12173,10 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -11586,6 +12206,7 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11669,6 +12290,8 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
@@ -11679,12 +12302,16 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11778,11 +12405,16 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 921430ab872 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11793,8 +12425,13 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 0463e7bf36f (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 0463e7bf36f (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -11825,6 +12462,9 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11859,6 +12499,7 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11933,11 +12574,16 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 2e997b484f7 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -11951,8 +12597,13 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7f50d96af35 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7f50d96af35 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locatelli-main
@@ -11967,6 +12618,7 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12007,6 +12659,11 @@ org.threeten:threeten-extra	1.7.1	compile
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 49ca416474e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 49ca416474e (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -12036,6 +12693,7 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -12090,11 +12748,16 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 >>>>>>> 9d09d91af8d (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12116,6 +12779,7 @@ org.threeten:threeten-extra	1.7.1	compile
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12140,6 +12804,9 @@ org.threeten:threeten-extra	1.7.1	compile
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 635fff74cfc (GEOMESA-3254 Add Bloop build support)
@@ -12161,7 +12828,12 @@ com.datastax.cassandra:cassandra-driver-core	3.11.5	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.11.5	provided
 io.confluent:kafka-avro-serializer	6.2.9	provided
 io.confluent:kafka-schema-registry-client	6.2.9	provided
+io.micrometer:micrometer-registry-cloudwatch2	1.13.4	provided
+io.micrometer:micrometer-registry-prometheus	1.13.4	provided
+io.prometheus:prometheus-metrics-exporter-httpserver	1.3.1	provided
+io.prometheus:prometheus-metrics-exporter-pushgateway	1.3.1	provided
 javax.media:jai_core	1.1.3	provided
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12281,6 +12953,12 @@ javax.media:jai_core	1.1.3	provided
 <<<<<<< HEAD
 org.apache.accumulo:accumulo-start	2.1.3	provided
 =======
+<<<<<<< HEAD
+org.apache.accumulo:accumulo-start	2.1.3	provided
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 2139b1eaa44 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -12315,12 +12993,16 @@ org.apache.accumulo:accumulo-start	2.1.3	provided
 >>>>>>> 15f6ebab565 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 org.apache.accumulo:accumulo-start	2.1.2	provided
 >>>>>>> 2443d02660f (GEOMESA-3198 Kafka streams integration (#2854))
 org.apache.commons:commons-text	1.10.0	provided
+>>>>>>> 7549f2ed2ac (GEOMESA-3198 Kafka streams integration (#2854))
 org.apache.hadoop:hadoop-annotations	3.4.0	provided
 org.apache.hadoop:hadoop-aws	3.4.0	provided
 org.apache.hadoop:hadoop-client	3.4.0	provided
@@ -12345,6 +13027,7 @@ org.apache.spark:spark-sql_2.12	3.5.0	provided
 org.scala-lang:scala-compiler	2.12.19	provided
 org.slf4j:slf4j-reload4j	1.7.36	provided
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.springframework.security:spring-security-core	5.8.11	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -12361,6 +13044,14 @@ org.springframework.security:spring-security-core	5.8.11	provided
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+org.springframework.security:spring-security-core	5.8.14	provided
+=======
+<<<<<<< HEAD
+org.springframework.security:spring-security-core	5.8.11	provided
+<<<<<<< HEAD
+>>>>>>> 7549f2ed2ac (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 software.amazon.awssdk.crt:aws-crt	0.29.18	provided
 software.amazon.awssdk:s3-transfer-manager	2.25.64	provided
 software.amazon.awssdk:s3	2.25.64	provided
@@ -12369,6 +13060,9 @@ software.amazon.awssdk:s3	2.25.64	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12428,6 +13122,9 @@ org.springframework.security:spring-security-core	5.8.9	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12510,6 +13207,7 @@ org.apache.spark:spark-sql_2.12	3.3.1	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 org.scala-lang:scala-compiler	2.12.17	provided
 =======
@@ -12576,6 +13274,8 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -12669,6 +13369,7 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -12769,9 +13470,12 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13580,6 +14284,8 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13656,6 +14362,7 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -13687,6 +14394,11 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -13807,6 +14519,7 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13897,6 +14610,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> db5f86a9db (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -13926,6 +14642,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -13976,6 +14695,7 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14052,6 +14772,8 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -14077,6 +14799,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14153,11 +14878,15 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> locatelli-main
@@ -14254,11 +14983,14 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14332,11 +15064,14 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14405,12 +15140,15 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14519,6 +15257,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14592,11 +15333,14 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 org.scala-lang:scala-compiler	2.12.17	provided
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14690,6 +15434,11 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 =======
 <<<<<<< HEAD
@@ -14813,8 +15562,11 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -14887,6 +15639,7 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -14908,6 +15661,10 @@ org.scala-lang:scala-compiler	2.12.17	provided
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -15019,6 +15776,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15091,8 +15851,11 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15145,6 +15908,7 @@ org.scala-lang:scala-compiler	2.12.13	provided
 =======
 org.scala-lang:scala-compiler	2.12.17	provided
 >>>>>>> 8add6fe71 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -15229,6 +15993,8 @@ org.scala-lang:scala-compiler	2.12.17	provided
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d1931ca9b2 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 =======
 >>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -15256,6 +16022,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15335,10 +16104,13 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> d4a13604e7 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15411,6 +16183,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15486,11 +16261,14 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15568,8 +16346,11 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -15676,6 +16457,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -15767,6 +16551,7 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locatelli-main
@@ -15895,6 +16680,9 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -15930,6 +16718,9 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16003,6 +16794,7 @@ org.apache.spark:spark-sql_2.12	2.4.7	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 org.scala-lang:scala-compiler	2.12.13	provided
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -16028,6 +16820,10 @@ org.scala-lang:scala-compiler	2.12.13	provided
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -16144,12 +16940,15 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16231,6 +17030,9 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16307,6 +17109,7 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -16321,6 +17124,8 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16389,6 +17194,9 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16462,6 +17270,7 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -16473,6 +17282,8 @@ org.scala-lang:scala-compiler	2.12.13	provided
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16582,6 +17393,9 @@ org.scala-lang:scala-compiler	2.12.17	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16664,6 +17478,7 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 27d2a13b23 (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
 >>>>>>> ccf4d7c3bd (GEOMESA-3246 Update Scala to 2.12.17 (#2976))
@@ -16673,6 +17488,8 @@ org.scala-lang:scala-compiler	2.12.13	provided
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16757,6 +17574,9 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16830,11 +17650,14 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 org.scala-lang:scala-compiler	2.12.13	provided
 >>>>>>> 73f3a8cb69 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -16906,6 +17729,9 @@ org.scala-lang:scala-compiler	2.12.13	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -16955,6 +17781,7 @@ org.slf4j:slf4j-reload4j	1.7.36	provided
 <<<<<<< HEAD
 org.springframework.security:spring-security-core	5.8.3	provided
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17039,6 +17866,8 @@ org.springframework.security:spring-security-core	5.8.0	provided
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -17064,6 +17893,9 @@ org.springframework.security:spring-security-core	5.8.0	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17140,11 +17972,15 @@ org.springframework.security:spring-security-core	5.8.0	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -17239,9 +18075,12 @@ org.springframework.security:spring-security-core	5.8.0	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17319,6 +18158,9 @@ org.springframework.security:spring-security-core	5.8.0	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17412,6 +18254,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 <<<<<<< HEAD
@@ -17524,6 +18367,10 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> 394f5312e0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -17531,6 +18378,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17576,6 +18424,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17612,6 +18462,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -17641,6 +18492,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17657,6 +18510,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17669,6 +18525,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -17790,6 +18647,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> a49c83a3f50 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 091ec1b4492 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -17801,6 +18660,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17829,6 +18691,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> d3d37de3843 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -17867,6 +18730,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -17884,6 +18749,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17916,6 +18784,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -17950,6 +18821,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> 03f3e71921 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18052,6 +18924,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> bb929d9908f (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 7bdaa949cf8 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18063,6 +18937,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18094,6 +18971,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 0712c13e235 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18132,6 +19010,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18149,6 +19029,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18177,6 +19060,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -18226,6 +19110,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18244,6 +19130,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18273,6 +19162,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
@@ -18355,6 +19245,8 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 23e5cf0ad37 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 2147ed9b521 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18366,6 +19258,9 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18393,6 +19288,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5038e28ac0a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18420,6 +19316,10 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5038e28ac0a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
+>>>>>>> 5038e28ac0a (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 0cfaf07666b (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 5038e28ac0a (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18461,6 +19361,7 @@ org.apache.accumulo:accumulo-test	2.1.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 org.apache.arrow:arrow-vector	tests:16.1.0	test
 =======
@@ -18485,6 +19386,9 @@ org.apache.arrow:arrow-vector	tests:16.1.0	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2443d02660f (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2443d02660f (GEOMESA-3198 Kafka streams integration (#2854))
@@ -18502,6 +19406,9 @@ org.apache.arrow:arrow-vector	tests:16.1.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18555,18 +19462,16 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -18611,6 +19516,11 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18657,6 +19567,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18733,6 +19646,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -18743,6 +19657,8 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -18833,6 +19749,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -18908,6 +19827,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -18939,6 +19859,11 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 5545d8b545 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
@@ -19058,11 +19983,14 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19144,9 +20072,12 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19232,6 +20163,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19307,6 +20241,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> location-main
@@ -19352,6 +20287,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -19439,6 +20377,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -19516,6 +20457,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -19538,6 +20480,11 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -19661,7 +20608,10 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -19712,6 +20662,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 =======
 >>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19791,6 +20742,8 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -19799,6 +20752,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -19832,6 +20786,9 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -19927,11 +20884,14 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20004,11 +20964,14 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20091,6 +21054,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -20101,6 +21065,8 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20236,6 +21202,7 @@ org.apache.accumulo:accumulo-test	2.0.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20332,6 +21299,16 @@ org.apache.arrow:arrow-vector	tests:11.0.0	test
 >>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 2e299e67fda (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 5d8aed6c329 (GEOMESA-3198 Kafka streams integration (#2854))
+org.apache.cassandra:cassandra-all	3.11.14	test
+org.apache.cassandra:cassandra-thrift	3.11.14	test
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
+org.apache.arrow:arrow-vector	tests:11.0.0	test
+>>>>>>> 484744b8297 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 2e299e67fda (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 5d8aed6c329 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 2e26ddbcc5d (GEOMESA-3198 Kafka streams integration (#2854))
 org.apache.cassandra:cassandra-all	3.11.14	test
 org.apache.cassandra:cassandra-thrift	3.11.14	test
 <<<<<<< HEAD
@@ -20408,6 +21385,9 @@ org.apache.sedona:sedona-common	1.5.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20474,18 +21454,16 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -20530,6 +21508,11 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20576,6 +21559,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20651,11 +21637,14 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20724,9 +21713,12 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -20817,6 +21809,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -20893,6 +21888,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -20925,6 +21921,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 5a4c24e020 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -21012,6 +22011,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21087,6 +22089,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -21126,6 +22129,10 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> locatelli-main
 =======
@@ -21230,6 +22237,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21281,6 +22291,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 =======
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21364,6 +22375,8 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -21397,6 +22410,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21474,11 +22490,15 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -21576,11 +22596,14 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21652,11 +22675,14 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21730,10 +22756,13 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21833,6 +22862,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -21905,10 +22937,13 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -21979,6 +23014,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22063,8 +23101,6 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -22074,6 +23110,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -22114,19 +23153,6 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22149,6 +23175,19 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -22182,6 +23221,8 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22228,15 +23269,18 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22310,6 +23354,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22384,6 +23431,7 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -22392,6 +23440,8 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22479,6 +23529,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22534,6 +23587,7 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22642,6 +23696,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> e9c0143a6d (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 13656f5052 (GEOMESA-3254 Add Bloop build support)
@@ -22671,6 +23728,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -22727,6 +23787,7 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22872,6 +23933,11 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 >>>>>>> b09307f5c0 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
 >>>>>>> 030cd33877 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -22901,11 +23967,14 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -22979,11 +24048,14 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23055,11 +24127,15 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -23153,6 +24229,7 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -23163,6 +24240,8 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23266,6 +24345,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23331,8 +24413,11 @@ org.cassandraunit:cassandra-unit	3.7.1.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23362,8 +24447,8 @@ org.cassandraunit:cassandra-unit	3.7.1.0	test
 =======
 >>>>>>> locatelli-main
 org.codehaus.groovy:groovy-jsr223	3.0.20	test
-org.geomesa.testcontainers:testcontainers-accumulo	1.4.0	test
-org.geotools:gt-epsg-hsql	30.4	test
+org.geomesa.testcontainers:testcontainers-accumulo	1.4.1	test
+org.geotools:gt-epsg-hsql	32.0	test
 org.jruby:jruby	9.4.5.0	test
 org.mockito:mockito-core	2.28.2	test
 =======
@@ -23381,6 +24466,7 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23411,51 +24497,48 @@ org.mockito:mockito-core	2.28.2	test
 =======
 >>>>>>> locatelli-main
 =======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 >>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
->>>>>>> locatelli-main
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -23488,6 +24571,14 @@ org.mockito:mockito-core	2.28.2	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23541,6 +24632,9 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23616,11 +24710,14 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23691,6 +24788,7 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -23699,6 +24797,8 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 =======
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -23789,6 +24889,9 @@ org.mockito:mockito-core	2.28.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -23866,6 +24969,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -23897,6 +25001,11 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -24019,6 +25128,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> location-main
@@ -24147,6 +25257,11 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
+>>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
@@ -24180,11 +25295,14 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24279,6 +25397,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -24352,9 +25473,14 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
+=======
+>>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> c9a6fc453c (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
@@ -24477,6 +25603,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> f01ac238e (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 =======
@@ -24501,6 +25628,8 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24563,6 +25692,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -24635,7 +25767,10 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24711,6 +25846,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 =======
@@ -24815,6 +25951,10 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 =======
 >>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 30cbc0fe6d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 >>>>>>> 30fda14bf2 (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
 >>>>>>> 8d7834ec11 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -24842,7 +25982,10 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24919,12 +26062,15 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -24999,6 +26145,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -25016,6 +26163,10 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -25134,6 +26285,7 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -25153,6 +26305,8 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25230,8 +26384,11 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25318,10 +26475,13 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25478,6 +26638,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25550,10 +26713,13 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25624,6 +26790,9 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25710,19 +26879,17 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -25776,6 +26943,11 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -25818,6 +26990,9 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25891,12 +27066,15 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -25968,6 +27146,7 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -25976,6 +27155,8 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 >>>>>>> f9df175e9b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -26071,6 +27252,9 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26145,6 +27329,7 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26177,6 +27362,9 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -26264,6 +27452,9 @@ org.apache.kafka:kafka-streams-test-utils	2.1.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26364,6 +27555,7 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -26382,6 +27574,11 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> cebe144269 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -26514,11 +27711,14 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -26587,9 +27787,12 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -26673,6 +27876,9 @@ org.apache.kafka:kafka-streams-test-utils	2.8.2	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -26752,6 +27958,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -26783,6 +27990,11 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 937ea7115b (GEOMESA-3198 Kafka streams integration (#2854))
@@ -26903,6 +28115,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -26910,6 +28123,8 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> e2a2dd4c2e (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -26985,6 +28200,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27060,6 +28278,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -27068,6 +28287,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 3e82fa518d (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -27216,12 +28438,15 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -27291,6 +28516,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27368,7 +28596,10 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -27440,6 +28671,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -27515,6 +28749,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -27531,6 +28766,11 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
+=======
+>>>>>>> f6bb7b3744 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2686de8d09 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -27662,6 +28902,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -27684,6 +28925,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 =======
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> locatelli-main
 =======
@@ -27769,8 +29013,11 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -27913,6 +29160,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28027,6 +29277,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 0b3e844fc4 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -28043,6 +29294,8 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 >>>>>>> f01ac238e (GEOMESA-3198 Kafka streams integration (#2854))
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28114,6 +29367,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28191,10 +29447,13 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28304,6 +29563,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28353,6 +29615,7 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> de758f45a (GEOMESA-3198 Kafka streams integration (#2854))
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> 1b8cbf843 (GEOMESA-3198 Kafka streams integration (#2854))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28429,6 +29692,8 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 73f3a8cb6 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> c6591bc391 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> 4ae16a2980 (GEOMESA-3198 Kafka streams integration (#2854))
@@ -28459,6 +29724,9 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -28535,6 +29803,10 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 150c5dbc25 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -28631,7 +29903,11 @@ org.cassandraunit:cassandra-unit	2.2.2.1	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
+>>>>>>> locatelli-main
 =======
 >>>>>>> dfd160ebf9 (GEOMESA-3198 Kafka streams integration (#2854))
 >>>>>>> locatelli-main
@@ -28718,6 +29994,7 @@ org.testcontainers:testcontainers	1.19.7	test
 org.specs2:specs2-core_2.12	4.9.2	test
 org.specs2:specs2-junit_2.12	4.9.2	test
 org.specs2:specs2-mock_2.12	4.9.2	test
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28844,6 +30121,8 @@ org.testcontainers:kafka	1.17.6	test
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -28964,6 +30243,9 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29034,6 +30316,7 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29066,6 +30349,9 @@ org.testcontainers:kafka	1.17.6	test
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -29153,6 +30439,9 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29203,6 +30492,7 @@ org.testcontainers:kafka	1.17.6	test
 =======
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -29279,6 +30569,8 @@ org.testcontainers:kafka	1.17.6	test
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
@@ -29304,6 +30596,9 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29380,11 +30675,14 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29453,9 +30751,12 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29539,6 +30840,7 @@ org.testcontainers:kafka	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -29558,6 +30860,8 @@ org.testcontainers:postgresql	1.17.6	test
 org.testcontainers:testcontainers	1.17.6	test
 >>>>>>> 2af509b068 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -29604,6 +30908,9 @@ org.testcontainers:testcontainers	1.17.6	test
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

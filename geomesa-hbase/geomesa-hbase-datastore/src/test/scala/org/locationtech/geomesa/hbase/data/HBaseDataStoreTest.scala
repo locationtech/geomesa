@@ -345,7 +345,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
         def splits(index: String): Seq[Array[Byte]] = {
           ds.manager.indices(ds.getSchema(typeName)).find(_.identifier.startsWith(index)).toSeq.flatMap { index =>
-            index.getTableNames(None).flatMap { table =>
+            index.getTableNames().flatMap { table =>
               ds.connection.getRegionLocator(TableName.valueOf(table)).getStartKeys
             }
           }

@@ -34,8 +34,17 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     def toDuration: Option[Duration] = option.flatMap { value =>
       Try(DurationParsing.caseInsensitive(value)) match {
+        case Success(v) if v.isFinite && v > Duration.Zero => Some(v)
+        case _ =>
+          logger.warn(s"Invalid duration for property $property: $value")
+          Option(default).map(Duration.apply)
+      }
+    }
+
+    def toUnboundedDuration: Option[Duration] = option.flatMap { value =>
+      Try(DurationParsing.caseInsensitive(value)) match {
         case Success(v) => Some(v)
-        case Failure(_) =>
+        case _ =>
           logger.warn(s"Invalid duration for property $property: $value")
           Option(default).map(Duration.apply)
       }

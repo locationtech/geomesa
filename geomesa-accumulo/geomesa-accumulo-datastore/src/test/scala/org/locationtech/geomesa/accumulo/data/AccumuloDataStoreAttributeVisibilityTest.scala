@@ -15,12 +15,14 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
@@ -68,72 +70,83 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
     addFeatures(Seq(userFeature, adminFeature, mixedFeature))
   }
 
-  def queryByAuths(auths: String, filter: String, expectedStrategy: String): Seq[SimpleFeature] = {
-    val ds = DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)).asJava).asInstanceOf[AccumuloDataStore]
-    val query = new Query(sftName, ECQL.toFilter(filter))
-    val plans = ds.getQueryPlan(query)
-    forall(plans)(_.filter.index.name mustEqual expectedStrategy)
-    SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+  def queryByAuths(auths: String, filter: String, strategy: String): Seq[SimpleFeature] = {
+    val params = dsParams ++ Map(AccumuloDataStoreParams.AuthsParam.key -> auths)
+    WithClose(DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]) { ds =>
+      val query = new Query(sftName, ECQL.toFilter(filter))
+      query.getHints.put(QueryHints.QUERY_INDEX, strategy)
+      val plans = ds.getQueryPlan(query)
+      forall(plans)(_.filter.index.name mustEqual strategy)
+      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+    }
   }
 
   val filters = Seq(
-    ("IN ('user', 'admin', 'mixed')", IdIndex.name),
-    ("bbox(geom, -121, 44, -119, 48)", Z2Index.name),
-    ("bbox(geom, -121, 44, -119, 48) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T00:00:00.000Z", Z3Index.name),
-    ("name = 'name-user' OR name = 'name-admin' OR name = 'name-mixed'", AttributeIndex.name)
+    VisTestCase("IN ('user', 'admin', 'mixed')", Seq(IdIndex.name), returnMixed = true),
+    VisTestCase("bbox(geom, -121, 44, -119, 48)", Seq(Z2Index.name), returnMixed = true),
+    // these two cases filter on a non-visible attribute so shouldn't return the 'mixed' feature
+    VisTestCase("bbox(geom, -121, 44, -119, 48) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-04T00:00:00.000Z", Seq(Z3Index.name), returnMixed = false),
+    VisTestCase("(name = 'name-user' OR name = 'name-admin' OR name = 'name-mixed')", Seq(AttributeIndex.name, Z3Index.name), returnMixed = false)
   )
 
   "AccumuloDataStore" should {
     "correctly return all features with appropriate auths" in {
-      forall(filters) { case (filter, strategy) =>
-        val features = queryByAuths("admin,user", filter, strategy)
-        features must haveLength(3)
-        features must containTheSameElementsAs(Seq(userFeature, adminFeature, mixedFeature))
+      foreach(filters) { case VisTestCase(filter, strategies, _) =>
+        foreach(strategies) { strategy =>
+          val features = queryByAuths("admin,user", filter, strategy)
+          features must haveLength(3)
+          features must containTheSameElementsAs(Seq(userFeature, adminFeature, mixedFeature))
+        }
       }
     }
     "correctly return some features with appropriate auths" in {
-      forall(filters) { case (filter, strategy) =>
-        val features = queryByAuths("user", filter, strategy)
-        features must haveLength(2)
-        features must contain(userFeature)
-        val m = features.find(_.getID == "mixed")
-        m must beSome
-        m.get.getAttribute(0) must beNull
-        m.get.getAttribute(1) mustEqual 12
-        m.get.getAttribute(2) must beNull
-        m.get.getAttribute(3) mustEqual mixedFeature.getAttribute(3)
+      foreach(filters) { case VisTestCase(filter, strategies, returnMixed) =>
+        foreach(strategies) { strategy =>
+          val features = queryByAuths("user", filter, strategy)
+          features must contain(userFeature)
+          if (!returnMixed) {
+            features must haveLength(1)
+          } else {
+            features must haveLength(2)
+            val m = features.find(_.getID == "mixed")
+            m must beSome
+            m.get.getAttribute(0) must beNull
+            m.get.getAttribute(1) mustEqual 12
+            m.get.getAttribute(2) must beNull
+            m.get.getAttribute(3) mustEqual mixedFeature.getAttribute(3)
+          }
+        }
       }
     }
 
     "delete one record" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val queryBefore = new Query(sftName, ECQL.toFilter("IN('user')"))
       val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
-      resultsBefore.size mustEqual 1
+      resultsBefore must haveLength(1)
 
       fs.removeFeatures(ECQL.toFilter("IN('user')"))
 
       val queryAfter = new Query(sftName, ECQL.toFilter("IN('user')"))
       val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
-      resultsAfter.size mustEqual 0
+      resultsAfter must beEmpty
     }
 
     "delete all records" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-      val fs: SimpleFeatureStore = ds.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore]
+      val fs = ds.getFeatureSource(sftName)
 
       val queryBefore = new Query(sftName, ECQL.toFilter("INCLUDE"))
       val resultsBefore = SelfClosingIterator(ds.getFeatureReader(queryBefore, Transaction.AUTO_COMMIT)).toSeq
-      resultsBefore.size mustEqual 2 // We deleted one record in the prior test
+      resultsBefore must haveLength(2) // We deleted one record in the prior test
 
       fs.removeFeatures(ECQL.toFilter("INCLUDE"))
 
       val queryAfter = new Query(sftName, ECQL.toFilter("INCLUDE"))
       val resultsAfter = SelfClosingIterator(ds.getFeatureReader(queryAfter, Transaction.AUTO_COMMIT)).toSeq
-      resultsAfter.size mustEqual 0
-      ok
+      resultsAfter must beEmpty
     }
   }
+
+  case class VisTestCase(filter: String, indices: Seq[String], returnMixed: Boolean)
 }

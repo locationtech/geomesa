@@ -89,13 +89,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.metrics.micrometer
 
-import org.locationtech.geomesa.index.api.KeyValue
+import com.typesafe.config.Config
+import io.micrometer.core.instrument.MeterRegistry
 
-/**
- * Marker trait for reduced values used in a join index
- */
-trait ReducedIndexValues {
-  def indexValues: Seq[KeyValue]
+trait RegistryFactory {
+  def apply(conf: Config): MeterRegistry
 }

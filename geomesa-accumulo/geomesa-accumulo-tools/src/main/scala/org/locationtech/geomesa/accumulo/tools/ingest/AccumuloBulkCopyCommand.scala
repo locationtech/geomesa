@@ -10,46 +10,54 @@ package org.locationtech.geomesa.accumulo.tools.ingest
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
-import org.apache.accumulo.core.client.admin.TableOperations
-import org.apache.commons.io.IOUtils
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, FileUtil, Path}
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloBulkCopyCommand.{AccumuloBulkCopyParams, BulkCopier}
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
+import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloBulkCopyCommand.AccumuloBulkCopyParams
+import org.locationtech.geomesa.accumulo.util.SchemaCopier
+import org.locationtech.geomesa.accumulo.util.SchemaCopier._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.ParameterValidators.PositiveInteger
-import org.locationtech.geomesa.tools.utils.{DistributedCopy, TerminalCallback}
-import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.{Closeable, File}
-import java.nio.charset.StandardCharsets
-import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
-import scala.util.Try
-import scala.util.control.NonFatal
+import java.io.File
 
 /**
  * Copy a partitioned table out of one feature type and into an identical feature type
  */
 class AccumuloBulkCopyCommand extends Command with StrictLogging {
 
+  import scala.collection.JavaConverters._
+
   override val name = "bulk-copy"
   override val params = new AccumuloBulkCopyParams()
 
-  override def execute(): Unit = WithClose(new BulkCopier(params))(_.run())
+  override def execute(): Unit = {
+    val fromCluster = {
+      val auth = if (params.fromKeytab != null) { ClusterKeytab(params.fromKeytab) } else { ClusterPassword(params.fromPassword) }
+      val configs = if (params.fromConfigs == null) { Seq.empty } else { params.fromConfigs.asScala.toSeq }
+      ClusterConfig(params.fromInstance, params.fromZookeepers, params.fromUser, auth, params.fromCatalog, configs)
+    }
+    val toCluster = {
+      val auth = if (params.toKeytab != null) { ClusterKeytab(params.toKeytab) } else { ClusterPassword(params.toPassword) }
+      val configs = if (params.toConfigs == null) { Seq.empty } else { params.toConfigs.asScala.toSeq }
+      ClusterConfig(params.toInstance, params.toZookeepers, params.toUser, auth, params.toCatalog, configs)
+    }
+    val indices = if (params.indices == null) { Seq.empty } else { params.indices.asScala.toSeq }
+    val partitions: Seq[PartitionId] =
+      Option(params.partitions).fold(Seq.empty[PartitionId])(_.asScala.map(PartitionName.apply).toSeq) ++
+        Option(params.partitionValues).fold(Seq.empty[PartitionId])(_.asScala.map(PartitionValue.apply).toSeq)
+    val opts = CopyOptions(params.tableThreads, params.fileThreads, params.distCp)
+
+    WithClose(new SchemaCopier(fromCluster, toCluster, params.featureName, params.exportPath, indices, partitions, opts)) { copier =>
+      try {
+        copier.call(params.resume)
+      } catch {
+        case e: IllegalArgumentException => throw new ParameterException(e.getMessage)
+      }
+    }
+
+  }
 }
 
 object AccumuloBulkCopyCommand extends LazyLogging {
-
-  import scala.collection.JavaConverters._
 
   @Parameters(commandDescription = "Bulk copy RFiles to a different cluster")
   class AccumuloBulkCopyParams extends RequiredTypeNameParam {
@@ -90,10 +98,12 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       required = true)
     var exportPath: String = _
 
-    @Parameter(names = Array("--partition"), description = "Partition(s) to copy")
+    @Parameter(names = Array("--partition"), description = "Partition(s) to copy (if schema is partitioned)")
     var partitions: java.util.List[String] = _
 
-    @Parameter(names = Array("--partition-value"), description = "Value(s) used to indicate partitions to copy (e.g. dates)")
+    @Parameter(
+      names = Array("--partition-value"),
+      description = "Value(s) (e.g. dates) used to indicate partitions to copy (if schema is partitioned)")
     var partitionValues: java.util.List[String] = _
 
     @Parameter(names = Array("--index"), description = "Specific index(es) to copy, instead of all indices")
@@ -115,287 +125,10 @@ object AccumuloBulkCopyCommand extends LazyLogging {
       names = Array("--distcp"),
       description = "Use Hadoop DistCp to move files from one cluster to the other, instead of normal file copies")
     var distCp: Boolean = false
-  }
 
-  /**
-   * Encapsulates the logic for the bulk copy operation
-   *
-   * @param params params
-   */
-  private class BulkCopier(params: AccumuloBulkCopyParams) extends Runnable with Closeable with StrictLogging {
-
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    import scala.collection.JavaConverters._
-
-    // the cluster we are exporting from
-    lazy private val from: Cluster = tryFrom.get
-
-    private val tryFrom = Try {
-      new Cluster(params.fromInstance, params.fromZookeepers, params.fromUser, Option(params.fromPassword).toRight(params.fromKeytab),
-        params.fromCatalog, Option(params.fromConfigs))
-    }
-
-    // the cluster we are exporting to
-    lazy private val to: Cluster = tryTo.get
-
-    private val tryTo = Try {
-      new Cluster(params.toInstance, params.toZookeepers, params.toUser, Option(params.toPassword).toRight(params.toKeytab),
-        params.toCatalog, Option(params.toConfigs))
-    }
-
-    lazy private val exportPath: Path = {
-      val defaultFs = FileSystem.get(to.conf)
-      // makeQualified is a no-op if the path was already qualified (has a defined scheme and is not a relative path)
-      new Path(params.exportPath).makeQualified(defaultFs.getUri, defaultFs.getWorkingDirectory)
-    }
-
-    lazy private val exportFs: FileSystem = exportPath.getFileSystem(to.conf)
-
-    // sft should be shareable/the same from both datastores
-    lazy private val sft: SimpleFeatureType = from.ds.getSchema(params.featureName)
-
-    lazy private val partitions: Seq[String] = {
-      val builder = Seq.newBuilder[String]
-      if (params.partitions != null) {
-        builder ++= params.partitions.asScala
-      }
-      if (params.partitionValues != null && !params.partitionValues.isEmpty) {
-        val partitioning = TablePartition(from.ds, sft).get
-        val sf = new ScalaSimpleFeature(sft, "")
-        builder ++= params.partitionValues.asScala.map { value =>
-          sf.setAttribute(sft.getDtgIndex.get, value)
-          val partition = partitioning.partition(sf)
-          logger.debug(s"Generated partition $partition from value $value")
-          partition
-        }
-      }
-      builder.result.distinct.sorted
-    }
-
-    lazy private val indices = {
-      val all = from.ds.manager.indices(sft)
-      if (params.indices == null || params.indices.isEmpty) { all } else {
-        val builder = Seq.newBuilder[GeoMesaFeatureIndex[_, _]]
-        params.indices.asScala.foreach { ident =>
-          val filtered = all.filter(_.identifier.contains(ident))
-          if (filtered.isEmpty) {
-            throw new ParameterException(
-              s"Index '$ident' does not exist in the schema. Available indices: ${all.map(_.identifier).mkString(", ")}")
-          }
-          logger.debug(s"Mapped identifier $ident to ${filtered.map(_.identifier).mkString(", ")}")
-          builder ++= filtered
-        }
-        builder.result.distinct
-      }
-    }
-
-    override def run(): Unit = {
-      // validate our params/setup
-      if (exportPath.toUri.getScheme == "file") {
-        throw new RuntimeException("Could not read defaultFS - this may be caused by a missing Hadoop core-site.xml file")
-      }
-      if (sft == null) {
-        throw new ParameterException(s"Schema '${params.featureName}' does not exist in the source store")
-      } else if (!sft.isPartitioned) {
-        throw new ParameterException(s"Schema '${params.featureName}' is not partitioned")
-      } else {
-        val toSft = to.ds.getSchema(params.featureName)
-        if (toSft == null) {
-          throw new ParameterException(s"Schema '${params.featureName}' does not exist in the destination store")
-        } else if (!toSft.isPartitioned) {
-          throw new ParameterException(s"Schema '${params.featureName}' is not partitioned in the destination store")
-        } else if (SimpleFeatureTypes.compare(sft, toSft) != 0) {
-          throw new ParameterException(s"Schema '${params.featureName}' is not the same in the source and destination store")
-        }
-      }
-      if (partitions.isEmpty) {
-        throw new ParameterException("At least one of --partition or --partition-value is required")
-      }
-
-      // now execute the copy
-      CachedThreadPool.executor(params.tableThreads) { executor =>
-        partitions.foreach { partition =>
-          indices.map { fromIndex =>
-            val toIndex = to.ds.manager.index(sft, fromIndex.identifier)
-            val runnable: Runnable = () => try { copy(fromIndex, toIndex, partition) } catch {
-              // catch Throwable so NoClassDefFound still gets logged
-              case e: Throwable => logger.error(s"Error copying partition $partition ${fromIndex.identifier}", e)
-            }
-            executor.submit(runnable)
-          }
-        }
-      }
-    }
-
-    private def copy(fromIndex: GeoMesaFeatureIndex[_, _], toIndex: GeoMesaFeatureIndex[_, _], partition: String): Unit = {
-      Command.user.info(s"Copying partition $partition ${fromIndex.identifier}")
-
-      val fromTable = fromIndex.getTableNames(Some(partition)).headOption.orNull
-      if (fromTable == null) {
-        Command.user.warn(s"Ignoring non-existent partition ${fromIndex.identifier} $partition")
-        return
-      }
-
-      val tableExportPath = new Path(exportPath, fromTable)
-      logger.debug(s"Source table $fromTable (${from.tableOps.tableIdMap().get(fromTable)})")
-      logger.debug(s"Export path $tableExportPath")
-      if (exportFs.exists(tableExportPath)) {
-        logger.debug(s"Deleting existing export directory $tableExportPath")
-        exportFs.delete(tableExportPath, true)
-      }
-      // clone the table as we have to take it offline in order to export it
-      // note that cloning is just a metadata op as it shares the underlying data files (until they change)
-      val cloneTable = s"${fromTable}_tmp"
-      logger.debug(s"Checking for existence and deleting any existing cloned table $cloneTable")
-      from.ds.adapter.deleteTable(cloneTable) // no-op if table doesn't exist
-      logger.debug(s"Cloning $fromTable to $cloneTable")
-      from.tableOps.clone(fromTable, cloneTable, false, Collections.emptyMap(), Collections.emptySet()) // use 2.0 method for compatibility
-      logger.debug(s"Taking offline $cloneTable")
-      from.tableOps.offline(cloneTable, true)
-      logger.debug(s"Exporting table to $tableExportPath")
-      from.tableOps.exportTable(cloneTable, tableExportPath.toString)
-
-      val distcpPath = new Path(tableExportPath, "distcp.txt")
-      if (!exportFs.exists(distcpPath)) {
-        throw new RuntimeException(s"Could not read table export results: $distcpPath")
-      }
-
-      // ensures the destination table exists
-      logger.debug(s"Checking destination table for $fromTable")
-      to.ds.adapter.createTable(toIndex, Some(partition), Seq.empty)
-      val toTable = toIndex.getTableNames(Some(partition)).headOption.getOrElse {
-        throw new RuntimeException(s"Could not get destination table for index ${fromIndex.identifier} and partition $partition")
-      }
-      logger.debug(s"Destination table $toTable (${to.tableOps.tableIdMap().get(toTable)})")
-      // create splits, do this separately in case the table already exists
-      val splits = new java.util.TreeSet(from.tableOps.listSplits(cloneTable))
-      val existingSplits = to.tableOps.listSplits(toTable)
-      splits.removeAll(existingSplits)
-      if (!splits.isEmpty) {
-        if (!existingSplits.isEmpty) {
-          val warning = s"Detected split mismatch between source ($fromTable) and destination ($toTable)"
-          Command.user.warn(warning)
-          logger.warn(warning)
-        }
-        logger.debug(s"Adding splits to destination table $toTable")
-        to.tableOps.addSplits(toTable, splits)
-      }
-
-      val dirs = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
-      val copyToDir = new Path(tableExportPath, "files")
-      if (params.distCp) {
-        new DistributedCopy(from.conf).copy(distcpPath, copyToDir, TerminalCallback()) match {
-          case JobSuccess(message, counts) =>
-            dirs.add(copyToDir.toString)
-            Command.user.info(message)
-            logger.debug(s"Distributed copy counters: ${counts.mkString("\n  ", "\n  ", "")}")
-
-          case JobFailure(message) =>
-            Command.user.error(message)
-            logger.error(message)
-        }
-      } else {
-        logger.debug(s"Reading $distcpPath")
-        WithClose(IOUtils.lineIterator(exportFs.open(distcpPath), StandardCharsets.UTF_8)) { files =>
-          CachedThreadPool.executor(params.fileThreads) { executor =>
-            files.asScala.foreach { file =>
-              val runnable: Runnable = () => {
-                val path = new Path(file)
-                val copy = new Path(copyToDir, path.getName)
-                try {
-                  logger.debug(s"Copying $path to $copy")
-                  val fs = path.getFileSystem(from.conf)
-                  if (FileUtil.copy(fs, path, exportFs, copy, false, false, to.conf)) {
-                    dirs.add(copyToDir.toString)
-                  } else {
-                    Command.user.error(s"Failed to copy $path to $copy")
-                    logger.error(s"Failed to copy $path to $copy")
-                  }
-                } catch {
-                  // catch Throwable so NoClassDefFound still gets logged
-                  case e: Throwable =>
-                    Command.user.error(s"Failed to copy $path to $copy")
-                    logger.error(s"Failed to copy $path to $copy", e)
-                }
-              }
-              executor.submit(runnable)
-            }
-          }
-        }
-      }
-
-      dirs.asScala.toSeq.sorted.foreach { dir =>
-        logger.debug(s"Loading rfiles from $dir to $toTable")
-        val importDir = to.tableOps.importDirectory(dir).to(toTable)
-        try { importDir.ignoreEmptyDir(true) } catch {
-          case _: NoSuchMethodError => // accumulo 2.0, ignore
-        }
-        try { importDir.load() } catch {
-          case e: IllegalArgumentException => logger.trace("Error importing directory:", e) // should mean empty dir
-        }
-      }
-
-      // cleanup
-      logger.debug(s"Deleting clone table $cloneTable")
-      from.tableOps.delete(cloneTable)
-      logger.debug(s"Deleting export path $tableExportPath")
-      exportFs.delete(tableExportPath, true)
-
-      Command.user.info(s"Bulk copy complete for partition $partition ${fromIndex.identifier}")
-    }
-
-    override def close(): Unit = {
-      CloseWithLogging(tryFrom.toOption)
-      CloseWithLogging(tryTo.toOption)
-    }
-  }
-
-  /**
-   * Holds state for a given Accumulo cluster
-   *
-   * @param instance instance name
-   * @param zk instance zookeepers
-   * @param user username
-   * @param credentials credentials - either Right(password) or Left(keytab)
-   * @param catalog catalog table
-   * @param configs additional hadoop configuration files
-   */
-  private class Cluster(
-      instance: String,
-      zk: String,
-      user: String,
-      credentials: Either[String, String],
-      catalog: String,
-      configs: Option[java.util.List[File]]
-    ) extends Closeable {
-
-    private val params = Map(
-      AccumuloDataStoreParams.InstanceNameParam.key -> instance,
-      AccumuloDataStoreParams.ZookeepersParam.key -> zk,
-      AccumuloDataStoreParams.UserParam.key -> user,
-      AccumuloDataStoreParams.PasswordParam.key -> credentials.right.getOrElse(null),
-      AccumuloDataStoreParams.KeytabPathParam.key -> credentials.left.getOrElse(null),
-      AccumuloDataStoreParams.CatalogParam.key -> catalog,
-    )
-
-    val conf = new Configuration()
-    configs.foreach { files =>
-      files.asScala.foreach(f => conf.addResource(f.toURI.toURL))
-    }
-
-    val ds: AccumuloDataStore =
-      try { DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore] } catch {
-        case NonFatal(e) => throw new ParameterException("Unable to load datastore:", e)
-      }
-
-    if (ds == null) {
-      throw new ParameterException(
-        s"Unable to load datastore using provided values: ${params.map { case (k, v) => s"$k=$v" }.mkString(", ")}")
-    }
-
-    val tableOps: TableOperations = ds.connector.tableOperations()
-
-    override def close(): Unit = ds.dispose()
+    @Parameter(
+      names = Array("--resume"),
+      description = "Resume a previously interrupted run from where it left off")
+    var resume: Boolean = false
   }
 }

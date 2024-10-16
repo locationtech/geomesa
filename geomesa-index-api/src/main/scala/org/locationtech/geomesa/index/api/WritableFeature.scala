@@ -9,12 +9,14 @@
 package org.locationtech.geomesa.index.api
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.features.kryo.serialization.IndexValueSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.security.SecurityUtils.FEATURE_VISIBILITY
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 
 import java.nio.charset.StandardCharsets
+import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.MurmurHash3
 
 /**
@@ -31,11 +33,18 @@ trait WritableFeature {
   def feature: SimpleFeature
 
   /**
-    * Key-value pairs representing this feature
-    *
-    * @return
-    */
+   * Key-value pairs representing this feature
+   *
+   * @return
+   */
   def values: Seq[KeyValue]
+
+  /**
+   * Key-value pairs representing this feature, for reduced 'join' indices
+   *
+   * @return
+   */
+  def reducedValues: Seq[KeyValue]
 
   /**
     * Feature ID bytes
@@ -75,14 +84,15 @@ object WritableFeature {
   def wrapper(sft: SimpleFeatureType, groups: ColumnGroups): FeatureWrapper[WritableFeature] = {
     val idSerializer: String => Array[Byte] = GeoMesaFeatureIndex.idToBytes(sft)
     val serializers: Seq[(Array[Byte], SimpleFeatureSerializer)] = groups.serializers(sft)
+    val indexSerializer: SimpleFeatureSerializer = IndexValueSerializer(sft)
 
     sft.getVisibilityLevel match {
       case VisibilityLevel.Feature =>
-        new FeatureLevelFeatureWrapper(serializers, idSerializer)
+        new FeatureLevelFeatureWrapper(serializers, indexSerializer, idSerializer)
 
       case VisibilityLevel.Attribute =>
         val Seq((colFamily, serializer)) = serializers // there should only be 1
-        new AttributeLevelFeatureWrapper(colFamily, serializer, idSerializer)
+        new AttributeLevelFeatureWrapper(colFamily, serializer, indexSerializer, idSerializer)
     }
   }
 
@@ -102,33 +112,37 @@ object WritableFeature {
   }
 
   /**
-    * Wrapper that supports feature-level visibility
-    *
-    * @param serializers feature serializers, per column group
-    * @param idSerializer feature id serializer
-    */
-  class FeatureLevelFeatureWrapper(
+   * Wrapper that supports feature-level visibility
+   *
+   * @param serializers feature serializers, per column group
+   * @param indexValueSerializer index value serializer
+   * @param idSerializer feature id serializer
+   */
+  private class FeatureLevelFeatureWrapper(
       serializers: Seq[(Array[Byte], SimpleFeatureSerializer)],
+      indexValueSerializer: SimpleFeatureSerializer,
       idSerializer: String => Array[Byte]
     ) extends FeatureWrapper[WritableFeature] {
     override def wrap(feature: SimpleFeature, delete: Boolean): WritableFeature =
-      new FeatureLevelWritableFeature(feature, serializers, idSerializer)
+      new FeatureLevelWritableFeature(feature, serializers, indexValueSerializer, idSerializer)
   }
 
   /**
-    * Wrapper that supports attribute-level visibilities
-    *
-    * @param colFamily attribute vis col family
-    * @param serializer serializer
-    * @param idSerializer feature id serializer
-    */
-  class AttributeLevelFeatureWrapper(
+   * Wrapper that supports attribute-level visibilities
+   *
+   * @param colFamily attribute vis col family
+   * @param serializer serializer
+   * @param indexValueSerializer index value serializer
+   * @param idSerializer feature id serializer
+   */
+  private class AttributeLevelFeatureWrapper(
       colFamily: Array[Byte],
       serializer: SimpleFeatureSerializer,
+      indexValueSerializer: SimpleFeatureSerializer,
       idSerializer: String => Array[Byte]
     ) extends FeatureWrapper[WritableFeature] {
     override def wrap(feature: SimpleFeature, delete: Boolean): WritableFeature =
-      new AttributeLevelWritableFeature(feature, colFamily, serializer, idSerializer)
+      new AttributeLevelWritableFeature(feature, colFamily, serializer, indexValueSerializer, idSerializer)
   }
 
   /**
@@ -138,20 +152,27 @@ object WritableFeature {
     * @param serializers serializers, per column group
     * @param idSerializer feature id serializer
     */
-  class FeatureLevelWritableFeature(val feature: SimpleFeature,
-                                    serializers: Seq[(Array[Byte], SimpleFeatureSerializer)],
-                                    idSerializer: String => Array[Byte]) extends WritableFeature {
+  private class FeatureLevelWritableFeature(
+      val feature: SimpleFeature,
+      serializers: Seq[(Array[Byte], SimpleFeatureSerializer)],
+      indexValueSerializer: SimpleFeatureSerializer,
+      idSerializer: String => Array[Byte]
+    ) extends WritableFeature {
 
     private lazy val visibility = {
       val vis = feature.getUserData.get(FEATURE_VISIBILITY).asInstanceOf[String]
       if (vis == null) { EmptyBytes } else { vis.getBytes(StandardCharsets.UTF_8) }
     }
 
+    private lazy val indexValue = indexValueSerializer.serialize(feature)
+
     override lazy val id: Array[Byte] = idSerializer.apply(feature.getID)
 
     override lazy val values: Seq[KeyValue] = serializers.map { case (colFamily, serializer) =>
       KeyValue(colFamily, EmptyBytes, visibility, serializer.serialize(feature))
     }
+
+    override lazy val reducedValues: Seq[KeyValue] = values.map(_.copy(toValue = indexValue))
   }
 
   /**
@@ -162,36 +183,44 @@ object WritableFeature {
     * @param serializer serializer
     * @param idSerializer feature id serializer
     */
-  class AttributeLevelWritableFeature(val feature: SimpleFeature,
-                                      val colFamily: Array[Byte],
-                                      serializer: SimpleFeatureSerializer,
-                                      idSerializer: String => Array[Byte]) extends WritableFeature {
+  private class AttributeLevelWritableFeature(
+      val feature: SimpleFeature,
+      colFamily: Array[Byte],
+      serializer: SimpleFeatureSerializer,
+      indexValueSerializer: SimpleFeatureSerializer,
+      idSerializer: String => Array[Byte]
+    ) extends WritableFeature {
 
-    private lazy val visibilities: Array[String] = {
-      val count = feature.getFeatureType.getAttributeCount
-      val userData = Option(feature.getUserData.get(FEATURE_VISIBILITY).asInstanceOf[String])
-      val visibilities = userData.map(_.split(",")).getOrElse(Array.fill(count)(""))
-      require(visibilities.length == count,
-        s"Per-attribute visibilities do not match feature type ($count values expected): ${userData.getOrElse("")}")
-      visibilities
-    }
-
-    lazy val indexGroups: Seq[(Array[Byte], Array[Byte])] = {
-      val grouped = scala.collection.mutable.Map.empty[String, scala.collection.mutable.ArrayBuilder[Byte]]
-      var i = 0
-      while (i < visibilities.length) {
-        grouped.getOrElseUpdate(visibilities(i), Array.newBuilder[Byte]) += i.toByte
-        i += 1
+    private lazy val indexGroups: Seq[(Array[Byte], Array[Byte], SimpleFeature)] = {
+      val attributeCount = feature.getFeatureType.getAttributeCount
+      val userData = feature.getUserData.get(FEATURE_VISIBILITY).asInstanceOf[String]
+      val grouped = scala.collection.mutable.Map.empty[String, ArrayBuffer[Byte]]
+      if (userData == null || userData.isEmpty) {
+        grouped += "" -> ArrayBuffer.tabulate[Byte](attributeCount)(_.toByte)
+      } else {
+        val visibilities = userData.split(",")
+        require(visibilities.length == feature.getFeatureType.getAttributeCount,
+          s"Per-attribute visibilities do not match feature type (${feature.getFeatureType.getAttributeCount} values expected): $userData")
+        var i = 0
+        while (i < visibilities.length) {
+          grouped.getOrElseUpdate(visibilities(i), ArrayBuffer.empty[Byte]) += i.toByte
+          i += 1
+        }
       }
-      grouped.map { case (vis, indices) => (vis.getBytes(StandardCharsets.UTF_8), indices.result) }.toSeq
-    }
-
-    override lazy val values: Seq[KeyValue] = indexGroups.map { case (vis, indices) =>
-      val sf = new ScalaSimpleFeature(feature.getFeatureType, "")
-      indices.foreach(i => sf.setAttribute(i, feature.getAttribute(i)))
-      KeyValue(colFamily, indices, vis, serializer.serialize(sf))
+      grouped.toSeq.map { case (vis, builder) =>
+        val indices = builder.toArray
+        val sf = new ScalaSimpleFeature(feature.getFeatureType, "")
+        indices.foreach(i => sf.setAttributeNoConvert(i, feature.getAttribute(i)))
+        (vis.getBytes(StandardCharsets.UTF_8), indices, sf)
+      }
     }
 
     override lazy val id: Array[Byte] = idSerializer.apply(feature.getID)
+
+    override lazy val values: Seq[KeyValue] =
+      indexGroups.map { case (vis, indices, sf) => KeyValue(colFamily, indices, vis, serializer.serialize(sf)) }
+
+    override lazy val reducedValues: Seq[KeyValue] =
+      indexGroups.map { case (vis, indices, sf) => KeyValue(colFamily, indices, vis, indexValueSerializer.serialize(sf)) }
   }
 }

@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.tools.stats
 
 import com.beust.jcommander.{IParameterValidator, Parameter, ParameterException, Parameters}
-import com.google.gson.GsonBuilder
 import org.apache.commons.csv.{CSVFormat, CSVPrinter}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -20,6 +19,7 @@ import org.locationtech.geomesa.accumulo.tools.stats.AccumuloQueryAuditCommand.{
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.{FilterHelper, andOption}
+import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{DateConverter, FilterConverter}
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
@@ -48,11 +48,11 @@ class AccumuloQueryAuditCommand extends AccumuloDataStoreCommand {
     val cql = Option(params.cqlFilter).filter(_ != Filter.INCLUDE)
     val dateRanges = {
       import FilterHelper.ff
-      val startFilter = Option(params.start).map(d => ff.greaterOrEqual(ff.property("date"), ff.literal(d)))
-      val endFilter = Option(params.end).map(d => ff.less(ff.property("date"), ff.literal(d)))
+      val startFilter = Option(params.start).map(d => ff.greaterOrEqual(ff.property("end"), ff.literal(d)))
+      val endFilter = Option(params.end).map(d => ff.less(ff.property("end"), ff.literal(d)))
       val dateFilter = andOption(cql.toSeq ++ startFilter ++ endFilter)
       val intervals = dateFilter.map { f =>
-        val intervals = FilterHelper.extractIntervals(f, "date")
+        val intervals = FilterHelper.extractIntervals(f, "end")
         if (intervals.disjoint) {
           throw new ParameterException(s"Invalid disjoint date filter: ${ECQL.toCQL(f)}")
         }
@@ -72,8 +72,8 @@ class AccumuloQueryAuditCommand extends AccumuloDataStoreCommand {
     }
 
     WithClose(new AccumuloAuditReader(ds)) { reader=>
-      val writer = if("json".equalsIgnoreCase(params.outputFormat)) { new JsonWriter() } else { new CsvWriter() }
-      writer.header().foreach(Command.output.info)
+      val writer = if ("json".equalsIgnoreCase(params.outputFormat)) { new JsonWriter() } else { new CsvWriter() }
+      writer.header().foreach(h => Command.output.info(h))
       dateRanges.foreach { case (start, end) =>
         WithClose(reader.getQueryEvents(params.featureName, (start, end))) { events =>
           val out = cql match {
@@ -93,7 +93,7 @@ object AccumuloQueryAuditCommand {
 
   private final val CqlDescription =
     "CQL predicate to filter log entries. Schema is: " +
-      "date:Date,user:String,filter:String,hints:String,planTimeMillis:Long,scanTimeMillis:Long,hits:Long"
+      "user:String,filter:String,hints:String:json=true,metadata:String:json=true,start:Date,end:Date,planTimeMillis:Long,scanTimeMillis:Long,hits:Long"
 
   // note: the cql description needs to be a final string constant to work with annotations, so we extract the spec
   // from there instead of building it up as we might normally do
@@ -107,11 +107,14 @@ object AccumuloQueryAuditCommand {
    * @return
    */
   private def toFeature(event: QueryEvent): SimpleFeature = {
-    val date = new Date(event.date)
+    val hints = AuditWriter.Gson.toJson(event.hints)
+    val metadata = AuditWriter.Gson.toJson(event.metadata)
+    val start = if (event.start == -1) { null } else { new Date(event.start) }
+    val end = new Date(event.end)
     val planTime = Long.box(event.planTime)
     val scanTime = Long.box(event.scanTime)
     val hits = Long.box(event.hits)
-    new ScalaSimpleFeature(Sft, "", Array(date, event.user, event.filter, event.hints, planTime, scanTime, hits))
+    new ScalaSimpleFeature(Sft, "", Array(event.user, event.filter, hints, metadata, start, end, planTime, scanTime, hits))
   }
 
   @Parameters(commandDescription = "Search query audit logs for a GeoMesa feature type")
@@ -161,10 +164,12 @@ object AccumuloQueryAuditCommand {
     override def output(event: QueryEvent): String = {
       printer.println() // reset new record
       out.setLength(0)
-      printer.print(DateParsing.formatMillis(event.date))
       printer.print(event.user)
       printer.print(event.filter)
-      printer.print(event.hints)
+      printer.print(AuditWriter.Gson.toJson(event.hints))
+      printer.print(AuditWriter.Gson.toJson(event.metadata))
+      printer.print(if (event.start == -1) { null } else { DateParsing.formatMillis(event.start) })
+      printer.print(DateParsing.formatMillis(event.end))
       printer.print(Long.box(event.planTime))
       printer.print(Long.box(event.scanTime))
       printer.print(Long.box(event.hits))
@@ -174,19 +179,21 @@ object AccumuloQueryAuditCommand {
   }
 
   private class JsonWriter extends OutputWriter {
-    private val gson = new GsonBuilder().disableHtmlEscaping().serializeNulls().create()
     override def header(): Option[String] = None
     override def output(event: QueryEvent): String = {
-      val model = java.util.Map.of(
-        "date", DateParsing.formatMillis(event.date),
-        "user", event.user,
-        "filter", event.filter,
-        "hints", event.hints,
-        "planTimeMillis", event.planTime,
-        "scanTimeMillis", event.scanTime,
-        "hits", event.hits
-      )
-      gson.toJson(model)
+      val model = new java.util.LinkedHashMap[String, AnyRef]()
+      model.put("user", event.user)
+      model.put("filter", event.filter)
+      model.put("hints", event.hints)
+      model.put("metadata", event.metadata)
+      if (event.start != -1) {
+        model.put("start", DateParsing.formatMillis(event.start))
+      }
+      model.put("end", DateParsing.formatMillis(event.end))
+      model.put("planTimeMillis", Long.box(event.planTime))
+      model.put("scanTimeMillis", Long.box(event.scanTime))
+      model.put("hits", Long.box(event.hits))
+      AuditWriter.Gson.toJson(model)
     }
   }
 }

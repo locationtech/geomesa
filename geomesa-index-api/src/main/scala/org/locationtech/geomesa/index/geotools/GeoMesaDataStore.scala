@@ -79,7 +79,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @return
     */
   def getAllIndexTableNames(typeName: String): Seq[String] =
-    Option(getSchema(typeName)).toSeq.flatMap(sft => manager.indices(sft).flatMap(_.getTableNames(None)))
+    Option(getSchema(typeName)).toSeq.flatMap(sft => manager.indices(sft).flatMap(_.getTableNames()))
 
   /**
     * Optimized method to delete everything (all tables) associated with this datastore

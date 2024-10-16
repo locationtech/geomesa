@@ -50,6 +50,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 | 4.0.0 and later   | 2.22.2            |
 =======
 | 4.0.0 and later   | 2.22.0            |
@@ -112,6 +113,46 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+| 5.1.0             | 2.26.0            |
++-------------------+-------------------+
+=======
+<<<<<<< HEAD
+>>>>>>> 999a8bb50ef (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> f12a0960401 (Fix recommended GeoServer version in docs)
+=======
+<<<<<<< HEAD
+>>>>>>> dba023747dd (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 80c8e91bab2 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 9800bad9fa7 (Fix recommended GeoServer version in docs)
+=======
+<<<<<<< HEAD
+>>>>>>> 03da13e6d31 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 36ca958d27d (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 4e7cac1005b (Fix recommended GeoServer version in docs)
+=======
+<<<<<<< HEAD
+>>>>>>> ef3c1fdfa1f (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 227e451f41f (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 43e33eb4885 (Fix recommended GeoServer version in docs)
+=======
+<<<<<<< HEAD
+>>>>>>> 0d076484a6a (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 | 5.0.0             | 2.24.2            |
 +-------------------+-------------------+
@@ -218,6 +259,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -592,6 +634,8 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -630,6 +674,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -665,6 +712,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 | 4.0.0 and later   | 2.22.0            |
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -760,6 +808,8 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -791,6 +841,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -825,6 +878,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 | 4.0.0 and later   | 2.22.2            |
 >>>>>>> fe2b699d58 (Fix recommended GeoServer version in docs)
 >>>>>>> 6fffaab2f9 (Fix recommended GeoServer version in docs)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -902,6 +956,8 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> c04ca2d2a2e (Fix recommended GeoServer version in docs)
 =======
 =======
@@ -932,6 +988,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -981,10 +1040,13 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1034,6 +1096,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1082,10 +1147,13 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> abbeb34e35 (Fix recommended GeoServer version in docs)
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1135,6 +1203,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1190,6 +1261,7 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1204,6 +1276,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
@@ -1432,10 +1507,10 @@ GeoMesa data stores can audit query metrics. To enabled auditing, check the box 
 when registering the data store in GeoServer.
 
 GeoMesa data stores will generally write audited queries to log files. To configure an audit log, set the level for
-``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
+``org.locationtech.geomesa.index.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
 configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.xml``)::
 
-   <Logger name="org.locationtech.geomesa.utils.audit" level="debug" additivity="false">
+   <Logger name="org.locationtech.geomesa.index.audit" level="debug" additivity="false">
      <AppenderRef ref="auditLogFile"/> <!-- note: requires an appender to be defined with this name -->
    </Logger>
 

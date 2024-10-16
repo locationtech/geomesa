@@ -15,7 +15,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 
-import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
+import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
 import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
@@ -25,6 +25,7 @@ import org.geotools.api.data.{DataStoreFactorySpi, Parameter}
 =======
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -161,6 +162,92 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
 import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
+=======
+>>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+>>>>>>> 76c1a24bd97 (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+<<<<<<< HEAD
+>>>>>>> eb0bd279638 (GEOMESA-3254 Add Bloop build support)
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> 04ca02e264f (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4282ac2d47b (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+>>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 53f64a9fef (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> addb5c4adcc (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+>>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 603c7b9204a (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> e54506ef011 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 2ee6a1e51f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
+>>>>>>> 4282ac2d47b (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> be6b3b14b4a (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+>>>>>>> 4a6d96f2b4e (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+<<<<<<< HEAD
+>>>>>>> c8c725f832f (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
+=======
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b9402fcca37 (GEOMESA-3254 Add Bloop build support)
+import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
+>>>>>>> locatelli-main
 =======
 >>>>>>> 4a4bbd8ec03 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -513,6 +600,9 @@ import org.locationtech.geomesa.index.audit.AuditWriter
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -525,6 +615,7 @@ import org.locationtech.geomesa.index.audit.AuditWriter
 =======
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1730,6 +1821,8 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> 6e002b864a (GEOMESA-3267 HBase, Accumulo - Fix potential deadlocks in data store factory)
@@ -1755,6 +1848,9 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1809,6 +1905,7 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1934,6 +2031,10 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterPropertie
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -1965,6 +2066,7 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1973,6 +2075,8 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2056,6 +2160,9 @@ import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperti
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2113,7 +2220,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import java.awt.RenderingHints
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.Locale
+import java.util.{Locale, Properties}
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
@@ -2122,9 +2229,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, _]): AccumuloDataStore = {
-    val connector = AccumuloDataStoreFactory.buildAccumuloConnector(params)
-    val config = AccumuloDataStoreFactory.buildConfig(connector, params)
-    val ds = new AccumuloDataStore(connector, config)
+    val client = AccumuloDataStoreFactory.buildAccumuloClient(params)
+    val config = AccumuloDataStoreFactory.buildConfig(client, params)
+    val ds = new AccumuloDataStore(client, config)
     GeoMesaDataStore.initRemoteVersion(ds)
     ds
   }
@@ -2201,14 +2308,33 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     CatalogParam.exists(params)
 
-  def buildAccumuloConnector(params: java.util.Map[String, _]): AccumuloClient = {
+  @deprecated("Replaced with buildAccumuloClient")
+  def buildAccumuloConnector(params: java.util.Map[String, _]): AccumuloClient = buildAccumuloClient(params)
+
+  /**
+   * Build an accumulo client
+   *
+   * @param params data store params
+   * @return
+   */
+  def buildAccumuloClient(params: java.util.Map[String, _]): AccumuloClient =
+    Accumulo.newClient().from(AccumuloDataStoreFactory.buildAccumuloClientConfig(params)).build()
+
+  /**
+   * Build an Accumulo client configuration, based on passed in parameters and any accumulo-client.properties
+   * file on the classpath
+   *
+   * @param params data store params
+   * @return
+   */
+  def buildAccumuloClientConfig(params: java.util.Map[String, _]): Properties = {
     val config = AccumuloClientConfig.load()
 
-    def setRequired(param: GeoMesaParam[String], key: ClientProperty): Unit = {
+    def setRequired(param: GeoMesaParam[String], key: ClientProperty): String = {
       param.lookupOpt(params) match {
-        case Some(v) => config.put(key.getKey, v)
+        case Some(v) => config.put(key.getKey, v); v
         case None =>
-          if (config.get(key.getKey) == null) {
+          Option(config.getProperty(key.getKey)).getOrElse {
             throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
           }
       }
@@ -2227,7 +2353,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     setRequired(ZookeepersParam, ClientProperty.INSTANCE_ZOOKEEPERS)
     setOptional(ZookeeperTimeoutParam, ClientProperty.INSTANCE_ZOOKEEPERS_TIMEOUT)
 
-    val user = getRequired(UserParam, ClientProperty.AUTH_PRINCIPAL)
+    val user = setRequired(UserParam, ClientProperty.AUTH_PRINCIPAL)
 
     if (PasswordParam.exists(params) && KeytabPathParam.exists(params)) {
       throw new IllegalArgumentException(
@@ -2243,52 +2369,62 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
         ClientProperty.AUTH_TYPE.getValue(config).toLowerCase(Locale.US)
       }
 
-    // build authentication token according to how we are authenticating
-    val auth: AuthenticationToken = if (authType == AccumuloClientConfig.PasswordAuthType) {
-      new PasswordToken(getRequired(PasswordParam, ClientProperty.AUTH_TOKEN).getBytes(StandardCharsets.UTF_8))
-    } else if (authType == AccumuloClientConfig.KerberosAuthType) {
-      val file = new java.io.File(getRequired(KeytabPathParam, ClientProperty.AUTH_TOKEN))
-      // mimic behavior from accumulo 1.9 and earlier:
-      // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
-      UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
-      new KerberosToken(user, file)
-    } else {
-      throw new IllegalArgumentException(s"Unsupported auth type: $authType")
-    }
+    val token =
+      if (authType == AccumuloClientConfig.PasswordAuthType) {
+        new PasswordToken(getRequired(PasswordParam, ClientProperty.AUTH_TOKEN).getBytes(StandardCharsets.UTF_8))
+      } else if (authType == AccumuloClientConfig.KerberosAuthType) {
+        val file = new java.io.File(getRequired(KeytabPathParam, ClientProperty.AUTH_TOKEN))
+        // mimic behavior from accumulo 1.9 and earlier:
+        // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
+        UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
+        new KerberosToken(user, file)
+      } else {
+         throw new IllegalArgumentException(
+           s"Unsupported auth type: $authType - supported values are " +
+             s"${AccumuloClientConfig.PasswordAuthType}, ${AccumuloClientConfig.KerberosAuthType}")
+      }
+    ClientProperty.setAuthenticationToken(config, token)
 
     if (WriteThreadsParam.exists(params)) {
       config.put(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey, WriteThreadsParam.lookup(params).toString)
-    } else if (!config.containsKey(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey)) {
+    } else if (ClientProperty.BATCH_WRITER_THREADS_MAX.isEmpty(config)) {
       BatchWriterProperties.WRITER_THREADS.option.foreach { threads =>
         config.put(ClientProperty.BATCH_WRITER_THREADS_MAX.getKey, String.valueOf(threads))
       }
     }
-    if (!config.containsKey(ClientProperty.BATCH_WRITER_MEMORY_MAX.getKey)) {
+    if (ClientProperty.BATCH_WRITER_MEMORY_MAX.isEmpty(config)) {
       BatchWriterProperties.WRITER_MEMORY_BYTES.toBytes.foreach { memory =>
         config.put(ClientProperty.BATCH_WRITER_MEMORY_MAX.getKey, String.valueOf(memory))
       }
     }
-    if (!config.containsKey(ClientProperty.BATCH_WRITER_LATENCY_MAX.getKey)) {
+    if (ClientProperty.BATCH_WRITER_LATENCY_MAX.isEmpty(config)) {
       BatchWriterProperties.WRITER_LATENCY.toDuration.foreach { duration =>
         config.put(ClientProperty.BATCH_WRITER_LATENCY_MAX.getKey, s"${duration.toMillis}ms")
       }
     }
-    if (!config.containsKey(ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getKey)) {
+    if (ClientProperty.BATCH_WRITER_TIMEOUT_MAX.isEmpty(config)) {
       BatchWriterProperties.WRITE_TIMEOUT.toDuration.foreach { duration =>
         config.put(ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getKey, s"${duration.toMillis}ms")
       }
     }
 
-    Accumulo.newClient().from(config).as(user, auth).build()
+    config
   }
 
-  def buildConfig(connector: AccumuloClient, params: java.util.Map[String, _]): AccumuloDataStoreConfig = {
+  /**
+   * Build the data store config
+   *
+   * @param client accumulo client
+   * @param params data store params
+   * @return
+   */
+  def buildConfig(client: AccumuloClient, params: java.util.Map[String, _]): AccumuloDataStoreConfig = {
     val catalog = CatalogParam.lookup(params)
 
-    val authProvider = buildAuthsProvider(connector, params)
+    val authProvider = buildAuthsProvider(client, params)
     val auditProvider = buildAuditProvider(params)
     val auditWriter =
-      new AccumuloAuditWriter(connector, s"${catalog}_queries", auditProvider, AuditQueriesParam.lookup(params).booleanValue())
+      new AccumuloAuditWriter(client, s"${catalog}_queries", auditProvider, AuditQueriesParam.lookup(params).booleanValue())
 
     val queries = AccumuloQueryConfig(
       threads = QueryThreadsParam.lookup(params),
@@ -2325,16 +2461,17 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     }
   }
 
-  def buildAuthsProvider(connector: AccumuloClient, params: java.util.Map[String, _]): AuthorizationsProvider = {
+  def buildAuthsProvider(client: AccumuloClient, params: java.util.Map[String, _]): AuthorizationsProvider = {
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
-    val securityOps = connector.securityOperations
-    val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toSeq.map(b => new String(b))
+    val securityOps = client.securityOperations
+    val masterAuths = securityOps.getUserAuthorizations(client.whoami).asScala.toSeq.map(b => new String(b))
 
     // get the auth params passed in as a comma-delimited string
 <<<<<<< HEAD
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty).toSeq
 =======
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filterNot(_.isEmpty)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2472,6 +2609,10 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -2501,6 +2642,9 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2550,6 +2694,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2675,6 +2820,10 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2702,9 +2851,12 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2783,6 +2935,9 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

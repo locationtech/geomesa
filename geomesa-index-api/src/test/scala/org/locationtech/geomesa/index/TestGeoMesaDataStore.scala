@@ -114,7 +114,7 @@ object TestGeoMesaDataStore {
         partition: Option[String],
         atomic: Boolean): IndexWriter = {
       require(!atomic, "Test data store does not currently support atomic writes")
-      val tables = indices.map(i => this.tables(i.getTableNames(partition).head))
+      val tables = indices.map(i => this.tables(i.getTableName(partition)))
       val wrapper = WritableFeature.wrapper(sft, groups)
       if (sft.isVisibilityRequired) {
         new TestIndexWriter(indices, wrapper, tables) with RequiredVisibilityWriter
