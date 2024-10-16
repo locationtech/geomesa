@@ -111,7 +111,7 @@ object QueryInterceptor extends LazyLogging {
             classes.split(",").toSeq.flatMap { c =>
               var interceptor: QueryInterceptor = null
               try {
-                interceptor = Class.forName(c).newInstance().asInstanceOf[QueryInterceptor]
+                interceptor = Class.forName(c).getDeclaredConstructor().newInstance().asInstanceOf[QueryInterceptor]
                 interceptor.init(ds, sft)
                 Seq(interceptor)
               } catch {

@@ -47,15 +47,17 @@ class UserDataTable extends Sql {
       s"INSERT INTO ${table.quoted} (type_name, key, value) VALUES (?, ?, ?) " +
           s"ON CONFLICT (type_name, key) DO UPDATE SET value = EXCLUDED.value;"
 
-    def insert(config: String, value: Option[String]): Unit =
-      value.foreach(v => ex.executeUpdate(insertSql, Seq(info.typeName, config, v)))
+    def insert(config: String, value: String): Unit =
+      ex.executeUpdate(insertSql, Seq(info.typeName, config, value))
 
-    insert(SimpleFeatureTypes.Configs.DefaultDtgField, Some(info.cols.dtg.raw))
-    insert(Config.IntervalHours, Some(Integer.toString(info.partitions.hoursPerPartition)))
-    insert(Config.PagesPerRange, Some(Integer.toString(info.partitions.pagesPerRange)))
-    insert(Config.MaxPartitions, info.partitions.maxPartitions.map(Integer.toString))
-    insert(Config.CronMinute, info.partitions.cronMinute.map(Integer.toString))
-    insert(Config.FilterWholeWorld, info.userData.get(Config.FilterWholeWorld))
+    insert(SimpleFeatureTypes.Configs.DefaultDtgField, info.cols.dtg.raw)
+    insert(Config.IntervalHours, Integer.toString(info.partitions.hoursPerPartition))
+    insert(Config.PagesPerRange, Integer.toString(info.partitions.pagesPerRange))
+    info.partitions.maxPartitions.map(Integer.toString).foreach(insert(Config.MaxPartitions, _))
+    info.partitions.cronMinute.map(Integer.toString).foreach(insert(Config.CronMinute, _))
+    Seq(Config.FilterWholeWorld, SimpleFeatureTypes.Configs.QueryInterceptors).foreach { key =>
+      info.userData.get(key).foreach(insert(key, _))
+    }
   }
 
   override def drop(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
