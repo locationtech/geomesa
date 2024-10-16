@@ -25,6 +25,10 @@
             <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools.jdbc</groupId>
             <artifactId>gt-jdbc-postgis</artifactId>
         </dependency>
