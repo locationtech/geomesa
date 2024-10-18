@@ -283,6 +283,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> a75dd93dd3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -4188,6 +4189,8 @@
 >>>>>>> 86dd18aa73 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 498d1c9c26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
  * Copyright (c) 2013-2023 Commonwealth Computer Research, Inc.
 =======
 <<<<<<< HEAD
@@ -4206,6 +4209,8 @@
 >>>>>>> 72bafaf54 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 9d708b240 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -11032,6 +11037,7 @@
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -11687,10 +11693,14 @@
 =======
 =======
 =======
+>>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+=======
 =======
  * Copyright (c) 2013-2022 Commonwealth Computer Research, Inc.
 >>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
 >>>>>>> db8d998aa (Merge branch 'feature/postgis-fixes')
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> cb6bda89b6 (Merge branch 'feature/postgis-fixes')
@@ -14898,7 +14908,12 @@
 >>>>>>> b4320946b (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 97ec7d864 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> 498d1c9c26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+<<<<<<< HEAD
 >>>>>>> 2a0c9869c76 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+=======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+>>>>>>> d2e79ca9efc (Merge branch 'feature/postgis-fixes')
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15555,6 +15570,7 @@ class MetadataJsonTest extends Specification {
   lazy val fs = FileSystem.get(conf)
 =======
   lazy val fc = FileContext.getFileContext(conf)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -22713,6 +22729,8 @@ class MetadataJsonTest extends Specification {
 =======
 >>>>>>> 3cf53cae25 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+=======
 >>>>>>> 28e2bfa2d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> feadc324d3 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -30398,6 +30416,7 @@ class MetadataJsonTest extends Specification {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0df4ab56d (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> cdc7c0fe7f (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -34638,11 +34657,19 @@ class MetadataJsonTest extends Specification {
 =======
 =======
 >>>>>>> 3cf53cae25 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+<<<<<<< HEAD
 >>>>>>> b84e35a5419 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
+>>>>>>> 2d749ba673e (Merge branch 'feature/postgis-fixes')
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
       skipped("fails in github actions")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -34879,6 +34906,8 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 86dd18aa73 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 498d1c9c26 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
 =======
 >>>>>>> 6eb31fb65 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 >>>>>>> b03141c1bb (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -72406,6 +72435,7 @@ class MetadataJsonTest extends Specification {
 >>>>>>> 9a1ca2afc (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 0df4ab56df (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 856bf16b3e (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -74158,6 +74188,10 @@ class MetadataJsonTest extends Specification {
 >>>>>>> c37a34dcb9 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 3cf53cae25 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
+=======
+=======
+>>>>>>> 3be8d2a5a (Merge branch 'feature/postgis-fixes')
+>>>>>>> 64eaf6b132 (Merge branch 'feature/postgis-fixes')
       withPath { context =>
         val prop = "MetadataJsonTest.foo"
         val interpolated = "${" + prop + "}"
