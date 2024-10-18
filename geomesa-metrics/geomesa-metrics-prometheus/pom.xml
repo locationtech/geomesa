@@ -19,6 +19,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         <version>5.1.0-SNAPSHOT</version>
 =======
@@ -80,12 +81,17 @@
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
         <version>5.2.0-SNAPSHOT</version>
 =======
 <<<<<<< HEAD
         <version>5.1.0-SNAPSHOT</version>
 =======
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
         <version>5.0.0-SNAPSHOT</version>
 =======
@@ -126,6 +132,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -218,6 +225,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 569714abaf9 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> 97948746494 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -225,6 +234,9 @@
 >>>>>>> 216c7366d39 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -252,6 +264,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
@@ -344,6 +357,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> a222c9901eb ([maven-release-plugin] prepare for next development iteration)
 <<<<<<< HEAD
 >>>>>>> 4a074dd79bb ([maven-release-plugin] prepare for next development iteration)
@@ -351,6 +366,9 @@
 >>>>>>> 33ee0d8f56e ([maven-release-plugin] prepare for next development iteration)
 =======
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -383,6 +401,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -475,6 +494,8 @@
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 >>>>>>> 9e8af5fe5e0 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 <<<<<<< HEAD
 >>>>>>> b827ee768c1 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
@@ -482,6 +503,9 @@
 >>>>>>> a2ba1626bc7 (GEOMESA-3076 Do inexact checking for cardinality values in minmax stat)
 =======
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -511,6 +535,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
@@ -579,6 +604,11 @@
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> af514868ade ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> locatelli-main
+=======
+>>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> af514868ade ([maven-release-plugin] prepare for next development iteration)
+>>>>>>> 77cddbb0ef9 ([maven-release-plugin] prepare for next development iteration)
 >>>>>>> locatelli-main
 =======
 >>>>>>> 2a5d54d8fd2 ([maven-release-plugin] prepare for next development iteration)
