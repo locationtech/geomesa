@@ -37,6 +37,7 @@ import com.typesafe.config.ConfigFactory
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
 =======
@@ -512,6 +513,40 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+import com.typesafe.scalalogging.LazyLogging
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -983,6 +1018,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1015,6 +1051,9 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1106,6 +1145,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1184,6 +1226,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import com.typesafe.scalalogging.LazyLogging
 =======
 >>>>>>> location-main
@@ -1227,6 +1270,10 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> locatelli-main
 =======
@@ -1338,6 +1385,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1389,6 +1439,7 @@ import com.typesafe.scalalogging.LazyLogging
 =======
 import com.typesafe.scalalogging.LazyLogging
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1468,6 +1519,8 @@ import com.typesafe.scalalogging.LazyLogging
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1500,6 +1553,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1579,11 +1635,14 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1657,6 +1716,7 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1665,6 +1725,8 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 =======
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1755,6 +1817,9 @@ import com.typesafe.scalalogging.LazyLogging
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1834,6 +1899,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.utils.io.WithClose
 =======
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -2954,6 +3020,48 @@ import org.locationtech.geomesa.utils.io.WithClose
 =======
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 6c49bcd685 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 630900cfbb (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 52579ffb37 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+import org.locationtech.geomesa.utils.io.WithClose
+=======
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+>>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2988,6 +3096,9 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3065,6 +3176,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 <<<<<<< HEAD
@@ -3099,6 +3211,11 @@ import org.locationtech.geomesa.utils.io.WithClose
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -3226,11 +3343,15 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
@@ -3328,9 +3449,12 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3410,6 +3534,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3469,6 +3596,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3581,6 +3709,9 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 >>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
+>>>>>>> d18777a94f (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 320759d5d3 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -3611,6 +3742,9 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3664,6 +3798,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.io.WithClose
 >>>>>>> a928f2f73 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> 05a1868e90 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -3794,6 +3929,10 @@ import org.locationtech.geomesa.utils.io.WithClose
 >>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> 556d966249 (GEOMESA-3246 Upgrade Arrow to 11.0.0)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -3827,11 +3966,14 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3904,9 +4046,12 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4001,6 +4146,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4082,6 +4230,7 @@ import org.testcontainers.utility.DockerImageName
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 <<<<<<< HEAD
@@ -4109,6 +4258,8 @@ import org.testcontainers.utility.DockerImageName
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -4182,8 +4333,11 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4276,8 +4430,11 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4391,6 +4548,9 @@ import java.util.Date
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

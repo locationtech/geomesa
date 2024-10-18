@@ -90,6 +90,9 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
     Array(KafkaDataStoreParams.Brokers, SchemaRegistryUrl, SchemaOverrides) ++
       KafkaDataStoreFactory.ParameterInfo.filterNot(UnusedParams.contains)
 
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
   override def canProcess(params: java.util.Map[String, _]): Boolean =

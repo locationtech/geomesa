@@ -86,6 +86,7 @@ fi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -146,6 +147,8 @@ fi
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -182,6 +185,9 @@ fi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -259,6 +265,7 @@ fi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -267,6 +274,8 @@ fi
 <<<<<<< HEAD
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -358,6 +367,9 @@ fi
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -434,6 +446,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -443,6 +456,10 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> 360db021b6 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -569,6 +586,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist,geodesic.h,geodesic.c,geodtest.c,./docs/source/spelling_wordlist.txt"
 >>>>>>> e4a6fd6d75 (typo fixes)
@@ -576,6 +594,8 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -655,6 +675,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> aa21c6fa76 (typo fixes)
 =======
 >>>>>>> location-main
@@ -693,6 +714,10 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -805,6 +830,9 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -858,6 +886,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -944,6 +973,8 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -978,6 +1009,9 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1058,11 +1092,14 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1137,11 +1174,14 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1232,11 +1272,14 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1311,6 +1354,7 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,aclocal.m4,depcomp,ltmain.sh,*.pdf,./m4/*,./fix_typos/*,./docs/build/*,./src/*generated*,./test/googletest/*,./include/proj/internal/nlohmann/json.hpp,*.before_reformat,./test/cli/test27,./test/cli/test83,./test/cli/pj_out27.dist,./test/cli/pj_out83.dist"
@@ -1320,6 +1364,8 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1469,6 +1515,9 @@ EXCLUDED_FILES="*configure,config.status,config.sub,*/autom4te.cache/*,libtool,a
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

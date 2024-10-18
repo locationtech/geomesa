@@ -27,8 +27,8 @@ geospatial analytics.
 * [Main documentation](https://www.geomesa.org/documentation/)
 * [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
-  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
+  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
   [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
@@ -40,8 +40,8 @@ geospatial analytics.
 **Current release: [${geomesa.release.version}](https://github.com/locationtech/geomesa/releases/tag/geomesa-${geomesa.release.version})**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-hbase_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-hbase_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-cassandra_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
@@ -173,9 +173,25 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
+  <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
   <version>${geomesa.release.version}</version>
 </dependency>
+```
+
+GeoMesa provides a bill-of-materials module, which can simplify version management:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.locationtech.geomesa</groupId>
+      <artifactId>geomesa-bom_${scala.binary.version}</artifactId>
+      <version>${geomesa.release.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
 ```
 
 GeoMesa depends on several third-party libraries that are only available in separate repositories. To include
