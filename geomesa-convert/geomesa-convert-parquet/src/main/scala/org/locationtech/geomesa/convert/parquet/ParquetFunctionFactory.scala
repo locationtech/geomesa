@@ -14,9 +14,15 @@ import org.locationtech.geomesa.convert.avro.AvroPath
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
-import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.fs.storage.parquet.io.{SimpleFeatureParquetSchemaV1, SimpleFeatureReadSupport}
 import org.locationtech.jts.geom._
 
+/**
+ * For parsing geometries from a GeoParquet file, the GeometryFunctionFactory class provides equivalent functionality.
+ *
+ * This class is kept for backwards compatibility with older Parquet file formats.
+ */
+@Deprecated
 class ParquetFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] = geometries
@@ -42,7 +48,7 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
   abstract class ParquetGeometryFn[T <: Geometry, U](name: String, path: AvroPath)
       extends NamedTransformerFunction(Seq(name), pure = true) {
 
-    import SimpleFeatureParquetSchema.{GeometryColumnX, GeometryColumnY}
+    import SimpleFeatureParquetSchemaV1.{GeometryColumnX, GeometryColumnY}
 
     override def apply(args: Array[AnyRef]): AnyRef = {
       path.eval(args(0).asInstanceOf[GenericRecord]).collect {

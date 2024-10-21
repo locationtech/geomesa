@@ -10,6 +10,8 @@
 package org.locationtech.geomesa.parquet
 
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.networknt.schema.{JsonSchemaFactory, SpecVersion, ValidationMessage}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -21,19 +23,24 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.FileValidationEnabled
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, validateParquetFile}
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.GeoParquetSchemaKey
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.fs.storage.parquet.{FilterConverter, SimpleFeatureParquetWriter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.index.BucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
-import java.io.RandomAccessFile
-import java.nio.file.Files
+import java.io.{File, RandomAccessFile}
+import java.nio.file.{Files, Paths}
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
@@ -51,7 +58,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
   lazy val f = Files.createTempFile("geomesa", ".parquet")
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*position:Point:srid=4326,poly:Polygon")
   val nameAndGeom = SimpleFeatureTypes.createType("test", "name:String,*position:Point:srid=4326")
 
   val sftConf = {
@@ -62,11 +69,61 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
     c
   }
 
-  val features = Seq(
-    ScalaSimpleFeature.create(sft, "1", "first", 100, "2017-01-01T00:00:00Z", "POINT (25.236263 27.436734)"),
-    ScalaSimpleFeature.create(sft, "2", null,    200, "2017-01-02T00:00:00Z", "POINT (67.2363 55.236)"),
-    ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z", "POINT (73.0 73.0)")
-  )
+  val points = {
+    val gf = new GeometryFactory
+    Seq(
+      gf.createPoint(new Coordinate(25.236263, 27.436734)),
+      gf.createPoint(new Coordinate(67.2363, 55.236)),
+      gf.createPoint(new Coordinate(73.0, 73.0)),
+    )
+  }
+
+  val polygons = {
+    val gf = new GeometryFactory
+    Seq(
+      gf.createPolygon(Array(
+        new Coordinate(0, 0),
+        new Coordinate(0, 1),
+        new Coordinate(1, 1),
+        new Coordinate(1, 0),
+        new Coordinate(0, 0),
+      )),
+      gf.createPolygon(Array(
+        new Coordinate(10, 10),
+        new Coordinate(10, 15),
+        new Coordinate(15, 15),
+        new Coordinate(15, 10),
+        new Coordinate(10, 10),
+      )),
+      gf.createPolygon(Array(
+        new Coordinate(30, 30),
+        new Coordinate(30, 35),
+        new Coordinate(35, 35),
+        new Coordinate(35, 30),
+        new Coordinate(30, 30),
+      )),
+    )
+  }
+
+  val pointsBboxString = {
+    val bbox = new Envelope
+    points.indices.foreach(i => bbox.expandToInclude(points(i).getEnvelopeInternal))
+    s"[${bbox.getMinX}, ${bbox.getMinY}, ${bbox.getMaxX}, ${bbox.getMaxY}]"
+  }
+
+  val polygonsBboxString = {
+    val bbox = new Envelope
+    polygons.indices.foreach(i => bbox.expandToInclude(polygons(i).getEnvelopeInternal))
+    s"[${bbox.getMinX}, ${bbox.getMinY}, ${bbox.getMaxX}, ${bbox.getMaxY}]"
+  }
+
+  val features = {
+    Seq(
+      ScalaSimpleFeature.create(sft, "1", "first", 100, "2017-01-01T00:00:00Z", WKTUtils.write(points.head), WKTUtils.write(polygons.head)),
+      ScalaSimpleFeature.create(sft, "2", null,    200, "2017-01-02T00:00:00Z", WKTUtils.write(points(1)), WKTUtils.write(polygons(1))),
+      ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z", WKTUtils.write(points(2)), WKTUtils.write(polygons(2)))
+    )
+  }
 
   def readFile(filter: FilterCompat.Filter = FilterCompat.NOOP, conf: Configuration = sftConf): Seq[SimpleFeature] = {
     val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
@@ -82,11 +139,45 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
   }
 
   def readFile(geoFilter: org.geotools.api.filter.Filter, tsft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val pFilter = FilterConverter.convert(tsft, geoFilter)._1.map(FilterCompat.get).getOrElse {
-      ko(s"Couldn't extract a filter from ${ECQL.toCQL(geoFilter)}")
-      FilterCompat.NOOP
+    val pFilter = FilterConverter.convert(tsft, geoFilter)(2)._1.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
+    val conf = transformConf(tsft)
+
+    val geomAttributeName = tsft.getGeometryDescriptor.getName.toString
+    val geoms = FilterHelper.extractGeometries(geoFilter, geomAttributeName).values
+
+    val builder = ParquetReader.builder[SimpleFeature](new SimpleFeatureReadSupport, new Path(f.toUri))
+    val result = ArrayBuffer.empty[SimpleFeature]
+    val index = new BucketIndex[SimpleFeature]
+
+    WithClose(builder.withFilter(pFilter).withConf(conf).build()) { reader =>
+      var sf = reader.read()
+      while (sf != null) {
+        result += sf
+        index.insert(sf.getAttribute(geomAttributeName).asInstanceOf[Geometry], sf.getID, sf)
+        sf = reader.read()
+      }
     }
-    readFile(pFilter, transformConf(tsft))
+
+    if (geoms.nonEmpty) {
+      index.query(geoms.head.getEnvelopeInternal).toSeq
+    } else {
+      result.toSeq
+    }
+  }
+
+  // Helper method that validates the file metadata against the GeoParquet metadata json schema
+  def validateMetadata(metadataString: String): mutable.Set[ValidationMessage] = {
+    val schema = {
+      // https://geoparquet.org/releases/v1.0.0/schema.json
+      val schemaFile = new File(getClass.getClassLoader.getResource("geoparquet-metadata-schema.json").toURI)
+      val schemaReader = scala.io.Source.fromFile(schemaFile)
+      val schemaString = schemaReader.mkString
+      schemaReader.close()
+      JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4).getSchema(schemaString)
+    }
+    val metadata = new ObjectMapper().readTree(metadataString)
+
+    schema.validate(metadata).asScala
   }
 
   "SimpleFeatureParquetWriter" should {
@@ -107,18 +198,58 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
       // Validate the file
       validateParquetFile(filePath) must throwA[RuntimeException].like {
-        case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
+        case e => e.getMessage mustEqual s"Unable to validate '${filePath}': File may be corrupted"
       }
     }
 
-    "write parquet files" >> {
-      WithClose(SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()) { writer =>
+    "write geoparquet files" >> {
+      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()
+      WithClose(writer) { writer =>
         features.foreach(writer.write)
       }
+      
       Files.size(f) must beGreaterThan(0L)
+
+      // Check that the GeoParquet metadata is valid json
+      val metadata = writer.getFooter.getFileMetaData.getKeyValueMetaData.get(GeoParquetSchemaKey)
+      validateMetadata(metadata) must beEmpty
+
+      // Check that the GeoParquet metadata contains the correct bounding box for each geometry
+      metadata.contains(pointsBboxString) must beTrue
+      metadata.contains(polygonsBboxString) must beTrue
     }
 
-    "read parquet files" >> {
+    "write parquet files with no geometries" >> {
+      val f = Files.createTempFile("geomesa", ".parquet")
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date")
+      val sftConf = {
+        val c = new Configuration()
+        StorageConfiguration.setSft(c, sft)
+        // Use GZIP in tests but snappy in prod due to license issues
+        c.set(ParquetCompressionOpt, CompressionCodecName.GZIP.toString)
+        c
+      }
+
+      val features = {
+        Seq(
+          ScalaSimpleFeature.create(sft, "1", "first", 100, "2017-01-01T00:00:00Z"),
+          ScalaSimpleFeature.create(sft, "2", null, 200, "2017-01-02T00:00:00Z"),
+          ScalaSimpleFeature.create(sft, "3", "third", 300, "2017-01-03T00:00:00Z")
+        )
+      }
+
+      val writer = SimpleFeatureParquetWriter.builder(new Path(f.toUri), sftConf).build()
+      WithClose(writer) { writer =>
+        features.foreach(writer.write)
+      }
+
+      Files.size(f) must beGreaterThan(0L)
+
+      val metadata = writer.getFooter.getFileMetaData.getKeyValueMetaData.get(GeoParquetSchemaKey)
+      metadata must beNull
+    }
+
+    "read geoparquet files" >> {
       val result = readFile(FilterCompat.NOOP, sftConf)
       result mustEqual features
     }
@@ -183,5 +314,8 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
   step {
     Files.deleteIfExists(f)
+
+    val crcFilePath = Paths.get(s"${f.getParent}/.${f.getFileName}.crc")
+    Files.deleteIfExists(crcFilePath)
   }
 }
