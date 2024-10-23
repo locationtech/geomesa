@@ -12,7 +12,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.geotools.api.filter.MultiValuedFilter.MatchAction
 import org.geotools.data._
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
@@ -67,7 +69,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   lazy val features = Seq.tabulate(10) { i =>
     val builder = new SimpleFeatureBuilder(sft)
-    builder.set("name", Collections.singletonList(s"name$i"))
+    builder.set("name", java.util.List.of(s"name$i", s"alt$i"))
     builder.set("age", i)
     builder.set("props", s"""["name$i"]""")
     builder.set("dtg", new java.util.Date(now - ((i + 1) * 20 * 60 * 1000))) // 20 minutes
@@ -91,6 +93,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
 
+  lazy val fif = CommonFactoryFinder.getFilterFactory
+
   override def beforeAll(): Unit = {
     val image =
       DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
@@ -109,6 +113,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   }
 
   "PartitionedPostgisDataStore" should {
+
     "fail with a useful error message if type name is too long" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
@@ -201,7 +206,64 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       } finally {
         ds.dispose()
       }
-      ok
+    }
+
+    "filter on list elements" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "list-filters")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        val filters = Seq(
+          fif.equals(fif.property("name"), fif.literal("name0")),
+          fif.equal(fif.property("name"), fif.literal("name0"), false, MatchAction.ANY),
+          fif.equals(fif.property("name"), fif.literal(Collections.singletonList("name0"))),
+          fif.equal(fif.property("name"), fif.literal(Collections.singletonList("name0")), false, MatchAction.ANY),
+          fif.equal(fif.property("name"), fif.literal(java.util.List.of("name0", "alt0")), false, MatchAction.ANY),
+          fif.equal(fif.property("name"), fif.literal(java.util.List.of("name0", "alt0")), false, MatchAction.ALL),
+          ECQL.toFilter("name = 'name0'"),
+        )
+        foreach(filters) { filter =>
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result must haveLength(1)
+            compFromDb(result.head) mustEqual compWithFid(features.head, sft)
+          }
+        }
+
+        val nonMatchingFilters = Seq(
+          fif.equal(fif.property("name"), fif.literal("name0"), false, MatchAction.ALL),
+          fif.equal(fif.property("name"), fif.literal(Collections.singletonList("name0")), false, MatchAction.ALL),
+        )
+        foreach(nonMatchingFilters) { filter =>
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result must beEmpty
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
     }
 
     "age-off" in {
