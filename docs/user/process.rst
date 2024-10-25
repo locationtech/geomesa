@@ -481,9 +481,9 @@ the result as a json object.
 ==========  ===========
 Parameters  Description
 ==========  ===========
-features    The data source feature collection to query. Reference as ``store:layername``.
-		        For an XML file enter ``<wfs:Query typeName=store:layername />``
-		        For interactive WPS request builder select ``VECTOR_LAYER`` & choose ``store:layername``
+features    The data source feature collection to query. Reference as ``workspace:layername``.
+		        For an XML file enter ``<wfs:Query typeName=workspace:layername />``
+		        For interactive WPS request builder select ``VECTOR_LAYER`` & choose ``workspace:layername``
 
 filter      The filter to apply to the feature collection.
 		        For an XML file enter:
@@ -565,9 +565,9 @@ which are returned as a json object.
 ===========  ===========
 Parameters   Description
 ===========  ===========
-features     The data source feature collection to query. Reference as ``store:layername``.
-		        For an XML file enter ``<wfs:Query typeName=store:layername />``
-		        For interactive WPS request builder select ``VECTOR_LAYER`` & choose ``store:layername``
+features     The data source feature collection to query. Reference as ``workspace:layername``.
+		        For an XML file enter ``<wfs:Query typeName=workspace:layername />``
+		        For interactive WPS request builder select ``VECTOR_LAYER`` & choose ``workspace:layername``
 
 attribute    The attribute for which unique values will be extracted. Attributes are expressed as a string.
 		        For an XML file enter ``<wps:LiteralData>attribute-name</wps:LiteralData>``
