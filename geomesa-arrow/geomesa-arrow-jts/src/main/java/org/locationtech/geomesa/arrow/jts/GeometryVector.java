@@ -12,6 +12,8 @@ import org.apache.arrow.vector.FieldVector;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 
+import java.util.Map;
+
 /**
  * Complex vector for geometries
  *
@@ -32,4 +34,7 @@ public interface GeometryVector<T extends Geometry, V extends FieldVector> exten
   int getNullCount();
 
   void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
+
+  Map<String, Object> getOptions();
+  void setOptions(Map<String, Object> map);
 }

@@ -10,19 +10,39 @@ package org.locationtech.geomesa.arrow.jts.impl;
 
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.types.pojo.Field;
+import org.geotools.referencing.CRS;
 import org.locationtech.geomesa.arrow.jts.GeometryVector;
 import org.locationtech.jts.geom.Geometry;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractGeometryVector<T extends Geometry, U extends FieldVector, V extends FieldVector>
     implements GeometryVector<T, U> {
 
   private V ordinal;
   protected U vector;
+  protected final Map<String, Object> options;
 
   protected AbstractGeometryVector(U vector) {
     this.vector = vector;
+    this.options = new HashMap<>();
+  }
+
+  @Override
+  public Map<String, Object> getOptions() {
+    return options;
+  }
+
+  @Override
+  public void setOptions(Map<String, Object> map) {
+    options.clear();
+    options.putAll(map);
+  }
+
+  protected boolean swapAxisOrder() {
+    return getOptions().get("axisOrder") == CRS.AxisOrder.EAST_NORTH;
   }
 
   @Override

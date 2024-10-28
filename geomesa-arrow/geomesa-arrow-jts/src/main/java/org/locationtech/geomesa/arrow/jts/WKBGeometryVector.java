@@ -20,15 +20,17 @@ import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Catch-all for storing instances of Geometry as WKB
  */
 public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVector> {
-  private VarBinaryVector vector;
+  private final VarBinaryVector vector;
   private WKBWriter writer = null;
   private WKBReader reader = null;
+  protected final Map<String, Object> options = new HashMap<>();
 
   public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
@@ -107,5 +109,16 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   @Override
   public void close() throws Exception {
     vector.close();
+  }
+
+  @Override
+  public Map<String, Object> getOptions() {
+    return options;
+  }
+
+  @Override
+  public void setOptions(Map<String, Object> map) {
+    options.clear();
+    options.putAll(map);
   }
 }

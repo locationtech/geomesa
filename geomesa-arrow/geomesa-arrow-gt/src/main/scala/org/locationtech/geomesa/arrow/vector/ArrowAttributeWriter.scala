@@ -16,6 +16,7 @@ import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.referencing.CRS.AxisOrder
 import org.locationtech.geomesa.arrow.jts._
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
@@ -192,7 +193,7 @@ object ArrowAttributeWriter {
           case ObjectType.LONG     => new ArrowLongWriter(name, metadata, factory)
           case ObjectType.FLOAT    => new ArrowFloatWriter(name, metadata, factory)
           case ObjectType.DOUBLE   => new ArrowDoubleWriter(name, metadata, factory)
-          case ObjectType.GEOMETRY => geometry(name, bindings(1), encoding.geometry, metadata, factory)
+          case ObjectType.GEOMETRY => geometry(name, bindings(1), encoding, metadata, factory)
           case ObjectType.BOOLEAN  => new ArrowBooleanWriter(name, metadata, factory)
           case ObjectType.LIST     => new ArrowListWriter(name, bindings(1), encoding, metadata, factory)
           case ObjectType.MAP      => new ArrowMapWriter(name, bindings(1), bindings(2), encoding, metadata, factory)
@@ -234,11 +235,11 @@ object ArrowAttributeWriter {
   private def geometry(
       name: String,
       binding: ObjectType,
-      encoding: Encoding,
+      encoding: SimpleFeatureEncoding,
       metadata: Map[String, String],
       factory: VectorFactory): ArrowGeometryWriter = {
     val m = metadata.asJava
-    val vector = (binding, encoding, factory) match {
+    val vector = (binding, encoding.geometry, factory) match {
       case (ObjectType.POINT, Encoding.Min, FromStruct(c))              => new PointFloatVector(name, c, m)
       case (ObjectType.POINT, Encoding.Min, FromAllocator(c))           => new PointFloatVector(name, c, m)
       case (ObjectType.POINT, Encoding.Max, FromStruct(c))              => new PointVector(name, c, m)
@@ -269,7 +270,7 @@ object ArrowAttributeWriter {
       case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }
-    new ArrowGeometryWriter(name, vector.asInstanceOf[GeometryVector[Geometry, FieldVector]])
+    new ArrowGeometryWriter(name, vector.asInstanceOf[GeometryVector[Geometry, FieldVector]], encoding)
   }
 
   trait ArrowDictionaryWriter extends ArrowAttributeWriter {
@@ -464,13 +465,21 @@ object ArrowAttributeWriter {
   /**
     * Writes geometries - delegates to our JTS geometry vectors
     */
-  class ArrowGeometryWriter(val name: String, delegate: GeometryVector[Geometry, FieldVector])
+  class ArrowGeometryWriter(val name: String, delegate: GeometryVector[Geometry, FieldVector], encoding: SimpleFeatureEncoding)
       extends ArrowAttributeWriter {
 
     override def vector: FieldVector = delegate.getVector
 
     // note: delegate handles nulls
-    override def apply(i: Int, value: AnyRef): Unit = delegate.set(i, value.asInstanceOf[Geometry])
+    override def apply(i: Int, value: AnyRef): Unit = {
+      val options = Map("axisOrder" -> (encoding.axisOrder match {
+        case Encoding.Max => AxisOrder.EAST_NORTH /* Lon/Lat */
+        case _ => AxisOrder.NORTH_EAST /* Lat/Lon */
+      })).asInstanceOf[Map[String, AnyRef]].asJava
+
+      delegate.setOptions(options)
+      delegate.set(i, value.asInstanceOf[Geometry])
+    }
 
     override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
   }

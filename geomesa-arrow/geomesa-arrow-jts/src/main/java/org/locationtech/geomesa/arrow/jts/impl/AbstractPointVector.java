@@ -53,8 +53,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       vector.setNull(index);
     } else {
       vector.setNotNull(index);
-      writeOrdinal(index * 2, geom.getY());
-      writeOrdinal(index * 2 + 1, geom.getX());
+      if (swapAxisOrder()) {
+        writeOrdinal(y(index), geom.getX());
+        writeOrdinal(x(index), geom.getY());
+      } else {
+        writeOrdinal(y(index), geom.getY());
+        writeOrdinal(x(index), geom.getX());
+      }
     }
   }
 
@@ -63,8 +68,14 @@ public abstract class AbstractPointVector<T extends FieldVector>
     if (vector.isNull(index)) {
       return null;
     } else {
-      final double y = readOrdinal(index * 2);
-      final double x = readOrdinal(index * 2 + 1);
+      final double y, x;
+      if (swapAxisOrder()) {
+        y = x(index);
+        x = y(index);
+      } else {
+        y = y(index);
+        x = x(index);
+      }
       return factory.createPoint(new Coordinate(x, y));
     }
   }
@@ -76,8 +87,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       ((FixedSizeListVector) typed.vector).setNull(toIndex);
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
-      typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
-      typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
+      if (swapAxisOrder()) {
+        typed.writeOrdinal(y(toIndex), getCoordinateX(fromIndex));
+        typed.writeOrdinal(x(toIndex), getCoordinateY(fromIndex));
+      } else {
+        typed.writeOrdinal(y(toIndex), getCoordinateY(fromIndex));
+        typed.writeOrdinal(x(toIndex), getCoordinateX(fromIndex));
+      }
     }
   }
 
@@ -88,7 +104,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
    * @return y ordinate
    */
   public double getCoordinateY(int index) {
-    return readOrdinal(index * 2);
+    return readOrdinal(y(index));
 
   }
 
@@ -99,6 +115,20 @@ public abstract class AbstractPointVector<T extends FieldVector>
    * @return x ordinate
    */
   public double getCoordinateX(int index) {
-    return readOrdinal(index * 2 + 1);
+    return readOrdinal(x(index));
+  }
+
+  /**
+   * Calculate the Y index
+   */
+  protected int y(int index) {
+    return index * 2;
+  }
+
+  /**
+   * Calculate the X index
+   */
+  protected int x(int index) {
+    return index * 2 + 1;
   }
 }

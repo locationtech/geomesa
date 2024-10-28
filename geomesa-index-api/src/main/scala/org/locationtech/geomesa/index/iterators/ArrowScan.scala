@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
+import org.geotools.referencing.CRS.AxisOrder
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io._
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -43,9 +44,10 @@ trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
     val arrowSft = transform.getOrElse(sft)
     val includeFids = options(IncludeFidsKey).toBoolean
     val proxyFids = options.get(ProxyFidsKey).exists(_.toBoolean)
+    val axisOrder = options.get(AxisOrderKey).map(AxisOrder.valueOf)
+    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids, axisOrder)
     val dictionary = options(DictionaryKey)
     val sort = options.get(SortKey).map(name => (name, options.get(SortReverseKey).exists(_.toBoolean)))
-    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipcOpts = FormatVersion.options(options(IpcVersionKey))
     val dictionaries = dictionary.split(",").filterNot(_.isEmpty)
     new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, sort, batchSize)
@@ -62,6 +64,7 @@ object ArrowScan extends LazyLogging {
 
     val IncludeFidsKey = "fids"
     val ProxyFidsKey   = "proxy"
+    val AxisOrderKey   = "axis-order"
     val DictionaryKey  = "dict"
     val IpcVersionKey  = "ipc"
     val SortKey        = "sort"
@@ -91,9 +94,10 @@ object ArrowScan extends LazyLogging {
     val arrowSft = hints.getTransformSchema.getOrElse(sft)
     val includeFids = hints.isArrowIncludeFid
     val proxyFids = hints.isArrowProxyFid
+    val axisOrder = hints.getAxisOrder.getOrElse(AxisOrder.NORTH_EAST)
+    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids, Some(axisOrder))
     val sort = hints.getArrowSort
     val batchSize = getBatchSize(hints)
-    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
     val ipcOpts = FormatVersion.options(ipc)
     val dictionaryFields = hints.getArrowDictionaryFields
@@ -103,6 +107,7 @@ object ArrowScan extends LazyLogging {
       base ++ AggregatingScan.optionalMap(
         IncludeFidsKey -> includeFids.toString,
         ProxyFidsKey   -> proxyFids.toString,
+        AxisOrderKey   -> axisOrder.toString,
         IpcVersionKey  -> ipc,
         SortKey        -> sort.map(_._1),
         SortReverseKey -> sort.map(_._2.toString),
@@ -272,12 +277,12 @@ object ArrowScan extends LazyLogging {
       SimpleFeatureTypes.createType(options(SftKey), options(SpecKey))
 
     def encoding(e: SimpleFeatureEncoding): (String, String) =
-      EncodingKey -> s"${e.fids.getOrElse("")}:${e.geometry}:${e.date}"
+      EncodingKey -> s"${e.fids.getOrElse("")}:${e.geometry}:${e.date}:${e.axisOrder}"
 
     def encoding(options: Map[String, String]): SimpleFeatureEncoding = {
-      val Array(fids, geom, dtg) = options(EncodingKey).split(":")
+      val Array(fids, geom, dtg, axisOrder) = options(EncodingKey).split(":")
       val fidOpt = Option(fids).filterNot(_.isEmpty).map(Encoding.withName)
-      SimpleFeatureEncoding(fidOpt, Encoding.withName(geom), Encoding.withName(dtg))
+      SimpleFeatureEncoding(fidOpt, Encoding.withName(geom), Encoding.withName(dtg), Encoding.withName(axisOrder))
     }
 
     def ipcOption(options: Map[String, String]): IpcOption = FormatVersion.options(options(IpcKey))

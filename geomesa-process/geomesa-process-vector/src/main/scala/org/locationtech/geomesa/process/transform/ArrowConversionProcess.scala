@@ -16,6 +16,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.geotools.referencing.CRS.AxisOrder
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
@@ -67,7 +68,9 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               @DescribeParameter(name = "batchSize", description = "Number of features to include in each record batch", min = 0)
               batchSize: java.lang.Integer,
               @DescribeParameter(name = "flattenStruct", description = "Removes the outer SFT struct yielding top level feature access", min = 0)
-              flattenStruct: java.lang.Boolean
+              flattenStruct: java.lang.Boolean,
+              @DescribeParameter(name = "axisOrder", description = "Coordinate Reference System (CRS) axis order", min = 0)
+              axisOrder: AxisOrder
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConverters._
@@ -84,7 +87,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
 
-    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids)
+    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, Option(axisOrder))
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)

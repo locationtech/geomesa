@@ -12,6 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.sort.{SortBy, SortOrder}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
+import org.geotools.referencing.CRS.AxisOrder
 import org.geotools.util.factory.Hints
 import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
@@ -66,6 +67,8 @@ object QueryHints {
   val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
 
   val FILTER_COMPAT            = new ClassKey(classOf[java.lang.String])
+
+  val AXIS_ORDER               = new ClassKey(classOf[AxisOrder])
 
   def sortReadableString(sort: Seq[(String, Boolean)]): String =
     sort.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")
@@ -178,5 +181,7 @@ object QueryHints {
         }
       }
     }
+
+    def getAxisOrder: Option[AxisOrder] = Option(hints.get(AXIS_ORDER).asInstanceOf[AxisOrder])
   }
 }
