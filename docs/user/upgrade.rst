@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.2.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* spring-security ``5.8.14`` -> ``5.8.15``
+
 Version 5.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
