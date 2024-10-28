@@ -318,7 +318,7 @@ org.apache.spark:spark-core_2.12	3.5.0	provided
 org.apache.spark:spark-sql_2.12	3.5.0	provided
 org.scala-lang:scala-compiler	2.12.19	provided
 org.slf4j:slf4j-reload4j	1.7.36	provided
-org.springframework.security:spring-security-core	5.8.14	provided
+org.springframework.security:spring-security-core	5.8.15	provided
 software.amazon.awssdk.crt:aws-crt	0.29.18	provided
 software.amazon.awssdk:s3-transfer-manager	2.25.64	provided
 software.amazon.awssdk:s3	2.25.64	provided
