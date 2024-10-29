@@ -63,6 +63,7 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 =======
@@ -104,6 +105,8 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -134,6 +137,7 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 885e4882b8 (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -208,6 +212,11 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> locatelli-main
 =======
@@ -348,6 +357,9 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -432,11 +444,15 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -542,9 +558,12 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -640,6 +659,9 @@ INSERT INTO "usage" VALUES('EPSG','10276','concatenated_operation','EPSG','7811'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -729,6 +751,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 =======
@@ -787,6 +810,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -879,6 +905,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -934,6 +963,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 =======
 =======
 >>>>>>> b5f4d47b2b (Merge pull request #3524 from cffk/merid-update-fix)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1019,6 +1049,8 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f00ffe609e (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> 25ac262782 (Merge pull request #3524 from cffk/merid-update-fix)
@@ -1047,6 +1079,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1130,6 +1165,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1138,6 +1174,8 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1223,6 +1261,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1310,6 +1351,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> a8fbb11965 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
 >>>>>>> location-main
@@ -1348,6 +1390,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> 74eac2217b (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> 74eac2217b (typo fixes)
 >>>>>>> locatelli-main
@@ -1449,6 +1494,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1534,6 +1582,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 360db021b (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> 3771d4aec1 (Merge pull request #3524 from cffk/merid-update-fix)
 =======
@@ -1571,6 +1620,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
 =======
 >>>>>>> c8fb3456cf (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1670,6 +1722,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1754,6 +1809,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 =======
@@ -1788,6 +1844,10 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> ebd1587dc5 (Merge pull request #3524 from cffk/merid-update-fix)
 >>>>>>> locatelli-main
@@ -1908,6 +1968,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1963,6 +2026,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 INSERT INTO "concatenated_operation" VALUES('EPSG','7965','Poolbeg height (ft(Br36)) to Malin Head height (1)','','EPSG','5754','EPSG','5731',0.1,'1',0);
 INSERT INTO "usage" VALUES('EPSG','10349','concatenated_operation','EPSG','7965','EPSG','1305','EPSG','1059');
 INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br36)) to Belfast height (1)','','EPSG','5754','EPSG','5732',0.1,'1',0);
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2049,6 +2113,8 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 153df87aaa (Merge pull request #3524 from cffk/merid-update-fix)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2083,6 +2149,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2168,11 +2237,15 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d8e8090c80 (typo fixes)
+>>>>>>> locatelli-main
 =======
 >>>>>>> d8e8090c80 (typo fixes)
 >>>>>>> locatelli-main
@@ -2282,11 +2355,14 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2369,11 +2445,14 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2454,6 +2533,7 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -2465,6 +2545,8 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2588,6 +2670,9 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2670,11 +2755,14 @@ INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 INSERT INTO "concatenated_operation" VALUES('EPSG','7965','Poolbeg height (ft(Br36)) to Malin Head height (1)','','EPSG','5754','EPSG','5731',0.1,'1',0);
 INSERT INTO "usage" VALUES('EPSG','10349','concatenated_operation','EPSG','7965','EPSG','1305','EPSG','1059');
 INSERT INTO "concatenated_operation" VALUES('EPSG','7967','Poolbeg height (ft(Br36)) to Belfast height (1)','','EPSG','5754','EPSG','5732',0.1,'1',0);
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======

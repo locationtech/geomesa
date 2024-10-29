@@ -195,7 +195,7 @@ Configuration should be under the key ``geomesa.metrics``, and takes the followi
 ::
 
     geomesa.metrics = {
-      reporters = []
+      reporters = {}
       instrumentations = {
         # jvm classloader metrics
         classloader = {
@@ -232,7 +232,8 @@ Prometheus
 
 ::
 
-    {
+    # note: the top-level key here is only for uniqueness - it can be any string
+    "prometheus" = {
       type = "prometheus"
       enabled = true
       # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
@@ -255,7 +256,8 @@ Cloudwatch
 
 ::
 
-    {
+    # note: the top-level key here is only for uniqueness - it can be any string
+    "cloudwatch" = {
       type = "cloudwatch"
       enabled = true
       namespace = "geomesa"

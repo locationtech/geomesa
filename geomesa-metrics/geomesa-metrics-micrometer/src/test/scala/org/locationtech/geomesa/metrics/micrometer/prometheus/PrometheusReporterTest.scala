@@ -7,6 +7,7 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.metrics.micrometer
+package prometheus
 
 import com.typesafe.config.ConfigFactory
 import io.micrometer.core.instrument.util.IOUtils

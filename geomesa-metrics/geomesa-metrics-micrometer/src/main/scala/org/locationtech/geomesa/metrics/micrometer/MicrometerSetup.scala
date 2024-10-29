@@ -18,6 +18,8 @@ import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 import pureconfig.{ConfigReader, ConfigSource}
 
 import java.util.Locale
+import scala.util.Try
+import scala.util.control.NonFatal
 
 object MicrometerSetup extends StrictLogging {
 
@@ -35,20 +37,16 @@ object MicrometerSetup extends StrictLogging {
    *
    * @param conf conf
    */
-  // noinspection ScalaUnusedSymbol
   def configure(conf: Config = ConfigFactory.load()): Unit = synchronized {
     if (conf.hasPath(ConfigPath)) {
-      implicit val r0: ConfigReader[Instrumentation] = deriveReader[Instrumentation]
-      implicit val r1: ConfigReader[JvmInstrumentations] = deriveReader[JvmInstrumentations]
-      implicit val r2: ConfigReader[MetricsConfig] = deriveReader[MetricsConfig]
-      implicit val r3: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
-      val metricsConfig = ConfigSource.fromConfig(conf.getConfig(ConfigPath)).loadOrThrow[MetricsConfig]
-      metricsConfig.registries.foreach { registryConfig =>
+      implicit val r0: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
+      val MetricsConfig(registries, instrumentations) = MetricsConfig(conf.getConfig(ConfigPath))
+      registries.foreach { case (_, registryConfig) =>
         val config = ConfigSource.fromConfig(registryConfig).loadOrThrow[RegistryConfig]
         if (config.enabled) {
           val configString = registryConfig.root().render(ConfigRenderOptions.concise())
-          if (registries.contains(config.`type`)) {
-            val existing = registries(config.`type`)
+          if (this.registries.contains(config.`type`)) {
+            val existing = this.registries(config.`type`)
             if (existing != configString) {
               throw new IllegalArgumentException(
                 s"Registry type ${config.`type`} already registered with a different configuration:" +
@@ -58,34 +56,34 @@ object MicrometerSetup extends StrictLogging {
             val registry = createRegistry(registryConfig)
             sys.addShutdownHook(registry.close())
             Metrics.addRegistry(registry)
-            registries.put(config.`type`, configString)
+            this.registries.put(config.`type`, configString)
           }
         }
       }
 
-      if (metricsConfig.instrumentations.classloader.enabled && bindings.add("classloader")) {
+      if (instrumentations.classloader.enabled && bindings.add("classloader")) {
         logger.debug("Enabling JVM classloader metrics")
-        val tags = metricsConfig.instrumentations.classloader.tags.map { case (k, v) => Tag.of(k, v) }
+        val tags = instrumentations.classloader.tags.map { case (k, v) => Tag.of(k, v) }
         new ClassLoaderMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.instrumentations.memory.enabled && bindings.add("memory")) {
+      if (instrumentations.memory.enabled && bindings.add("memory")) {
         logger.debug("Enabling JVM memory metrics")
-        val tags = metricsConfig.instrumentations.memory.tags.map { case (k, v) => Tag.of(k, v) }
+        val tags = instrumentations.memory.tags.map { case (k, v) => Tag.of(k, v) }
         new JvmMemoryMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.instrumentations.gc.enabled && bindings.add("gc")) {
+      if (instrumentations.gc.enabled && bindings.add("gc")) {
         logger.debug("Enabling JVM garbage collection metrics")
-        val tags = metricsConfig.instrumentations.gc.tags.map { case (k, v) => Tag.of(k, v) }
+        val tags = instrumentations.gc.tags.map { case (k, v) => Tag.of(k, v) }
         new JvmGcMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.instrumentations.processor.enabled && bindings.add("processor")) {
+      if (instrumentations.processor.enabled && bindings.add("processor")) {
         logger.debug("Enabling JVM processor metrics")
-        val tags = metricsConfig.instrumentations.processor.tags.map { case (k, v) => Tag.of(k, v) }
+        val tags = instrumentations.processor.tags.map { case (k, v) => Tag.of(k, v) }
         new ProcessorMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
-      if (metricsConfig.instrumentations.threads.enabled && bindings.add("threads")) {
+      if (instrumentations.threads.enabled && bindings.add("threads")) {
         logger.debug("Enabling JVM thread metrics")
-        val tags = metricsConfig.instrumentations.threads.tags.map { case (k, v) => Tag.of(k, v) }
+        val tags = instrumentations.threads.tags.map { case (k, v) => Tag.of(k, v) }
         new JvmThreadMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
       }
     }
@@ -107,14 +105,38 @@ object MicrometerSetup extends StrictLogging {
     }
   }
 
-  private case class MetricsConfig(
+  case class MetricsConfig(
+      registries: Map[String, Config],
+      instrumentations: JvmInstrumentations,
+    )
+
+  object MetricsConfig {
+    // noinspection ScalaUnusedSymbol
+    def apply(conf: Config): MetricsConfig = {
+      implicit val r0: ConfigReader[Instrumentation] = deriveReader[Instrumentation]
+      implicit val r1: ConfigReader[JvmInstrumentations] = deriveReader[JvmInstrumentations]
+      implicit val r2: ConfigReader[MetricsConfig] = deriveReader[MetricsConfig]
+      val source = ConfigSource.fromConfig(conf)
+      try { source.loadOrThrow[MetricsConfig] } catch {
+        case NonFatal(e) =>
+          // back compatible loading attempt
+          implicit val r: ConfigReader[MetricsSeqConfig] = deriveReader[MetricsSeqConfig]
+          val c = Try(source.loadOrThrow[MetricsSeqConfig]).getOrElse(throw e)
+          val registries = Seq.tabulate(c.registries.length)(i => String.valueOf(i)).zip(c.registries).toMap
+          MetricsConfig(registries, c.instrumentations)
+      }
+    }
+  }
+
+  // back compatible structure
+  private case class MetricsSeqConfig(
       registries: Seq[Config],
       instrumentations: JvmInstrumentations,
     )
 
-  private case class Instrumentation(enabled: Boolean = false, tags: Map[String, String] = Map.empty)
+  case class Instrumentation(enabled: Boolean = false, tags: Map[String, String] = Map.empty)
 
-  private case class JvmInstrumentations(
+  case class JvmInstrumentations(
       classloader: Instrumentation = Instrumentation(),
       memory: Instrumentation = Instrumentation(),
       gc: Instrumentation = Instrumentation(),
