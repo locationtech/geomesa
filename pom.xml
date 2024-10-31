@@ -134,10 +134,10 @@
         <thrift.version>0.17.0</thrift.version>
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
-        <hadoop.version>3.4.0</hadoop.version>
+        <hadoop.version>3.4.1</hadoop.version>
         <spark.version>3.5.0</spark.version>
-        <hbase.version>2.5.8-hadoop3</hbase.version>
-        <hbase.hadoop.version>3.3.6</hbase.hadoop.version>
+        <hbase.version>2.6.1-hadoop3</hbase.version>
+        <hbase.hadoop.version>3.4.1</hbase.hadoop.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
         <protobuf.version>3.25.3</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
@@ -1014,6 +1014,13 @@
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${postgres.version}</version>
+                <exclusions>
+                    <!-- these are not needed at runtime except in some alternate JVM languages -->
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1336,11 +1343,33 @@
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>${mango.version}</version>
+                <exclusions>
+                    <!-- these are not needed at runtime except in some alternate JVM languages -->
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
                 <artifactId>caffeine</artifactId>
                 <version>${caffeine.version}</version>
+                <exclusions>
+                    <!-- these are not needed at runtime except in some alternate JVM languages -->
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -1913,6 +1942,11 @@
                         <groupId>org.apache.logging.log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
+                    <!-- these are not needed at runtime except in some alternate JVM languages -->
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2328,6 +2362,10 @@
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2364,6 +2402,10 @@
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2379,6 +2421,10 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
                     </exclusion>
                     <!-- excluded due to license issues: https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues/10246 -->
                     <exclusion>
@@ -2396,6 +2442,10 @@
                     <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
