@@ -64,8 +64,13 @@ public abstract class AbstractLineStringVector<T extends FieldVector>
       for (int i = 0; i < geom.getNumPoints(); i++) {
         final Coordinate p = geom.getCoordinateN(i);
         tuples.setNotNull(position + i);
-        writeOrdinal((position + i) * 2, p.y);
-        writeOrdinal((position + i) * 2 + 1, p.x);
+        if (getFlipAxisOrder()) {
+          writeOrdinal(y(position + i), p.x);
+          writeOrdinal(x(position + i), p.y);
+        } else {
+          writeOrdinal(y(position + i), p.y);
+          writeOrdinal(x(position + i), p.x);
+        }
       }
       vector.endValue(index, geom.getNumPoints());
     }
@@ -81,8 +86,14 @@ public abstract class AbstractLineStringVector<T extends FieldVector>
       final int offsetEnd = vector.getOffsetBuffer().getInt((index + 1) * ListVector.OFFSET_WIDTH);
       final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
       for (int i = 0; i < coordinates.length; i++) {
-        final double y = readOrdinal((offsetStart + i) * 2);
-        final double x = readOrdinal((offsetStart + i) * 2 + 1);
+        final double y, x;
+        if (getFlipAxisOrder()) {
+          y = readOrdinal(x(offsetStart + i));
+          x = readOrdinal(y(offsetStart + i));
+        } else {
+          y = readOrdinal(y(offsetStart + i));
+          x = readOrdinal(x(offsetStart + i));
+        }
         coordinates[i] = new Coordinate(x, y);
       }
       return factory.createLineString(coordinates);
@@ -98,10 +109,10 @@ public abstract class AbstractLineStringVector<T extends FieldVector>
   }
 
   public double getCoordinateY(int offset) {
-    return readOrdinal(offset * 2);
+    return readOrdinal(y(offset));
   }
 
   public double getCoordinateX(int offset) {
-    return readOrdinal(offset * 2 + 1);
+    return readOrdinal(x(offset));
   }
 }

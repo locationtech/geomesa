@@ -72,8 +72,13 @@ public abstract class AbstractPolygonVector<T extends FieldVector>
         for (int j = 0; j < line.getNumPoints(); j++) {
           final Coordinate p = line.getCoordinateN(j);
           tuples.setNotNull(position + j);
-          writeOrdinal((position + j) * 2, p.y);
-          writeOrdinal((position + j) * 2 + 1, p.x);
+          if (getFlipAxisOrder()) {
+            writeOrdinal(y(position + j), p.x);
+            writeOrdinal(x(position + j), p.y);
+          } else {
+            writeOrdinal(y(position + j), p.y);
+            writeOrdinal(x(position + j), p.x);
+          }
         }
         innerVector.endValue(innerIndex + i, line.getNumPoints());
       }
@@ -96,8 +101,14 @@ public abstract class AbstractPolygonVector<T extends FieldVector>
         final int offsetEnd = innerVector.getOffsetBuffer().getInt((outerOffsetStart + j + 1) * ListVector.OFFSET_WIDTH);
         final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
         for (int i = 0; i < coordinates.length; i++) {
-          final double y = readOrdinal((offsetStart + i) * 2);
-          final double x = readOrdinal((offsetStart + i) * 2 + 1);
+          final double y, x;
+          if (getFlipAxisOrder()) {
+            y = readOrdinal(x(offsetStart + i));
+            x = readOrdinal(y(offsetStart + i));
+          } else {
+            y = readOrdinal(y(offsetStart + i));
+            x = readOrdinal(x(offsetStart + i));
+          }
           coordinates[i] = new Coordinate(x, y);
         }
         final LinearRing ring = factory.createLinearRing(coordinates);

@@ -68,6 +68,20 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
     vector.close();
   }
 
+  /**
+   * Calculate the Y index
+   */
+  protected int y(int index) {
+    return index * 2;
+  }
+
+  /**
+   * Calculate the X index
+   */
+  protected int x(int index) {
+    return index * 2 + 1;
+  }
+
   protected void setOrdinalVector(V ordinal) {
     this.ordinal = ordinal;
   }

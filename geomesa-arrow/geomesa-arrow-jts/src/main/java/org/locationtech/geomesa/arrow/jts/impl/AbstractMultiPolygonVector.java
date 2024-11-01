@@ -79,8 +79,13 @@ public abstract class AbstractMultiPolygonVector<T extends FieldVector>
           for (int k = 0; k < line.getNumPoints(); k++) {
             Coordinate p = line.getCoordinateN(k);
             tuples.setNotNull(position + k);
-            writeOrdinal((position + k) * 2, p.y);
-            writeOrdinal((position + k) * 2 + 1, p.x);
+            if (getFlipAxisOrder()) {
+              writeOrdinal(y(position + k), p.x);
+              writeOrdinal(x(position + k), p.y);
+            } else {
+              writeOrdinal(y(position + k), p.y);
+              writeOrdinal(x(position + k), p.x);
+            }
           }
           innerInnerVector.endValue(innerInnerIndex + j, line.getNumPoints());
         }
@@ -109,8 +114,14 @@ public abstract class AbstractMultiPolygonVector<T extends FieldVector>
           final int offsetEnd = innerInnerVector.getOffsetBuffer().getInt((outerOffsetStart + j + 1) * ListVector.OFFSET_WIDTH);
           final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
           for (int i = 0; i < coordinates.length; i++) {
-            final double y = readOrdinal((offsetStart + i) * 2);
-            final double x = readOrdinal((offsetStart + i) * 2 + 1);
+            final double y, x;
+            if (getFlipAxisOrder()) {
+              y = readOrdinal(x(offsetStart + i));
+              x = readOrdinal(y(offsetStart + i));
+            } else {
+              y = readOrdinal(y(offsetStart + i));
+              x = readOrdinal(x(offsetStart + i));
+            }
             coordinates[i] = new Coordinate(x, y);
           }
           final LinearRing ring = factory.createLinearRing(coordinates);

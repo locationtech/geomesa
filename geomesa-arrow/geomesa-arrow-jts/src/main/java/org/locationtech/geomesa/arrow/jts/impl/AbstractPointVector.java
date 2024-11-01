@@ -117,18 +117,4 @@ public abstract class AbstractPointVector<T extends FieldVector>
   public double getCoordinateX(int index) {
     return readOrdinal(x(index));
   }
-
-  /**
-   * Calculate the Y index
-   */
-  protected int y(int index) {
-    return index * 2;
-  }
-
-  /**
-   * Calculate the X index
-   */
-  protected int x(int index) {
-    return index * 2 + 1;
-  }
 }
