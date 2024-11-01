@@ -24,10 +24,6 @@
             <groupId>org.locationtech.jts</groupId>
             <artifactId>jts-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-referencing</artifactId>
-        </dependency>
 
         <!-- not used, but we can't exclude direct inherited dependencies, so just mark it provided -->
         <dependency>

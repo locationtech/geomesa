@@ -142,7 +142,7 @@ class MergedQueryRunner(
     val arrowSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
     val sort = hints.getArrowSort
     val batchSize = ArrowScan.getBatchSize(hints)
-    val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.getAxisOrder)
+    val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.isFlipAxisOrder)
     val ipcOpts = FormatVersion.options(hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get))
 
     val dictionaryFields = hints.getArrowDictionaryFields

@@ -264,7 +264,7 @@ object LocalQueryRunner extends LazyLogging {
 
     val sort = hints.getArrowSort.map(Seq.fill(1)(_))
     val batchSize = ArrowScan.getBatchSize(hints)
-    val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.getAxisOrder)
+    val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.isFlipAxisOrder)
     val ipcOpts = FormatVersion.options(hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get))
 
     val (features, arrowSft) = transform match {

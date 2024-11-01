@@ -14,9 +14,6 @@ import org.apache.arrow.vector.types.FloatingPointPrecision
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.apache.arrow.vector.{BigIntVector, FieldVector}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.referencing.CRS
-import org.geotools.referencing.CRS.AxisOrder
-import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.jts.GeometryFields
@@ -135,20 +132,16 @@ object SimpleFeatureVector {
   val DescriptorKey   = "descriptor"
   val OptionsKey      = "options"
 
-  case class SimpleFeatureEncoding(fids: Option[Encoding], geometry: Encoding, date: Encoding, axisOrder: Encoding)
+  case class SimpleFeatureEncoding(fids: Option[Encoding], geometry: Encoding, date: Encoding, flipAxisOrder: Boolean)
 
   object SimpleFeatureEncoding {
 
-    val Min: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min, Encoding.Min)
-    val Max: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max, Encoding.Max)
+    val Min: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min, flipAxisOrder = false)
+    val Max: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max, flipAxisOrder = true)
 
-    def min(includeFids: Boolean, proxyFids: Boolean = false, axisOrder: Option[AxisOrder] = None): SimpleFeatureEncoding = {
+    def min(includeFids: Boolean, proxyFids: Boolean = false, flipAxisOrder: Boolean = false): SimpleFeatureEncoding = {
       val fids = if (includeFids) { Some(if (proxyFids) { Encoding.Min } else { Encoding.Max }) } else { None }
-      val axisOrderEncoded = axisOrder match {
-        case Some(AxisOrder.EAST_NORTH) => Encoding.Max /* Lon/Lat */
-        case _ => Encoding.Min /* Lat/Lon */
-      }
-      SimpleFeatureEncoding(fids, Encoding.Min, Encoding.Min, axisOrderEncoded)
+      SimpleFeatureEncoding(fids, Encoding.Min, Encoding.Min, flipAxisOrder)
     }
 
     object Encoding extends Enumeration {
@@ -252,18 +245,7 @@ object SimpleFeatureVector {
       val isLong = dateVector.exists(_.isInstanceOf[BigIntVector])
       if (isLong) { Encoding.Max } else { Encoding.Min }
     }
-    val axisOrderPrecision = {
-      if (java.lang.Boolean.getBoolean("org.geotools.referencing.forceXY") ||
-        Hints.getSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER) == java.lang.Boolean.TRUE) {
-        Encoding.Max /* Lon/Lat */
-      } else {
-        CRS.getAxisOrder(sft.getCoordinateReferenceSystem) match {
-          case AxisOrder.EAST_NORTH => Encoding.Max /* Lon/Lat */
-          case _ => Encoding.Min /* Lat/Lon */
-        }
-      }
-    }
-    val encoding = SimpleFeatureEncoding(fidEncoding, geomPrecision, datePrecision, axisOrderPrecision)
+    val encoding = SimpleFeatureEncoding(fidEncoding, geomPrecision, datePrecision, flipAxisOrder = false)
 
     (sft, encoding)
   }

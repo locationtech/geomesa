@@ -10,39 +10,21 @@ package org.locationtech.geomesa.arrow.jts.impl;
 
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.types.pojo.Field;
-import org.geotools.referencing.CRS;
 import org.locationtech.geomesa.arrow.jts.GeometryVector;
 import org.locationtech.jts.geom.Geometry;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractGeometryVector<T extends Geometry, U extends FieldVector, V extends FieldVector>
     implements GeometryVector<T, U> {
 
   private V ordinal;
   protected U vector;
-  protected final Map<String, Object> options;
+  protected final AtomicBoolean flipAxisOrder = new AtomicBoolean();
 
   protected AbstractGeometryVector(U vector) {
     this.vector = vector;
-    this.options = new HashMap<>();
-  }
-
-  @Override
-  public Map<String, Object> getOptions() {
-    return options;
-  }
-
-  @Override
-  public void setOptions(Map<String, Object> map) {
-    options.clear();
-    options.putAll(map);
-  }
-
-  protected boolean swapAxisOrder() {
-    return getOptions().get("axisOrder") == CRS.AxisOrder.EAST_NORTH;
   }
 
   @Override
@@ -69,6 +51,16 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
   public int getNullCount() {
     int count = vector.getNullCount();
     return Math.max(count, 0);
+  }
+
+  @Override
+  public Boolean getFlipAxisOrder() {
+    return flipAxisOrder.get();
+  }
+
+  @Override
+  public void setFlipAxisOrder(Boolean flip) {
+    flipAxisOrder.set(flip);
   }
 
   @Override

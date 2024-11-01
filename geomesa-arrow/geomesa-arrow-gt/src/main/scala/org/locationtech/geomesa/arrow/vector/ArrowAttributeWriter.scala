@@ -16,7 +16,6 @@ import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.referencing.CRS.AxisOrder
 import org.locationtech.geomesa.arrow.jts._
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
@@ -270,7 +269,10 @@ object ArrowAttributeWriter {
       case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }
-    new ArrowGeometryWriter(name, vector.asInstanceOf[GeometryVector[Geometry, FieldVector]], encoding)
+    val geometryVector = vector.asInstanceOf[GeometryVector[Geometry, FieldVector]]
+    geometryVector.setFlipAxisOrder(encoding.flipAxisOrder)
+
+    new ArrowGeometryWriter(name, geometryVector)
   }
 
   trait ArrowDictionaryWriter extends ArrowAttributeWriter {
@@ -465,21 +467,13 @@ object ArrowAttributeWriter {
   /**
     * Writes geometries - delegates to our JTS geometry vectors
     */
-  class ArrowGeometryWriter(val name: String, delegate: GeometryVector[Geometry, FieldVector], encoding: SimpleFeatureEncoding)
+  class ArrowGeometryWriter(val name: String, delegate: GeometryVector[Geometry, FieldVector])
       extends ArrowAttributeWriter {
 
     override def vector: FieldVector = delegate.getVector
 
     // note: delegate handles nulls
-    override def apply(i: Int, value: AnyRef): Unit = {
-      val options = Map("axisOrder" -> (encoding.axisOrder match {
-        case Encoding.Max => AxisOrder.EAST_NORTH /* Lon/Lat */
-        case _ => AxisOrder.NORTH_EAST /* Lat/Lon */
-      })).asInstanceOf[Map[String, AnyRef]].asJava
-
-      delegate.setOptions(options)
-      delegate.set(i, value.asInstanceOf[Geometry])
-    }
+    override def apply(i: Int, value: AnyRef): Unit = delegate.set(i, value.asInstanceOf[Geometry])
 
     override def setValueCount(count: Int): Unit = delegate.setValueCount(count)
   }

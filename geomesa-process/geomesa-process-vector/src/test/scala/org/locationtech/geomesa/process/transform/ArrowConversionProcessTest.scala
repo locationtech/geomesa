@@ -48,7 +48,7 @@ class ArrowConversionProcessTest extends Specification {
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
-      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -56,7 +56,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode a generic feature collection" in {
-      val bytes = process.execute(collection, null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collection, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -65,7 +65,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode a generic feature collection with flattened struct" in {
-      val bytes = process.execute(collection, null, null, null, null, null, null, null, true, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collection, null, null, null, null, null, null, null, true).asScala.reduce(_ ++ _)
       val rootAllocator = new RootAllocator()
       val reader = new ArrowStreamReader(new ByteArrayInputStream(bytes), rootAllocator)
 
@@ -86,12 +86,12 @@ class ArrowConversionProcessTest extends Specification {
 
     "encode a generic empty feature collection with dictionary values without leaking memory" in {
       // This returns an empty iterator.
-      process.execute(new ListFeatureCollection(sft), null, null, null, Collections.singletonList("name"), null, null, null, null, null)
+      process.execute(new ListFeatureCollection(sft), null, null, null, Collections.singletonList("name"), null, null, null, null)
       ArrowAllocator.getAllocatedMemory(sft.getTypeName) must equalTo(0)
     }
 
     "encode a generic feature collection with dictionary values" in {
-      val bytes = process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -101,7 +101,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode a generic feature collection with dictionary values and flattened struct" in {
-      val bytes = process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, true, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, true).asScala.reduce(_ ++ _)
       val rootAllocator = new RootAllocator()
       val reader = new ArrowStreamReader(new ByteArrayInputStream(bytes), rootAllocator)
 
@@ -121,12 +121,12 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode a generic feature collection with sorting" in {
-      val ascending = process.execute(collection, null, null, null, null, "dtg", null, null, null, null).asScala.reduce(_ ++ _)
+      val ascending = process.execute(collection, null, null, null, null, "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(ascending))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features
       }
-      val descending = process.execute(collection, null, null, null, null, "dtg", true, null, null, null).asScala.reduce(_ ++ _)
+      val descending = process.execute(collection, null, null, null, null, "dtg", true, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(descending))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
@@ -134,13 +134,13 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode a generic feature collection with sorting and dictionary values" in {
-      val ascending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", null, null, null, null).asScala.reduce(_ ++ _)
+      val ascending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(ascending))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features
         reader.dictionaries.get("name") must beSome
       }
-      val descending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", true, null, null, null).asScala.reduce(_ ++ _)
+      val descending = process.execute(collection, null, null, null, Collections.singletonList("name"), "dtg", true, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(descending))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse

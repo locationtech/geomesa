@@ -16,7 +16,6 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.referencing.CRS.AxisOrder
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
@@ -28,6 +27,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
+import org.locationtech.geomesa.utils.bin.AxisOrder.{AxisOrder, LatLon, LonLat}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -69,8 +69,8 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               batchSize: java.lang.Integer,
               @DescribeParameter(name = "flattenStruct", description = "Removes the outer SFT struct yielding top level feature access", min = 0)
               flattenStruct: java.lang.Boolean,
-              @DescribeParameter(name = "axisOrder", description = "Coordinate Reference System (CRS) axis order", min = 0)
-              axisOrder: AxisOrder
+              @DescribeParameter(name = "axisOrder", description = "Geometry axis order: LatLon or LonLat", min = 0, defaultValue = "LatLon")
+              axisOrder: AxisOrder = LatLon
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConverters._
@@ -87,7 +87,11 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
 
-    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, Option(axisOrder))
+    val flipAxisOrder = axisOrder match {
+      case LonLat => true
+      case _ => false
+    }
+    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, flipAxisOrder)
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)

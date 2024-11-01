@@ -20,8 +20,8 @@ import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Catch-all for storing instances of Geometry as WKB
@@ -30,7 +30,7 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   private final VarBinaryVector vector;
   private WKBWriter writer = null;
   private WKBReader reader = null;
-  protected final Map<String, Object> options = new HashMap<>();
+  protected final AtomicBoolean flipAxisOrder = new AtomicBoolean();
 
   public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
@@ -107,18 +107,17 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   }
 
   @Override
+  public Boolean getFlipAxisOrder() {
+    return flipAxisOrder.get();
+  }
+
+  @Override
+  public void setFlipAxisOrder(Boolean flip) {
+    flipAxisOrder.set(flip);
+  }
+
+  @Override
   public void close() throws Exception {
     vector.close();
-  }
-
-  @Override
-  public Map<String, Object> getOptions() {
-    return options;
-  }
-
-  @Override
-  public void setOptions(Map<String, Object> map) {
-    options.clear();
-    options.putAll(map);
   }
 }

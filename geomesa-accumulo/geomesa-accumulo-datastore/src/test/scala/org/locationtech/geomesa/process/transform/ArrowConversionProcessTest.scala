@@ -44,7 +44,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
-      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -52,7 +52,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
     }
 
     "encode an empty accumulo feature collection" in {
-      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(ECQL.toFilter("bbox(geom,20,20,30,30)")), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
@@ -60,7 +60,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
     }
 
     "encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -70,7 +70,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
 
     "encode an accumulo feature collection in distributed fashion with calculated dictionary values" in {
       val filter = ECQL.toFilter("name = 'name0'")
-      val bytes = process.execute(fs.getFeatures(filter), null, null, null, Collections.singletonList("name"), null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(filter), null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
@@ -81,7 +81,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
     }
 
     "sort and encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
@@ -89,7 +89,7 @@ class ArrowConversionProcessTest extends TestWithFeatureType {
     }
 
     "reverse sort and encode an accumulo feature collection in distributed fashion" in {
-      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", Boolean.box(true), null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(fs.getFeatures(Filter.INCLUDE), null, null, null, null, "dtg", Boolean.box(true), null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features.reverse

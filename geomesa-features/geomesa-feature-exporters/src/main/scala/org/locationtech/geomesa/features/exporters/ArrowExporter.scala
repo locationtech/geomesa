@@ -25,7 +25,7 @@ class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   private lazy val sort = hints.getArrowSort
-  private lazy val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.getAxisOrder)
+  private lazy val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid, hints.isFlipAxisOrder)
   private lazy val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
   private lazy val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
   private lazy val dictionaryFields = hints.getArrowDictionaryFields
