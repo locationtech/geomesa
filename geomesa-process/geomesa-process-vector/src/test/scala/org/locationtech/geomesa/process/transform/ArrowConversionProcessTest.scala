@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.bin.AxisOrder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -45,6 +46,15 @@ class ArrowConversionProcessTest extends Specification {
   }
 
   val collection = new ListFeatureCollection(sft, new Random(-1L).shuffle(features.asInstanceOf[Seq[SimpleFeature]]).asJava)
+
+  private val (featuresLatLon: Seq[ScalaSimpleFeature], featuresLonLat: Seq[ScalaSimpleFeature]) =
+    (0 until 10).map { i =>
+      (ScalaSimpleFeature.create(sft, s"0$i", s"name${i % 2}", s"2017-02-20T00:00:0$i.000Z", s"POINT(45 ${55 + i})"),
+        ScalaSimpleFeature.create(sft, s"0$i", s"name${i % 2}", s"2017-02-20T00:00:0$i.000Z", s"POINT(${55 + i} 45)"))
+  }.unzip
+
+  val collectionLatLon = new ListFeatureCollection(sft, new Random(-1L).shuffle(featuresLatLon.asInstanceOf[Seq[SimpleFeature]]).asJava)
+  val collectionLonLat = new ListFeatureCollection(sft, new Random(-1L).shuffle(featuresLonLat.asInstanceOf[Seq[SimpleFeature]]).asJava)
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
@@ -145,6 +155,30 @@ class ArrowConversionProcessTest extends Specification {
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
         reader.dictionaries.get("name") must beSome
+      }
+    }
+
+    "encode generic feature collection with axis order: default (Lat/Lon)" in {
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
+      }
+    }
+
+    "encode generic feature collection with axis order: Lat/Lon" in {
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, AxisOrder.LatLon).asScala.reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
+      }
+    }
+
+    "encode generic feature collection with axis order: Lon/Lat" in {
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, AxisOrder.LonLat).asScala.reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLonLat)
       }
     }
   }
