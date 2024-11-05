@@ -159,6 +159,7 @@ object ArrowConversionProcess {
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
       query.getHints.put(QueryHints.ARROW_FORMAT_VERSION, ipcVersion)
       query.getHints.put(QueryHints.ARROW_FLATTEN_STRUCT, flattenStruct)
+      query.getHints.put(QueryHints.FLIP_AXIS_ORDER, encoding.flipAxisOrder)
       sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
       sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
