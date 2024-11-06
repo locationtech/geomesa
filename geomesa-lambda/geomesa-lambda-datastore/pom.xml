@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-lambda_2.12</artifactId>
-        <version>5.1.0</version>
+        <version>5.1.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-lambda-datastore_2.12</artifactId>

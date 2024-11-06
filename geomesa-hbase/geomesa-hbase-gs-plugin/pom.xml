@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-archetypes-gs-plugin_2.12</artifactId>
-        <version>5.1.0</version>
+        <version>5.1.1-SNAPSHOT</version>
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
