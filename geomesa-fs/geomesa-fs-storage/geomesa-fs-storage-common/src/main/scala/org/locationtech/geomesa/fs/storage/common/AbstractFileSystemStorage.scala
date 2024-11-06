@@ -91,7 +91,7 @@ abstract class AbstractFileSystemStorage(
         val baseDir = StorageUtils.baseDirectory(context.root, partition, metadata.leafStorage)
         p.files.flatMap { file =>
           val path = new Path(baseDir, file.name)
-          if (PathCache.exists(context.fc, path)) {
+          if (PathCache.exists(context.fs, path)) {
             Seq(StorageFilePath(file, path))
           } else {
             logger.warn(s"Inconsistent metadata for ${metadata.sft.getTypeName}: $path")
@@ -201,10 +201,10 @@ abstract class AbstractFileSystemStorage(
 
         val failures = ListBuffer.empty[Path]
         toCompact.foreach { file =>
-          if (!context.fc.delete(file.path, false)) {
+          if (!context.fs.delete(file.path, false)) {
             failures.append(file.path)
           }
-          PathCache.invalidate(context.fc, file.path)
+          PathCache.invalidate(context.fs, file.path)
         }
 
         if (failures.nonEmpty) {
@@ -233,7 +233,7 @@ abstract class AbstractFileSystemStorage(
 
     def pathAndObserver: WriterConfig = {
       val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
-      PathCache.register(context.fc, path)
+      PathCache.register(context.fs, path)
       val updateObserver = new UpdateObserver(partition, path, action)
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
@@ -278,7 +278,7 @@ abstract class AbstractFileSystemStorage(
         writer.close()
         writer = null
         // adjust our estimate to account for the actual bytes written
-        total += context.fc.getFileStatus(path).getLen
+        total += context.fs.getFileStatus(path).getLen
         estimator.update(total, count)
         remaining = estimator.estimate(0L)
       }

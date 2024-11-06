@@ -93,7 +93,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     val buffered = new BufferedInputStream(is)
     CompressionUtils.Utils.find(_.isCompressedFilename(filename)) match {
       case None => buffered
-      case Some(utils) => utils.compress(buffered)
+      case Some(utils) => utils.decompress(buffered)
     }
   }
 

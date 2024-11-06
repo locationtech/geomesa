@@ -53,13 +53,13 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
           throw new ParameterException("Please specify --num-reducers for distributed ingest")
         }
         val storage = ds.storage(sft.getTypeName)
-        val tmpPath = Option(params.tempPath).map(d => storage.context.fc.makeQualified(new Path(d)))
+        val tmpPath = Option(params.tempPath).map(d => storage.context.fs.makeQualified(new Path(d)))
         val targetFileSize = storage.metadata.get(Metadata.TargetFileSize).map(_.toLong)
 
         tmpPath.foreach { tp =>
-          if (storage.context.fc.util.exists(tp)) {
+          if (storage.context.fs.exists(tp)) {
             Command.user.info(s"Deleting temp path $tp")
-            storage.context.fc.delete(tp, true)
+            storage.context.fs.delete(tp, true)
           }
         }
 

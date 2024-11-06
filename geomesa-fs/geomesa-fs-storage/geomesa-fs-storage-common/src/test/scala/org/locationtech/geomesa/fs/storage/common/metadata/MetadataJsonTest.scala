@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataJson.MetadataPath
@@ -26,7 +26,7 @@ import java.nio.file.Files
 class MetadataJsonTest extends Specification {
 
   lazy val conf = new Configuration()
-  lazy val fc = FileContext.getFileContext(conf)
+  lazy val fs = FileSystem.get(conf)
 
   "MetadataJson" should {
     "persist and replace system properties (and environment variables)" in {
@@ -39,7 +39,7 @@ class MetadataJsonTest extends Specification {
           val opts = NamedOptions("jdbc", Map("user" -> "root", "password" -> interpolated))
           MetadataJson.writeMetadata(context, opts)
           val file = new Path(context.root, MetadataPath)
-          val serialized = WithClose(context.fc.open(file))(is => IOUtils.toString(is, StandardCharsets.UTF_8))
+          val serialized = WithClose(context.fs.open(file))(is => IOUtils.toString(is, StandardCharsets.UTF_8))
           serialized must contain(interpolated)
           serialized must not(contain("bar"))
           val returned = MetadataJson.readMetadata(context)
@@ -53,7 +53,7 @@ class MetadataJsonTest extends Specification {
 
   def withPath[R](code: FileSystemContext => R): R = {
     val file = Files.createTempDirectory("geomesa").toFile.getPath
-    try { code(FileSystemContext(fc, conf, new Path(file))) } finally {
+    try { code(FileSystemContext(fs, conf, new Path(file))) } finally {
       FileUtils.deleteDirectory(new File(file))
     }
   }

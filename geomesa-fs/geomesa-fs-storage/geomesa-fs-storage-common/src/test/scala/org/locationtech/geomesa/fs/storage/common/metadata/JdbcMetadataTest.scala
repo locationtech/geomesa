@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions, PartitionSchemeFactory}
@@ -35,7 +35,7 @@ class JdbcMetadataTest extends Specification with LazyLogging with BeforeAfterAl
   import scala.collection.JavaConverters._
 
   lazy val conf = new Configuration()
-  lazy val fc = FileContext.getFileContext(conf)
+  lazy val fs = FileSystem.get(conf)
   val sft = SimpleFeatureTypes.createType("metadata",
     "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
@@ -252,7 +252,7 @@ class JdbcMetadataTest extends Specification with LazyLogging with BeforeAfterAl
 
   def withPath[R](code: FileSystemContext => R): R = {
     val file = Files.createTempDirectory("geomesa").toFile.getPath
-    try { code(FileSystemContext(fc, conf, new Path(file))) } finally {
+    try { code(FileSystemContext(fs, conf, new Path(file))) } finally {
       FileUtils.deleteDirectory(new File(file))
     }
   }

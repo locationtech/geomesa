@@ -49,9 +49,9 @@ object MetadataJson extends MethodProfiling {
       // using an atomic operation or cache loader can cause problems, as we sometimes insert into the
       // map during the load, which is not allowed
       val file = new Path(context.root, MetadataPath)
-      if (PathCache.exists(context.fc, file)) {
+      if (PathCache.exists(context.fs, file)) {
         val config = profile("Loaded metadata configuration") {
-          WithClose(new InputStreamReader(context.fc.open(file), StandardCharsets.UTF_8)) { in =>
+          WithClose(new InputStreamReader(context.fs.open(file), StandardCharsets.UTF_8)) { in =>
             ConfigFactory.load(ConfigFactory.parseReader(in, ParseOptions)) // call load to resolve sys props
           }
         }
@@ -61,8 +61,8 @@ object MetadataJson extends MethodProfiling {
           }
           cache.put(key, cached)
         } else {
-          context.fc.rename(file, new Path(context.root, s"$MetadataPath.bak"))
-          PathCache.invalidate(context.fc, file)
+          context.fs.rename(file, new Path(context.root, s"$MetadataPath.bak"))
+          PathCache.invalidate(context.fs, file)
           transitionMetadata(context, config).foreach { meta =>
             cached = meta // will be set in the cache in the transition code
           }
@@ -80,7 +80,7 @@ object MetadataJson extends MethodProfiling {
     */
   def writeMetadata(context: FileSystemContext, metadata: NamedOptions): Unit = {
     val file = new Path(context.root, MetadataPath)
-    if (PathCache.exists(context.fc, file, reload = true)) {
+    if (PathCache.exists(context.fs, file, reload = true)) {
       throw new IllegalArgumentException(
         s"Trying to create a new storage instance but metadata already exists at '$file'")
     }
@@ -92,7 +92,7 @@ object MetadataJson extends MethodProfiling {
     // either side of the expression (typesafe will concatenate them), i.e. "foo ${bar}" -> "foo "${bar}""
     val interpolated = data.replaceAll("\\$\\{[a-zA-Z0-9_.]+}", "\"$0\"")
     profile("Persisted metadata configuration") {
-      WithClose(context.fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
+      WithClose(context.fs.create(file, false)) { out =>
         out.write(interpolated.getBytes(StandardCharsets.UTF_8))
         out.hflush()
         out.hsync()
@@ -104,7 +104,7 @@ object MetadataJson extends MethodProfiling {
           .loadOrThrow[NamedOptions]
     }
     cache.put(context.root.toUri.toString, toCache)
-    PathCache.register(context.fc, file)
+    PathCache.register(context.fs, file)
   }
 
 

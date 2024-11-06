@@ -11,7 +11,7 @@ package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -62,7 +62,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
@@ -148,7 +148,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
@@ -205,7 +205,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
@@ -267,7 +267,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
@@ -333,7 +333,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       val targetSize = 2100L
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true, Some(targetSize)))
@@ -358,7 +358,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         foreach(partitions) { partition =>
           val paths = storage.getFilePaths(partition)
           paths.size must beGreaterThan(1)
-          foreach(paths)(p => context.fc.getFileStatus(p.path).getLen must beCloseTo(targetSize, targetSize / 10))
+          foreach(paths)(p => context.fs.getFileStatus(p.path).getLen must beCloseTo(targetSize, targetSize / 10))
         }
       }
     }
@@ -367,7 +367,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       val url = getClass.getClassLoader.getResource("data/2.3.0/example-csv/")
       url must not(beNull)
       val path = new Path(url.toURI)
-      val context = FileSystemContext(FileContext.getFileContext(url.toURI), config, path)
+      val context = FileSystemContext(path, config)
       val metadata = StorageMetadataFactory.load(context).orNull
       metadata must not(beNull)
       val storage = FileSystemStorageFactory(context, metadata)
