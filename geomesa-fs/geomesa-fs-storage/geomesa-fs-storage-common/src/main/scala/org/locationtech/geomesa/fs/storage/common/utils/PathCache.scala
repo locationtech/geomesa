@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common.utils
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.apache.hadoop.fs.{FileContext, FileStatus, Path, RemoteIterator}
+import org.apache.hadoop.fs.{FileStatus, FileSystem, Path, RemoteIterator}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import java.util.concurrent.TimeUnit
@@ -27,97 +27,96 @@ object PathCache {
   // cache for checking existence of files
   private val pathCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[(FileContext, Path), java.lang.Boolean]() {
-        override def load(key: (FileContext, Path)): java.lang.Boolean = key._1.util.exists(key._2)
+      new CacheLoader[(FileSystem, Path), java.lang.Boolean]() {
+        override def load(key: (FileSystem, Path)): java.lang.Boolean = key._1.exists(key._2)
       }
     )
 
   // cache for individual file status
   private val statusCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[(FileContext, Path), FileStatus]() {
-        override def load(key: (FileContext, Path)): FileStatus = key._1.getFileStatus(key._2)
+      new CacheLoader[(FileSystem, Path), FileStatus]() {
+        override def load(key: (FileSystem, Path)): FileStatus = key._1.getFileStatus(key._2)
       }
     )
 
   // cache for checking directory contents
   private val listCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[(FileContext, Path), Stream[FileStatus]]() {
-        override def load(key: (FileContext, Path)): Stream[FileStatus] =
-          RemoteIterator(key._1.listStatus(key._2)).toStream
+      new CacheLoader[(FileSystem, Path), Stream[FileStatus]]() {
+        override def load(key: (FileSystem, Path)): Stream[FileStatus] =
+          RemoteIterator(key._1.listStatusIterator(key._2)).toStream
       }
     )
 
   /**
     * * Register a path as existing
     *
-    * @param fc file context
+    * @param fs file system
     * @param path path
-    * @param status file status, if available
-    * @param list directory contents, if available
     */
-  def register(
-      fc: FileContext,
-      path: Path,
-      status: Option[FileStatus] = None,
-      list: Option[Stream[FileStatus]] = None): Unit = {
-    pathCache.put((fc, path), java.lang.Boolean.TRUE)
-    status.foreach(statusCache.put((fc, path), _))
-    list.foreach(listCache.put((fc, path), _))
+  def register(fs: FileSystem, path: Path): Unit = {
+    pathCache.put((fs, path), java.lang.Boolean.TRUE)
+    val status = statusCache.refresh((fs, path))
+    val parent = path.getParent
+    if (parent != null) {
+      listCache.getIfPresent((fs, parent)) match {
+        case null => // no-op
+        case list => listCache.put((fs, parent), list :+ status.get())
+      }
+    }
   }
 
   /**
     * Check to see if a path exists
     *
-    * @param fc file context
+    * @param fs file system
     * @param path path
     * @param reload reload the file status from the underlying file system before checking
     * @return
     */
-  def exists(fc: FileContext, path: Path, reload: Boolean = false): Boolean = {
+  def exists(fs: FileSystem, path: Path, reload: Boolean = false): Boolean = {
     if (reload) {
-      invalidate(fc, path)
+      invalidate(fs, path)
     }
-    pathCache.get((fc, path)).booleanValue()
+    pathCache.get((fs, path)).booleanValue()
   }
 
   /**
     * Gets the file status for a path
     *
-    * @param fc file context
+    * @param fs file system
     * @param path path
     * @return
     */
-  def status(fc: FileContext, path: Path, reload: Boolean = false): FileStatus = {
+  def status(fs: FileSystem, path: Path, reload: Boolean = false): FileStatus = {
     if (reload) {
-      invalidate(fc, path)
+      invalidate(fs, path)
     }
-    statusCache.get((fc, path))
+    statusCache.get((fs, path))
   }
 
   /**
     * List the children of a path
     *
-    * @param fc file context
+    * @param fs file system
     * @param dir directory path
     * @return
     */
-  def list(fc: FileContext, dir: Path, reload: Boolean = false): Iterator[FileStatus] = {
+  def list(fs: FileSystem, dir: Path, reload: Boolean = false): Iterator[FileStatus] = {
     if (reload) {
-      invalidate(fc, dir)
+      invalidate(fs, dir)
     }
-    listCache.get((fc, dir)).iterator
+    listCache.get((fs, dir)).iterator
   }
 
   /**
     * Invalidate any cached values for the path - they will be re-loaded on next access
     *
-    * @param fc file context
+    * @param fs file system
     * @param path path
     */
-  def invalidate(fc: FileContext, path: Path): Unit =
-    Seq(pathCache, statusCache, listCache).foreach(_.invalidate((fc, path)))
+  def invalidate(fs: FileSystem, path: Path): Unit = Seq(pathCache, statusCache, listCache).foreach(_.invalidate((fs, path)))
 
   object RemoteIterator {
     def apply[T](iter: RemoteIterator[T]): Iterator[T] = new Iterator[T] {

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.io.{BytesWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
@@ -137,9 +137,8 @@ object FileSystemConverterJob {
 
     override def setup(context: Context): Unit = {
       val root = StorageConfiguration.getRootPath(context.getConfiguration)
-      val fc = FileContext.getFileContext(root.toUri, context.getConfiguration)
       // note: we don't call `reload` (to get the partition metadata) as we aren't using it
-      metadata = StorageMetadataFactory.load(FileSystemContext(fc, context.getConfiguration, root)).getOrElse {
+      metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
       serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
@@ -179,9 +178,8 @@ object FileSystemConverterJob {
 
     override def setup(context: Context): Unit = {
       val root = StorageConfiguration.getRootPath(context.getConfiguration)
-      val fc = FileContext.getFileContext(root.toUri, context.getConfiguration)
       // note: we don't call `reload` (to get the partition metadata) as we aren't using it
-      val metadata = StorageMetadataFactory.load(FileSystemContext(fc, context.getConfiguration, root)).getOrElse {
+      val metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
       serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileContext, FileSystem, Path}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -25,7 +25,7 @@ import java.util.Locale
 import scala.util.control.NonFatal
 
 class ConverterFileSystemReader(
-    fc: FileContext,
+    fs: FileSystem,
     converter: SimpleFeatureConverter,
     filter: Option[Filter],
     transform: Option[(String, SimpleFeatureType)]
@@ -37,9 +37,9 @@ class ConverterFileSystemReader(
     logger.debug(s"Opening file $path")
     val iter = try {
       val handle = PathUtils.getUncompressedExtension(path.getName).toLowerCase(Locale.US) match {
-        case TAR       => new HadoopTarHandle(fc, path)
-        case ZIP | JAR => new HadoopZipHandle(fc, path)
-        case _         => new HadoopFileHandle(fc, path)
+        case TAR       => new HadoopTarHandle(fs, path)
+        case ZIP | JAR => new HadoopZipHandle(fs, path)
+        case _         => new HadoopFileHandle(fs, path)
       }
       handle.open.flatMap { case (name, is) =>
         val params = EvaluationContext.inputFileParam(name.getOrElse(handle.path))

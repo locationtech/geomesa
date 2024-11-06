@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileContext, FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -59,7 +59,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
@@ -145,7 +145,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
@@ -202,7 +202,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
@@ -264,7 +264,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
       }
 
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
@@ -315,11 +315,11 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
     "transition old metadata files" in {
       withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val context = FileSystemContext(dir, config)
         val meta = new Path(dir, "metadata.json")
-        context.fc.util.copy(new Path(getClass.getClassLoader.getResource("metadata-old.json").toURI), meta)
-        context.fc.util.exists(meta) must beTrue
-        PathCache.invalidate(context.fc, meta)
+        context.fs.copyFromLocalFile(new Path(getClass.getClassLoader.getResource("metadata-old.json").toURI), meta)
+        context.fs.exists(meta) must beTrue
+        PathCache.invalidate(context.fs, meta)
 
         val metadata = new FileBasedMetadataFactory().load(context)
         metadata must beSome
