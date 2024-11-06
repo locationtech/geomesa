@@ -79,7 +79,7 @@ public abstract class AbstractMultiPolygonVector<T extends FieldVector>
           for (int k = 0; k < line.getNumPoints(); k++) {
             Coordinate p = line.getCoordinateN(k);
             tuples.setNotNull(position + k);
-            if (getFlipAxisOrder()) {
+            if (isFlipAxisOrder()) {
               writeOrdinal(y(position + k), p.x);
               writeOrdinal(x(position + k), p.y);
             } else {
@@ -115,7 +115,7 @@ public abstract class AbstractMultiPolygonVector<T extends FieldVector>
           final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
           for (int i = 0; i < coordinates.length; i++) {
             final double y, x;
-            if (getFlipAxisOrder()) {
+            if (isFlipAxisOrder()) {
               y = readOrdinal(x(offsetStart + i));
               x = readOrdinal(y(offsetStart + i));
             } else {

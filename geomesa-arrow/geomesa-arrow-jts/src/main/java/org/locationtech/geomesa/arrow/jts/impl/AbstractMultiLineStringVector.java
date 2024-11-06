@@ -71,7 +71,7 @@ public abstract class AbstractMultiLineStringVector<T extends FieldVector>
         for (int j = 0; j < line.getNumPoints(); j++) {
           final Coordinate p = line.getCoordinateN(j);
           tuples.setNotNull(position + j);
-          if (getFlipAxisOrder()) {
+          if (isFlipAxisOrder()) {
             writeOrdinal(y(position + j), p.x);
             writeOrdinal(x(position + j), p.y);
           } else {
@@ -100,7 +100,7 @@ public abstract class AbstractMultiLineStringVector<T extends FieldVector>
         final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
         for (int i = 0; i < coordinates.length; i++) {
           final double y, x;
-          if (getFlipAxisOrder()) {
+          if (isFlipAxisOrder()) {
             y = readOrdinal(x(offsetStart + i));
             x = readOrdinal(y(offsetStart + i));
           } else {

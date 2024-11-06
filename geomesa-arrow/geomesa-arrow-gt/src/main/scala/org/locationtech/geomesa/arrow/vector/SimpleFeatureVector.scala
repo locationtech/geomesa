@@ -137,7 +137,7 @@ object SimpleFeatureVector {
   object SimpleFeatureEncoding {
 
     val Min: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min, flipAxisOrder = false)
-    val Max: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max, flipAxisOrder = true)
+    val Max: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max, flipAxisOrder = false)
 
     def min(includeFids: Boolean, proxyFids: Boolean = false, flipAxisOrder: Boolean = false): SimpleFeatureEncoding = {
       val fids = if (includeFids) { Some(if (proxyFids) { Encoding.Min } else { Encoding.Max }) } else { None }

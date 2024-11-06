@@ -65,7 +65,7 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
       for (int i = 0; i < geom.getNumPoints(); i++) {
         final Point p = (Point) geom.getGeometryN(i);
         tuples.setNotNull(position + i);
-        if (getFlipAxisOrder()) {
+        if (isFlipAxisOrder()) {
           writeOrdinal(y(position + i), p.getX());
           writeOrdinal(x(position + i), p.getY());
         } else {
@@ -88,7 +88,7 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
       final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
       for (int i = 0; i < coordinates.length; i++) {
         final double y, x;
-        if (getFlipAxisOrder()) {
+        if (isFlipAxisOrder()) {
           y = readOrdinal(x(offsetStart + i));
           x = readOrdinal(y(offsetStart + i));
         } else {

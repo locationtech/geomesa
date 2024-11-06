@@ -33,6 +33,6 @@ public interface GeometryVector<T extends Geometry, V extends FieldVector> exten
 
   void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
 
-  Boolean getFlipAxisOrder();
-  void setFlipAxisOrder(Boolean flip);
+  boolean isFlipAxisOrder();
+  void setFlipAxisOrder(boolean flip);
 }

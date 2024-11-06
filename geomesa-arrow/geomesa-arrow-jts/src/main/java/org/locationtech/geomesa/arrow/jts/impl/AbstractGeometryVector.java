@@ -14,14 +14,13 @@ import org.locationtech.geomesa.arrow.jts.GeometryVector;
 import org.locationtech.jts.geom.Geometry;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractGeometryVector<T extends Geometry, U extends FieldVector, V extends FieldVector>
     implements GeometryVector<T, U> {
 
   private V ordinal;
   protected U vector;
-  protected final AtomicBoolean flipAxisOrder = new AtomicBoolean();
+  protected boolean flipAxisOrder = false;
 
   protected AbstractGeometryVector(U vector) {
     this.vector = vector;
@@ -54,13 +53,13 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
   }
 
   @Override
-  public Boolean getFlipAxisOrder() {
-    return flipAxisOrder.get();
+  public boolean isFlipAxisOrder() {
+    return flipAxisOrder;
   }
 
   @Override
-  public void setFlipAxisOrder(Boolean flip) {
-    flipAxisOrder.set(flip);
+  public void setFlipAxisOrder(boolean flip) {
+    flipAxisOrder = flip;
   }
 
   @Override

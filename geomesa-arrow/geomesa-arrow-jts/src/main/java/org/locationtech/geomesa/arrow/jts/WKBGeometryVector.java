@@ -21,7 +21,6 @@ import org.locationtech.jts.io.WKBWriter;
 
 import javax.annotation.Nullable;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Catch-all for storing instances of Geometry as WKB
@@ -30,7 +29,7 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   private final VarBinaryVector vector;
   private WKBWriter writer = null;
   private WKBReader reader = null;
-  protected final AtomicBoolean flipAxisOrder = new AtomicBoolean();
+  private boolean flipAxisOrder = false;
 
   public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
@@ -107,13 +106,13 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   }
 
   @Override
-  public Boolean getFlipAxisOrder() {
-    return flipAxisOrder.get();
+  public boolean isFlipAxisOrder() {
+    return flipAxisOrder;
   }
 
   @Override
-  public void setFlipAxisOrder(Boolean flip) {
-    flipAxisOrder.set(flip);
+  public void setFlipAxisOrder(boolean flip) {
+    flipAxisOrder = flip;
   }
 
   @Override

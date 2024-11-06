@@ -53,7 +53,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
       vector.setNull(index);
     } else {
       vector.setNotNull(index);
-      if (getFlipAxisOrder()) {
+      if (isFlipAxisOrder()) {
         writeOrdinal(y(index), geom.getX());
         writeOrdinal(x(index), geom.getY());
       } else {
@@ -69,7 +69,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
       return null;
     } else {
       final double y, x;
-      if (getFlipAxisOrder()) {
+      if (isFlipAxisOrder()) {
         y = x(index);
         x = y(index);
       } else {
@@ -87,7 +87,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
       ((FixedSizeListVector) typed.vector).setNull(toIndex);
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
-      if (getFlipAxisOrder()) {
+      if (isFlipAxisOrder()) {
         typed.writeOrdinal(y(toIndex), getCoordinateX(fromIndex));
         typed.writeOrdinal(x(toIndex), getCoordinateY(fromIndex));
       } else {
