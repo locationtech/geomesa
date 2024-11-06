@@ -7,7 +7,14 @@
         </layout>
     </appender>
 
+    <category name="org.locationtech.geomesa">
+        <priority value="info"/>
+    </category>
+
     <category name="org.apache.hadoop">
+        <priority value="error"/>
+    </category>
+    <category name="software.amazon.awssdk.transfer.s3.S3TransferManager">
         <priority value="error"/>
     </category>
     <category name="org.apache.accumulo">

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -18,6 +18,7 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
+import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -27,8 +28,19 @@ import org.locationtech.geomesa.utils.io.CloseQuietly
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
+/**
+ * File system data store
+ *
+ * @param fs file system - note, this is expected to be a shared resource, and is not cleaned up on data store dispose
+ * @param conf conf
+ * @param root root path
+ * @param readThreads number of threads used for read ops
+ * @param writeTimeout timeout for write ops
+ * @param defaultEncoding default file encoding
+ * @param namespace geoserver namespace
+ */
 class FileSystemDataStore(
-    fc: FileContext,
+    fs: FileSystem,
     conf: Configuration,
     root: Path,
     readThreads: Int,
@@ -39,7 +51,7 @@ class FileSystemDataStore(
 
   namespace.foreach(setNamespaceURI)
 
-  private val manager = FileSystemStorageManager(fc, conf, root, namespace)
+  private val manager = FileSystemStorageManager(fs, conf, root, namespace)
 
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
@@ -82,13 +94,15 @@ class FileSystemDataStore(
         val fileSize = sft.removeTargetFileSize()
 
         val path = manager.defaultPath(sft.getTypeName)
-        val context = FileSystemContext(fc, conf, path, namespace)
+        val context = FileSystemContext(fs, conf, path, namespace)
 
         val metadata =
           StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage, fileSize))
         try { manager.register(path, FileSystemStorageFactory(context, metadata)) } catch {
           case NonFatal(e) => CloseQuietly(metadata).foreach(e.addSuppressed); throw e
         }
+        PathCache.register(fs, root)
+        PathCache.register(fs, path)
     }
   }
 

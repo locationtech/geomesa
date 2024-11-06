@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
@@ -46,14 +45,14 @@ import scala.util.control.NonFatal
  * reload. In general this does not cause problems, as reads and writes happen in different JVMs (ingest
  * vs query).
  *
- * @param fc file context
+ * @param fs file system
  * @param directory metadata root path
  * @param sft simple feature type
  * @param meta basic metadata config
  * @param converter file converter
  */
 class FileBasedMetadata(
-    private val fc: FileContext,
+    private val fs: FileSystem,
     val directory: Path,
     val sft: SimpleFeatureType,
     private val meta: Metadata,
@@ -94,7 +93,7 @@ class FileBasedMetadata(
 
   override def set(key: String, value: String): Unit = {
     kvs.put(key, value)
-    FileBasedMetadataFactory.write(fc, directory.getParent, meta.copy(config = kvs.asScala.toMap))
+    FileBasedMetadataFactory.write(fs, directory.getParent, meta.copy(config = kvs.asScala.toMap))
   }
 
   override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = {
@@ -204,12 +203,12 @@ class FileBasedMetadata(
       val encoded = StringSerialization.alphaNumericSafeString(config.name)
       val name = s"$UpdatePartitionPrefix$encoded-${UUID.randomUUID()}${converter.suffix}"
       val file = new Path(directory, name)
-      WithClose(fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
+      WithClose(fs.create(file, false)) { out =>
         out.write(data.getBytes(StandardCharsets.UTF_8))
         out.hflush()
         out.hsync()
       }
-      PathCache.register(fc, file)
+      PathCache.register(fs, file)
       file
     }
   }
@@ -225,19 +224,18 @@ class FileBasedMetadata(
     }
     profile("Persisted compacted partition configuration") {
       val file = new Path(directory, CompactedPrefix + converter.suffix)
-      val flags = java.util.EnumSet.of(CreateFlag.CREATE, CreateFlag.OVERWRITE)
-      WithClose(fc.create(file, flags, CreateOpts.createParent)) { out =>
+      WithClose(fs.create(file, true)) { out =>
         out.write(data.getBytes(StandardCharsets.UTF_8))
         out.hflush()
         out.hsync()
       }
-      PathCache.register(fc, file)
+      PathCache.register(fs, file)
       // generally we overwrite the existing file but if we change rendering the name will change
       val toRemove =
         new Path(directory, if (converter.suffix == HoconPathSuffix) { CompactedJson } else { CompactedHocon })
-      if (PathCache.exists(fc, toRemove, reload = true)) {
-        fc.delete(toRemove, false)
-        PathCache.invalidate(fc, toRemove)
+      if (PathCache.exists(fs, toRemove, reload = true)) {
+        fs.delete(toRemove, false)
+        PathCache.invalidate(fs, toRemove)
       }
     }
   }
@@ -257,7 +255,7 @@ class FileBasedMetadata(
       val pool = new CachedThreadPool(threads)
       // use a phaser to track worker thread completion
       val phaser = new Phaser(2) // 1 for the initial directory worker + 1 for this thread
-      pool.submit(new DirectoryWorker(pool, phaser, fc.listStatus(directory), result))
+      pool.submit(new DirectoryWorker(pool, phaser, fs.listStatusIterator(directory), result))
       // wait for the worker threads to complete
       try {
         phaser.awaitAdvanceInterruptibly(phaser.arrive())
@@ -306,7 +304,7 @@ class FileBasedMetadata(
   private def readPartitionConfig(file: Path): Option[PartitionConfig] = {
     try {
       val config = profile("Loaded partition configuration") {
-        WithClose(new InputStreamReader(fc.open(file), StandardCharsets.UTF_8)) { in =>
+        WithClose(new InputStreamReader(fs.open(file), StandardCharsets.UTF_8)) { in =>
           ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(getSyntax(file.getName)))
         }
       }
@@ -327,7 +325,7 @@ class FileBasedMetadata(
   private def readCompactedConfig(file: Path): Seq[PartitionConfig] = {
     try {
       val config = profile("Loaded compacted partition configuration") {
-        WithClose(new InputStreamReader(fc.open(file), StandardCharsets.UTF_8)) { in =>
+        WithClose(new InputStreamReader(fs.open(file), StandardCharsets.UTF_8)) { in =>
           ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(getSyntax(file.getName)))
         }
       }
@@ -347,11 +345,11 @@ class FileBasedMetadata(
    */
   private def delete(paths: Iterable[Path], threads: Int): Unit = {
     if (threads < 2) {
-      paths.foreach(fc.delete(_, false))
+      paths.foreach(fs.delete(_, false))
     } else {
       val ec = new CachedThreadPool(threads)
       try {
-        paths.toList.map(p => ec.submit(new Runnable() { override def run(): Unit = fc.delete(p, false)})).foreach(_.get)
+        paths.toList.map(p => ec.submit(new Runnable() { override def run(): Unit = fs.delete(p, false)})).foreach(_.get)
       } finally {
         ec.shutdown()
       }
@@ -376,7 +374,7 @@ class FileBasedMetadata(
           if (status.isDirectory) {
             i += 1
             // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-            es.submit(new DirectoryWorker(es, new Phaser(phaser, 1), fc.listStatus(path), result))
+            es.submit(new DirectoryWorker(es, new Phaser(phaser, 1), fs.listStatusIterator(path), result))
           } else if (name.startsWith(UpdatePartitionPrefix)) {
             // pull out the partition name but don't parse the file yet
             val encoded = name.substring(8, name.length - 42) // strip out prefix and suffix
@@ -491,7 +489,7 @@ object FileBasedMetadata {
    * @return
    */
   def copy(m: FileBasedMetadata): FileBasedMetadata =
-    new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta, m.converter)
+    new FileBasedMetadata(m.fs, m.directory, m.sft, m.meta, m.converter)
 
   private def getSyntax(file: String): ConfigSyntax = {
     if (file.endsWith(HoconPathSuffix)) {
