@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.{FileContext, FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -48,6 +48,18 @@ class FileSystemDataStore(
     defaultEncoding: Option[String],
     namespace: Option[String]
   ) extends ContentDataStore with HasGeoMesaStats with LazyLogging {
+
+  // noinspection ScalaUnusedSymbol
+  @deprecated("Use FileSystem instead of FileContext")
+  def this(
+      fc: FileContext,
+      conf: Configuration,
+      root: Path,
+      readThreads: Int,
+      writeTimeout: Duration,
+      defaultEncoding: Option[String],
+      namespace: Option[String]) =
+    this(FileSystem.get(root.toUri, conf), conf, root, readThreads, writeTimeout, defaultEncoding, namespace)
 
   namespace.foreach(setNamespaceURI)
 
