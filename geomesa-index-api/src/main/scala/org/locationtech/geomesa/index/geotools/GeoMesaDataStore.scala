@@ -115,9 +115,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
-    import Configs.{TableSplitterClass, TableSplitterOpts}
-    import InternalConfigs.{PartitionSplitterClass, PartitionSplitterOpts}
-
     // check for old enabled indices and re-map them
     // noinspection ScalaDeprecation
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
@@ -154,9 +151,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     sft.getAttributeDescriptors.asScala.foreach(_.getUserData.remove(AttributeOptions.OptIndex))
 
     // for partitioned schemas, persist the table partitioning keys
-    if (TablePartition.partitioned(sft)) {
-      Seq((TableSplitterClass, PartitionSplitterClass), (TableSplitterOpts, PartitionSplitterOpts)).foreach {
-        case (from, to) => Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
+    if (sft.isPartitioned) {
+      InternalConfigs.PartitionConfigMappings.foreach { case (from, to) =>
+        Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
       }
     }
 
@@ -182,7 +179,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   // create the index tables (if not using partitioned tables)
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     val indices = manager.indices(sft)
-    if (TablePartition.partitioned(sft)) {
+    if (sft.isPartitioned) {
       logger.debug(s"Delaying creation of partitioned indices ${indices.map(_.identifier).mkString(", ")}")
     } else {
       logger.debug(s"Creating indices ${indices.map(_.identifier).mkString(", ")}")

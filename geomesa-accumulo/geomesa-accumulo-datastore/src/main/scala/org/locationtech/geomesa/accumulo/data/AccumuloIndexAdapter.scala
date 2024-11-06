@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.conf.Property
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
@@ -37,6 +37,7 @@ import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -48,7 +49,8 @@ import java.util.Map.Entry
   *
   * @param ds data store
   */
-class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connector) with IndexAdapter[AccumuloDataStore] {
+class AccumuloIndexAdapter(ds: AccumuloDataStore)
+    extends TableManager(ds.connector) with IndexAdapter[AccumuloDataStore] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -95,15 +97,31 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends TableManager(ds.connec
     }
 
     if (created) {
+      import org.apache.accumulo.core.conf.Property.{TABLE_BLOCKCACHE_ENABLED, TABLE_BLOOM_ENABLED, TABLE_BLOOM_KEY_FUNCTOR}
+
       addSplitsAndGroups()
 
-      // enable block cache
-      tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+      // block cache config
+      val enableBlockCache = {
+        val key = if (index.sft.isPartitioned) { InternalConfigs.PartitionTableCache } else { Configs.TableCacheEnabled }
+        val config = index.sft.getUserData.get(key).asInstanceOf[String]
+        if (config == null) { true } else {
+          val enabled = config.split(',').exists { hint =>
+            hint.equalsIgnoreCase(index.name) || hint.equalsIgnoreCase((Seq(index.name) ++ index.attributes).mkString(":")) ||
+              hint.equalsIgnoreCase(index.identifier)
+          }
+          logger.debug(s"Setting ${TABLE_BLOCKCACHE_ENABLED.getKey}=$enabled for index ${index.identifier} based on user config: $config")
+          enabled
+        }
+      }
+      if (enableBlockCache) {
+        tableOps.setProperty(table, TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+      }
 
       if (index.name == IdIndex.name) {
         // enable the row functor as the feature ID is stored in the Row ID
-        tableOps.setProperty(table, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
-        tableOps.setProperty(table, Property.TABLE_BLOOM_ENABLED.getKey, "true")
+        tableOps.setProperty(table, TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
+        tableOps.setProperty(table, TABLE_BLOOM_ENABLED.getKey, "true")
       }
 
       if (index.sft.isVisibilityRequired) {
