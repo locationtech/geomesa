@@ -105,7 +105,7 @@ object LocalDelegate {
       CloseableIterator.single(None -> is, is.close())
     }
 
-    override def write(mode: CreateMode, createParents: Boolean): OutputStream = {
+    override def write(mode: CreateMode): OutputStream = {
       mode.validate()
       if (file.exists()) {
         if (mode.append) {
@@ -120,12 +120,8 @@ object LocalDelegate {
         throw new FileNotFoundException(s"File does not exist: $path")
       } else {
         val parent = file.getParentFile
-        if (parent != null && !parent.exists()) {
-          if (!createParents) {
-            throw new FileNotFoundException(s"Parent file does not exist: $path")
-          } else if (!parent.mkdirs()) {
-            throw new IOException(s"Parent file does not exist and could not be created: $path")
-          }
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+          throw new IOException(s"Parent file does not exist and could not be created: $path")
         }
         new FileOutputStream(file)
       }
@@ -143,8 +139,8 @@ object LocalDelegate {
   class LocalZipHandle(file: File) extends LocalFileHandle(file) {
     override def open: CloseableIterator[(Option[String], InputStream)] =
       new ZipFileIterator(new ZipFile(file), file.getAbsolutePath)
-    override def write(mode: CreateMode, createParents: Boolean): OutputStream =
-      factory.createArchiveOutputStream(ArchiveStreamFactory.ZIP, super.write(mode, createParents))
+    override def write(mode: CreateMode): OutputStream =
+      factory.createArchiveOutputStream(ArchiveStreamFactory.ZIP, super.write(mode))
   }
 
   class LocalTarHandle(file: File) extends LocalFileHandle(file) {
@@ -154,8 +150,8 @@ object LocalDelegate {
         factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
       new ArchiveFileIterator(archive, file.getAbsolutePath)
     }
-    override def write(mode: CreateMode, createParents: Boolean): OutputStream =
-      factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode, createParents))
+    override def write(mode: CreateMode): OutputStream =
+      factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode))
   }
 
   private class StdInHandle(in: InputStream) extends FileHandle {
@@ -164,7 +160,7 @@ object LocalDelegate {
     override def length: Long = Try(in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
     override def open: CloseableIterator[(Option[String], InputStream)] =
       CloseableIterator.single(None -> CloseShieldInputStream.wrap(in))
-    override def write(mode: CreateMode, createParents: Boolean): OutputStream = System.out
+    override def write(mode: CreateMode): OutputStream = System.out
     override def delete(recursive: Boolean): Unit = {}
   }
 

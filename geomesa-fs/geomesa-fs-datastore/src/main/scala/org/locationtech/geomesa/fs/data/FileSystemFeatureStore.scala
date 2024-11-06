@@ -85,7 +85,6 @@ class FileSystemFeatureStore(
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
   override def canSort: Boolean = false
-
   override def canFilter: Boolean = true
   override def canRetype: Boolean = true
 

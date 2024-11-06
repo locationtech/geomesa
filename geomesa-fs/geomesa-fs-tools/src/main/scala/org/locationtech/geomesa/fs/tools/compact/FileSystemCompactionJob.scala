@@ -63,7 +63,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
     job.setOutputKeyClass(classOf[Void])
     job.setOutputValueClass(classOf[SimpleFeature])
 
-    val qualifiedTempPath = tempPath.map(storage.context.fc.makeQualified)
+    val qualifiedTempPath = tempPath.map(storage.context.fs.makeQualified)
 
     StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
     StorageConfiguration.setPartitions(job.getConfiguration, partitions.map(_.name).toArray)
@@ -105,7 +105,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
         existingDataFiles.foreach { case (partition, files) =>
           val counter = StorageConfiguration.Counters.partition(partition.name)
           val count = Option(job.getCounters.findCounter(StorageConfiguration.Counters.Group, counter)).map(_.getValue)
-          files.foreach(f => storage.context.fc.delete(f.path, false))
+          files.foreach(f => storage.context.fs.delete(f.path, false))
           storage.metadata.removePartition(partition.copy(count = count.getOrElse(0L)))
           val removed = count.map(c => s"containing $c features ").getOrElse("")
           Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} ${removed}in partition ${partition.name}")

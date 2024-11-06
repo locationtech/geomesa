@@ -10,7 +10,7 @@ package org.locationtech.geomesa.parquet
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
@@ -35,15 +35,15 @@ class CompactionTest extends Specification with AllExpectations {
 
   sequential
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val tempDir = Files.createTempDirectory("geomesa")
-  val fc = FileContext.getFileContext(tempDir.toUri)
+  lazy val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  lazy val tempDir = Files.createTempDirectory("geomesa")
+  lazy val fs = FileSystem.get(tempDir.toUri, new Configuration())
 
   "ParquetFileSystemStorage" should {
     "compact partitions" >> {
       val conf = new Configuration()
       conf.set("parquet.compression", "gzip")
-      val context = FileSystemContext(fc, conf, new Path(tempDir.toUri))
+      val context = FileSystemContext(fs, conf, new Path(tempDir.toUri))
 
       val metadata =
         new FileBasedMetadataFactory()
@@ -107,7 +107,7 @@ class CompactionTest extends Specification with AllExpectations {
       // compact to a given file size
       // verify if file is appropriately sized, it won't be modified
       val paths = fsStorage.getFilePaths(partition).map(_.path)
-      val size = paths.map(f => fc.getFileStatus(f).getLen).sum
+      val size = paths.map(f => fs.getFileStatus(f).getLen).sum
       fsStorage.compact(Some(partition), Some(size))
       fsStorage.getFilePaths(partition).map(_.path) mustEqual paths
       // verify files are split into smaller ones
