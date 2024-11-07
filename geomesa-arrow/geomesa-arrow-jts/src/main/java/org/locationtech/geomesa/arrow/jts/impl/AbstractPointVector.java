@@ -54,11 +54,11 @@ public abstract class AbstractPointVector<T extends FieldVector>
     } else {
       vector.setNotNull(index);
       if (isFlipAxisOrder()) {
-        writeOrdinal(y(index), geom.getX());
-        writeOrdinal(x(index), geom.getY());
+        writeOrdinal(index * 2, geom.getX());
+        writeOrdinal(index * 2 + 1, geom.getY());
       } else {
-        writeOrdinal(y(index), geom.getY());
-        writeOrdinal(x(index), geom.getX());
+        writeOrdinal(index * 2, geom.getY());
+        writeOrdinal(index * 2 + 1, geom.getX());
       }
     }
   }
@@ -70,11 +70,11 @@ public abstract class AbstractPointVector<T extends FieldVector>
     } else {
       final double y, x;
       if (isFlipAxisOrder()) {
-        y = x(index);
-        x = y(index);
+        y = readOrdinal(index * 2 + 1);
+        x = readOrdinal(index * 2);
       } else {
-        y = y(index);
-        x = x(index);
+        y = readOrdinal(index * 2);
+        x = readOrdinal(index * 2 + 1);
       }
       return factory.createPoint(new Coordinate(x, y));
     }
@@ -88,11 +88,11 @@ public abstract class AbstractPointVector<T extends FieldVector>
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
       if (isFlipAxisOrder()) {
-        typed.writeOrdinal(y(toIndex), getCoordinateX(fromIndex));
-        typed.writeOrdinal(x(toIndex), getCoordinateY(fromIndex));
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2 + 1));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2));
       } else {
-        typed.writeOrdinal(y(toIndex), getCoordinateY(fromIndex));
-        typed.writeOrdinal(x(toIndex), getCoordinateX(fromIndex));
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
       }
     }
   }
@@ -104,8 +104,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
    * @return y ordinate
    */
   public double getCoordinateY(int index) {
-    return readOrdinal(y(index));
-
+    return readOrdinal(index * 2);
   }
 
   /**
@@ -115,6 +114,6 @@ public abstract class AbstractPointVector<T extends FieldVector>
    * @return x ordinate
    */
   public double getCoordinateX(int index) {
-    return readOrdinal(x(index));
+    return readOrdinal(index * 2 + 1);
   }
 }

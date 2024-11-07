@@ -273,7 +273,7 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_FLATTEN_STRUCT     | Boolean (optional) | flattenStruct                      |
 +-------------------------------------+--------------------+------------------------------------+
-| QueryHints.FLIP_AXIS_ORDER          | Boolean (optional) | axisOrder:LatLon / axisOrder:LonLat|
+| QueryHints.FLIP_AXIS_ORDER          | Boolean (optional) | axisOrder                          |
 +-------------------------------------+--------------------+------------------------------------+
 
 Explanation of Hints
@@ -341,7 +341,7 @@ in the RecordBatch. Note that this hint is currently only supported for PostGIS 
 FLIP_AXIS_ORDER
 ^^^^^^^^^^^^^^^
 
-This hint allows the coordinate axis order to be specified as either Lat/Lon or Lon/Lat explicitly to be set for every geometry related field.
+This hint flips the axis order of returned coordinates from latitude/longitude (default) to longitude/latitude.
 
 Example Query
 +++++++++++++

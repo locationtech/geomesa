@@ -20,7 +20,7 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
 
   private V ordinal;
   protected U vector;
-  protected boolean flipAxisOrder = false;
+  private boolean flipAxisOrder = false;
 
   protected AbstractGeometryVector(U vector) {
     this.vector = vector;
@@ -65,20 +65,6 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
   @Override
   public void close() throws Exception {
     vector.close();
-  }
-
-  /**
-   * Calculate the Y index
-   */
-  protected int y(int index) {
-    return index * 2;
-  }
-
-  /**
-   * Calculate the X index
-   */
-  protected int x(int index) {
-    return index * 2 + 1;
   }
 
   protected void setOrdinalVector(V ordinal) {

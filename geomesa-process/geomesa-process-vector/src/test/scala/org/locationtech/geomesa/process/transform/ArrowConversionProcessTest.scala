@@ -159,7 +159,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode generic feature collection with axis order: default (Lat/Lon)" in {
-      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, null).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
@@ -167,7 +167,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode generic feature collection with axis order: Lat/Lon" in {
-      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, AxisOrder.LatLon).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, false).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLatLon)
@@ -175,7 +175,7 @@ class ArrowConversionProcessTest extends Specification {
     }
 
     "encode generic feature collection with axis order: Lon/Lat" in {
-      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, AxisOrder.LonLat).asScala.reduce(_ ++ _)
+      val bytes = process.execute(collectionLatLon, null, null, null, null, null, null, null, null, true).asScala.reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(featuresLonLat)

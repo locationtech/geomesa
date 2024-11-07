@@ -27,7 +27,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
-import org.locationtech.geomesa.utils.bin.AxisOrder.{AxisOrder, LatLon, LonLat}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -69,8 +68,8 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               batchSize: java.lang.Integer,
               @DescribeParameter(name = "flattenStruct", description = "Removes the outer SFT struct yielding top level feature access", min = 0)
               flattenStruct: java.lang.Boolean,
-              @DescribeParameter(name = "axisOrder", description = "Geometry axis order: LatLon or LonLat", min = 0, defaultValue = "LatLon")
-              axisOrder: AxisOrder = LatLon
+              @DescribeParameter(name = "flipAxisOrder", description = "Flip the axis order of returned coordinates from latitude/longitude (default) to longitude/latitude", min = 0, defaultValue = "false")
+              flipAxisOrder: java.lang.Boolean = false
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConverters._
@@ -87,11 +86,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
 
-    val flipAxisOrder = axisOrder match {
-      case LonLat => true
-      case _ => false
-    }
-    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, flipAxisOrder)
+    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, Option(flipAxisOrder).exists(_.booleanValue))
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)

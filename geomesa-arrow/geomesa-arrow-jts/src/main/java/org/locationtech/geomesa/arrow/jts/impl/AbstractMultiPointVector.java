@@ -66,11 +66,11 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
         final Point p = (Point) geom.getGeometryN(i);
         tuples.setNotNull(position + i);
         if (isFlipAxisOrder()) {
-          writeOrdinal(y(position + i), p.getX());
-          writeOrdinal(x(position + i), p.getY());
+          writeOrdinal((position + i) * 2, p.getX());
+          writeOrdinal((position + i) * 2 + 1, p.getY());
         } else {
-          writeOrdinal(y(position + i), p.getY());
-          writeOrdinal(x(position + i), p.getX());
+          writeOrdinal((position + i) * 2, p.getY());
+          writeOrdinal((position + i) * 2 + 1, p.getX());
         }
       }
       vector.endValue(index, geom.getNumPoints());
@@ -89,11 +89,11 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
       for (int i = 0; i < coordinates.length; i++) {
         final double y, x;
         if (isFlipAxisOrder()) {
-          y = readOrdinal(x(offsetStart + i));
-          x = readOrdinal(y(offsetStart + i));
+          y = readOrdinal((offsetStart + i) * 2 + 1);
+          x = readOrdinal((offsetStart + i) * 2);
         } else {
-          y = readOrdinal(y(offsetStart + i));
-          x = readOrdinal(x(offsetStart + i));
+          y = readOrdinal((offsetStart + i) * 2);
+          x = readOrdinal((offsetStart + i) * 2 + 1);
         }
         coordinates[i] = new Coordinate(x, y);
       }

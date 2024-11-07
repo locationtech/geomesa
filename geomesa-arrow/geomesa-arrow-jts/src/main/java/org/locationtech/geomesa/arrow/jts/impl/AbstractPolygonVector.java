@@ -73,11 +73,11 @@ public abstract class AbstractPolygonVector<T extends FieldVector>
           final Coordinate p = line.getCoordinateN(j);
           tuples.setNotNull(position + j);
           if (isFlipAxisOrder()) {
-            writeOrdinal(y(position + j), p.x);
-            writeOrdinal(x(position + j), p.y);
+            writeOrdinal((position + j) * 2, p.x);
+            writeOrdinal((position + j) * 2 + 1, p.y);
           } else {
-            writeOrdinal(y(position + j), p.y);
-            writeOrdinal(x(position + j), p.x);
+            writeOrdinal((position + j) * 2, p.y);
+            writeOrdinal((position + j) * 2 + 1, p.x);
           }
         }
         innerVector.endValue(innerIndex + i, line.getNumPoints());
@@ -103,11 +103,11 @@ public abstract class AbstractPolygonVector<T extends FieldVector>
         for (int i = 0; i < coordinates.length; i++) {
           final double y, x;
           if (isFlipAxisOrder()) {
-            y = readOrdinal(x(offsetStart + i));
-            x = readOrdinal(y(offsetStart + i));
+            y = readOrdinal((offsetStart + i) * 2 + 1);
+            x = readOrdinal((offsetStart + i) * 2);
           } else {
-            y = readOrdinal(y(offsetStart + i));
-            x = readOrdinal(x(offsetStart + i));
+            y = readOrdinal((offsetStart + i) * 2);
+            x = readOrdinal((offsetStart + i) * 2 + 1);
           }
           coordinates[i] = new Coordinate(x, y);
         }
