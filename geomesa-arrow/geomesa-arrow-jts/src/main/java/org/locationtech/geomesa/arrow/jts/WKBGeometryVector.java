@@ -26,7 +26,7 @@ import java.util.Map;
  * Catch-all for storing instances of Geometry as WKB
  */
 public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVector> {
-  private final VarBinaryVector vector;
+  private VarBinaryVector vector;
   private WKBWriter writer = null;
   private WKBReader reader = null;
   private boolean flipAxisOrder = false;
