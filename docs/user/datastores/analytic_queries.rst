@@ -273,7 +273,7 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_FLATTEN_STRUCT     | Boolean (optional) | flattenStruct                      |
 +-------------------------------------+--------------------+------------------------------------+
-| QueryHints.FLIP_AXIS_ORDER          | Boolean (optional) | axisOrder                          |
+| QueryHints.FLIP_AXIS_ORDER          | Boolean (optional) | flipAxisOrder                      |
 +-------------------------------------+--------------------+------------------------------------+
 
 Explanation of Hints
