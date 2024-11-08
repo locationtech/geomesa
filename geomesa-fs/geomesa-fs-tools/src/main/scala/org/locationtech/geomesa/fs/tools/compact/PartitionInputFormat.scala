@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
@@ -35,7 +35,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
     val conf = context.getConfiguration
 
     val root = StorageConfiguration.getRootPath(conf)
-    val fsc = FileSystemContext(FileContext.getFileContext(root.toUri, conf), conf, root)
+    val fsc = FileSystemContext(root, conf)
     val fileSize = StorageConfiguration.getTargetFileSize(conf)
 
     val metadata = StorageMetadataFactory.load(fsc).getOrElse {
@@ -49,7 +49,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
           var size = 0L
           val files = storage.getFilePaths(partition).filter { f =>
             if (sizeCheck.exists(_.apply(f.path))) { false } else {
-              size += PathCache.status(fsc.fc, f.path).getLen
+              size += PathCache.status(fsc.fs, f.path).getLen
               true
             }
           }
@@ -127,7 +127,7 @@ object PartitionInputFormat {
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
       val conf = context.getConfiguration
       val root = StorageConfiguration.getRootPath(conf)
-      val fsc = FileSystemContext(FileContext.getFileContext(root.toUri, conf), conf, root)
+      val fsc = FileSystemContext(root, conf)
       val metadata = StorageMetadataFactory.load(fsc).getOrElse {
         throw new IllegalArgumentException(s"No storage defined under path '$root'")
       }

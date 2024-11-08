@@ -46,6 +46,7 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/FileSystemDelegate.scala
 =======
 <<<<<<< HEAD
@@ -174,6 +175,10 @@ import java.net.URL
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -207,6 +212,9 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -264,6 +272,7 @@ import java.net.URL
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/FileSystemDelegate.scala
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -409,6 +418,10 @@ import java.net.URL
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support):geomesa-utils/src/main/scala/org/locationtech/geomesa/utils/io/fs/FileSystemDelegate.scala
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -440,9 +453,12 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -533,6 +549,9 @@ import java.net.URL
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -614,7 +633,7 @@ trait FileSystemDelegate extends LazyLogging {
   def getUrl(path: String): URL
 }
 
-object FileSystemDelegate {
+object FileSystemDelegate extends LazyLogging {
 
   /**
     * Creation mode for files
@@ -696,10 +715,22 @@ object FileSystemDelegate {
       * Open the file for writing
       *
       * @param mode write mode
-      * @param createParents if the file does not exist, create its parents. Note that this only makes sense
-      *                      with `CreateMode.Create`
       */
-    def write(mode: CreateMode, createParents: Boolean = false): OutputStream
+    def write(mode: CreateMode): OutputStream
+
+    /**
+     * Open the file for writing
+     *
+     * @param mode write mode
+     * @param createParents create parent dirs as necessary
+     */
+    @deprecated("createParents is always true")
+    def write(mode: CreateMode, createParents: Boolean): OutputStream = {
+      if (!createParents) {
+        logger.warn("Call to write with createParents=false, which is not supported")
+      }
+      write(mode)
+    }
 
     /**
       * Delete the file

@@ -39,7 +39,7 @@ trait SizeableFileSystemStorage extends FileSystemStorage {
    * @return true if the file is appropriately sized
    */
   def fileIsSized(path: Path, target: Long): Boolean = {
-    val size = context.fc.getFileStatus(path).getLen
+    val size = context.fs.getFileStatus(path).getLen
     math.abs((size.toDouble / target) - 1d) <= fileSizeError
   }
 

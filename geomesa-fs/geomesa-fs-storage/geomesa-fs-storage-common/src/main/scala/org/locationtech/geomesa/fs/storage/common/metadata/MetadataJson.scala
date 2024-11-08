@@ -49,9 +49,9 @@ object MetadataJson extends MethodProfiling {
       // using an atomic operation or cache loader can cause problems, as we sometimes insert into the
       // map during the load, which is not allowed
       val file = new Path(context.root, MetadataPath)
-      if (PathCache.exists(context.fc, file)) {
+      if (PathCache.exists(context.fs, file)) {
         val config = profile("Loaded metadata configuration") {
-          WithClose(new InputStreamReader(context.fc.open(file), StandardCharsets.UTF_8)) { in =>
+          WithClose(new InputStreamReader(context.fs.open(file), StandardCharsets.UTF_8)) { in =>
             ConfigFactory.load(ConfigFactory.parseReader(in, ParseOptions)) // call load to resolve sys props
           }
         }
@@ -61,8 +61,8 @@ object MetadataJson extends MethodProfiling {
           }
           cache.put(key, cached)
         } else {
-          context.fc.rename(file, new Path(context.root, s"$MetadataPath.bak"))
-          PathCache.invalidate(context.fc, file)
+          context.fs.rename(file, new Path(context.root, s"$MetadataPath.bak"))
+          PathCache.invalidate(context.fs, file)
           transitionMetadata(context, config).foreach { meta =>
             cached = meta // will be set in the cache in the transition code
           }
@@ -80,7 +80,7 @@ object MetadataJson extends MethodProfiling {
     */
   def writeMetadata(context: FileSystemContext, metadata: NamedOptions): Unit = {
     val file = new Path(context.root, MetadataPath)
-    if (PathCache.exists(context.fc, file, reload = true)) {
+    if (PathCache.exists(context.fs, file, reload = true)) {
       throw new IllegalArgumentException(
         s"Trying to create a new storage instance but metadata already exists at '$file'")
     }
@@ -92,7 +92,7 @@ object MetadataJson extends MethodProfiling {
     // either side of the expression (typesafe will concatenate them), i.e. "foo ${bar}" -> "foo "${bar}""
     val interpolated = data.replaceAll("\\$\\{[a-zA-Z0-9_.]+}", "\"$0\"")
     profile("Persisted metadata configuration") {
-      WithClose(context.fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
+      WithClose(context.fs.create(file, false)) { out =>
         out.write(interpolated.getBytes(StandardCharsets.UTF_8))
         out.hflush()
         out.hsync()
@@ -135,11 +135,8 @@ object MetadataJson extends MethodProfiling {
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
-=======
->>>>>>> locatelli-main
-=======
->>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -166,6 +163,10 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -343,6 +344,8 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -384,6 +387,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -469,12 +475,15 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -560,6 +569,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
@@ -570,6 +580,8 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> a52e4429be (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> 0104fb37e4 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -680,6 +692,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -773,6 +788,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -804,6 +820,11 @@ object MetadataJson extends MethodProfiling {
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
+>>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 >>>>>>> c738f63bd9 (GEOMESA-3254 Add Bloop build support)
@@ -947,6 +968,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 12e3a588fc (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
 =======
 >>>>>>> f0b9bd8121 (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -976,6 +998,8 @@ object MetadataJson extends MethodProfiling {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1057,6 +1081,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1148,10 +1175,13 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1234,6 +1264,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1322,6 +1355,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -1333,6 +1367,8 @@ object MetadataJson extends MethodProfiling {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1411,6 +1447,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1496,12 +1535,15 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1593,11 +1635,15 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1710,11 +1756,14 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1814,6 +1863,7 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> 66dbbce00d (GEOMESA-3061 Converters - support bytes in Avro top-level union types (#2762))
@@ -1824,6 +1874,8 @@ object MetadataJson extends MethodProfiling {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1999,6 +2051,9 @@ object MetadataJson extends MethodProfiling {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2054,7 +2109,7 @@ object MetadataJson extends MethodProfiling {
 >>>>>>> locatelli-main
     }
     cache.put(context.root.toUri.toString, toCache)
-    PathCache.register(context.fc, file)
+    PathCache.register(context.fs, file)
   }
 
 

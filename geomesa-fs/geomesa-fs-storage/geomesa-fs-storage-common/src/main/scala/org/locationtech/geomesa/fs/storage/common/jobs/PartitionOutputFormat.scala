@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common.jobs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
@@ -57,7 +57,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
     private val storage = {
       val conf = context.getConfiguration
       val root = StorageConfiguration.getRootPath(conf)
-      val fsc = FileSystemContext(FileContext.getFileContext(root.toUri, conf), conf, root)
+      val fsc = FileSystemContext(root, conf)
       val metadata = StorageMetadataFactory.load(fsc).getOrElse {
         throw new IllegalArgumentException(s"No storage defined under path '$root'")
       }
@@ -171,7 +171,7 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
           writer.close(context)
           writer = null
           // adjust our estimate to account for the actual bytes written
-          total += storage.context.fc.getFileStatus(path).getLen
+          total += storage.context.fs.getFileStatus(path).getLen
           estimator.update(total, count)
           remaining = estimator.estimate(0L)
         }

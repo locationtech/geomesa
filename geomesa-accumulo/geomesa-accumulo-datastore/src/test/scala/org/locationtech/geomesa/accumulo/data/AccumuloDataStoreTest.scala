@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import org.apache.accumulo.core.conf.Property
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -24,6 +25,7 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.index.NamedIndex
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
@@ -577,6 +579,32 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.createSchema(SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326"))
       exists must beTrue
       ds.getSchema("test") must not(beNull)
+    }
+
+    "create tables with block cache enabled/disabled" >> {
+      foreach(Seq(",geomesa.table.partition=time", "")) { partitioned =>
+        val sft = createNewSchema(s"name:String:index=true,dtg:Date,*geom:Point:srid=4326;table.cache.enabled='z3,attr'$partitioned")
+        addFeatures((0 until 6).map { i =>
+          val sf = new ScalaSimpleFeature(sft, i.toString)
+          sf.setAttributes(Array[AnyRef](i.toString, s"2012-01-02T05:0$i:07.000Z", s"POINT(45.0 4$i.0)"))
+          sf
+        })
+        val indices = ds.manager.indices(sft)
+        def getBlockCacheConfig(i: NamedIndex): String = {
+          val index = indices.find(_.name == i.name).orNull
+          index must not(beNull)
+          val tables = index.getTableNames()
+          tables must haveLength(1)
+          ds.connector.tableOperations().getProperties(tables.head).asScala
+            .find(_.getKey == Property.TABLE_BLOCKCACHE_ENABLED.getKey).map(_.getValue).orNull
+        }
+        foreach(Seq(Z3Index, AttributeIndex)) { i =>
+          getBlockCacheConfig(i) mustEqual "true"
+        }
+        foreach(Seq(Z2Index, IdIndex)) { i =>
+          getBlockCacheConfig(i) mustEqual "false"
+        }
+      }
     }
   }
 }

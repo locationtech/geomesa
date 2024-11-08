@@ -228,7 +228,7 @@ object FsManageMetadataCommand {
        * added to onDisk
        */
       private def listRoot(): Unit = {
-        val iter = storage.context.fc.listStatus(storage.context.root)
+        val iter = storage.context.fs.listStatusIterator(storage.context.root)
         // use a phaser to track worker thread completion
         val phaser = new Phaser(2) // 1 for this thread + 1 for the worker
         pool.submit(new TopLevelListWorker(phaser, iter))
@@ -263,7 +263,7 @@ object FsManageMetadataCommand {
                     partitions.forall(_.exists(p => p == name || p.startsWith(s"$name/")))) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                  pool.submit(new ListWorker(new Phaser(phaser, 1), name, storage.context.fc.listStatus(path)))
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), name, storage.context.fs.listStatusIterator(path)))
                 }
               } else if (name != MetadataJson.MetadataPath) {
                 onDisk.computeIfAbsent("", computeFunction).put(name, java.lang.Boolean.TRUE)
@@ -293,7 +293,7 @@ object FsManageMetadataCommand {
                 if (partitions.forall(_.exists(p => p == nextPartition || p.startsWith(s"$nextPartition/")))) {
                   i += 1
                   // use a tiered phaser on each directory avoid the limit of 65535 registered parties
-                  pool.submit(new ListWorker(new Phaser(phaser, 1), nextPartition, storage.context.fc.listStatus(path)))
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), nextPartition, storage.context.fs.listStatusIterator(path)))
                 }
               } else {
                 val leafPartition =

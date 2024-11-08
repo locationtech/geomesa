@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.`export`
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.{DataStore, Query, SimpleFeatureStore}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.MemoryDataStore
@@ -59,7 +59,8 @@ class ExportToFsTest extends Specification {
           .addFeatures(new ListFeatureCollection(sft, features: _*))
 
       val storage = {
-        val context = FileSystemContext(FileContext.getFileContext, new Configuration(), new Path(out.toUri))
+        val conf = new Configuration()
+        val context = FileSystemContext(new Path(out.toUri), conf)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", NamedOptions("daily"), leafStorage = true))

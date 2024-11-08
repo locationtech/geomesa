@@ -59,6 +59,7 @@ object SimpleFeatureTypes {
     val TableSharing          = "geomesa.table.sharing"
     val TableSplitterClass    = "table.splitter.class"
     val TableSplitterOpts     = "table.splitter.options"
+    val TableCacheEnabled     = "table.cache.enabled"
     val TemporalPriority      = "geomesa.temporal.priority"
     val UpdateBackupMetadata  = "schema.update.backup.metadata"
     val UpdateRenameTables    = "schema.update.rename.tables"
@@ -80,7 +81,15 @@ object SimpleFeatureTypes {
     val PartitionSplitterClass = "geomesa.splitter.class"
     val PartitionSplitterOpts  = "geomesa.splitter.opts"
     val RemoteVersion          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
+    val PartitionTableCache    = "geomesa.table.cache"
     val KeywordsDelimiter      = "\u0000"
+
+    // configs that are not normally persisted, but that we want to persist for creating partitioned tables down the line
+    val PartitionConfigMappings: Map[String, String] = Map(
+      Configs.TableCacheEnabled  -> PartitionTableCache,
+      Configs.TableSplitterClass -> PartitionSplitterClass,
+      Configs.TableSplitterOpts  -> PartitionSplitterOpts,
+    )
   }
 
   object AttributeOptions {

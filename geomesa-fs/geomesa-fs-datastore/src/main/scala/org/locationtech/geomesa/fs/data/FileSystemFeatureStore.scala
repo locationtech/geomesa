@@ -81,13 +81,16 @@ class FileSystemFeatureStore(
   }
 
   override def canLimit: Boolean = false
+  override def canLimit(query: Query): Boolean = false
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
   override def canReproject: Boolean = false
   override def canSort: Boolean = false
-
+  override def canSort(query: Query): Boolean = false
   override def canFilter: Boolean = true
+  override def canFilter(query: Query): Boolean = true
   override def canRetype: Boolean = true
+  override def canRetype(query: Query): Boolean = true
 
   override protected def buildQueryCapabilities(): QueryCapabilities = FileSystemFeatureStore.capabilities
 }

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -60,7 +60,7 @@ class ConverterFileSystemStorageTest extends Specification with LazyLogging {
       conf.set(ConverterStorageFactory.PartitionSchemeParam, "daily")
       conf.set(ConverterStorageFactory.LeafStorageParam, "false")
 
-      val context = FileSystemContext(FileContext.getFileContext(dir), conf, new Path(dir))
+      val context = FileSystemContext(new Path(dir), conf)
       val metadata = StorageMetadataFactory.load(context).orNull
       metadata must not(beNull)
       val storage = FileSystemStorageFactory(context, metadata)

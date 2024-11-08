@@ -601,7 +601,7 @@ object ExportCommand extends LazyLogging {
 
     // lowest level - keep track of the bytes we write
     // do this before any compression, buffering, etc so we get an accurate count
-    private val counter = new CountingOutputStream(out.write(CreateMode.Create, createParents = true))
+    private val counter = new CountingOutputStream(out.write(CreateMode.Create))
     private val stream = {
       val compressed = gzip match {
         case None => counter

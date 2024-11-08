@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.data
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.CloseQuietly
@@ -23,11 +23,11 @@ import scala.util.control.NonFatal
 /**
   * Manages the storages and associated simple feature types underneath a given path
   *
-  * @param fc file context
+  * @param fs file system
   * @param conf configuration
   * @param root root path for the data store
   */
-class FileSystemStorageManager private (fc: FileContext, conf: Configuration, root: Path, namespace: Option[String])
+class FileSystemStorageManager private (fs: FileSystem, conf: Configuration, root: Path, namespace: Option[String])
     extends MethodProfiling with LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -42,7 +42,7 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
     */
   def storage(typeName: String): Option[FileSystemStorage] = {
     cache.get(typeName).map(_._2) // check cached values
-        .orElse(Some(defaultPath(typeName)).filter(PathCache.exists(fc, _)).flatMap(loadPath)) // check expected (default) path
+        .orElse(Some(defaultPath(typeName)).filter(PathCache.exists(fs, _)).flatMap(loadPath)) // check expected (default) path
         .orElse(loadAll().find(_.metadata.sft.getTypeName == typeName)) // check other paths until we find it
   }
 
@@ -80,8 +80,8 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
     * @return
     */
   private def loadAll(): Iterator[FileSystemStorage] = {
-    if (!PathCache.exists(fc, root)) { Iterator.empty } else {
-      val dirs = PathCache.list(fc, root).filter(_.isDirectory).map(_.getPath)
+    if (!PathCache.exists(fs, root)) { Iterator.empty } else {
+      val dirs = PathCache.list(fs, root).filter(_.isDirectory).map(_.getPath)
       dirs.filterNot(path => cache.exists { case (_, (p, _)) => p == path }).flatMap(loadPath)
     }
   }
@@ -99,7 +99,7 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
       logger.debug(s"${ if (storage.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms")
 
     profile(complete _) {
-      val context = FileSystemContext(fc, conf, path, namespace)
+      val context = FileSystemContext(fs, conf, path, namespace)
       StorageMetadataFactory.load(context).map { meta =>
         try {
           val storage = FileSystemStorageFactory(context, meta)
@@ -116,8 +116,8 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
 object FileSystemStorageManager {
 
   private val cache = Caffeine.newBuilder().build(
-    new CacheLoader[(FileContext, Configuration, Path, Option[String]), FileSystemStorageManager]() {
-      override def load(key: (FileContext, Configuration, Path, Option[String])): FileSystemStorageManager =
+    new CacheLoader[(FileSystem, Configuration, Path, Option[String]), FileSystemStorageManager]() {
+      override def load(key: (FileSystem, Configuration, Path, Option[String])): FileSystemStorageManager =
         new FileSystemStorageManager(key._1, key._2, key._3, key._4)
     }
   )
@@ -125,11 +125,11 @@ object FileSystemStorageManager {
   /**
     * Load a cached storage manager instance
     *
-    * @param fc file context
+    * @param fs file system
     * @param conf configuration
     * @param root data store root path
     * @return
     */
-  def apply(fc: FileContext, conf: Configuration, root: Path, namespace: Option[String]): FileSystemStorageManager =
-    cache.get((fc, conf, root, namespace))
+  def apply(fs: FileSystem, conf: Configuration, root: Path, namespace: Option[String]): FileSystemStorageManager =
+    cache.get((fs, conf, root, namespace))
 }

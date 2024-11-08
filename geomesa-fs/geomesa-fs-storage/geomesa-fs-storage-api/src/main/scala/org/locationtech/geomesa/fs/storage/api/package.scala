@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 
@@ -22,11 +22,15 @@ package object api {
   /**
     * Holder for file system references
     *
-    * @param fc file context
+    * @param fs file system
     * @param conf configuration
     * @param root root path
     */
-  case class FileSystemContext(fc: FileContext, conf: Configuration, root: Path, namespace: Option[String] = None)
+  case class FileSystemContext(fs: FileSystem, conf: Configuration, root: Path, namespace: Option[String] = None)
+
+  object FileSystemContext {
+    def apply(root: Path, conf: Configuration): FileSystemContext = FileSystemContext(root.getFileSystem(conf), conf, root)
+  }
 
   /**
     * Identifier plus configuration

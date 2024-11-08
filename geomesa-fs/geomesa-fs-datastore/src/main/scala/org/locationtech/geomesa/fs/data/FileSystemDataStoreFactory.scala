@@ -8,9 +8,8 @@
 
 package org.locationtech.geomesa.fs.data
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
@@ -30,7 +29,6 @@ import scala.concurrent.duration.Duration
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
   import FileSystemDataStoreFactory.FileSystemDataStoreParams._
-  import FileSystemDataStoreFactory.fileContextCache
 
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
 
@@ -44,8 +42,6 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
       resources.foreach(HadoopUtils.addResource(conf, _))
       conf
     }
-
-    val fc = fileContextCache.get(conf)
 
     val path = new Path(PathParam.lookup(params))
     val encoding = EncodingParam.lookupOpt(params).filterNot(_.isEmpty)
@@ -63,7 +59,9 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
     val namespace = NamespaceParam.lookupOpt(params)
 
-    new FileSystemDataStore(fc, conf, path, readThreads, writeTimeout, encoding, namespace)
+    val fs = FileSystem.get(path.toUri, conf)
+
+    new FileSystemDataStore(fs, conf, path, readThreads, writeTimeout, encoding, namespace)
   }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
@@ -104,12 +102,6 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
     FileSystemDataStoreParams.PathParam.exists(params)
 
   private val configuration = new Configuration()
-
-  private val fileContextCache: LoadingCache[Configuration, FileContext] = Caffeine.newBuilder().build(
-    new CacheLoader[Configuration, FileContext]() {
-      override def load(conf: Configuration): FileContext = FileContext.getFileContext(conf)
-    }
-  )
 
   object FileSystemDataStoreParams extends NamespaceParams {
 

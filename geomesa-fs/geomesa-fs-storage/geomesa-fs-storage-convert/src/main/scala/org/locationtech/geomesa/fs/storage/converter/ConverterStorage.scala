@@ -36,13 +36,13 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    new ConverterFileSystemReader(context.fc, converter, filter, transform)
+    new ConverterFileSystemReader(context.fs, converter, filter, transform)
   }
 
   override def getFilePaths(partition: String): Seq[StorageFilePath] = {
     val path = new Path(context.root, partition)
     if (metadata.leafStorage) { Seq(StorageFilePath(StorageFile(path.getName, 0L), path)) } else {
-      PathCache.list(context.fc, path).map(p => StorageFilePath(StorageFile(p.getPath.getName, 0L), p.getPath)).toList
+      PathCache.list(context.fs, path).map(p => StorageFilePath(StorageFile(p.getPath.getName, 0L), p.getPath)).toList
     }
   }
 

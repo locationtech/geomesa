@@ -10,8 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 
 import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.permission.FsPermission
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
@@ -33,7 +32,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
   import scala.collection.JavaConverters._
 
   lazy val conf = new Configuration()
-  lazy val fc = FileContext.getFileContext(conf)
+  lazy val fs = FileSystem.get(conf)
   val sft = SimpleFeatureTypes.createType("metadata",
     "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
@@ -53,7 +52,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
     "create and persist an empty metadata file" in {
       withPath { context =>
         val created = factory.create(context, Map.empty, meta)
-        PathCache.invalidate(fc, context.root)
+        PathCache.invalidate(fs, context.root)
         factory.load(context) must beSome(created)
         foreach(Seq(created, FileBasedMetadata.copy(created))) { metadata =>
           metadata.encoding mustEqual encoding
@@ -69,7 +68,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
         created.addPartition(PartitionMetadata("1", Seq(f2,f3), new Envelope(-11, 11, -5, 5), 20L))
         created.addPartition(PartitionMetadata("2", Seq(f5, f6), new Envelope(-1, 1, -5, 5), 20L))
-        PathCache.invalidate(fc, context.root)
+        PathCache.invalidate(fs, context.root)
         factory.load(context) must beSome(created)
         foreach(Seq(created, FileBasedMetadata.copy(created))) { metadata =>
           metadata.encoding mustEqual encoding
@@ -87,10 +86,10 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         val created = factory.create(context, Map.empty, meta)
         created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
         created.addPartition(PartitionMetadata("1", Seq(f2, f3), new Envelope(-11, 11, -5, 5), 20L))
-        fc.mkdir(new Path(context.root, "metadata/nested/"), FsPermission.getDirDefault, false)
-        fc.util.listStatus(new Path(context.root, "metadata")).foreach { file =>
+        fs.mkdirs(new Path(context.root, "metadata/nested/"))
+        fs.listStatus(new Path(context.root, "metadata")).foreach { file =>
           if (file.getPath.getName.startsWith("update-")) {
-            fc.rename(file.getPath, new Path(context.root, s"metadata/nested/${file.getPath.getName}"))
+            fs.rename(file.getPath, new Path(context.root, s"metadata/nested/${file.getPath.getName}"))
           }
         }
         factory.load(context) must beSome(created)
@@ -176,7 +175,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         metadata.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
         val updates = list(metadata.directory).filter(_.startsWith("update"))
         updates must haveLength(1)
-        val update = WithClose(fc.open(new Path(metadata.directory, updates.head))) { in =>
+        val update = WithClose(fs.open(new Path(metadata.directory, updates.head))) { in =>
           IOUtils.toString(in, StandardCharsets.UTF_8)
         }
         update must not(beEmpty)
@@ -185,7 +184,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         metadata.compact(None)
         val compactions = list(metadata.directory).filter(_.startsWith("compact"))
         compactions must haveLength(1)
-        val compaction = WithClose(fc.open(new Path(metadata.directory, compactions.head))) { in =>
+        val compaction = WithClose(fs.open(new Path(metadata.directory, compactions.head))) { in =>
           IOUtils.toString(in, StandardCharsets.UTF_8)
         }
         compaction must not(beEmpty)
@@ -198,7 +197,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
       val path = new Path(url.toURI)
       val conf = new Configuration()
       conf.set("parquet.compression", "gzip")
-      val context = FileSystemContext(FileContext.getFileContext(url.toURI), conf, path)
+      val context = FileSystemContext(path, conf)
       val metadata = StorageMetadataFactory.load(context).orNull
       metadata must beAnInstanceOf[FileBasedMetadata]
       val partitions = metadata.getPartitions()
@@ -215,14 +214,14 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
 
   def withPath[R](code: FileSystemContext => R): R = {
     val file = Files.createTempDirectory("geomesa").toFile.getPath
-    try { code(FileSystemContext(fc, conf, new Path(file))) } finally {
+    try { code(FileSystemContext(fs, conf, new Path(file))) } finally {
       FileUtils.deleteDirectory(new File(file))
     }
   }
 
   def list(dir: Path): Seq[String] = {
     val builder = Seq.newBuilder[String]
-    val iter = fc.listStatus(dir)
+    val iter = fs.listStatusIterator(dir)
     while (iter.hasNext) {
       val status = iter.next
       val path = status.getPath

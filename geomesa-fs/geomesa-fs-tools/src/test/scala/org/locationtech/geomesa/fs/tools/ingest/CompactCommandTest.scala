@@ -160,7 +160,7 @@ class CompactCommandTest extends Specification {
         val storage = ds.storage(sft.getTypeName)
         foreach(storage.metadata.getPartitions()) { partition =>
           partition.files.size must beGreaterThan(1)
-          val sizes = storage.getFilePaths(partition.name).map(p => storage.context.fc.getFileStatus(p.path).getLen)
+          val sizes = storage.getFilePaths(partition.name).map(p => storage.context.fs.getFileStatus(p.path).getLen)
           // hard to get very close with 2 different formats and small files...
           foreach(sizes)(_ must beCloseTo(targetFileSize, 4000))
         }

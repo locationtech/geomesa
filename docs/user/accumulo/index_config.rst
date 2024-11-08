@@ -2,7 +2,7 @@ Accumulo Index Configuration
 ============================
 
 GeoMesa exposes a variety of configuration options that can be used to customize and optimize a given installation.
-The Accumulo data store supports most of the general options described under :ref:`index_config`.
+In addition to the ones here, the Accumulo data store supports most of the general options described under :ref:`index_config`.
 
 .. _accumulo_attribute_indices:
 
@@ -87,7 +87,7 @@ Logical Timestamps
 
 By default, GeoMesa index tables are created using Accumulo's logical time. This ensures that updates to a given
 simple feature will be ordered correctly, however it obscures the actual insert time for the underlying data
-row. For advanced use cases, standard system time can be used instead of logical time. To disble logical
+row. For advanced use cases, standard system time can be used instead of logical time. To disable logical
 time, add the following user data hint to the simple feature type before calling ``createSchema``:
 
 .. code-block:: java
@@ -95,6 +95,20 @@ time, add the following user data hint to the simple feature type before calling
     // append the hints to the end of the string, separated by a semi-colon
     String spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.logical.time='false'";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+
+Table Block Cache
+-----------------
+
+By default, GeoMesa will enable the Accumulo `data block cache <https://accumulo.apache.org/docs/2.x/administration/caching>`__
+on all index tables. To customize this, add the key ``table.cache.enabled`` to the ``SimpleFeatureType`` user data containing a
+comma-separated list of indices for which the block cache will be enabled. An empty string will disable the block cache on
+all tables. Indices can be indicated by name (e.g. ``z3``), by name and attributes (e.g. ``z3:geom:dtg``), or by the full index
+id (which includes the index version, e.g. ``z3:7:geom:dtg``). Set the user data before calling ``createSchema``:
+
+.. code-block:: java
+
+    sft.getUserData().put("table.cache.enabled", "z3,attr");
+    datastore.createSchema(sft);
 
 .. _index_upgrades:
 
