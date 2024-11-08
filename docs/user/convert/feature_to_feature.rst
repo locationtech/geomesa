@@ -1,9 +1,9 @@
 Feature-To-Feature Converter
 ============================
 
-The feature-to-feature converter can be used to transform ``SimpleFeature``s from one ``SimpleFeatureType`` to another.
+The feature-to-feature converter can be used to transform ``SimpleFeature``\ s from one ``SimpleFeatureType`` to another.
 Unlike other GeoMesa converters, the feature-to-feature converter must be invoked programmatically, as there is no
-native encoding of features to an input stream.
+native decoding of features from an input stream.
 
 Configuration
 -------------
@@ -22,6 +22,7 @@ Example Usage
 Given an input feature type defined as:
 
 ::
+
     geomesa.sfts.intype = {
       type-name = "intype"
       attributes = [
@@ -35,6 +36,7 @@ Given an input feature type defined as:
 And an output feature type defined as:
 
 ::
+
     geomesa.sfts.outtype = {
       type-name = "outtype"
       attributes = [
@@ -50,8 +52,9 @@ The following example will copy the attributes of the input features, while addi
 from one of the input fields:
 
 ::
+
     geomesa.converters.myconverter = {
-      type      = "simple-feature"
+      type = "simple-feature"
       input-sft = "intype"
       fields = [
         // note: number, color, weight, and geom will be auto-copied since they exist in both input and output types
@@ -77,7 +80,7 @@ from one of the input fields:
         }
         val converter = FeatureToFeatureConverter(sft, conf)
         try {
-          val features: Iterator[SimpleFeature] = ...; // list of input features to transform
+          val features: Iterator[SimpleFeature] = ??? // list of input features to transform
           val iter = converter.convert(CloseableIterator(features))
           try {
             iter.foreach(???) // do something with the conversion result
