@@ -10,9 +10,6 @@ on:
       module-selector:
         required: true
         type: string
-      display-name:
-        required: true
-        type: string
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
