@@ -10,6 +10,9 @@ on:
       module-selector:
         required: true
         type: string
+      display-name:
+        required: true
+        type: string
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
@@ -18,7 +21,7 @@ env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true -Dtest.fork.count=1 --batch-mode
 
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
