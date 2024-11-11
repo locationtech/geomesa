@@ -1,4 +1,4 @@
-name: scala-2.12
+name: scala-build
 
 on:
   push:
@@ -13,7 +13,10 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 jobs:
-  build:
+  build-scala:
+    strategy:
+      matrix:
+        version: [ "2.12", "2.13" ]
     uses: ./.github/workflows/build-and-test.yml
     with:
-      scala-version: "2.12"
+      scala-version: ${{ matrix.version }}
