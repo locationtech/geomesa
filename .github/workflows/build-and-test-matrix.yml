@@ -15,6 +15,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 jobs:
   build-scala:
     strategy:
+      fail-fast: false
       matrix:
         version: [ "2.12", "2.13" ]
     uses: ./.github/workflows/build-and-test.yml
