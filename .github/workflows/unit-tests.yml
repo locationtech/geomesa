@@ -39,7 +39,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: classes-and-jars
+          name: classes-and-jars-${{ inputs.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
