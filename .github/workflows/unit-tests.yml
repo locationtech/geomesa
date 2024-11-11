@@ -14,8 +14,11 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true -Dtest.fork.count=1 --batch-mode
+
 jobs:
-  unit-tests:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
@@ -36,7 +39,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: classes-and-jars
+          name: classes-and-jars-${{ inputs.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -47,7 +50,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ inputs.module-selector }} | tee -a test.log
+          mvn surefire:test $MAVEN_CLI_OPTS ${{ inputs.module-selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
@@ -55,14 +58,14 @@ jobs:
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
+          mvn surefire:test $MAVEN_CLI_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry-retry
         if: steps.test-retry.outcome=='failure'
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
+          mvn surefire:test $MAVEN_CLI_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
