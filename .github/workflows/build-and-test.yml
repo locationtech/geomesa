@@ -13,7 +13,6 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
-  MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 jobs:
   build-scala:
@@ -160,5 +159,10 @@ jobs:
   integration-tests:
     needs: build-scala
     uses: ./.github/workflows/integration-tests.yml
+    with:
+      scala-version: ${{ inputs.scala-version }}
+  javadocs:
+    needs: build-scala
+    uses: ./.github/workflows/javadocs.yml
     with:
       scala-version: ${{ inputs.scala-version }}

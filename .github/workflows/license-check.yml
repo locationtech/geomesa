@@ -14,7 +14,6 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
-  MAVEN_TEST_OPTS: -Dtest.fork.count=1
 
 jobs:
   check-headers:
