@@ -32,6 +32,7 @@ details.
     fixed_width
     jdbc
     composite
+    feature_to_feature
     premade/index
     function_overview
     function_usage

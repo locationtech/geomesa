@@ -1,4 +1,4 @@
-name: build-docs
+name: build
 
 on:
   push:
@@ -13,9 +13,17 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
 
 jobs:
+  build-scala:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ "2.12", "2.13" ]
+    uses: ./.github/workflows/build-and-test.yml
+    with:
+      scala-version: ${{ matrix.version }}
   build-docs:
     runs-on: ubuntu-latest
     steps:
@@ -40,3 +48,17 @@ jobs:
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
+  check-license-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+      - uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # v4.4.0
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-license-header-check
+          path: ~/.m2/repository/
+      - name: Run license check
+        run: mvn license:check $MAVEN_CLI_OPTS

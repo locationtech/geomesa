@@ -11,6 +11,9 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true -Dtest.fork.count=1 --batch-mode
+
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
@@ -29,14 +32,14 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: classes-and-jars
+          name: classes-and-jars-${{ inputs.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Integration Tests
-        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa

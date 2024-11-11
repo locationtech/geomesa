@@ -123,8 +123,6 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-=======
->>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
@@ -135,6 +133,9 @@ function dependencies() {
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,19 +163,6 @@ function dependencies() {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> locatelli-main
-=======
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -197,6 +185,19 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 =======
@@ -257,6 +258,8 @@ function dependencies() {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -288,6 +291,7 @@ function dependencies() {
 =======
 >>>>>>> locationtech-main
 =======
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -841,6 +845,8 @@ function dependencies() {
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -849,8 +855,13 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+      "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
+=======
+>>>>>>> locatelli-main
+=======
       "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
 =======
 >>>>>>> locatelli-main
@@ -876,8 +887,13 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 7e635f57dc2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7e635f57dc2 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
 >>>>>>> locatelli-main
@@ -1094,6 +1110,9 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1176,6 +1195,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locatelli-main
 <<<<<<< HEAD
@@ -1220,6 +1240,8 @@ function dependencies() {
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1262,6 +1284,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> a76720eebac (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1335,6 +1358,8 @@ function dependencies() {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1386,6 +1411,9 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1469,7 +1497,10 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1563,6 +1594,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> location-main
@@ -1571,6 +1603,9 @@ function dependencies() {
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locationtech-main
+=======
+>>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -1692,6 +1727,7 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 120815d0b (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======
       "org.apache.commons:commons-collections4:4.4:jar"
@@ -1706,6 +1742,8 @@ function dependencies() {
 <<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1819,8 +1857,11 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2003,6 +2044,9 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2090,8 +2134,14 @@ function dependencies() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> locationtech-main
+=======
+>>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+=======
+>>>>>>> 1a04676d44 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
+>>>>>>> locatelli-main
 =======
 >>>>>>> 1b3a148b37 (GEOMESA-3092 Support Lambda NiFi processor (#2777))
 =======

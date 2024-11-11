@@ -38,6 +38,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 package org.locationtech.geomesa.tools.`export`
 =======
 package org.locationtech.geomesa.tools.export
@@ -1027,6 +1028,39 @@ package org.locationtech.geomesa.tools.`export`
 =======
 package org.locationtech.geomesa.tools.export
 >>>>>>> locatelli-main
+=======
+=======
+>>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8d65439b24 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 9e49c1aac7 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+package org.locationtech.geomesa.tools.`export`
+=======
+package org.locationtech.geomesa.tools.export
+>>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1065,6 +1099,9 @@ package org.locationtech.geomesa.tools.export
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1129,6 +1166,7 @@ package org.locationtech.geomesa.tools.`export`
 package org.locationtech.geomesa.tools.export
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1279,6 +1317,10 @@ package org.locationtech.geomesa.tools.export
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -1315,6 +1357,7 @@ package org.locationtech.geomesa.tools.`export`
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -1323,6 +1366,8 @@ package org.locationtech.geomesa.tools.`export`
 <<<<<<< HEAD
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1421,6 +1466,9 @@ package org.locationtech.geomesa.tools.`export`
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1533,6 +1581,7 @@ import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
@@ -1752,6 +1801,29 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> 8d65439b24 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
+=======
+>>>>>>> 3e3f178198 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
+=======
+>>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
+=======
+=======
+>>>>>>> 8d65439b24 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+>>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+import org.locationtech.geomesa.index.TestGeoMesaDataStore
+=======
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -2268,6 +2340,7 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2300,6 +2373,9 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -2407,6 +2483,9 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2467,6 +2546,7 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2558,6 +2638,8 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 =======
 >>>>>>> locatelli-main
 =======
+>>>>>>> locatelli-main
+=======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
@@ -2588,6 +2670,9 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -2679,11 +2764,14 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2767,9 +2855,12 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -2868,6 +2959,9 @@ import org.locationtech.geomesa.index.TestGeoMesaDataStore
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3018,6 +3112,7 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> location-main
@@ -3049,6 +3144,8 @@ class ExportCommandTest extends Specification with Retries {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3121,6 +3218,9 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3209,12 +3309,15 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3301,9 +3404,12 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3403,6 +3509,9 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3491,6 +3600,7 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> locationtech-main
@@ -3525,6 +3635,10 @@ class ExportCommandTest extends Specification with Retries {
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
@@ -3655,11 +3769,15 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
+>>>>>>> locatelli-main
 =======
 >>>>>>> d5be777522 (GEOMESA-3246 Update to GeoTools 28.2 (#2969))
 >>>>>>> locatelli-main
@@ -3778,6 +3896,7 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
@@ -3785,6 +3904,8 @@ class ExportCommandTest extends Specification with Retries {
 >>>>>>> locatelli-main
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -3869,6 +3990,9 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -3959,12 +4083,15 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -4070,6 +4197,9 @@ class ExportCommandTest extends Specification with Retries {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main

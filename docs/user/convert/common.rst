@@ -10,6 +10,8 @@ the root of the classpath. In the GeoMesa tools distribution, the files can be p
 `Standard Behavior <https://github.com/lightbend/config#standard-behavior>`__ for more information on how
 TypeSafe loads files.
 
+.. _converter_sft_defs:
+
 Defining SimpleFeatureTypes
 ---------------------------
 
