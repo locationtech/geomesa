@@ -1,4 +1,4 @@
-name: scala-build
+name: build-and-test-matrix
 
 on:
   push:
