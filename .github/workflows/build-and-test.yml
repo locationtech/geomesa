@@ -166,3 +166,8 @@ jobs:
     uses: ./.github/workflows/javadocs.yml
     with:
       scala-version: ${{ inputs.scala-version }}
+  dash:
+    needs: compile
+    uses: ./.github/workflows/dash.yml
+    with:
+      scala-version: ${{ inputs.scala-version }}
