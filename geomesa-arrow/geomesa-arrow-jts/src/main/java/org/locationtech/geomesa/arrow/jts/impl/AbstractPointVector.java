@@ -87,7 +87,7 @@ public abstract class AbstractPointVector<T extends FieldVector>
       ((FixedSizeListVector) typed.vector).setNull(toIndex);
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
-      if (isFlipAxisOrder()) {
+      if (isFlipAxisOrder() != typed.isFlipAxisOrder()) {
         typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2 + 1));
         typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2));
       } else {
