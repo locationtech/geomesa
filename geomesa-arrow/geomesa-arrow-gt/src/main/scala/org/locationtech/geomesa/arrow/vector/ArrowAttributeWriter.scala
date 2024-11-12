@@ -192,7 +192,7 @@ object ArrowAttributeWriter {
           case ObjectType.LONG     => new ArrowLongWriter(name, metadata, factory)
           case ObjectType.FLOAT    => new ArrowFloatWriter(name, metadata, factory)
           case ObjectType.DOUBLE   => new ArrowDoubleWriter(name, metadata, factory)
-          case ObjectType.GEOMETRY => geometry(name, bindings(1), encoding.geometry, metadata, factory)
+          case ObjectType.GEOMETRY => geometry(name, bindings(1), encoding, metadata, factory)
           case ObjectType.BOOLEAN  => new ArrowBooleanWriter(name, metadata, factory)
           case ObjectType.LIST     => new ArrowListWriter(name, bindings(1), encoding, metadata, factory)
           case ObjectType.MAP      => new ArrowMapWriter(name, bindings(1), bindings(2), encoding, metadata, factory)
@@ -234,11 +234,11 @@ object ArrowAttributeWriter {
   private def geometry(
       name: String,
       binding: ObjectType,
-      encoding: Encoding,
+      encoding: SimpleFeatureEncoding,
       metadata: Map[String, String],
       factory: VectorFactory): ArrowGeometryWriter = {
     val m = metadata.asJava
-    val vector = (binding, encoding, factory) match {
+    val vector = (binding, encoding.geometry, factory) match {
       case (ObjectType.POINT, Encoding.Min, FromStruct(c))              => new PointFloatVector(name, c, m)
       case (ObjectType.POINT, Encoding.Min, FromAllocator(c))           => new PointFloatVector(name, c, m)
       case (ObjectType.POINT, Encoding.Max, FromStruct(c))              => new PointVector(name, c, m)
@@ -269,7 +269,10 @@ object ArrowAttributeWriter {
       case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }
-    new ArrowGeometryWriter(name, vector.asInstanceOf[GeometryVector[Geometry, FieldVector]])
+    val geometryVector = vector.asInstanceOf[GeometryVector[Geometry, FieldVector]]
+    geometryVector.setFlipAxisOrder(encoding.flipAxisOrder)
+
+    new ArrowGeometryWriter(name, geometryVector)
   }
 
   trait ArrowDictionaryWriter extends ArrowAttributeWriter {

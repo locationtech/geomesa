@@ -29,6 +29,7 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   private VarBinaryVector vector;
   private WKBWriter writer = null;
   private WKBReader reader = null;
+  private boolean flipAxisOrder = false;
 
   public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
@@ -102,6 +103,16 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   @Override
   public void transfer(int fromIndex, int toIndex, GeometryVector<Geometry, VarBinaryVector> to) {
     to.set(toIndex, get(fromIndex));
+  }
+
+  @Override
+  public boolean isFlipAxisOrder() {
+    return flipAxisOrder;
+  }
+
+  @Override
+  public void setFlipAxisOrder(boolean flip) {
+    flipAxisOrder = flip;
   }
 
   @Override

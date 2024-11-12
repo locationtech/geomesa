@@ -67,6 +67,8 @@ object QueryHints {
 
   val FILTER_COMPAT            = new ClassKey(classOf[java.lang.String])
 
+  val FLIP_AXIS_ORDER          = new ClassKey(classOf[java.lang.Boolean])
+
   def sortReadableString(sort: Seq[(String, Boolean)]): String =
     sort.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")
 
@@ -178,5 +180,8 @@ object QueryHints {
         }
       }
     }
+
+    def isFlipAxisOrder: Boolean =
+      Option(hints.get(FLIP_AXIS_ORDER).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
   }
 }

@@ -65,8 +65,13 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
       for (int i = 0; i < geom.getNumPoints(); i++) {
         final Point p = (Point) geom.getGeometryN(i);
         tuples.setNotNull(position + i);
-        writeOrdinal((position + i) * 2, p.getY());
-        writeOrdinal((position + i) * 2 + 1, p.getX());
+        if (isFlipAxisOrder()) {
+          writeOrdinal((position + i) * 2, p.getX());
+          writeOrdinal((position + i) * 2 + 1, p.getY());
+        } else {
+          writeOrdinal((position + i) * 2, p.getY());
+          writeOrdinal((position + i) * 2 + 1, p.getX());
+        }
       }
       vector.endValue(index, geom.getNumPoints());
     }
@@ -82,8 +87,14 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
       final int offsetEnd = vector.getOffsetBuffer().getInt((index + 1) * ListVector.OFFSET_WIDTH);
       final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
       for (int i = 0; i < coordinates.length; i++) {
-        final double y = readOrdinal((offsetStart + i) * 2);
-        final double x = readOrdinal((offsetStart + i) * 2 + 1);
+        final double y, x;
+        if (isFlipAxisOrder()) {
+          y = readOrdinal((offsetStart + i) * 2 + 1);
+          x = readOrdinal((offsetStart + i) * 2);
+        } else {
+          y = readOrdinal((offsetStart + i) * 2);
+          x = readOrdinal((offsetStart + i) * 2 + 1);
+        }
         coordinates[i] = new Coordinate(x, y);
       }
       return factory.createMultiPointFromCoords(coordinates);

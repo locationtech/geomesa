@@ -53,8 +53,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       vector.setNull(index);
     } else {
       vector.setNotNull(index);
-      writeOrdinal(index * 2, geom.getY());
-      writeOrdinal(index * 2 + 1, geom.getX());
+      if (isFlipAxisOrder()) {
+        writeOrdinal(index * 2, geom.getX());
+        writeOrdinal(index * 2 + 1, geom.getY());
+      } else {
+        writeOrdinal(index * 2, geom.getY());
+        writeOrdinal(index * 2 + 1, geom.getX());
+      }
     }
   }
 
@@ -63,8 +68,14 @@ public abstract class AbstractPointVector<T extends FieldVector>
     if (vector.isNull(index)) {
       return null;
     } else {
-      final double y = readOrdinal(index * 2);
-      final double x = readOrdinal(index * 2 + 1);
+      final double y, x;
+      if (isFlipAxisOrder()) {
+        y = readOrdinal(index * 2 + 1);
+        x = readOrdinal(index * 2);
+      } else {
+        y = readOrdinal(index * 2);
+        x = readOrdinal(index * 2 + 1);
+      }
       return factory.createPoint(new Coordinate(x, y));
     }
   }
@@ -76,8 +87,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       ((FixedSizeListVector) typed.vector).setNull(toIndex);
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
-      typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
-      typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
+      if (isFlipAxisOrder() != typed.isFlipAxisOrder()) {
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2 + 1));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2));
+      } else {
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
+      }
     }
   }
 
@@ -89,7 +105,6 @@ public abstract class AbstractPointVector<T extends FieldVector>
    */
   public double getCoordinateY(int index) {
     return readOrdinal(index * 2);
-
   }
 
   /**

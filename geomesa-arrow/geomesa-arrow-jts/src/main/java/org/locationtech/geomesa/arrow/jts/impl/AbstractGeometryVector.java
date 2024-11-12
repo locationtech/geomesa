@@ -20,6 +20,7 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
 
   private V ordinal;
   protected U vector;
+  private boolean flipAxisOrder = false;
 
   protected AbstractGeometryVector(U vector) {
     this.vector = vector;
@@ -49,6 +50,16 @@ public abstract class AbstractGeometryVector<T extends Geometry, U extends Field
   public int getNullCount() {
     int count = vector.getNullCount();
     return Math.max(count, 0);
+  }
+
+  @Override
+  public boolean isFlipAxisOrder() {
+    return flipAxisOrder;
+  }
+
+  @Override
+  public void setFlipAxisOrder(boolean flip) {
+    flipAxisOrder = flip;
   }
 
   @Override

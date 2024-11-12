@@ -32,4 +32,7 @@ public interface GeometryVector<T extends Geometry, V extends FieldVector> exten
   int getNullCount();
 
   void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
+
+  boolean isFlipAxisOrder();
+  void setFlipAxisOrder(boolean flip);
 }
