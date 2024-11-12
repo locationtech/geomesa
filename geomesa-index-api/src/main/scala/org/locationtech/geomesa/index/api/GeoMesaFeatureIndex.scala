@@ -366,8 +366,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     */
   protected def generateTableName(partition: Option[String] = None, limit: Option[Int] = None): String = {
     import StringSerialization.alphaNumericSafeString
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val prefix = (ds.config.catalog +: Seq(sft.getTypeName, name).map(alphaNumericSafeString)).mkString("_")
+    val namespace = sft.getTablePrefix(name).getOrElse(ds.config.catalog)
+    val prefix = (namespace +: Seq(sft.getTypeName, name).map(alphaNumericSafeString)).mkString("_")
     val suffix = s"v$version${partition.map(p => s"_$p").getOrElse("")}"
 
     def build(attrs: Seq[String]): String = (prefix +: attrs :+ suffix).mkString("_")
