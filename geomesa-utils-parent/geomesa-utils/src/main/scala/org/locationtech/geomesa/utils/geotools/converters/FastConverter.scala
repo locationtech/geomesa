@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.utils.geotools.converters
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.filter.expression.Expression
 import org.geotools.data.util.InterpolationConverterFactory
 import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -26,13 +29,31 @@ object FastConverter extends StrictLogging {
 
   import scala.collection.JavaConverters._
 
-  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
-    // exclude jai-related factories as it's not usually on the classpath
-    case _: InterpolationConverterFactory => false
-    case _ => true
-  }
+  val ConverterCacheExpiry: SystemProperty = SystemProperty("geomesa.type.converter.cache.expiry", "1 hour")
 
-  private val cache = new ConcurrentHashMap[(Class[_], Class[_]), Array[Converter]]
+  private val cache: LoadingCache[(Class[_], Class[_]), Array[Converter]] =
+    Caffeine.newBuilder().expireAfterWrite(ConverterCacheExpiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS).build(
+      new CacheLoader[(Class[_], Class[_]), Array[Converter]]() {
+        override def load(key: (Class[_], Class[_])): Array[Converter] = {
+          val (from, to) = key
+          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
+            // exclude jai-related factories as it's not usually on the classpath
+            case _: InterpolationConverterFactory => false
+            case _ => true
+          }
+          logger.debug(s"Loaded ${factories.length} converter factories: ${factories.map(_.getClass.getName).mkString(", ")}")
+          val converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
+          logger.debug(
+            s"Found ${converters.length} converters for ${from.getName}->${to.getName}: " +
+              s"${converters.map(_.getClass.getName).mkString(", ")}")
+          if (to == classOf[String]) {
+            converters :+ ToStringConverter // add toString as a final fallback
+          } else {
+            converters
+          }
+        }
+      }
+    )
 
   /**
     * Convert the value into the given type
@@ -43,39 +64,22 @@ object FastConverter extends StrictLogging {
     * @return converted value, or null if it could not be converted
     */
   def convert[T](value: Any, binding: Class[T]): T = {
-    if (value == null) {
-      return null.asInstanceOf[T]
-    }
-
-    val clas = value.getClass
-    if (clas == binding) {
+    if (value == null || binding.isAssignableFrom(value.getClass)) {
       return value.asInstanceOf[T]
     }
 
-    val converters = getConverters(clas, binding)
+    val converters = cache.get((value.getClass, binding))
 
-    var i = 0
-    while (i < converters.length) {
-      try {
-        val result = converters(i).convert(value, binding)
-        if (result != null) {
-          return result
-        }
-      } catch {
-        case NonFatal(e) =>
-          logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
-              s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
-      }
-      i += 1
+    val result = tryConvert(value, binding, converters)
+    if (result == null) {
+      val msg =
+        s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName} " +
+          s"using ${converters.map(_.getClass.getName).mkString(", ")}"
+      logger.warn(msg)
+      logger.debug(msg, new RuntimeException())
     }
-
-    val msg = s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}"
-    logger.warn(msg)
-    logger.debug(msg, new Exception())
-
-    null.asInstanceOf[T]
+    result
   }
-
 
   /**
    * Convert the value into one of the given type
@@ -91,34 +95,30 @@ object FastConverter extends StrictLogging {
     }
 
     val clas = value.getClass
+    val errors = ArrayBuffer.empty[(Class[_], Array[Converter])]
 
     while (bindings.hasNext) {
       val binding = bindings.next
-      if (clas == binding) {
+      if (binding.isAssignableFrom(clas)) {
         return value.asInstanceOf[T]
       }
 
-      val converters = getConverters(clas, binding)
+      val converters = cache.get((clas, binding))
 
-      var i = 0
-      while (i < converters.length) {
-        try {
-          val result = converters(i).convert(value, binding)
-          if (result != null) {
-            return result
-          }
-        } catch {
-          case NonFatal(e) =>
-            logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
-                s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
-        }
-        i += 1
+      val result = tryConvert(value, binding, converters)
+      if (result != null) {
+        return result
+      } else {
+        errors += binding -> converters
       }
     }
 
-    logger.warn(
-      s"Could not convert '$value' (of type ${value.getClass.getName}) " +
-          s"to any of ${bindings.map(_.getName).mkString(", ")}")
+    val msg =
+      s"Could not convert '$value' (of type ${value.getClass.getName}) to any of:" +
+        errors.map { case (b, c) => s"${b.getClass.getName} using ${c.map(_.getClass.getName).mkString(", ")}"}.mkString("\n  ", "\n  ", "")
+
+    logger.warn(msg)
+    logger.debug(msg, new RuntimeException())
 
     null.asInstanceOf[T]
   }
@@ -148,32 +148,30 @@ object FastConverter extends StrictLogging {
   def evaluate[T](expression: Expression, binding: Class[T]): T = convert(expression.evaluate(null), binding)
 
   /**
-   * Gets a cached converter, loading it if necessary
+   * Try to convert the value
    *
-   * @param from from
-   * @param to to
-   * @return
+   * @param value value
+   * @param binding expected return type
+   * @param converters converters to use
+   * @tparam T expected return type
+   * @return the converted value as type T, or null if could not convert
    */
-  private def getConverters(from: Class[_], to: Class[_]): Array[Converter] = {
-    var converters = cache.get((from, to))
-
-    if (converters == null) {
-      if (from.eq(to) || from == to || to.isAssignableFrom(from)) {
-        converters = Array(IdentityConverter)
-      } else {
-        converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
-        if (to == classOf[String]) {
-          converters = converters :+ ToStringConverter // add toString as a final fallback
+  private def tryConvert[T](value: Any, binding: Class[T], converters: Array[Converter]): T = {
+    var i = 0
+    while (i < converters.length) {
+      try {
+        val result = converters(i).convert(value, binding)
+        if (result != null) {
+          return result
         }
+      } catch {
+        case NonFatal(e) =>
+          logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
+            s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
       }
-      cache.put((from, to), converters)
+      i += 1
     }
-
-    converters
-  }
-
-  private object IdentityConverter extends Converter {
-    override def convert[T](source: Any, target: Class[T]): T = source.asInstanceOf[T]
+    null.asInstanceOf[T]
   }
 
   private object ToStringConverter extends Converter {
