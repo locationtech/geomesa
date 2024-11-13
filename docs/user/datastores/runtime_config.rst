@@ -341,3 +341,9 @@ The class must have a no-arg constructor.
 
 By default GeoMesa will use heuristic-based query planning, which should work well for most situations. See
 :ref:`query_planning` for more details on query planning strategies.
+
+geomesa.type.converter.cache.expiry
++++++++++++++++++++++++++++++++++++
+
+This property controls how long type conversions are cached in memory before being reloaded. It is specified as a duration,
+e.g. ``1 minute`` or ``30 seconds``, with a default value of ``1 hour``.
