@@ -100,6 +100,7 @@ The following dependencies have been upgraded:
 
 * hbase ``2.5.8-hadoop3`` -> ``2.6.1-hadoop3``
 * hadoop ``3.4.0`` -> ``3.4.1``
+* orc ``1.9.4`` -> ``1.9.5``
 * spring-security ``5.8.14`` -> ``5.8.15``
 
 Version 5.1.0 Upgrade Guide
