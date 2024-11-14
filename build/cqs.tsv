@@ -190,9 +190,9 @@ org.apache.hbase:hbase-zookeeper	2.6.1-hadoop3	compile
 org.apache.htrace:htrace-core	3.2.0-incubating	compile
 org.apache.httpcomponents:httpclient	4.5.14	compile
 org.apache.httpcomponents:httpcore	4.4.16	compile
-org.apache.orc:orc-core	nohive:1.9.4	compile
-org.apache.orc:orc-mapreduce	nohive:1.9.4	compile
-org.apache.orc:orc-shims	1.9.4	compile
+org.apache.orc:orc-core	nohive:1.9.5	compile
+org.apache.orc:orc-mapreduce	nohive:1.9.5	compile
+org.apache.orc:orc-shims	1.9.5	compile
 org.apache.parquet:parquet-column	1.13.1	compile
 org.apache.parquet:parquet-common	1.13.1	compile
 org.apache.parquet:parquet-encoding	1.13.1	compile
