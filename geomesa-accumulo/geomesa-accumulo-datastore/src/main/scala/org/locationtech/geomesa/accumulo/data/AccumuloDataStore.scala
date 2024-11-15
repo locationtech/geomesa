@@ -73,6 +73,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -209,6 +210,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -244,6 +249,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -305,6 +313,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -460,6 +469,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
@@ -493,9 +506,12 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -592,6 +608,9 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils, WithClo
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -762,26 +781,33 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.index.conf.SchemaProperties.ValidateDistributedClasspath
 
-    // validate that the accumulo runtime is available
-    val namespace = config.catalog.indexOf('.') match {
-      case -1 => ""
-      case i  => config.catalog.substring(0, i)
-    }
-    if (namespace.nonEmpty) {
-      adapter.ensureNamespaceExists(namespace)
-    }
-    val canLoad = connector.namespaceOperations().testClassLoad(namespace,
-      classOf[ProjectVersionIterator].getName, classOf[SortedKeyValueIterator[_, _]].getName)
+    // call super first so that user data keys are updated
+    super.preSchemaCreate(sft)
 
-    if (!canLoad) {
-      val msg = s"Could not load GeoMesa distributed code from the Accumulo classpath for table '${config.catalog}'"
-      logger.error(msg)
-      if (ValidateDistributedClasspath.toBoolean.contains(true)) {
-        val nsMsg = if (namespace.isEmpty) { "" } else { s" for the namespace '$namespace'" }
-        throw new RuntimeException(s"$msg. You may override this check by setting the system property " +
+    def getNamespace(prefix: String): String = prefix.indexOf('.') match {
+      case -1 => ""
+      case i  => prefix.substring(0, i)
+    }
+
+    val prefixes = Seq(config.catalog) ++ sft.getIndices.flatMap(i => sft.getTablePrefix(i.name))
+    prefixes.map(getNamespace).distinct.foreach { namespace =>
+      if (namespace.nonEmpty) {
+        adapter.ensureNamespaceExists(namespace)
+      }
+      // validate that the accumulo runtime is available
+      val canLoad = connector.namespaceOperations().testClassLoad(namespace,
+        classOf[ProjectVersionIterator].getName, classOf[SortedKeyValueIterator[_, _]].getName)
+
+      if (!canLoad) {
+        val msg = s"Could not load GeoMesa distributed code from the Accumulo classpath"
+        logger.error(s"$msg for catalog ${config.catalog}")
+        if (ValidateDistributedClasspath.toBoolean.contains(true)) {
+          val nsMsg = if (namespace.isEmpty) { "" } else { s" for the namespace '$namespace'" }
+          throw new RuntimeException(s"$msg. You may override this check by setting the system property " +
             s"'${ValidateDistributedClasspath.property}=false'. Otherwise, please verify that the appropriate " +
             s"JARs are installed$nsMsg - see http://www.geomesa.org/documentation/user/accumulo/install.html" +
             "#installing-the-accumulo-distributed-runtime-library")
+        }
       }
     }
 
@@ -789,9 +815,6 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       throw new IllegalArgumentException("Attribute level visibility only supports up to 255 attributes")
     }
 
-    super.preSchemaCreate(sft)
-
-    // note: dtg should be set appropriately before calling this method
     sft.getDtgField.foreach { dtg =>
       if (sft.getIndices.exists(i => i.name == JoinIndex.name && i.attributes.headOption.contains(dtg))) {
         if (!GeoMesaSchemaValidator.declared(sft, OverrideDtgJoin)) {

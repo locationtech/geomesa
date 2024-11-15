@@ -43,9 +43,10 @@ trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
     val arrowSft = transform.getOrElse(sft)
     val includeFids = options(IncludeFidsKey).toBoolean
     val proxyFids = options.get(ProxyFidsKey).exists(_.toBoolean)
+    val flipAxisOrder = options.get(FlipAxisOrderKey).exists(_.toBoolean)
+    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids, flipAxisOrder)
     val dictionary = options(DictionaryKey)
     val sort = options.get(SortKey).map(name => (name, options.get(SortReverseKey).exists(_.toBoolean)))
-    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipcOpts = FormatVersion.options(options(IpcVersionKey))
     val dictionaries = dictionary.split(",").filterNot(_.isEmpty)
     new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, sort, batchSize)
@@ -60,12 +61,13 @@ object ArrowScan extends LazyLogging {
 
   object Configuration {
 
-    val IncludeFidsKey = "fids"
-    val ProxyFidsKey   = "proxy"
-    val DictionaryKey  = "dict"
-    val IpcVersionKey  = "ipc"
-    val SortKey        = "sort"
-    val SortReverseKey = "sort-rev"
+    val IncludeFidsKey   = "fids"
+    val ProxyFidsKey     = "proxy"
+    val FlipAxisOrderKey = "flip-axis-order"
+    val DictionaryKey    = "dict"
+    val IpcVersionKey    = "ipc"
+    val SortKey          = "sort"
+    val SortReverseKey   = "sort-rev"
   }
 
   /**
@@ -91,9 +93,10 @@ object ArrowScan extends LazyLogging {
     val arrowSft = hints.getTransformSchema.getOrElse(sft)
     val includeFids = hints.isArrowIncludeFid
     val proxyFids = hints.isArrowProxyFid
+    val flipAxisOrder = hints.isFlipAxisOrder
+    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids, flipAxisOrder)
     val sort = hints.getArrowSort
     val batchSize = getBatchSize(hints)
-    val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
     val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
     val ipcOpts = FormatVersion.options(ipc)
     val dictionaryFields = hints.getArrowDictionaryFields
@@ -101,12 +104,13 @@ object ArrowScan extends LazyLogging {
     val config = {
       val base = AggregatingScan.configure(sft, index, ecql, hints.getTransform, hints.getSampling, batchSize)
       base ++ AggregatingScan.optionalMap(
-        IncludeFidsKey -> includeFids.toString,
-        ProxyFidsKey   -> proxyFids.toString,
-        IpcVersionKey  -> ipc,
-        SortKey        -> sort.map(_._1),
-        SortReverseKey -> sort.map(_._2.toString),
-        DictionaryKey  -> dictionaryFields.mkString(",")
+        IncludeFidsKey   -> includeFids.toString,
+        ProxyFidsKey     -> proxyFids.toString,
+        FlipAxisOrderKey -> flipAxisOrder.toString,
+        IpcVersionKey    -> ipc,
+        SortKey          -> sort.map(_._1),
+        SortReverseKey   -> sort.map(_._2.toString),
+        DictionaryKey    -> dictionaryFields.mkString(",")
       )
     }
 
@@ -223,6 +227,7 @@ object ArrowScan extends LazyLogging {
       ReducerConfig.sftSpec(sft),
       ReducerConfig.DictionariesKey -> StringSerialization.encodeSeq(dictionaryFields),
       ReducerConfig.encoding(encoding),
+      ReducerConfig.flipAxisOrder(encoding),
       ReducerConfig.ipcOption(ipcOpts),
       ReducerConfig.batch(batchSize),
       ReducerConfig.sort(sort),
@@ -254,15 +259,16 @@ object ArrowScan extends LazyLogging {
 
   object ReducerConfig {
 
-    val SftKey          = "sft"
-    val SpecKey         = "spec"
-    val DictionariesKey = "dicts"
-    val EncodingKey     = "enc"
-    val IpcKey          = "ipc"
-    val BatchKey        = "batch"
-    val SortKey         = "sort"
-    val SortedKey       = "sorted"
-    val ProcessKey      = "process"
+    val SftKey           = "sft"
+    val SpecKey          = "spec"
+    val DictionariesKey  = "dicts"
+    val EncodingKey      = "enc"
+    val FlipAxisOrderKey = "flip-axis-order"
+    val IpcKey           = "ipc"
+    val BatchKey         = "batch"
+    val SortKey          = "sort"
+    val SortedKey        = "sorted"
+    val ProcessKey       = "process"
 
     def sftName(sft: SimpleFeatureType): (String, String) = SftKey -> sft.getTypeName
     def sftSpec(sft: SimpleFeatureType): (String, String) =
@@ -274,10 +280,14 @@ object ArrowScan extends LazyLogging {
     def encoding(e: SimpleFeatureEncoding): (String, String) =
       EncodingKey -> s"${e.fids.getOrElse("")}:${e.geometry}:${e.date}"
 
+    def flipAxisOrder(e: SimpleFeatureEncoding): (String, String) =
+      FlipAxisOrderKey -> s"${e.flipAxisOrder}"
+
     def encoding(options: Map[String, String]): SimpleFeatureEncoding = {
       val Array(fids, geom, dtg) = options(EncodingKey).split(":")
       val fidOpt = Option(fids).filterNot(_.isEmpty).map(Encoding.withName)
-      SimpleFeatureEncoding(fidOpt, Encoding.withName(geom), Encoding.withName(dtg))
+      val flipAxisOrder = options.get(FlipAxisOrderKey).exists(_.toBoolean)
+      SimpleFeatureEncoding(fidOpt, Encoding.withName(geom), Encoding.withName(dtg), flipAxisOrder)
     }
 
     def ipcOption(options: Map[String, String]): IpcOption = FormatVersion.options(options(IpcKey))

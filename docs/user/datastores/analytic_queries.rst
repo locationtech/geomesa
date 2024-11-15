@@ -273,6 +273,8 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_FLATTEN_STRUCT     | Boolean (optional) | flattenStruct                      |
 +-------------------------------------+--------------------+------------------------------------+
+| QueryHints.FLIP_AXIS_ORDER          | Boolean (optional) | flipAxisOrder                      |
++-------------------------------------+--------------------+------------------------------------+
 
 Explanation of Hints
 ++++++++++++++++++++
@@ -335,6 +337,11 @@ ARROW_FLATTEN_STRUCT
 
 This hint will remove the outer struct named after the feature type and will instead return the attribute fields directly
 in the RecordBatch. Note that this hint is currently only supported for PostGIS and geoserver native stores.
+
+FLIP_AXIS_ORDER
+^^^^^^^^^^^^^^^
+
+This hint flips the axis order of returned coordinates from latitude/longitude (default) to longitude/latitude.
 
 Example Query
 +++++++++++++

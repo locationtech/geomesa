@@ -26,6 +26,12 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+ * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
+=======
+<<<<<<< HEAD
+>>>>>>> locatelli-main
 =======
  * Copyright (c) 2013-2024 Commonwealth Computer Research, Inc.
 =======
@@ -190,6 +196,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 =======
 <<<<<<< HEAD
@@ -326,6 +333,10 @@
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+>>>>>>> locatelli-main
+=======
 >>>>>>> 3e610250ce (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> f586fec5a3 (GEOMESA-3254 Add Bloop build support)
@@ -361,6 +372,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -368,6 +380,8 @@
 >>>>>>> locatelli-main
 >>>>>>> 58d14a257e (GEOMESA-3254 Add Bloop build support)
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -447,6 +461,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -501,6 +518,7 @@
 =======
 >>>>>>> 58d14a257 (GEOMESA-3254 Add Bloop build support)
 >>>>>>> fa60953a42 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -603,6 +621,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 9f430502b2 (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -643,6 +663,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -699,6 +722,7 @@
 >>>>>>> 7564665969 (GEOMESA-3254 Add Bloop build support)
 =======
 >>>>>>> e74fa3f690 (GEOMESA-3254 Add Bloop build support)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -791,6 +815,8 @@
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> b727e40f7c (GEOMESA-3254 Add Bloop build support)
 =======
 =======
@@ -831,6 +857,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -913,6 +942,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b39bd292d4 (GEOMESA-3254 Add Bloop build support)
 <<<<<<< HEAD
@@ -924,6 +954,8 @@
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1004,6 +1036,9 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1108,8 +1143,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       vector.setNull(index);
     } else {
       vector.setNotNull(index);
-      writeOrdinal(index * 2, geom.getY());
-      writeOrdinal(index * 2 + 1, geom.getX());
+      if (isFlipAxisOrder()) {
+        writeOrdinal(index * 2, geom.getX());
+        writeOrdinal(index * 2 + 1, geom.getY());
+      } else {
+        writeOrdinal(index * 2, geom.getY());
+        writeOrdinal(index * 2 + 1, geom.getX());
+      }
     }
   }
 
@@ -1118,8 +1158,14 @@ public abstract class AbstractPointVector<T extends FieldVector>
     if (vector.isNull(index)) {
       return null;
     } else {
-      final double y = readOrdinal(index * 2);
-      final double x = readOrdinal(index * 2 + 1);
+      final double y, x;
+      if (isFlipAxisOrder()) {
+        y = readOrdinal(index * 2 + 1);
+        x = readOrdinal(index * 2);
+      } else {
+        y = readOrdinal(index * 2);
+        x = readOrdinal(index * 2 + 1);
+      }
       return factory.createPoint(new Coordinate(x, y));
     }
   }
@@ -1131,8 +1177,13 @@ public abstract class AbstractPointVector<T extends FieldVector>
       ((FixedSizeListVector) typed.vector).setNull(toIndex);
     } else {
       ((FixedSizeListVector) typed.vector).setNotNull(toIndex);
-      typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
-      typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
+      if (isFlipAxisOrder() != typed.isFlipAxisOrder()) {
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2 + 1));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2));
+      } else {
+        typed.writeOrdinal(toIndex * 2, readOrdinal(fromIndex * 2));
+        typed.writeOrdinal(toIndex * 2 + 1, readOrdinal(fromIndex * 2 + 1));
+      }
     }
   }
 
@@ -1144,7 +1195,6 @@ public abstract class AbstractPointVector<T extends FieldVector>
    */
   public double getCoordinateY(int index) {
     return readOrdinal(index * 2);
-
   }
 
   /**

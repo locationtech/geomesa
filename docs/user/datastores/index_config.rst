@@ -173,6 +173,26 @@ you may instead call the ``indexes`` methods:
         .indices(List("id", "z3", "attr"))
         .build("mySft")
 
+Configuring Index Table Names
+-----------------------------
+
+The names used for index tables attempt to be unique, usually being composed of the catalog table name, the feature type name,
+and the index identifier. In certain situations, it may be useful to modify the index table names. For example, in Accumulo
+you may want to put index tables in different namespaces that have custom configurations. Table name prefixes can be set
+using the user data key ``index.table.prefix``, or, to configure prefixes for a specific index type, ``index.table.prefix.<index>``
+where ``<index>`` is an index name such as ``z3`` or ``id``:
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+    // table names will look like geomesa.custom_mySft_id_v4
+    sft.getUserData().put("index.table.prefix", "geomesa.custom");
+    // override table names for just the z3 index
+    sft.getUserData().put("index.table.prefix.z3", "geomesa_z3.custom");
+
 Configuring Feature ID Encoding
 -------------------------------
 

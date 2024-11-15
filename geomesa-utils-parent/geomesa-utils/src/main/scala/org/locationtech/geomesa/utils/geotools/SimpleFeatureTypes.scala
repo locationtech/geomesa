@@ -42,6 +42,7 @@ object SimpleFeatureTypes {
     val IndexAttributeShards  = "geomesa.attr.splits"
     val IndexIdShards         = "geomesa.id.splits"
     val IndexIgnoreDtg        = "geomesa.ignore.dtg"
+    val IndexTablePrefix      = "index.table.prefix"
     val IndexVisibilityLevel  = "geomesa.visibility.level"
     val IndexXzPrecision      = "geomesa.xz.precision"
     val IndexZ3Interval       = "geomesa.z3.interval"
@@ -80,6 +81,7 @@ object SimpleFeatureTypes {
     val IndexVersions          = "geomesa.indices"
     val PartitionSplitterClass = "geomesa.splitter.class"
     val PartitionSplitterOpts  = "geomesa.splitter.opts"
+    val PartitionTablePrefix   = "geomesa.table.prefix"
     val RemoteVersion          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
     val PartitionTableCache    = "geomesa.table.cache"
     val KeywordsDelimiter      = "\u0000"
@@ -89,6 +91,15 @@ object SimpleFeatureTypes {
       Configs.TableCacheEnabled  -> PartitionTableCache,
       Configs.TableSplitterClass -> PartitionSplitterClass,
       Configs.TableSplitterOpts  -> PartitionSplitterOpts,
+    )
+    val PartitionConfigPrefixMappings: Map[String, String] = Map(
+      Configs.IndexTablePrefix -> PartitionTablePrefix,
+    )
+
+    // deprecated configs that we want to re-map for back-compatibility
+    val DeprecatedConfigMappings: Map[String, String] = Map(
+      "geomesa.indexes.enabled" -> Configs.EnabledIndices,
+      "table.indexes.enabled"   -> Configs.EnabledIndices,
     )
   }
 

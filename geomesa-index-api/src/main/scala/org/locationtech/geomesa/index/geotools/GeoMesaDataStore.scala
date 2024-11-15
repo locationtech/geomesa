@@ -115,10 +115,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
-    // check for old enabled indices and re-map them
-    // noinspection ScalaDeprecation
-    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
-      sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, sft.getUserData.remove(key))
+    // check for old user data keys and re-map them
+    InternalConfigs.DeprecatedConfigMappings.foreach { case (from, to) =>
+      val v = sft.getUserData.remove(from)
+      if (v != null) {
+        sft.getUserData.put(to, v)
+      }
     }
 
     // validate column groups
@@ -154,6 +156,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft.isPartitioned) {
       InternalConfigs.PartitionConfigMappings.foreach { case (from, to) =>
         Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
+      }
+      InternalConfigs.PartitionConfigPrefixMappings.foreach { case (from, to) =>
+        sft.getUserData.asScala.toMap.collect {
+          case (k: String, v) if k.startsWith(from) => sft.getUserData.put(to + k.substring(from.length), v)
+        }
       }
     }
 

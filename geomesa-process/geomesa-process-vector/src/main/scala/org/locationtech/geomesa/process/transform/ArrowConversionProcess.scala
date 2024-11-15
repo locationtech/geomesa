@@ -67,7 +67,9 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
               @DescribeParameter(name = "batchSize", description = "Number of features to include in each record batch", min = 0)
               batchSize: java.lang.Integer,
               @DescribeParameter(name = "flattenStruct", description = "Removes the outer SFT struct yielding top level feature access", min = 0)
-              flattenStruct: java.lang.Boolean
+              flattenStruct: java.lang.Boolean,
+              @DescribeParameter(name = "flipAxisOrder", description = "Flip the axis order of returned coordinates from latitude/longitude (default) to longitude/latitude", min = 0, defaultValue = "false")
+              flipAxisOrder: java.lang.Boolean = false
              ): java.util.Iterator[Array[Byte]] = {
 
     import scala.collection.JavaConverters._
@@ -84,7 +86,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
       }
     }
 
-    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids)
+    val encoding = SimpleFeatureEncoding.min(includeFids == null || includeFids, proxyFids != null && proxyFids, Option(flipAxisOrder).exists(_.booleanValue))
     val ipcVersion = Option(formatVersion).getOrElse(FormatVersion.ArrowFormatVersion.get)
     val reverse = Option(sortReverse).map(_.booleanValue())
     val batch = Option(batchSize).map(_.intValue).getOrElse(ArrowProperties.BatchSize.get.toInt)
@@ -152,6 +154,7 @@ object ArrowConversionProcess {
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, batchSize)
       query.getHints.put(QueryHints.ARROW_FORMAT_VERSION, ipcVersion)
       query.getHints.put(QueryHints.ARROW_FLATTEN_STRUCT, flattenStruct)
+      query.getHints.put(QueryHints.FLIP_AXIS_ORDER, encoding.flipAxisOrder)
       sortField.foreach(query.getHints.put(QueryHints.ARROW_SORT_FIELD, _))
       sortReverse.foreach(query.getHints.put(QueryHints.ARROW_SORT_REVERSE, _))
 
