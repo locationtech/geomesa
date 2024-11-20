@@ -29,7 +29,7 @@ class ShapefileConverterTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("states", spec)
 
-  lazy val shp = this.getClass.getClassLoader.getResource("cb_2017_us_state_20m.shp")
+  lazy val shp = this.getClass.getClassLoader.getResource("us_state/cb_2017_us_state_20m.shp")
   lazy val shpFile = Paths.get(shp.toURI).toFile.getAbsolutePath
 
   // fields in the shapefile:
@@ -106,31 +106,35 @@ class ShapefileConverterTest extends Specification {
       }
     }
 
-    "parse shapefile with cpg file" in {
+    "parse shapefile with cpg file or specific encoding" in {
       val spec = "*the_geom:Point,name:String"
       val sft = SimpleFeatureTypes.createType("gis_osm_pofw", spec)
-      lazy val shp = this.getClass.getClassLoader.getResource("gis_osm_pofw_free_1.shp")
-      lazy val shpFile = Paths.get(shp.toURI).toFile.getAbsolutePath
 
-      val conf = ConfigFactory.parseString(
-        """
-          |{
-          |  "id-field" : "$0",
-          |  "type" : "shp",
-          |  "fields" : [
-          |    { "name" : "the_geom", "transform" : "$1" },
-          |    { "name" : "name", "transform" : "$5" }
-          |  ]
-          |}
-        """.stripMargin)
+      foreach(Seq("pofw_cpg" -> None, "pofw" -> Some("UTF-8"))) { case (dir, encoding) =>
+        val shp = this.getClass.getClassLoader.getResource(s"$dir/gis_osm_pofw_free_1.shp")
+        val shpFile = Paths.get(shp.toURI).toFile.getAbsolutePath
 
-      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
-        converter must not(beNull)
-        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-        val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+        val conf = ConfigFactory.parseString(
+          s"""
+            |{
+            |  "id-field" : "$$0",
+            |  "type" : "shp",
+            |  "options": { ${encoding.map(e => s"encoding: $e").getOrElse("")} }
+            |  "fields" : [
+            |    { "name" : "the_geom", "transform" : "$$1" },
+            |    { "name" : "name", "transform" : "$$5" }
+            |  ]
+            |}
+          """.stripMargin)
 
-        // strings should be properly decoded
-        res.map(_.getAttribute("name")) must containAllOf(Seq("法海寺", "རུ་ཐོག་དགོན་ (日多寺)", "Pagoda"))
+        WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+          converter must not(beNull)
+          val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
+          val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+
+          // strings should be properly decoded
+          res.map(_.getAttribute("name")) must containAllOf(Seq("法海寺", "རུ་ཐོག་དགོན་ (日多寺)", "Pagoda"))
+        }
       }
     }
   }
