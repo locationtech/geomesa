@@ -25,7 +25,6 @@ import org.locationtech.geomesa.utils.text.TextTools
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.file.{Files, Paths}
-import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
 class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Seq[BasicField], options: BasicOptions)
@@ -50,7 +49,7 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
       throw new IllegalArgumentException(s"Shapefile converter requires '${EvaluationContext.InputFilePathKey}' " +
           "to be set in the evaluation context")
     }
-    val ds = ShapefileConverter.getDataStore(path)
+    val ds = ShapefileConverter.getDataStore(path, options.encoding)
     val schema = ds.getSchema()
 
     (ec.accessor(InputSchemaKey).apply(), ec.accessor(InputValuesKey).apply()) match {
@@ -119,16 +118,16 @@ object ShapefileConverter extends LazyLogging {
     * @param path input path
     * @return
     */
-  def getDataStore(path: String): ShapefileDataStore = {
-    val params = Collections.singletonMap(ShapefileDataStoreFactory.URLP.key, PathUtils.getUrl(path))
+  def getDataStore(path: String, charset: Charset): ShapefileDataStore = {
+    val params = java.util.Map.of(
+      ShapefileDataStoreFactory.URLP.key, PathUtils.getUrl(path),
+      ShapefileDataStoreFactory.DBFCHARSET.key, charset
+    )
     val ds = DataStoreFinder.getDataStore(params).asInstanceOf[ShapefileDataStore]
-    tryInferCharsetFromCPG(path) match {
-      case Some(charset) => ds.setCharset(charset)
-      case None =>
-    }
     if (ds == null) {
       throw new IllegalArgumentException(s"Could not read shapefile using path '$path'")
     }
+    tryInferCharsetFromCPG(path).foreach(ds.setCharset)
     ds
   }
 
@@ -137,7 +136,7 @@ object ShapefileConverter extends LazyLogging {
     val shpDirPath = Paths.get(path).getParent
     val (baseName, _) = PathUtils.getBaseNameAndExtension(path)
     val cpgPath = shpDirPath.resolve(baseName + ".cpg")
-    if (!Files.isRegularFile(cpgPath)) None else {
+    if (!Files.isRegularFile(cpgPath)) { None } else {
       val source = scala.io.Source.fromFile(cpgPath.toFile)
       try {
         source.getLines.take(1).toList match {
