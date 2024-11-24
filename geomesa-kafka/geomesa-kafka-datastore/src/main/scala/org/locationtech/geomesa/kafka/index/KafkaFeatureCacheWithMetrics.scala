@@ -32,8 +32,13 @@ import com.codahale.metrics.{Gauge, Histogram}
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+=======
+>>>>>>> locatelli-main
+=======
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 =======
 >>>>>>> locatelli-main
@@ -154,6 +159,7 @@ import com.codahale.metrics.Gauge
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -198,6 +204,8 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 =======
 >>>>>>> locatelli-main
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -268,6 +276,9 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -317,6 +328,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> af0a88eb1 (GEOMESA-3100 Kafka layer views (#2784))
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -415,6 +427,8 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
+=======
+>>>>>>> locatelli-main
 >>>>>>> 98e7bf59d2 (GEOMESA-3100 Kafka layer views (#2784))
 <<<<<<< HEAD
 >>>>>>> 5e885404c30 (GEOMESA-3100 Kafka layer views (#2784))
@@ -440,6 +454,9 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -512,8 +529,13 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> d014210d195 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> d014210d195 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> locatelli-main
@@ -628,8 +650,13 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> ae76dae421d (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> ae76dae421d (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> locatelli-main
@@ -744,8 +771,13 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 72207855ca1 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 72207855ca1 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 >>>>>>> locatelli-main
@@ -871,6 +903,9 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -965,6 +1000,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> location-main
 =======
 <<<<<<< HEAD
@@ -986,6 +1022,8 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 >>>>>>> 846e61d5c9 (GEOMESA-3100 Kafka layer views (#2784))
 =======
+=======
+>>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
 =======
@@ -1053,6 +1091,9 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> locatelli-main
+=======
 >>>>>>> locatelli-main
 =======
 >>>>>>> locatelli-main
@@ -1123,6 +1164,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1148,6 +1190,11 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 =======
 <<<<<<< HEAD
+>>>>>>> 4f588ffc458 (GEOMESA-3100 Kafka layer views (#2784))
+=======
+=======
+>>>>>>> locatelli-main
+=======
 >>>>>>> 4f588ffc458 (GEOMESA-3100 Kafka layer views (#2784))
 =======
 =======
@@ -1292,6 +1339,7 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> locationtech-main
 =======
 >>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
@@ -1316,6 +1364,10 @@ import com.codahale.metrics.MetricRegistry.MetricSupplier
 >>>>>>> locatelli-main
 =======
 >>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> locatelli-main
+=======
+>>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))
+>>>>>>> c618e8f8812 (GEOMESA-3100 Kafka layer views (#2784))
 >>>>>>> locatelli-main
 =======
 >>>>>>> c933324bff (GEOMESA-3100 Kafka layer views (#2784))

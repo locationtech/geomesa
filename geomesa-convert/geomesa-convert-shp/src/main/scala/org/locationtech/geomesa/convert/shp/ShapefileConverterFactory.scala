@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.convert.shp
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory.TypeToProcess
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -20,7 +21,8 @@ import org.locationtech.geomesa.convert2.transforms.Expression.Column
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.InputStream
-import scala.util.{Failure, Success, Try}
+import java.nio.charset.Charset
+import scala.util.{Failure, Try}
 
 class ShapefileConverterFactory
   extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions](
@@ -44,7 +46,7 @@ class ShapefileConverterFactory
 
     }
     Try {
-      WithClose(ShapefileConverter.getDataStore(url)) { ds =>
+      WithClose(ShapefileConverter.getDataStore(url, ShapefileConverterFactory.DefaultCharset)) { ds =>
         val fields = sft match {
           case None =>
             var i = 0
@@ -76,8 +78,17 @@ class ShapefileConverterFactory
       }
     }
   }
+
+  override protected def withDefaults(conf: Config): Config =
+    super.withDefaults(conf.withFallback(ShapefileConverterFactory.ShpConfigDefaults))
 }
 
 object ShapefileConverterFactory extends LazyLogging {
+
   val TypeToProcess: String = "shp"
+
+  private val DefaultCharset: Charset = ShapefileDataStoreFactory.DBFCHARSET.getDefaultValue.asInstanceOf[Charset]
+
+  private val ShpConfigDefaults: Config =
+    ConfigFactory.empty().withValue("options.encoding", ConfigValueFactory.fromAnyRef(DefaultCharset.name()))
 }
