@@ -12,7 +12,8 @@ Installing GeoMesa Kafka
     .. parsed-literal::
 
         $ export TAG="|release_version|"
-        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
+        $ export SCALA_VERSION="|scala_binary_version|" # note: |scala_binary_version| is the Scala build version
+        $ export VERSION="${SCALA_VERSION}-${TAG}"
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -153,3 +154,17 @@ to match the target environment, and then run the script:
     Ensure that the Scala version of both GeoMesa and Kafka match to avoid compatibility errors.
 
 Restart GeoServer after the JARs are installed.
+
+.. _install_kafka_readiness_gs:
+
+Installing the GeoMesa Kafka Readiness Endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+GeoMesa provides a :ref:`kafka_readiness_gs` that can provide status on layer loading progress. To install the endpoint,
+add the ``geomesa-gs-kafka-status-endpoint`` JAR to GeoServer's lib directory:
+
+.. code-block:: bash
+
+    $ export MAVEN_URL="https://search.maven.org/remotecontent?filepath=org/geomesa/geoserver"
+    $ wget "${MAVEN_URL}/geomesa-gs-kafka-status-endpoint_${SCALA_VERSION}/${TAG}/geomesa-gs-kafka-status-endpoint_${VERSION}.jar" \
+      -O /path/to/geoserver/webapps/geoserver/WEB-INF/lib/geomesa-gs-kafka-status-endpoint_${VERSION}.jar
