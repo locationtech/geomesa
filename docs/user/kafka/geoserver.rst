@@ -22,3 +22,19 @@ On the "Add Store" page, select "Kafka (GeoMesa)", and fill out the
 parameters. The parameters are described in :ref:`kafka_parameters`.
 
 Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.
+
+.. _kafka_readiness_gs:
+
+Kafka Layer Readiness Endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When a Kafka data store is configured with a read-back (``kafka.consumer.read-back``), it may take some time before layers
+are available for querying. GeoMesa provides an endpoint that can be used to track the status of the consumer read-back.
+When installed, GeoServer will expose an endpoint at ``rest/kafka`` (e.g. ``localhost:8080/geoserver/rest/kafka``) that can
+be used in a readiness probe, returning HTTP status code ``200`` when all layers are loaded, and ``503`` when layers are not
+yet available. See :ref:`install_kafka_readiness_gs` for installation instructions.
+
+.. warning::
+
+    ``kafka.consumer.start-on-demand`` must be set to false (unchecked) in order for layers to be automatically loaded when
+    GeoServer starts up.
