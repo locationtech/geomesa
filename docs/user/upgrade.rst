@@ -98,6 +98,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* geotools ``32.0`` -> ``32.1``
 * hbase ``2.5.8-hadoop3`` -> ``2.6.1-hadoop3``
 * hadoop ``3.4.0`` -> ``3.4.1``
 * orc ``1.9.4`` -> ``1.9.5``
