@@ -15,7 +15,6 @@ import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.jts.impl.AbstractMultiLineStringVector;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -27,11 +26,25 @@ public class MultiLineStringVector extends AbstractMultiLineStringVector<Float8V
   // fields created by this vector
   public static final List<Field> fields = GeometryFields.XY_DOUBLE_LIST_2;
 
-  public MultiLineStringVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
+  /**
+   * Constructor
+   *
+   * @param name name of the vector
+   * @param allocator allocator for the vector
+   * @param metadata metadata (may be null)
+   */
+  public MultiLineStringVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
     super(name, allocator, metadata);
   }
 
-  public MultiLineStringVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
+  /**
+   * Constructor
+   *
+   * @param name name of the vector
+   * @param container parent container
+   * @param metadata metadata (may be null)
+   */
+  public MultiLineStringVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
     super(name, container, metadata);
   }
 

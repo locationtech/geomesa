@@ -19,7 +19,6 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -37,11 +36,25 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
     return new FieldType(true, ArrowType.Binary.INSTANCE, null, metadata);
   }
 
-  public WKBGeometryVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
+  /**
+   * Constructor
+   *
+   * @param name name of the vector
+   * @param allocator allocator for the vector
+   * @param metadata metadata (may be null)
+   */
+  public WKBGeometryVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
     this.vector = new VarBinaryVector(name, createFieldType(metadata), allocator);
   }
 
-  public WKBGeometryVector(String name, AbstractContainerVector container, @Nullable Map<String, String> metadata) {
+  /**
+   * Constructor
+   *
+   * @param name name of the vector
+   * @param container parent container
+   * @param metadata metadata (may be null)
+   */
+  public WKBGeometryVector(String name, AbstractContainerVector container, Map<String, String> metadata) {
     this.vector = container.addOrGet(name, createFieldType(metadata), VarBinaryVector.class);
   }
 
