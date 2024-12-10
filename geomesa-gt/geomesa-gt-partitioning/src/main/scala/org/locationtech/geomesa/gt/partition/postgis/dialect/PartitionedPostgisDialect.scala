@@ -418,6 +418,9 @@ object PartitionedPostgisDialect {
     val WriteAheadPartitionsTableSpace = "pg.partitions.tablespace.wa-partitions"
     val MainTableSpace = "pg.partitions.tablespace.main"
 
+    // set postgres table wal logging
+    val WalLogEnabled = "pg.wal.log.enabled"
+
     implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
       def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)
       def getMaxPartitions: Option[Int] = Option(sft.getUserData.get(MaxPartitions)).map(int)

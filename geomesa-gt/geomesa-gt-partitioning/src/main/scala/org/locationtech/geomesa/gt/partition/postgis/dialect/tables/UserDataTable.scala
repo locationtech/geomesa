@@ -28,7 +28,7 @@ class UserDataTable extends Sql {
     val table = TableIdentifier(info.schema.raw, Name.raw)
     val cName = TableName(Name.raw + "_pkey")
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.quoted} (
+      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${table.quoted} (
          |  type_name text not null,
          |  key text not null,
          |  value text not null

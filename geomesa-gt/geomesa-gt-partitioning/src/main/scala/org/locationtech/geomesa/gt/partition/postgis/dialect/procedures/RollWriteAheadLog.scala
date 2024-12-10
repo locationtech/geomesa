@@ -77,7 +77,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |        END IF;
        |
        |        -- requires SHARE UPDATE EXCLUSIVE
-       |        EXECUTE 'CREATE TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
+       |        EXECUTE 'CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
        |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
        |          ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_space || ')' ||
        |          ' INHERITS (${table.name.qualified})${table.storage.opts}' || partition_tablespace;

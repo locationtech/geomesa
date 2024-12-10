@@ -157,7 +157,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |              RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
        |              -- upper bounds are exclusive
        |              -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
-       |              EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |              EXECUTE 'CREATE ${info.walLogSQL} TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |                partition_tablespace || ' AS SELECT * FROM ' || quote_ident(write_ahead.name) ||
        |                '   WHERE $dtgCol >= ' || quote_literal(partition_start) ||
        |                '     AND $dtgCol < ' || quote_literal(partition_end) ||

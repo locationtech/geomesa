@@ -21,6 +21,7 @@ import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.Config.WalLogEnabled
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
@@ -88,6 +89,27 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "preparedStatements" -> "true"
   )
 
+  def isTableLoggedQuery(tableName: String, schemaName: String): String =
+    s"""
+      |SELECT
+      |    n.nspname AS schema_name,
+      |    c.relname AS table_name,
+      |    CASE c.relpersistence
+      |        WHEN 'u' THEN 'unlogged'
+      |        WHEN 'p' THEN 'permanent'
+      |        WHEN 't' THEN 'temporary'
+      |        ELSE 'unknown'
+      |    END AS table_type
+      |FROM
+      |    pg_class c
+      |JOIN
+      |    pg_namespace n ON n.oid = c.relnamespace
+      |WHERE
+      |    c.relname = '$tableName'
+      |    AND n.nspname = '$schemaName';
+      |
+      |""".stripMargin
+
   var container: GenericContainer[_] = _
 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
@@ -131,6 +153,43 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.dispose()
       }
       ok
+    }
+
+    "create unlogged tables" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "unlogged_test")
+        sft.getUserData.put(WalLogEnabled, "false")
+
+        ds.createSchema(sft)
+
+        val typeInfo: TypeInfo = TypeInfo(this.schema, sft)
+
+        Seq(
+          typeInfo.tables.mainPartitions.name.raw,
+          typeInfo.tables.writeAheadPartitions.name.raw,
+          //          typeInfo.tables.writeAhead.name.raw, write ahead table is created with PartitionedPostgisDialect#encodePostCreateTable
+          //          which doesnt have access to the user data, should be ok because the write ahead main table doesnt have any data
+          typeInfo.tables.spillPartitions.name.raw,
+          typeInfo.tables.analyzeQueue.name.raw,
+          typeInfo.tables.sortQueue.name.raw).forall { tableName =>
+          val sql = isTableLoggedQuery(tableName, "public")
+          // verify that the table is unlogged
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.createStatement()) { st =>
+              WithClose(st.executeQuery(sql)) { rs =>
+                rs.next() must beTrue
+                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                rs.getString("table_type") mustEqual "unlogged"
+              }
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
     }
 
     "work" in {

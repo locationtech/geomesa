@@ -32,7 +32,7 @@ object PartitionTables extends SqlStatements {
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.name.qualified} (
+      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${table.name.qualified} (
          |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
          |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
          |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin

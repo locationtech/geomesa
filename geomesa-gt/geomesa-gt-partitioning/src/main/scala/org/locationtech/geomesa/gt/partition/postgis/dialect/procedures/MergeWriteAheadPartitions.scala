@@ -121,7 +121,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
        |          -- we need a "select distinct" to avoid primary key conflicts - this should be fairly cheap since
        |          --   we're already sorting and there should be few or no conflicts
-       |          EXECUTE 'CREATE TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |          EXECUTE 'CREATE ${info.walLogSQL} TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            partition_tablespace || ' AS SELECT DISTINCT ON' ||
        |            ' (_st_sortablehash($geomCol), fid, ${info.cols.dtg.quoted}) * FROM ' ||
        |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash($geomCol)';
