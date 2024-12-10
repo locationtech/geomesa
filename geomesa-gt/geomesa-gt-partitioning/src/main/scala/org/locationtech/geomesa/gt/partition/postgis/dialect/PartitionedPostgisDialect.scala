@@ -419,7 +419,7 @@ object PartitionedPostgisDialect {
     val MainTableSpace = "pg.partitions.tablespace.main"
 
     // set postgres table wal logging
-    val WalLogEnabled = "pg.wal.log.enabled"
+    val WalLogEnabled = "pg.wal.enabled"
 
     implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
       def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)
