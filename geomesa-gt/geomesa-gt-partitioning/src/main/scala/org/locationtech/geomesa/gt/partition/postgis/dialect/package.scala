@@ -158,7 +158,13 @@ package object dialect {
       tables: Tables,
       cols: Columns,
       partitions: PartitionInfo,
-      userData: Map[String, String] = Map.empty)
+      userData: Map[String, String] = Map.empty) {
+    val walLogSQL: String = if (userData.getOrElse(Config.WalLogEnabled, "true").toBoolean) {
+      ""
+    } else {
+      " UNLOGGED "
+    }
+  }
 
   object TypeInfo {
 

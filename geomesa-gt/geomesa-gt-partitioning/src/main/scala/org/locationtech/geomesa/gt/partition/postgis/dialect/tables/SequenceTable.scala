@@ -20,7 +20,7 @@ class SequenceTable extends Sql {
   override def create(info: TypeInfo)(implicit ex: ExecutionContext): Unit = {
     val table = TableIdentifier(info.schema.raw, Name.raw)
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${table.qualified} (
+      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${table.qualified} (
          |  type_name text PRIMARY KEY,
          |  value smallint NOT NULL CHECK (value >= 0 AND value <= 999)
          |);""".stripMargin

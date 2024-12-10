@@ -35,7 +35,7 @@ object WriteAheadTable extends SqlStatements {
          |    WHERE type_name = ${literal(info.typeName)} INTO seq_val;
          |  partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
          |
-         |  EXECUTE 'CREATE TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
+         |  EXECUTE 'CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
          |    'CONSTRAINT ' || quote_ident(partition || '_pkey') ||
          |    ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs ' ||
          |    ') INHERITS (${table.name.qualified})${table.storage.opts}$tableTs';

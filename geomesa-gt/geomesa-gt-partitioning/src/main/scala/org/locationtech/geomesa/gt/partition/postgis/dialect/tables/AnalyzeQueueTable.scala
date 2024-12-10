@@ -16,7 +16,7 @@ object AnalyzeQueueTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     val create =
-      s"""CREATE TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
+      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
          |  partition_name text,
          |  enqueued timestamp without time zone
          |);""".stripMargin
