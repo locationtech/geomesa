@@ -24,7 +24,7 @@ class PartitionTablespacesTable extends Sql {
     val table = TableIdentifier(info.schema.raw, Name.raw)
     val cName = TableName(Name.raw + "_pkey")
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${table.quoted} (
+      s"""CREATE TABLE IF NOT EXISTS ${table.quoted} (
          |  type_name text not null,
          |  table_type text not null,
          |  table_space text

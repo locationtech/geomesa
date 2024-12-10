@@ -28,7 +28,7 @@ class PrimaryKeyTable extends Sql {
     // we need to define the primary key separately since the main view can't have any primary key columns
     val table = s"${info.schema.quoted}.${Name.quoted}"
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS $table (
+      s"""CREATE TABLE IF NOT EXISTS $table (
          |  table_schema character varying,
          |  table_name character varying,
          |  pk_column_idx integer,
