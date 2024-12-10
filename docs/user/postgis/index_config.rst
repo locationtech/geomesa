@@ -156,3 +156,14 @@ for each query, moving data out of it faster may improve performance.
 
 After the schema has been created, changes to the schedule can be made through the
 :ref:`postgis_cli_update_schema` command.
+
+Configuring WAL logging
+-----------------------
+
+PostgreSQL uses a write-ahead log (WAL) to ensure data consistency and durability. By default, the WAL is written
+for all changes to the database, including the partitioned tables. Disabling the WAL for the partitioned tables
+can significantly improve write performance, but at the cost of data durability. If increased performance is desired,
+the WAL can be disabled for the partitioned tables by setting the key ``pg.wal.enabled`` to ``false``.
+
+See the PostgreSQL `documentation <https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED>`_
+ for more information on the implications of disabling the WAL.
