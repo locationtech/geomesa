@@ -165,5 +165,5 @@ for all changes to the database, including the partitioned tables. Disabling the
 can significantly improve write performance, but at the cost of data durability. If increased performance is desired,
 the WAL can be disabled for the partitioned tables by setting the key ``pg.wal.enabled`` to ``false``.
 
-See the `PostgreSQL documentation`_ for more information on the implications of disabling the WAL.
-.. _PostgreSQL documentation: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+See the PostgreSQL `documentation <https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED>`_
+ for more information on the implications of disabling the WAL.
