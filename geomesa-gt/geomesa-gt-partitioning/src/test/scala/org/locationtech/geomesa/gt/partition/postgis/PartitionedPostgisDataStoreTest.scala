@@ -155,6 +155,40 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       ok
     }
 
+    "create logged tables" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "logged_test")
+
+        ds.createSchema(sft)
+
+        val typeInfo: TypeInfo = TypeInfo(this.schema, sft)
+
+        Seq(
+          typeInfo.tables.mainPartitions.name.raw,
+          typeInfo.tables.writeAheadPartitions.name.raw,
+          typeInfo.tables.spillPartitions.name.raw,
+          typeInfo.tables.analyzeQueue.name.raw,
+          typeInfo.tables.sortQueue.name.raw).forall { tableName =>
+          val sql = isTableLoggedQuery(tableName, "public")
+          // verify that the table is logged
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.createStatement()) { st =>
+              WithClose(st.executeQuery(sql)) { rs =>
+                rs.next() must beTrue
+                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                rs.getString("table_type") mustEqual "permanent"
+              }
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "create unlogged tables" in {
       val ds = DataStoreFinder.getDataStore(params.asJava)
       ds must not(beNull)
