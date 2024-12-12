@@ -86,6 +86,7 @@ class FileBasedMetadata(
   override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
   override val encoding: String = meta.config(Metadata.Encoding)
   override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
+  override val pathFilterFactory: Option[PathFilterFactory] = None
 
   private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
 

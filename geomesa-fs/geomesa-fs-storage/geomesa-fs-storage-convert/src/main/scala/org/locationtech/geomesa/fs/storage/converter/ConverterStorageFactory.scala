@@ -43,4 +43,6 @@ object ConverterStorageFactory {
   val LeafStorageParam     = "fs.options.leaf-storage"
   val PartitionSchemeParam = "fs.partition-scheme.name"
   val PartitionOptsPrefix  = "fs.partition-scheme.opts."
+  val PathFilterName       = "fs.path-filter.name"
+  val PathFilterOptsPrefix = "fs.path-filter.opts."
 }

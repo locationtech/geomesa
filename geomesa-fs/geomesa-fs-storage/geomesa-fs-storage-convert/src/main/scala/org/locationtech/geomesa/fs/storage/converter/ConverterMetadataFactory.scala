@@ -55,7 +55,20 @@ class ConverterMetadataFactory extends StorageMetadataFactory with LazyLogging {
           deprecated.getOrElse(true)
         }
 
-        Some(new ConverterMetadata(context, sft, scheme, leafStorage))
+        val pathFilterFactoryOpts =
+          context.conf.getValByRegex(Pattern.quote(PathFilterOptsPrefix) + ".*").asScala.map {
+            case (k, v) => k.substring(PathFilterOptsPrefix.length) -> v
+          }
+
+        val pathFilterFactory = Option(context.conf.get(PathFilterName)).flatMap { name =>
+          val factory = PathFilterFactoryFactory.load(NamedOptions(name, pathFilterFactoryOpts.toMap))
+          if (factory.isEmpty) {
+            logger.warn(s"Failed to load ${classOf[PathFilterFactory].getName} for config '$name'")
+          }
+          factory
+        }
+
+        Some(new ConverterMetadata(context, sft, scheme, leafStorage, pathFilterFactory))
       } catch {
         case e: IllegalArgumentException => logger.warn(s"Couldn't create converter storage metadata: $e", e); None
       }

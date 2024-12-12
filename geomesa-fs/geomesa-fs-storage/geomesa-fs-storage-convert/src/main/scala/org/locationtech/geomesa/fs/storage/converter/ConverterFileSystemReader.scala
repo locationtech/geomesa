@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.converter
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.hadoop.fs.{FileContext, FileSystem, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext

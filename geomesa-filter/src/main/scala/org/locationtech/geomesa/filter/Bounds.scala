@@ -119,6 +119,7 @@ object Bounds {
   object Bound {
     private val unboundedBound = Bound[Any](None, inclusive = false)
     def unbounded[T]: Bound[T] = unboundedBound.asInstanceOf[Bound[T]]
+    def inclusive[T](value: T): Bound[T] = Bound(Option(value), inclusive = true)
   }
 
   private val allValues = Bounds(Bound.unbounded, Bound.unbounded)
