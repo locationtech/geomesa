@@ -22,8 +22,7 @@ class ConverterMetadata(
     context: FileSystemContext,
     val sft: SimpleFeatureType,
     val scheme: PartitionScheme,
-    val leafStorage: Boolean,
-    val pathFilterFactory: Option[PathFilterFactory]
+    val leafStorage: Boolean
   ) extends StorageMetadata {
 
   private val dirty = new AtomicBoolean(false)

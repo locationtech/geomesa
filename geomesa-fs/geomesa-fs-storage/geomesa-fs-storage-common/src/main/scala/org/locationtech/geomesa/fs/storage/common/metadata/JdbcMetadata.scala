@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, PathFilterFactory, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -84,7 +84,6 @@ class JdbcMetadata(
   override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
   override val encoding: String = meta.config(Metadata.Encoding)
   override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
-  override val pathFilterFactory: Option[PathFilterFactory] = None
 
   private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
 

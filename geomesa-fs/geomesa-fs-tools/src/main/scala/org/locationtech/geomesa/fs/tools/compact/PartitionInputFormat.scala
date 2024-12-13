@@ -133,8 +133,7 @@ object PartitionInputFormat {
       }
       // use a cached metadata impl instead of reloading
       val data = PartitionMetadata(partition, files, None, 0L)
-      val cached = new CachedMetadata(metadata.sft, metadata.encoding, metadata.scheme, metadata.leafStorage,
-        metadata.pathFilterFactory, data)
+      val cached = new CachedMetadata(metadata.sft, metadata.encoding, metadata.scheme, metadata.leafStorage, data)
       storage = FileSystemStorageFactory(fsc, cached)
       reader = storage.getReader(new Query("", Filter.INCLUDE), Option(partition))
       metadata.close()
@@ -164,7 +163,6 @@ object PartitionInputFormat {
       val encoding: String,
       val scheme: PartitionScheme,
       val leafStorage: Boolean,
-      val pathFilterFactory: Option[PathFilterFactory],
       partition: PartitionMetadata
   ) extends StorageMetadata {
     override def getPartition(name: String): Option[PartitionMetadata] =

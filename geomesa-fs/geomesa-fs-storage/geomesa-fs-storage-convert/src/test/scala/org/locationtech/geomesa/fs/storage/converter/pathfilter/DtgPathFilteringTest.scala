@@ -6,19 +6,19 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.pathfilters
+package org.locationtech.geomesa.fs.storage.converter.pathfilter
 
 import org.apache.hadoop.fs.Path
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PathFilterFactory, PathFilterFactoryFactory}
+import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DtgPathFilterFactoryTest extends Specification {
+class DtgPathFilteringTest extends Specification {
 
-  import org.locationtech.geomesa.fs.storage.common.pathfilters.DtgPathFilterFactory.Config._
+  import org.locationtech.geomesa.fs.storage.converter.pathfilter.DtgPathFiltering.Config._
 
   "DtgPathFilterFactory" should {
     "parse, format, buffer, and filter a dtg from a file path" in {
@@ -26,12 +26,12 @@ class DtgPathFilterFactoryTest extends Specification {
       val pattern = "^data-(.*)\\..*$"
       val format = "yyyyMMddHHmm"
       val buffer = "6 hours"
-      val config = NamedOptions(DtgPathFilterFactory.Name,
+      val config = NamedOptions(DtgPathFiltering.Name,
         Map(Attribute -> attribute, Pattern -> pattern, Format -> format, Buffer -> buffer))
 
-      val pathFilterFactory = PathFilterFactoryFactory.load(config)
-      pathFilterFactory must beSome { factory: PathFilterFactory =>
-        factory must haveClass[DtgPathFilterFactory]
+      val pathFilterFactory = PathFilteringFactory.load(config)
+      pathFilterFactory must beSome { factory: PathFiltering =>
+        factory must haveClass[DtgPathFiltering]
       }
 
       val filterText = s"$attribute DURING 2024-12-10T00:00:00Z/2024-12-11T00:00:00Z " +

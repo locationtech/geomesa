@@ -54,13 +54,6 @@ trait StorageMetadata extends Compactable with Closeable {
   def leafStorage: Boolean
 
   /**
-    * The path filter factory used to filter paths during queries
-    *
-    * @return path filter factory
-    */
-  def pathFilterFactory: Option[PathFilterFactory]
-
-  /**
    * Get a previously set key-value pair
    *
    * @param key key

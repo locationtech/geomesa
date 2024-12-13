@@ -127,10 +127,9 @@ abstract class AbstractFileSystemStorage(
             fp.partitions.mkString(", "))
         reader
       }
-      val pathFilter = metadata.pathFilterFactory.map(_.apply(fp.filter))
       // each partition must be read separately, to ensure modifications are handled correctly
-      fp.partitions.iterator.flatMap { path =>
-        val files = getFilePaths(path).filter(p => pathFilter.forall(_.accept(p.path)))
+      fp.partitions.iterator.flatMap { p =>
+        val files = getFilePaths(p)
         if (files.isEmpty) { Iterator.empty } else { Iterator.single(reader -> files) }
       }
     }

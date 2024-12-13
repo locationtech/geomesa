@@ -6,14 +6,14 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.pathfilters
+package org.locationtech.geomesa.fs.storage.converter.pathfilter
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.PathFilter
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PathFilterFactory, PathFilterFactoryFactory}
+import org.locationtech.geomesa.fs.storage.api.NamedOptions
 
 import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
@@ -21,8 +21,8 @@ import java.util.regex.Pattern
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
-class DtgPathFilterFactory(attribute: String, pattern: Pattern, format: DateTimeFormatter, buffer: Duration)
-    extends PathFilterFactory with LazyLogging {
+class DtgPathFiltering(attribute: String, pattern: Pattern, format: DateTimeFormatter, buffer: Duration)
+    extends PathFiltering with LazyLogging {
 
   def apply(filter: Filter): PathFilter = {
     val filterIntervals = FilterHelper.extractIntervals(filter, attribute, handleExclusiveBounds = true)
@@ -54,7 +54,7 @@ class DtgPathFilterFactory(attribute: String, pattern: Pattern, format: DateTime
   }
 }
 
-object DtgPathFilterFactory extends LazyLogging {
+object DtgPathFiltering extends LazyLogging {
 
   val Name = "dtg"
 
@@ -65,8 +65,8 @@ object DtgPathFilterFactory extends LazyLogging {
     val Buffer = "buffer"
   }
 
-  class DtgPathFilterFactoryFactory extends PathFilterFactoryFactory {
-    override def load(config: NamedOptions): Option[PathFilterFactory] = {
+  class DtgPathFilteringFactory extends PathFilteringFactory {
+    override def load(config: NamedOptions): Option[PathFiltering] = {
       if (config.name != Name) { None } else {
         val attribute = config.options.getOrElse(Config.Attribute, null)
         require(attribute != null, s"$Name path filter requires a dtg attribute config '${Config.Attribute}'")
@@ -80,7 +80,7 @@ object DtgPathFilterFactory extends LazyLogging {
         val pattern = Pattern.compile(patternConfig)
         val format = DateTimeFormatter.ofPattern(formatConfig).withZone(ZoneOffset.UTC)
         val buffer = Duration.apply(bufferConfig)
-        Some(new DtgPathFilterFactory(attribute, pattern, format, buffer))
+        Some(new DtgPathFiltering(attribute, pattern, format, buffer))
       }
     }
   }

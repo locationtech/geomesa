@@ -19,8 +19,12 @@ import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 
-class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, converter: SimpleFeatureConverter)
+class ConverterStorage(context: FileSystemContext,
+                       metadata: StorageMetadata,
+                       converter: SimpleFeatureConverter,
+                       pathFiltering: Option[PathFiltering])
     extends AbstractFileSystemStorage(context, metadata, "") {
 
   // TODO close converter...
@@ -36,7 +40,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-    new ConverterFileSystemReader(context.fs, converter, filter, transform)
+    new ConverterFileSystemReader(context.fs, converter, filter, transform, pathFiltering)
   }
 
   override def getFilePaths(partition: String): Seq[StorageFilePath] = {

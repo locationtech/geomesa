@@ -6,11 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.api
+package org.locationtech.geomesa.fs.storage.converter.pathfilter
 
 import org.apache.hadoop.fs.PathFilter
 import org.geotools.api.filter.Filter
 
-trait PathFilterFactory {
+trait PathFiltering {
   def apply(filter: Filter): PathFilter
 }
