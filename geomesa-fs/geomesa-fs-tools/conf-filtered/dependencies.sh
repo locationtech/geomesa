@@ -74,6 +74,11 @@ function dependencies() {
       "com.google.guava:guava:11.0.2:jar"
     )
   fi
+  if ! version_ge "${hadoop_version}" 3.4.0; then
+    gavs+=(
+      "commons-collections:commons-collections:3.2.2:jar"
+    )
+  fi
 
   # aws sdk
   if version_ge "${hadoop_version}" 3.4.0; then
