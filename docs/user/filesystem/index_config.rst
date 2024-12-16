@@ -250,3 +250,25 @@ Observers can be specified through the user data key ``geomesa.fs.observers``:
         sft.setObservers(factories)
         // or set directly in the user data as a comma-delimited string
         sft.getUserData.put("geomesa.fs.observers", factories.mkString(","))
+
+Configuring Path Filters
+------------------------
+
+.. note::
+
+  Path filtering is supported for ``converter`` encoding only.
+
+The FSDS can filter paths within a partition for more granular control of queries. Path filtering is configured
+through the user data key ``geomesa.fs.path-filter.name``.
+
+Currently, the only implementation is the ``dtg`` path filter, whose purpose is to parse a datetime from the given
+path and compare it to the query filter to include or exclude the file from the query. The following options are
+required for the ``dtg`` path filter, configured through the key ``geomesa.fs.path-filter.opts``:
+
+* ``attribute`` - The ``Date`` attribute in the query to compare against.
+* ``pattern`` - The regular expression, with a single capturing group, to extract a datetime string from the path.
+* ``format`` - The datetime formatting pattern to parse a date from the regex capture.
+* ``buffer`` - The duration to buffer the bounds of the parsed datetime by within the current partition. To buffer time
+  across partitions, see the ``receipt-time`` partition scheme.
+
+Custom path filters can be loaded via SPI.

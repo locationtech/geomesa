@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.api.data.Query
