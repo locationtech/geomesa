@@ -43,7 +43,7 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
     val pathFiltering = Option(context.conf.get(PathFilterName)).flatMap { name =>
       val factory = PathFilteringFactory.load(NamedOptions(name, pathFilteringOpts.toMap))
       if (factory.isEmpty) {
-        logger.warn(s"Failed to load ${classOf[PathFiltering].getName} for config '$name'")
+        throw new IllegalArgumentException(s"Failed to load ${classOf[PathFiltering].getName} for config '$name'")
       }
       factory
     }
