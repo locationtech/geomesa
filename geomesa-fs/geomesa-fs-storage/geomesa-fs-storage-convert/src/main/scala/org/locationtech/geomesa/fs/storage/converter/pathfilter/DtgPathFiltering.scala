@@ -32,7 +32,15 @@ class DtgPathFiltering(attribute: String, pattern: Pattern, format: DateTimeForm
       val lower = ZonedDateTime.ofInstant(time.minusMillis(millis), ZoneOffset.UTC)
       val upper = ZonedDateTime.ofInstant(time.plusMillis(millis), ZoneOffset.UTC)
       val buffered = Bounds(Bound.inclusive(lower), Bound.inclusive(upper))
-      filterIntervals.exists(bounds => bounds.intersects(buffered))
+      val included = filterIntervals.exists(bounds => bounds.intersects(buffered))
+      logger.whenDebugEnabled {
+        if (included) {
+          logger.debug(s"Including path ${path.getName} for filter $filter")
+        } else {
+          logger.debug(s"Excluding path ${path.getName} for filter $filter")
+        }
+      }
+      included
     } catch {
       case NonFatal(ex) =>
         logger.warn(s"Failed to evaluate filter for path '${path.getName}'", ex)
@@ -51,6 +59,10 @@ class DtgPathFiltering(attribute: String, pattern: Pattern, format: DateTimeForm
         throw new IllegalArgumentException(s"Failed to parse ${classOf[ZonedDateTime].getName} " +
           s"from file name '$name' for pattern '$pattern' and format '$format'")
       }
+  }
+
+  override def toString: String = {
+    s"${this.getClass.getName}(attribute = $attribute, pattern = $pattern, format = $format, buffer = $buffer)"
   }
 }
 
@@ -80,7 +92,9 @@ object DtgPathFiltering extends LazyLogging {
         val pattern = Pattern.compile(patternConfig)
         val format = DateTimeFormatter.ofPattern(formatConfig).withZone(ZoneOffset.UTC)
         val buffer = Duration.apply(bufferConfig)
-        Some(new DtgPathFiltering(attribute, pattern, format, buffer))
+        val pathFiltering = new DtgPathFiltering(attribute, pattern, format, buffer)
+        logger.info(s"Loaded PathFiltering: $pathFiltering")
+        Some(pathFiltering)
       }
     }
   }
