@@ -43,12 +43,19 @@ function dependencies() {
   )
 
   # add hadoop 3+ jars if needed
-  local hadoop_maj_ver
-  hadoop_maj_ver="$([[ "$hadoop_version" =~ ([0-9][0-9]*)\. ]] && echo "${BASH_REMATCH[1]}")"
-  if [[ "$hadoop_maj_ver" -ge 3 ]]; then
+  if version_ge "${hadoop_version}" 3.0.0; then
     gavs+=(
       "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
       "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
+    )
+  else
+    gavs+=(
+      "commons-configuration:commons-configuration:1.6:jar"
+    )
+  fi
+  if ! version_ge "${hadoop_version}" 3.4.0; then
+    gavs+=(
+      "commons-collections:commons-collections:3.2.2:jar"
     )
   fi
 

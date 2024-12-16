@@ -44,6 +44,11 @@ function dependencies() {
       "commons-configuration:commons-configuration:1.6:jar"
     )
   fi
+  if ! version_ge "${hadoop_version}" 3.4.0; then
+    gavs+=(
+      "commons-collections:commons-collections:3.2.2:jar"
+    )
+  fi
 
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }

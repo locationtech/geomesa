@@ -101,6 +101,11 @@ function dependencies() {
       "commons-configuration:commons-configuration:1.6:jar"
     )
   fi
+  if ! version_ge "${hadoop_version}" 3.4.0; then
+    gavs+=(
+      "commons-collections:commons-collections:3.2.2:jar"
+    )
+  fi
 
   # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
   JUTE_FROM_VERSION="3.5.5"
