@@ -33,7 +33,7 @@ class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata
     extends AbstractFileSystemStorage(context, metadata, OrcFileSystemStorage.FileExtension) {
 
   override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
-    new OrcFileSystemWriter(metadata.sft, context.conf, file, observer)
+    new OrcFileSystemWriter(metadata.sft, context, file, observer)
 
   override protected def createReader(
       filter: Option[Filter],

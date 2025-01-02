@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.orc.OrcFile
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
+import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
@@ -22,14 +23,14 @@ import scala.util.control.NonFatal
 
 class OrcFileSystemWriter(
     sft: SimpleFeatureType,
-    config: Configuration,
+    context: FileSystemContext,
     file: Path,
     observer: FileSystemObserver = NoOpObserver
   ) extends FileSystemWriter {
 
   private val schema = OrcFileSystemStorage.createTypeDescription(sft)
 
-  private val options = OrcFile.writerOptions(config).setSchema(schema)
+  private val options = OrcFile.writerOptions(context.conf).setSchema(schema)
   private val writer = OrcFile.createWriter(file, options)
   private val batch = schema.createRowBatch()
 
@@ -56,6 +57,7 @@ class OrcFileSystemWriter(
       case NonFatal(e) => CloseQuietly(Seq(writer, observer)).foreach(e.addSuppressed); throw e
     }
     CloseQuietly.raise(Seq(writer, observer))
+    PathCache.register(context.fs, file)
   }
 
   private def flushBatch(): Unit = {
