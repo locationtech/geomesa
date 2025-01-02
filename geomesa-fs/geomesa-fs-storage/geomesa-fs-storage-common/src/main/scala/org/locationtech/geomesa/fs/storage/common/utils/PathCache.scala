@@ -50,7 +50,7 @@ object PathCache {
     )
 
   /**
-    * * Register a path as existing
+    * Register a path as existing
     *
     * @param fs file system
     * @param path path

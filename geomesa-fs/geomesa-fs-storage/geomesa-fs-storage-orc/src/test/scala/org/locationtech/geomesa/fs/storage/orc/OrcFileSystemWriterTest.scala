@@ -13,6 +13,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -32,26 +33,22 @@ class OrcFileSystemWriterTest extends Specification {
     ScalaSimpleFeature.create(sft, "1", "name1", "1", "2017-01-01T00:00:01.000Z", "LINESTRING (10 1, 5 1)")
   )
 
-  val config = new Configuration()
-
   "OrcFileSystemWriter" should {
     "write and read simple features" in {
-
-      withPath { path =>
-        withTestFile { file =>
-          WithClose(new OrcFileSystemWriter(sft, config, file)) { writer => features.foreach(writer.write) }
-          val reader = new OrcFileSystemReader(sft, config, None, None)
-          val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
-          read mustEqual features
-          // test out not calling 'hasNext'
-          var i = 0
-          WithClose(reader.read(file)) { iter =>
-            while (i < features.size) {
-              iter.next() mustEqual features(i)
-              i += 1
-            }
-            iter.next must throwA[NoSuchElementException]
+      withTestFile { file =>
+        val fc = FileSystemContext(file.getParent, new Configuration())
+        WithClose(new OrcFileSystemWriter(sft, fc, file)) { writer => features.foreach(writer.write) }
+        val reader = new OrcFileSystemReader(sft, fc.conf, None, None)
+        val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
+        read mustEqual features
+        // test out not calling 'hasNext'
+        var i = 0
+        WithClose(reader.read(file)) { iter =>
+          while (i < features.size) {
+            iter.next() mustEqual features(i)
+            i += 1
           }
+          iter.next must throwA[NoSuchElementException]
         }
       }
     }

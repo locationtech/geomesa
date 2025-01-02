@@ -233,7 +233,6 @@ abstract class AbstractFileSystemStorage(
 
     def pathAndObserver: WriterConfig = {
       val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
-      PathCache.register(context.fs, path)
       val updateObserver = new UpdateObserver(partition, path, action)
       val observer = if (observers.isEmpty) { updateObserver } else {
         new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))

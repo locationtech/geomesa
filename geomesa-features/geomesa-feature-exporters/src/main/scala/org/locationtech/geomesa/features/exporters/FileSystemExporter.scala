@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemWriter
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -52,22 +52,23 @@ object FileSystemExporter extends LazyLogging {
 
   class ParquetFileSystemExporter(path: String) extends FileSystemExporter {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
+      // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
+      val file = new Path(PathUtils.getUrl(path).toURI)
       val conf = new Configuration()
-      StorageConfiguration.setSft(conf, sft)
       try { Class.forName("org.xerial.snappy.Snappy") } catch {
         case _: ClassNotFoundException =>
           logger.warn("SNAPPY compression is not available on the classpath - falling back to GZIP")
           conf.set("parquet.compression", "GZIP")
       }
-      // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
-      new ParquetFileSystemWriter(sft, new Path(PathUtils.getUrl(path).toURI), conf)
+      new ParquetFileSystemWriter(sft, FileSystemContext(file, conf), file)
     }
   }
 
   class OrcFileSystemExporter(path: String) extends FileSystemExporter {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
       // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
-      new OrcFileSystemWriter(sft, new Configuration(), new Path(PathUtils.getUrl(path).toURI))
+      val file = new Path(PathUtils.getUrl(path).toURI)
+      new OrcFileSystemWriter(sft, FileSystemContext(file, new Configuration()), file)
     }
   }
 }
