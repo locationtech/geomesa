@@ -284,8 +284,8 @@ ch.qos.reload4j:reload4j	1.2.25	provided
 com.amazonaws:aws-java-sdk-s3	1.12.735	provided
 com.datastax.cassandra:cassandra-driver-core	3.11.5	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.11.5	provided
-io.confluent:kafka-avro-serializer	6.2.9	provided
-io.confluent:kafka-schema-registry-client	6.2.9	provided
+io.confluent:kafka-avro-serializer	7.8.0	provided
+io.confluent:kafka-schema-registry-client	7.8.0	provided
 io.micrometer:micrometer-registry-cloudwatch2	1.13.4	provided
 io.micrometer:micrometer-registry-prometheus	1.13.4	provided
 io.prometheus:prometheus-metrics-exporter-httpserver	1.3.1	provided
@@ -304,9 +304,9 @@ org.apache.hadoop:hadoop-yarn-api	3.4.1	provided
 org.apache.hadoop:hadoop-yarn-common	3.4.1	provided
 org.apache.hbase:hbase-server	2.6.1-hadoop3	provided
 org.apache.htrace:htrace-core4	4.1.0-incubating	provided
-org.apache.kafka:kafka-clients	3.7.0	provided
-org.apache.kafka:kafka-streams-scala_2.12	3.7.0	provided
-org.apache.kafka:kafka-streams	3.7.0	provided
+org.apache.kafka:kafka-clients	3.9.0	provided
+org.apache.kafka:kafka-streams-scala_2.12	3.9.0	provided
+org.apache.kafka:kafka-streams	3.9.0	provided
 org.apache.sedona:sedona-spark-3.4_2.12	1.5.0	provided
 org.apache.sedona:sedona-spark-common-3.4_2.12	1.5.0	provided
 org.apache.spark:spark-catalyst_2.12	3.5.0	provided
@@ -329,8 +329,8 @@ org.apache.cassandra:cassandra-all	3.11.14	test
 org.apache.cassandra:cassandra-thrift	3.11.14	test
 org.apache.curator:curator-test	5.6.0	test
 org.apache.hbase:hbase-testing-util	2.6.1-hadoop3	test
-org.apache.kafka:kafka-clients	test:3.7.0	test
-org.apache.kafka:kafka-streams-test-utils	3.7.0	test
+org.apache.kafka:kafka-clients	test:3.9.0	test
+org.apache.kafka:kafka-streams-test-utils	3.9.0	test
 org.apache.logging.log4j:log4j-api	2.22.1	test
 org.apache.logging.log4j:log4j-core	2.22.1	test
 org.apache.sedona:sedona-common	1.5.0	test
