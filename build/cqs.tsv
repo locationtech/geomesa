@@ -203,8 +203,8 @@ org.apache.thrift:libthrift	0.17.0	compile
 org.apache.xml:xml-commons-resolver	1.2	compile
 org.apache.yetus:audience-annotations	0.12.0	compile
 org.apache.yetus:audience-annotations	0.13.0	compile
-org.apache.zookeeper:zookeeper	3.9.2	compile
-org.apache.zookeeper:zookeeper-jute	3.9.2	compile
+org.apache.zookeeper:zookeeper	3.9.3	compile
+org.apache.zookeeper:zookeeper-jute	3.9.3	compile
 org.apiguardian:apiguardian-api	1.1.2	compile
 org.calrissian.mango:mango-core	3.0.0	compile
 org.eclipse.emf:org.eclipse.emf.common	2.15.0	compile
