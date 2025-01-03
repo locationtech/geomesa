@@ -15,8 +15,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.text.DurationParsing
 import org.locationtech.geomesa.utils.text.Suffixes.Memory
+import org.locationtech.geomesa.utils.text.{DurationParsing, TextTools}
 
 import java.util.Date
 import scala.concurrent.duration.Duration
@@ -60,13 +60,9 @@ object ParameterConverters {
 
   class ExportFormatConverter(name: String) extends BaseConverter[ExportFormat](name) {
     override def convert(value: String): ExportFormat = {
-      try {
-        ExportFormat(value).getOrElse {
-          throw new ParameterException(s"Invalid format '$value'. Valid values are " +
-            ExportFormat.Formats.flatMap(f => f.extensions +: f.name).distinct.mkString("'", "', '", "'"))
-        }
-      } catch {
-        case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
+      ExportFormat(value).getOrElse {
+        val valid = ExportFormat.Formats.flatMap(f => f.extensions :+ f.name).distinct
+        throw new ParameterException(getErrorString(value, s"an export format. Valid formats are: ${TextTools.wordList(valid)}"))
       }
     }
   }

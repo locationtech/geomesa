@@ -98,10 +98,11 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.ConfigsParam
     )
 
+  // lazy to avoid masking classpath errors with missing hadoop
+  private lazy val configuration = new Configuration()
+
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreParams.PathParam.exists(params)
-
-  private val configuration = new Configuration()
 
   object FileSystemDataStoreParams extends NamespaceParams {
 

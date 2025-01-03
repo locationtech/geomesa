@@ -12,9 +12,9 @@
 # Update the versions as required to match the target environment.
 
 hadoop_install_version="%%hadoop.version.recommended%%"
-aws_sdk_v1_install_version="1.12.735" # latest version as of 2024/06
-aws_sdk_v2_install_version="2.25.64" # latest version as of 2024/06
-aws_crt_install_version="0.29.18"
+aws_sdk_v1_install_version="1.12.780" # latest version as of 2025/01
+aws_sdk_v2_install_version="2.29.44" # latest version as of 2025/01
+aws_crt_install_version="0.33.7"
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
@@ -31,54 +31,26 @@ function dependencies() {
 
   if [[ -n "$classpath" ]]; then
     hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
+    hadoop_version="$(get_classpath_version hadoop-client-api "$classpath" "$hadoop_version")"
     aws_sdk_v1_version="$(get_classpath_version aws-java-sdk-core "$classpath" "$aws_sdk_v1_version")"
     aws_sdk_v2_version="$(get_classpath_version aws-core "$classpath" "$aws_sdk_v2_version")"
     snappy_version="$(get_classpath_version snappy-java "$classpath" "$snappy_version")"
   fi
 
+  if [[ "$hadoop_version" == "3.2.3" ]]; then
+    echo >&2 "WARNING Updating Hadoop version from 3.2.3 to 3.2.4 due to invalid client-api Maven artifacts"
+    hadoop_version="3.2.4"
+  fi
+
   declare -a gavs=(
-    "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-mapreduce-client-core:${hadoop_version}:jar"
+    "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
+    "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-aws:${hadoop_version}:jar"
     "org.xerial.snappy:snappy-java:${snappy_version}:jar"
-    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
-    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
-    "org.apache.commons:commons-configuration2:2.8.0:jar"
-    "commons-configuration:commons-configuration:1.6:jar"
-    "commons-collections:commons-collections:3.2.2:jar"
-    "commons-lang:commons-lang:2.6:jar"
-    "commons-logging:commons-logging:1.1.3:jar"
-    "commons-cli:commons-cli:1.2:jar"
-    "commons-io:commons-io:2.5:jar"
-    "com.google.protobuf:protobuf-java:2.5.0:jar"
-    "org.apache.htrace:htrace-core:3.1.0-incubating:jar"
-    "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
-    # these are the versions used by hadoop 2.8 and 3.1
-    "org.apache.httpcomponents:httpclient:4.5.2:jar"
-    "org.apache.httpcomponents:httpcore:4.4.4:jar"
-    "commons-httpclient:commons-httpclient:3.1:jar"
+    "commons-logging:commons-logging:1.3.3:jar"
+    "org.apache.httpcomponents:httpclient:4.5.13:jar"
+    "org.apache.httpcomponents:httpcore:4.4.13:jar"
   )
-
-  # add hadoop 3+ jars if needed
-  if version_ge "${hadoop_version}" 3.0.0; then
-    gavs+=(
-      "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
-      "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
-      "com.google.guava:guava:27.0-jre:jar"
-    )
-  else
-    gavs+=(
-      "com.google.guava:guava:11.0.2:jar"
-    )
-  fi
-  if ! version_ge "${hadoop_version}" 3.4.0; then
-    gavs+=(
-      "commons-collections:commons-collections:3.2.2:jar"
-    )
-  fi
 
   # aws sdk
   if version_ge "${hadoop_version}" 3.4.0; then
@@ -105,6 +77,8 @@ function dependencies() {
       "software.amazon.awssdk:profiles:${aws_sdk_v2_version}:jar"
       "software.amazon.awssdk:protocol-core:${aws_sdk_v2_version}:jar"
       "software.amazon.awssdk:regions:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:retries:${aws_sdk_v2_version}:jar"
+      "software.amazon.awssdk:retries-spi:${aws_sdk_v2_version}:jar"
       "software.amazon.awssdk:s3:${aws_sdk_v2_version}:jar"
       "software.amazon.awssdk:s3-transfer-manager:${aws_sdk_v2_version}:jar"
       "software.amazon.awssdk:sdk-core:${aws_sdk_v2_version}:jar"
@@ -119,6 +93,8 @@ function dependencies() {
       "com.amazonaws:aws-java-sdk-core:${aws_sdk_v1_version}:jar"
       "com.amazonaws:aws-java-sdk-s3:${aws_sdk_v1_version}:jar"
       "com.amazonaws:aws-java-sdk-dynamodb:${aws_sdk_v1_version}:jar"
+      "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
+      "com.google.guava:guava:27.0-jre:jar"
       "joda-time:joda-time:2.8.1:jar"
     )
   fi

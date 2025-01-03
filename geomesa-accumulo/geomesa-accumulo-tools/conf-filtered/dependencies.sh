@@ -30,7 +30,13 @@ function dependencies() {
   if [[ -n "$classpath" ]]; then
     accumulo_version="$(get_classpath_version accumulo-core "$classpath" "$accumulo_version")"
     hadoop_version="$(get_classpath_version hadoop-common "$classpath" "$hadoop_version")"
+    hadoop_version="$(get_classpath_version hadoop-client-api "$classpath" "$hadoop_version")"
     zk_version="$(get_classpath_version zookeeper "$classpath" "$zk_version")"
+  fi
+
+  if [[ "$hadoop_version" == "3.2.3" ]]; then
+    echo >&2 "WARNING Updating Hadoop version from 3.2.3 to 3.2.4 due to invalid client-api Maven artifacts"
+    hadoop_version="3.2.4"
   fi
 
   declare -a gavs=(
@@ -39,16 +45,12 @@ function dependencies() {
     "org.apache.accumulo:accumulo-start:${accumulo_version}:jar"
     "org.apache.accumulo:accumulo-hadoop-mapreduce:${accumulo_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
+    "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
+    "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
     "org.apache.commons:commons-configuration2:2.10.1:jar"
-    "org.apache.commons:commons-text:1.11.0:jar"
-    "org.apache.commons:commons-collections4:4.4:jar"
-    "org.apache.commons:commons-vfs2:2.9.0:jar"
     "commons-logging:commons-logging:1.3.3:jar"
-    "org.apache.hadoop:hadoop-auth:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-common:${hadoop_version}:jar"
-    "org.apache.hadoop:hadoop-hdfs:${hadoop_version}:jar"
-    "com.fasterxml.woodstox:woodstox-core:5.3.0:jar"
-    "org.codehaus.woodstox:stax2-api:4.2.1:jar"
+    "org.apache.commons:commons-text:%%commons.text.version%%:jar"
+    "org.apache.commons:commons-vfs2:2.9.0:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
     "io.netty:netty-codec:%%netty.version%%:jar"
     "io.netty:netty-handler:%%netty.version%%:jar"
@@ -90,20 +92,9 @@ function dependencies() {
     )
   fi
 
-  # add hadoop 3+ jars if needed
-  if version_ge "${hadoop_version}" 3.0.0; then
+  if ! version_ge "${hadoop_version}" 3.3.0; then
     gavs+=(
-      "org.apache.hadoop:hadoop-client-api:${hadoop_version}:jar"
-      "org.apache.hadoop:hadoop-client-runtime:${hadoop_version}:jar"
-    )
-  else
-    gavs+=(
-      "commons-configuration:commons-configuration:1.6:jar"
-    )
-  fi
-  if ! version_ge "${hadoop_version}" 3.4.0; then
-    gavs+=(
-      "commons-collections:commons-collections:3.2.2:jar"
+      "org.apache.htrace:htrace-core4:4.1.0-incubating:jar"
     )
   fi
 

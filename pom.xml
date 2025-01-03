@@ -218,7 +218,7 @@
         <!-- recommended installation versions - update as necessary if our versions fall behind -->
         <accumulo.version.recommended>${accumulo.version}</accumulo.version.recommended>
         <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
-        <hbase.thirdparty.version.recommended>4.1.5</hbase.thirdparty.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.9</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>${cassandra.version}</cassandra.driver.version.recommended>
         <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
@@ -1793,6 +1793,7 @@
                 <artifactId>commons-collections</artifactId>
                 <version>${commons.collections.version}</version>
             </dependency>
+            <!-- used by gml export -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
