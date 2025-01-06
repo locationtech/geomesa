@@ -338,17 +338,15 @@ function expand_classpath() {
   local classpath="$1"
   local expanded=""
 
-  for e in ${classpath//:/ }; do
-    if [[ $e = *\* && -d "${e%\*}" ]]; then
-      for f in ls $e; do
-        expanded+=":${e%\*}$f"
-      done
+  for entry in ${classpath//:/ }; do
+    if [[ $entry = *\* && -d "${entry%\*}" ]]; then
+      expanded+=":$(find "-L" "${entry%\*}" "-maxdepth" "1" "-type" "f" "-iname" "*.jar" "-not" "-iname" "*-sources.jar" "-not" "-iname" "*-tests.jar" | paste -sd: -)"
     else
-     expanded+=":$e"
+     expanded+=":$entry"
     fi
   done
 
-  echo "${expanded:1}"
+  fix_classpath_format "${expanded:1}"
 }
 
 # remove leading/trailing/double colons

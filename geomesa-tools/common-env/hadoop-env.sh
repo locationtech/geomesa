@@ -23,6 +23,8 @@
 # Hadoop conf directory
 export HADOOP_CONF_DIR="${HADOOP_CONF_DIR:-$HADOOP_HOME/etc/hadoop}"
 
+export AWS_JAVA_V1_DISABLE_DEPRECATION_ANNOUNCEMENT=true
+
 # Hadoop CDH configuration
 # Setting this variable to "1" will configure classpath settings for Hadoop
 # CDH. HADOOP_HOME and HADOOP_CONF_DIR are still used.
