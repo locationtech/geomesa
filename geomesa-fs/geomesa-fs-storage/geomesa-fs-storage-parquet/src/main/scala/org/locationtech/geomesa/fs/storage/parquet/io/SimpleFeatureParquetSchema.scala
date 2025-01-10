@@ -337,7 +337,7 @@ object SimpleFeatureParquetSchema {
         if (bounds.isEmpty) { Collections.emptyMap() } else {
           val geoms = bounds.map { case (d, _, env) => (d, Some(env).filterNot(_.isNull)) }
           val primary = bounds.find(_._1 == sft.getGeometryDescriptor).getOrElse(bounds.head)._1.getLocalName
-          Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, geoms))
+          Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, geoms.toSeq))
         }
       }
 
