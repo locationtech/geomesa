@@ -9,6 +9,7 @@
 
 package org.locationtech.geomesa.fs.storage.parquet.io
 
+import com.google.gson.GsonBuilder
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.hadoop.api.InitContext
 import org.apache.parquet.hadoop.metadata.FileMetaData
@@ -16,13 +17,17 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema.Types.BasePrimitiveBuilder
 import org.apache.parquet.schema._
-import org.geotools.api.feature.`type`.AttributeDescriptor
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.serialization.TwkbSerialization.GeometryBytes
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.jts.geom.{Envelope, Geometry, GeometryCollection}
+
+import java.util.{Collections, Locale}
 
 /**
   * A paired simple feature type and parquet schema
@@ -255,5 +260,98 @@ object SimpleFeatureParquetSchema {
 
     def apply(binding: ObjectType): Binding =
       bindings.getOrElse(binding, throw new NotImplementedError(s"No mapping defined for type $binding"))
+  }
+
+  object GeoParquetMetadata {
+
+    val GeoParquetMetadataKey = "geo"
+
+    private val gson = new GsonBuilder().disableHtmlEscaping().create()
+
+    // TODO "covering" - per row bboxes can be used to accelerate spatial queries at the row group/page level
+
+    /**
+     * Indicates if an attribute is supported or not.
+     *
+     * Currently only mixed geometry (encoded as WKB) and point types are encoded correctly as GeoParquet.
+     *
+     * TODO GEOMESA-3259 support non-point geometries
+     *
+     * @param d descriptor
+     * @return
+     */
+    private[parquet] def supported(d: GeometryDescriptor): Boolean = {
+      ObjectType.selectType(d).last match {
+        case ObjectType.POINT | ObjectType.GEOMETRY => true
+        case _ => false
+      }
+    }
+
+    /**
+     * Generate json describing the GeoParquet file, conforming to the 1.1.0 GeoParquet schema
+     *
+     * @param primaryGeometry name of the primary geometry in the file
+     * @param geometries pairs of geometries and optional bounds
+     * @return
+     */
+    def apply(primaryGeometry: String, geometries: Seq[(GeometryDescriptor, Option[Envelope])]): String = {
+      val cols = geometries.map { case (descriptor, bounds) =>
+        val (encoding, types) = descriptor.getType.getBinding match {
+          case b if b == classOf[Geometry] => ("WKB", Collections.emptyList())
+          case b if b == classOf[GeometryCollection] => ("WKB", Collections.singletonList(classOf[GeometryCollection].getSimpleName))
+          case b => (b.getSimpleName.toLowerCase(Locale.US), Collections.singletonList(b.getSimpleName))
+        }
+        val metadata = new java.util.HashMap[String, AnyRef]
+        metadata.put("encoding", encoding)
+        metadata.put("geometry_types", types) // TODO add ' Z' for 3d points
+        bounds.filterNot(_.isNull).foreach { e =>
+          metadata.put("bbox", java.util.List.of(e.getMinX, e.getMinY, e.getMaxX, e.getMaxY)) // TODO add z for 3d points
+        }
+        StringSerialization.alphaNumericSafeString(descriptor.getLocalName) -> metadata
+      }
+
+      val model = java.util.Map.of(
+        "version", "1.1.0",
+        "primary_column", primaryGeometry,
+        "columns", cols.toMap.asJava
+      )
+
+      gson.toJson(model)
+    }
+
+    /**
+     * Observer class that generates GeoParquet metadata
+     *
+     * @param sft simple feature type
+     */
+    class GeoParquetObserver(sft: SimpleFeatureType) extends FileSystemObserver {
+
+      import scala.collection.JavaConverters._
+
+      private val bounds =
+        sft.getAttributeDescriptors.asScala.zipWithIndex.collect {
+          case (d: GeometryDescriptor, i) if supported(d) => (d, i, new Envelope())
+        }
+
+      def metadata(): java.util.Map[String, String] = {
+        if (bounds.isEmpty) { Collections.emptyMap() } else {
+          val geoms = bounds.map { case (d, _, env) => (d, Some(env).filterNot(_.isNull)) }
+          val primary = bounds.find(_._1 == sft.getGeometryDescriptor).getOrElse(bounds.head)._1.getLocalName
+          Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, geoms))
+        }
+      }
+
+      override def write(feature: SimpleFeature): Unit = {
+        bounds.foreach { case (_, i, envelope) =>
+          val geom = feature.getAttribute(i).asInstanceOf[Geometry]
+          if (geom != null) {
+            envelope.expandToInclude(geom.getEnvelopeInternal)
+          }
+        }
+      }
+
+      override def flush(): Unit = {}
+      override def close(): Unit = {}
+    }
   }
 }

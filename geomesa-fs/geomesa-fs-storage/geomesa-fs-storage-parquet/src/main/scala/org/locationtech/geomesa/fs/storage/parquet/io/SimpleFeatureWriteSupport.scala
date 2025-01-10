@@ -10,12 +10,14 @@ package org.locationtech.geomesa.fs.storage.parquet.io
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.parquet.hadoop.api.WriteSupport
-import org.apache.parquet.hadoop.api.WriteSupport.WriteContext
+import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.GeoParquetMetadata.GeoParquetObserver
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 
@@ -26,6 +28,8 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
   private var writer: SimpleFeatureWriteSupport.SimpleFeatureWriter = _
   private var consumer: RecordConsumer = _
+  private var geoParquetObserver: GeoParquetObserver = _
+  private var baseMetadata: java.util.Map[String, String] = _
 
   override val getName: String = "SimpleFeatureWriteSupport"
 
@@ -35,6 +39,8 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from write context")
     }
     this.writer = SimpleFeatureWriteSupport.SimpleFeatureWriter(schema.sft)
+    this.geoParquetObserver = new GeoParquetObserver(schema.sft)
+    this.baseMetadata = schema.metadata
 
     new WriteContext(schema.schema, schema.metadata)
   }
@@ -43,7 +49,22 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   override def prepareForWrite(recordConsumer: RecordConsumer): Unit = consumer = recordConsumer
 
   // called per row
-  override def write(record: SimpleFeature): Unit = writer.write(consumer, record)
+  override def write(record: SimpleFeature): Unit = {
+    writer.write(consumer, record)
+    geoParquetObserver.write(record)
+  }
+
+  // called once at the end
+  override def finalizeWrite(): FinalizedWriteContext = {
+    try {
+      val metadata = new java.util.HashMap[String, String]()
+      metadata.putAll(baseMetadata)
+      metadata.putAll(geoParquetObserver.metadata())
+      new FinalizedWriteContext(metadata)
+    } finally {
+      CloseWithLogging(geoParquetObserver)
+    }
+  }
 }
 
 object SimpleFeatureWriteSupport {
