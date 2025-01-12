@@ -130,8 +130,8 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       null,
       Map(Parameter.DEPRECATED -> true, Parameter.IS_PASSWORD -> true).asJava)
 
-  override val DisplayName = "Cassandra (GeoMesa)"
-  override val Description = "Apache Cassandra\u2122 distributed key/value store"
+  override val DisplayName = "Cassandra / ScyllaDB (GeoMesa)"
+  override val Description = "Apache Cassandra / ScyllaDB \u2122 distributed key/value store"
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(

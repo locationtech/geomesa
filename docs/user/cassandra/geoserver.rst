@@ -12,11 +12,11 @@ interface by clicking "Data > Stores" in the left-hand menu and then
 clicking "Add new Store".
 
 If you have properly installed the GeoMesa Cassandra GeoServer plugin as described
-in :ref:`install_cassandra_geoserver`, "Cassandra (GeoMesa)" should be included in the list
+in :ref:`install_cassandra_geoserver`, "Cassandra  / ScyllaDB (GeoMesa)" should be included in the list
 under **Vector Data Sources**. If you do not see this, check that you unpacked the
 plugin JARs into in the right directory and restart GeoServer.
 
-On the "Add Store" page, select "Cassandra (GeoMesa)", and fill out the
+On the "Add Store" page, select "Cassandra / ScyllaDB (GeoMesa)", and fill out the
 parameters. The parameters are described in :ref:`cassandra_parameters`.
 
-Click "Save", and GeoServer will search Cassandra for any GeoMesa-managed feature types.
+Click "Save", and GeoServer will search Cassandra / ScyllaDB for any GeoMesa-managed feature types.

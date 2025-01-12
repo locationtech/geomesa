@@ -1,7 +1,7 @@
 Cassandra Heatmaps
 ==================
 
-Cassandra can generate client-side heatmaps in GeoServer by defining a style and using the built in ``gs:Heatmap``
+Cassandra / ScyllaDB can generate client-side heatmaps in GeoServer by defining a style and using the built in ``gs:Heatmap``
 process within GeoServer.
 
 To start, add a new SLD style to GeoServer named "heatmap" and use this sld

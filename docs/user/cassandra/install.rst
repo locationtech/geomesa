@@ -7,6 +7,10 @@ Installing GeoMesa Cassandra
 
 .. note::
 
+    GeoMesa currently supports ScyllaDB version |scylladb_version|.
+
+.. note::
+
     The examples below expect a version to be set in the environment:
 
     .. parsed-literal::
@@ -14,23 +18,25 @@ Installing GeoMesa Cassandra
         $ export TAG="|release_version|"
         $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
 
-Connecting to Cassandra
------------------------
+Connecting to Cassandra or ScyllaDB
+-----------------------------------
 
-The first step to getting started with Cassandra and GeoMesa is to install
-Cassandra itself. You can find good directions for downloading and installing
-Cassandra online. For example, see Cassandra's official `getting started`_ documentation.
+The first step to getting started with Cassandra / ScyllaDB and GeoMesa is to install
+Cassandra / ScyllaDB itself. You can find good directions for downloading and installing
+Cassandra / ScyllaDB online. For example, see Cassandra's official `getting started`_ or official `ScyllaDB's getting started`_  documentation.
 
 .. _getting started: https://cassandra.apache.org/doc/latest/getting_started/index.html
 
-Once you have Cassandra installed, the next step is to prepare your Cassandra installation
-to integrate with GeoMesa. First, create a key space within Cassandra. The easiest way to
-do this with ``cqlsh``, which should have been installed as part of your Cassandra installation.
+.. _ScyllaDB's getting started: https://opensource.docs.scylladb.com/stable/getting-started/index.html
+
+Once you have Cassandra / ScyllaDB installed, the next step is to prepare your Cassandra / ScyllaDB installation
+to integrate with GeoMesa. First, create a key space within Cassandra / ScyllaDB. The easiest way to
+do this with ``cqlsh``, which should have been installed as part of your Cassandra / ScyllaDB installation.
 Start ``cqlsh``, then type::
 
     CREATE KEYSPACE mykeyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
 
-This creates a key space called "mykeyspace". This is a top-level name space within Cassandra
+This creates a key space called "mykeyspace". This is a top-level name space within Cassandra / ScyllaDB
 and it will provide a place for GeoMesa to put all of its data, including data for spatial features
 and associated metadata.
 
@@ -40,12 +46,12 @@ installation. To set the variable add the following line to your ``.profile`` or
 
     export CASSANDRA_HOME=/path/to/cassandra
 
-Finally, make sure you know a contact point for your Cassandra instance.
-If you are just trying things locally, and using the default Cassandra settings,
+Finally, make sure you know a contact point for your Cassandra / ScyllaDB instance.
+If you are just trying things locally, and using the default Cassandra / ScyllaDB settings,
 the contact point would be ``127.0.0.1:9042``. You can check and configure the
-port you are using using the ``native_transport_port`` in the Cassandra
+port you are using using the ``native_transport_port`` in the Cassandra / ScyllaDB
 configuration file (located at ``conf/cassandra.yaml`` in your Cassandra
-installation directory).
+installation directory, ``/etc/scylla/scylla.yaml`` for ScyllaDB accordingly).
 
 Installing from the Binary Distribution
 ---------------------------------------

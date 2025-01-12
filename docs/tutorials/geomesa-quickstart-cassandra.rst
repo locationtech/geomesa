@@ -1,7 +1,7 @@
-GeoMesa Cassandra Quick Start
-=============================
+GeoMesa Cassandra / ScyllaDB Quick Start
+========================================
 
-This tutorial is the fastest and easiest way to get started with GeoMesa using Cassandra.
+This tutorial is the fastest and easiest way to get started with GeoMesa using Cassandra / ScyllaDB.
 It is a good stepping-stone on the path to the other tutorials, that present increasingly
 involved examples of how to use GeoMesa.
 
@@ -12,9 +12,9 @@ In the spirit of keeping things simple, the code in this tutorial only
 does a few small things:
 
 1. Establishes a new (static) SimpleFeatureType
-2. Prepares the Cassandra tables to store this type of data
+2. Prepares the Cassandra / ScyllaDB tables to store this type of data
 3. Creates a few thousand example SimpleFeatures
-4. Writes these SimpleFeatures to Cassandra
+4. Writes these SimpleFeatures to Cassandra / ScyllaDB
 5. Queries for a given geographic rectangle, time range, and attribute
    filter, writing out the entries in the result set
 6. Uses GeoServer to visualize the data (optional)
@@ -27,14 +27,14 @@ Before you begin, you must have the following installed and configured:
 -  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
 -  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  a Cassandra |cassandra_version| instance, either standalone or cluster
--  a Cassandra user that has both create-table and write permissions
+-  a Cassandra |cassandra_version| instance or a ScyllaDB |scylladb_version| instance, either standalone or cluster
+-  a Cassandra / ScyllaDB user that has both create-table and write permissions
    (not needed for standalone instances)
 
-Create A Cassandra Namespace
-----------------------------
+Create A Cassandra / ScyllaDB Namespace
+---------------------------------------
 
-You will need a namespace in Cassandra to contain the tutorial tables. The easiest way to do
+You will need a namespace in Cassandra / ScyllaDB to contain the tutorial tables. The easiest way to do
 this is with the ``cqlsh`` tool provided with Cassandra distributions. Start ``cqlsh``, then type:
 
 .. code-block:: bash
@@ -42,7 +42,7 @@ this is with the ``cqlsh`` tool provided with Cassandra distributions. Start ``c
     cqlsh>  CREATE KEYSPACE geomesa WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 3};
 
 This creates a key space called "geomesa". This is a top-level name
-space within Cassandra and it will provide a place for GeoMesa to put
+space within Cassandra / ScyllaDB and it will provide a place for GeoMesa to put
 all of its data, including data for spatial features and associated
 metadata.
 
@@ -88,20 +88,20 @@ On the command line, run:
 
 where you provide the following arguments:
 
-- ``<host:port>`` the hostname and port your Cassandra instance is
-  running on. For Cassandra standalone this will be ``localhost:9042``. More
+- ``<host:port>`` the hostname and port your Cassandra / ScyllaDB instance is
+  running on. For Cassandra / ScyllaDB standalone this will be ``localhost:9042``. More
   information on how to find your connection is available
-  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
+  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra-/-scylladb>`__.
 - ``<keyspace>`` keyspace your table will be put into. If you followed the instructions above,
   this will be ``geomesa``. More information on how to setup keyspaces is available
-  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra>`__.
+  `here <https://www.geomesa.org/documentation/user/cassandra/install.html#connecting-to-cassandra-/-scylladb>`__.
 - ``<table>`` the name of the destination table that will
   accept these test records. This table should either not exist or
   should be empty
-- ``<user>`` (optional) the name of a Cassandra user that has
+- ``<user>`` (optional) the name of a Cassandra / ScyllaDB user that has
   permissions to create, read and write tables
 - ``<password>`` (optional) the password for the previously-mentioned
-  Cassandra user
+  Cassandra / ScyllaDB user
 
 Optionally, you can also specify that the quick start should delete its data upon completion. Use the
 ``--cleanup`` flag when you run to enable this behavior.
@@ -256,7 +256,7 @@ Register the GeoMesa Store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Log into GeoServer using your user and password credentials. Click
-"Stores" and "Add new Store". Select the ``Cassandra (GeoMesa)`` vector data
+"Stores" and "Add new Store". Select the ``Cassandra / ScyllaDB (GeoMesa)`` vector data
 source, and fill in the required parameters.
 
 Basic store info:
@@ -269,7 +269,7 @@ Connection parameters:
 
 -  these are the same parameter values that you supplied on the
    command line when you ran the tutorial; they describe how to connect
-   to the Cassandra instance where your data reside
+   to the Cassandra / ScyllaDB instance where your data reside
 
 Click "Save", and GeoServer will search your Cassandra table for any
 GeoMesa-managed feature types.
