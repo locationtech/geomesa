@@ -12,7 +12,9 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.hadoop.fs.{FileStatus, FileSystem, Path, RemoteIterator}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-import java.util.concurrent.TimeUnit
+import java.io.FileNotFoundException
+import java.util.concurrent.{CompletableFuture, Executor, TimeUnit}
+import java.util.function.BiConsumer
 
 /**
   * Caches file statuses to avoid repeated file system operations. Status expires after a
@@ -32,20 +34,39 @@ object PathCache {
       }
     )
 
-  // cache for individual file status
-  private val statusCache =
-    Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-      new CacheLoader[(FileSystem, Path), FileStatus]() {
-        override def load(key: (FileSystem, Path)): FileStatus = key._1.getFileStatus(key._2)
-      }
-    )
-
   // cache for checking directory contents
   private val listCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(FileSystem, Path), Stream[FileStatus]]() {
         override def load(key: (FileSystem, Path)): Stream[FileStatus] =
           RemoteIterator(key._1.listStatusIterator(key._2)).toStream
+      }
+    )
+
+  // cache for individual file status
+  private val statusCache =
+    Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
+      new CacheLoader[(FileSystem, Path), FileStatus]() {
+        override def load(key: (FileSystem, Path)): FileStatus = {
+          try { key._1.getFileStatus(key._2) } catch {
+              case _: FileNotFoundException => null
+          }
+        }
+
+        override def asyncLoad(key: (FileSystem, Path), executor: Executor): CompletableFuture[FileStatus] = {
+          super.asyncLoad(key, executor)
+            .whenCompleteAsync(new ListCacheRefresh(key), executor)
+            .asInstanceOf[CompletableFuture[FileStatus]]
+        }
+
+        override def asyncReload(
+            key: (FileSystem, Path),
+            oldValue: FileStatus,
+            executor: Executor): CompletableFuture[FileStatus] = {
+          super.asyncReload(key, oldValue, executor)
+            .whenCompleteAsync(new ListCacheRefresh(key), executor)
+            .asInstanceOf[CompletableFuture[FileStatus]]
+        }
       }
     )
 
@@ -57,14 +78,7 @@ object PathCache {
     */
   def register(fs: FileSystem, path: Path): Unit = {
     pathCache.put((fs, path), java.lang.Boolean.TRUE)
-    val status = statusCache.refresh((fs, path))
-    val parent = path.getParent
-    if (parent != null) {
-      listCache.getIfPresent((fs, parent)) match {
-        case null => // no-op
-        case list => listCache.put((fs, parent), list :+ status.get())
-      }
-    }
+    statusCache.refresh((fs, path)) // also triggers listCache update
   }
 
   /**
@@ -83,7 +97,7 @@ object PathCache {
   }
 
   /**
-    * Gets the file status for a path
+    * Gets the file status for a path. Path must exist.
     *
     * @param fs file system
     * @param path path
@@ -116,12 +130,33 @@ object PathCache {
     * @param fs file system
     * @param path path
     */
-  def invalidate(fs: FileSystem, path: Path): Unit = Seq(pathCache, statusCache, listCache).foreach(_.invalidate((fs, path)))
+  def invalidate(fs: FileSystem, path: Path): Unit = {
+    Seq(pathCache, statusCache, listCache).foreach(_.invalidate((fs, path)))
+    if (path.getParent != null) {
+      listCache.invalidate((fs, path.getParent))
+    }
+  }
 
   object RemoteIterator {
     def apply[T](iter: RemoteIterator[T]): Iterator[T] = new Iterator[T] {
       override def hasNext: Boolean = iter.hasNext
       override def next(): T = iter.next
     }
+  }
+
+  private class ListCacheRefresh(key: (FileSystem, Path)) extends BiConsumer[FileStatus, Throwable] {
+    override def accept(status: FileStatus, u: Throwable): Unit = {
+      if (status != null) { // could be null if load fails
+        val (fs, path) = key
+        val parent = path.getParent
+        if (parent != null) {
+          listCache.asMap().computeIfPresent((fs, parent), load(status)_)
+        }
+      }
+    }
+
+    // noinspection ScalaUnusedSymbol
+    private def load(status: FileStatus)(ignored: (FileSystem, Path), list: Stream[FileStatus]): Stream[FileStatus] =
+      list.filterNot(f => f.getPath == status.getPath) :+ status
   }
 }
