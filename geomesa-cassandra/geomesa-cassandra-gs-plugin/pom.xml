@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>geomesa-cassandra-gs-plugin_2.12</artifactId>
-    <name>GeoMesa Cassandra GeoServer Plugin</name>
+    <name>GeoMesa Cassandra / ScyllaDB GeoServer Plugin</name>
     <packaging>pom</packaging>
 
     <dependencies>

@@ -15,12 +15,12 @@ Once installed, the tools should be available through the command ``geomesa-cass
       Commands:
         ...
 
-All Cassandra commands are described in the common tools chapter :doc:`/user/cli/index`.
+All Cassandra / ScyllaDB commands are described in the common tools chapter :doc:`/user/cli/index`.
 
 General Arguments
 -----------------
 
-Most commands require you to specify the connection to Cassandra. This generally includes a contact point,
+Most commands require you to specify the connection to Cassandra / ScyllaDB. This generally includes a contact point,
 key space, username and password. Specify the contact point and key space with ``--contact-point`` and
 ``--key-space`` (or ``-P`` and ``-k``). Specify the username and password with ``--user`` and ``--password``
 (or ``-u`` and ``-p``). In order to avoid plaintext passwords in the bash history

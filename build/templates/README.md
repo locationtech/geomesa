@@ -29,7 +29,7 @@ geospatial analytics.
 * Quick Starts:
   [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
   [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
-  [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
+  [Cassandra / ScyllaDB](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
   [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
   [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
@@ -42,7 +42,7 @@ geospatial analytics.
   &nbsp;&nbsp;&nbsp;&nbsp;
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-hbase_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-cassandra_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
+  [**Cassandra / ScyllaDB**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-cassandra_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-kafka_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-redis_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-${geomesa.release.version}/geomesa-fs_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz) |

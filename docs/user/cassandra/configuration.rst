@@ -1,13 +1,13 @@
-Cassandra Configuration
-=======================
+Cassandra / ScyllaDB Configuration
+==================================
 
-This section details Cassandra-specific configuration properties. For general properties,
+This section details Cassandra / ScyllaDB specific configuration properties. For general properties,
 see :ref:`geomesa_site_xml`.
 
 Connection Properties
 ---------------------
 
-The following properties control the configuration of the Cassandra session.
+The following properties control the configuration of the Cassandra / ScyllaDB session.
 
 geomesa.cassandra.connection.timeout
 ++++++++++++++++++++++++++++++++++++

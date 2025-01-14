@@ -3,7 +3,7 @@
 Cassandra Data Store Parameters
 ===============================
 
-Use the following parameters for a Cassandra data store (required parameters are marked with ``*``):
+Use the following parameters for a Cassandra / ScyllaDB data store (required parameters are marked with ``*``):
 
 ==================================== ======= ========================================================================================
 Parameter                            Type    Description
@@ -11,9 +11,9 @@ Parameter                            Type    Description
 ``cassandra.catalog *``              String  The name of the GeoMesa catalog table (previously ``geomesa.cassandra.catalog.table``)
 ``cassandra.contact.point *``        String  The connection point for Cassandra, in the form ``<host>:<port>`` - for a default
                                              local installation this will be ``localhost:9042``
-``cassandra.keyspace *``             String  The Cassandra keyspace to use (must exist already)
-``cassandra.username``               String  Cassandra user
-``cassandra.password``               String  Cassandra password
+``cassandra.keyspace *``             String  The Cassandra / ScyllaDB keyspace to use (must exist already)
+``cassandra.username``               String  Cassandra / ScyllaDB user
+``cassandra.password``               String  Cassandra / ScyllaDB password
 ``geomesa.query.audit``              Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.timeout``            String  The max time a query will be allowed to run before being killed. The
                                              timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
@@ -25,7 +25,7 @@ Parameter                            Type    Description
 Programmatic Access
 -------------------
 
-An instance of a Cassandra data store can be obtained through the normal GeoTools discovery methods,
+An instance of a Cassandra / ScyllaDB data store can be obtained through the normal GeoTools discovery methods,
 assuming that the GeoMesa code is on the classpath.
 
 .. code-block:: java
