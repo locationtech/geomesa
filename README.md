@@ -38,8 +38,7 @@ geospatial analytics.
 
 ## Downloads
 
-**Latest release: [5.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.2.0)** -
-  &nbsp;
+**Latest release: [5.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.2.0)** &nbsp;-&nbsp;
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-accumulo_2.12-5.2.0-bin.tar.gz) |
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-hbase_2.12-5.2.0-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-cassandra_2.12-5.2.0-bin.tar.gz) |
