@@ -101,7 +101,6 @@ mvn release:clean
 git checkout "$TAG"
 mkdir -p "$RELEASE"
 
-# TODO why are we building docs here?
 mvn clean deploy -Pcentral,docs,python -DskipTests | tee build_2.12.log
 copyReleaseArtifacts
 
@@ -111,7 +110,6 @@ copyReleaseArtifacts
 
 # reset pom changes
 ./build/scripts/change-scala-version.sh 2.12
-git restore README.md
 
 # exit virtualenv
 deactivate
