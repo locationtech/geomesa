@@ -1,5 +1,5 @@
-<p align="center">
-  <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
+<p style="text-align:center;">
+  <a href="https://geomesa.github.io"><img style="text-align:center;" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png" alt="GeoMesa logo"/></a>
 </p>
 
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
@@ -10,8 +10,9 @@ GeoMesa facilitates integration with a wide range of existing mapping clients ov
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
 
-<p align="center">
-  <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
+<p style="text-align:center;">
+  <img style="text-align:center;" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"
+    alt="Various maps rendered with GeoMesa"/>
 </p>
 
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
@@ -37,9 +38,8 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: [5.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.2.0)**
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
+**Latest release: [5.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.2.0)**
+  &nbsp;
   [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-accumulo_2.12-5.2.0-bin.tar.gz) |
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-hbase_2.12-5.2.0-bin.tar.gz) |
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-cassandra_2.12-5.2.0-bin.tar.gz) |
@@ -54,21 +54,21 @@ Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files
 import the appropriate key:
 
 ```bash
-$ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 ```
 
 Then verify the file:
 
 ```bash
-$ gpg2 --verify geomesa-accumulo_2.12-5.2.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.2.0-bin.tar.gz
+gpg2 --verify geomesa-accumulo_2.12-5.2.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.2.0-bin.tar.gz
 ```
 
 The keys currently used for signing are:
 
-| Key ID | Name |
-| ------ | ---- |
+| Key ID     | Name                                               |
+|------------|----------------------------------------------------|
 | `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
-| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
+| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt;           |
 
 ## Maven Integration
 
@@ -178,15 +178,8 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
-**Development version: 5.3.0-SNAPSHOT**
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.13.yml?query=branch%3Amain)
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
+  &nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/main-build.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/main-build.yml?query=branch%3Amain) &nbsp;
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
 
 Requirements:
@@ -198,12 +191,16 @@ Requirements:
 
 Use Git to download the source code. Navigate to the destination directory, then run:
 
-    git clone git@github.com:locationtech/geomesa.git
-    cd geomesa
+```bash
+git clone git@github.com:locationtech/geomesa.git
+cd geomesa
+```
 
 The project is built using Maven. To build, run:
 
-    mvn clean install -DskipTests
+```bash
+mvn clean install -DskipTests
+```
 
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
@@ -214,7 +211,9 @@ To run unit tests, omit the `-DskipTests` (note: requires `docker` to be availab
 GeoMesa also provides experimental support for the [Bloop](https://scalacenter.github.io/bloop/) compile server,
 which provides fast incremental compilation. To export the GeoMesa build to Bloop, run:
 
-    ./build/scripts/bloop-export.sh
+```bash
+./build/scripts/bloop-export.sh
+```
 
 For more information on using Bloop, refer to the
 [Bloop documentation](https://scalacenter.github.io/bloop/docs/build-tools/maven).
@@ -226,18 +225,23 @@ which provides fast incremental compilation. However, please note that Zinc is n
 To use an existing Zinc server, run maven with `-Pzinc`. GeoMesa provides a helper script at `build/mvn`, which
 is a wrapper around Maven that downloads and runs Zinc automatically:
 
-    build/mvn clean install -T8 -DskipTests
+```bash
+build/mvn clean install -T8 -DskipTests
+```
 
 If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
 environment variable to point to the root of your JDK. Example from a Mac:
 
-    JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
-
+```bash
+JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
+```
 ### Scala Cross Build
 
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:
 
-    ./build/scripts/change-scala-version.sh 2.13
+```bash
+./build/scripts/change-scala-version.sh 2.13
+```
 
 ### Building on OS X
 
