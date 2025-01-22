@@ -1,5 +1,6 @@
-<p style="text-align:center;">
-  <a href="https://geomesa.github.io"><img style="text-align:center;" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png" alt="GeoMesa logo"/></a>
+<!--suppress ALL -->
+<p align="center">
+  <a href="https://geomesa.github.io"><img align="center" width="50%" src="https://raw.githubusercontent.com/geomesa/geomesa.github.io/main/img/geomesa-2x.png"></img></a>
 </p>
 
 GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
@@ -10,9 +11,8 @@ GeoMesa facilitates integration with a wide range of existing mapping clients ov
 Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
 geospatial analytics.
 
-<p style="text-align:center;">
-  <img style="text-align:center;" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"
-    alt="Various maps rendered with GeoMesa"/>
+<p align="center">
+  <img align="center" height="150px" src="https://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
 </p>
 
 #### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
