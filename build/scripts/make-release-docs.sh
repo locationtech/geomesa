@@ -22,7 +22,7 @@ if [[ ($# -ne 0) ]]; then
 fi
 
 if ! [[ -d "$WEBSITE_DIR" ]]; then
-  echo "Error: expected directory $WEBSITE_DIR does not exist or is not readable"
+  echo "Error: required directory $WEBSITE_DIR does not exist or is not readable"
   exit 1
 fi
 
