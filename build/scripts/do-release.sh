@@ -53,15 +53,6 @@ if ! [[ $(which gpg) ]]; then
   exit 1
 fi
 
-if ! [[ $(which virtualenv) ]]; then
-  echo "Error: virtualenv executable not found (required for building docs)"
-  exit 1
-fi
-
-# configure virtualenv for building the docs
-# shellcheck disable=SC1091
-virtualenv .sphinx && source .sphinx/bin/activate && pip install -r docs/requirements.txt
-
 # get current branch we're releasing off
 BRANCH="$(git branch --show-current)"
 
@@ -101,18 +92,16 @@ mvn release:clean
 git checkout "$TAG"
 mkdir -p "$RELEASE"
 
-mvn clean deploy -Pcentral,docs,python -DskipTests | tee build_2.12.log
+mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.12.log
 copyReleaseArtifacts
 
 ./build/scripts/change-scala-version.sh 2.13
-mvn clean deploy -Pcentral,docs,python -DskipTests | tee build_2.13.log
+mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.13.log
 copyReleaseArtifacts
 
 # reset pom changes
 ./build/scripts/change-scala-version.sh 2.12
-
-# exit virtualenv
-deactivate
+git restore README.md
 
 # push commits and tags
 git checkout "$BRANCH"
