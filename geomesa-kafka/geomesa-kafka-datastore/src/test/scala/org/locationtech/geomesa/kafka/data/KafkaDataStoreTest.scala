@@ -265,6 +265,35 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+    "support topic read-back" >> {
+      foreach(Seq(true, false)) { cqEngine =>
+        val params = if (cqEngine) {
+          Map("kafka.index.cqengine" -> "geom:default,name:unique", "kafka.zookeepers" -> zookeepers)
+        } else {
+          Map.empty[String, String]
+        }
+        val (producer, consumer, sft) = createStorePair(params ++ Map("kafka.consumer.read-back" -> "Inf"))
+        try {
+          producer.createSchema(sft)
+
+          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+          // initial write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          consumer.metadata.resetCache()
+          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      }
+    }
+
     "write/read with visibilities" >> {
       import org.locationtech.geomesa.security.AuthProviderParam
 
