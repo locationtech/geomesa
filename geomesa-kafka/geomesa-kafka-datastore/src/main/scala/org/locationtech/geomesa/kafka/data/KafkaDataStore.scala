@@ -53,6 +53,7 @@ import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 class KafkaDataStore(
@@ -99,7 +100,13 @@ class KafkaDataStore(
         val serializer = serialization.apply(sft)
         val initialLoad = config.consumers.readBack.isDefined
         val expiry = config.indices.expiry
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
+        val loader = new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
+        try { loader.start() } catch {
+          case NonFatal(e) =>
+            CloseWithLogging(loader)
+            throw e
+        }
+        loader
       }
     }
   })
