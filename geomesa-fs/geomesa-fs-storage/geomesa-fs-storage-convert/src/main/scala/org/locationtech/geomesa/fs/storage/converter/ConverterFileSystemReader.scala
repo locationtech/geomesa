@@ -47,7 +47,8 @@ class ConverterFileSystemReader(
           case _ => new HadoopFileHandle(fs, path)
         }
         handle.open.flatMap { case (name, is) =>
-          val params = EvaluationContext.inputFileParam(name.getOrElse(handle.path))
+          val params = EvaluationContext.inputFileParam(name.getOrElse(handle.path)) ++
+            filter.map(EvaluationContext.FilterKey -> _)
           converter.process(is, converter.createEvaluationContext(params))
         }
       } catch {
