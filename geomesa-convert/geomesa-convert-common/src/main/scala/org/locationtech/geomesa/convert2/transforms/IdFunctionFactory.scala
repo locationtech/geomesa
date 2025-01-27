@@ -61,14 +61,16 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {
-    private val hasher = MessageDigest.getInstance("MD5")
+    private val hashers = new ThreadLocal[MessageDigest]() {
+      override def initialValue(): MessageDigest = MessageDigest.getInstance("MD5")
+    }
     override def apply(args: Array[AnyRef]): AnyRef = {
       val bytes = args(0) match {
         case s: String => s.getBytes(StandardCharsets.UTF_8)
         case b: Array[Byte] => b
         case a => throw new IllegalArgumentException(s"Expected String or byte[] but got: $a")
       }
-      ByteArrays.toHex(hasher.digest(bytes))
+      ByteArrays.toHex(hashers.get.digest(bytes))
     }
   }
 
