@@ -3184,6 +3184,7 @@
                             <licenseSet>
                                 <header>build/copyright/ccri.txt</header>
                                 <validHeaders>
+                                    <validHeader>build/copyright/ccri-2025.txt</validHeader>
                                     <validHeader>build/copyright/ccri-azavea.txt</validHeader>
                                     <validHeader>build/copyright/ccri-dstl.txt</validHeader>
                                     <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
