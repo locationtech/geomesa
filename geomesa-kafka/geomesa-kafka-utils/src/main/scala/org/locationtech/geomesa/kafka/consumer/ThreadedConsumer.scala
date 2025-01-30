@@ -21,6 +21,7 @@ import scala.util.control.NonFatal
 abstract class ThreadedConsumer(
     consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
     frequency: Duration,
+    offsetCommitIntervalMs: Long,
     closeConsumers: Boolean = true
   ) extends BaseThreadedConsumer(consumers) {
 
@@ -44,6 +45,8 @@ abstract class ThreadedConsumer(
 
     lazy private val topics = consumer.subscription().asScala.mkString(", ")
 
+    private var lastOffsetCommitMs = System.currentTimeMillis()
+
     override def run(): Unit = {
       try {
         var interrupted = false
@@ -60,7 +63,11 @@ abstract class ThreadedConsumer(
                 consume(records.next())
               }
               logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
-              consumer.commitAsync(callback)
+              if (System.currentTimeMillis() - lastOffsetCommitMs > offsetCommitIntervalMs) {
+                  logger.trace(s"Consumer [$id] committing offsets")
+                  consumer.commitAsync()
+                  lastOffsetCommitMs = System.currentTimeMillis()
+              }
               errorCount = 0 // reset error count
             }
           } catch {

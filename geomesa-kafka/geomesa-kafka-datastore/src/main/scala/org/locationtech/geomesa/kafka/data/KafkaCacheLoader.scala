@@ -76,8 +76,9 @@ object KafkaCacheLoader extends LazyLogging {
       frequency: Long,
       serializer: GeoMessageSerializer,
       doInitialLoad: Boolean,
-      initialLoadConfig: ExpiryTimeConfig
-    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) with KafkaCacheLoader {
+      initialLoadConfig: ExpiryTimeConfig,
+      offsetCommitIntervalMs: Long
+    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), offsetCommitIntervalMs) with KafkaCacheLoader {
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
@@ -85,7 +86,7 @@ object KafkaCacheLoader extends LazyLogging {
     private val initialLoader =
       if (doInitialLoad) {
         // for the initial load, don't bother spatially indexing until we have the final state
-        Some(new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this))
+        Some(new InitialLoader(sft, consumers, topic, frequency, offsetCommitIntervalMs, serializer, initialLoadConfig, this))
       } else {
         None
       }
@@ -133,10 +134,11 @@ object KafkaCacheLoader extends LazyLogging {
       consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
       topic: String,
       frequency: Long,
+      offsetCommitIntervalMs: Long,
       serializer: GeoMessageSerializer,
       ordering: ExpiryTimeConfig,
       toLoad: KafkaCacheLoaderImpl
-    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
+    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), offsetCommitIntervalMs, false) with Runnable {
 
     import scala.collection.JavaConverters._
 
