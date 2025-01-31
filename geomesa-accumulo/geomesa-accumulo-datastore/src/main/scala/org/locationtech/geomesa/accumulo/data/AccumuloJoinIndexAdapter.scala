@@ -303,6 +303,11 @@ object AccumuloJoinIndexAdapter {
     val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
     val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
     val reducer = new LocalTransformReducer(resultSft, None, None, None, hints, hook)
+    if (hints.isSkipReduce) {
+      // override the return sft to reflect what we're actually returning,
+      // since the arrow sft is only created in the local reduce step
+      hints.hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
+    }
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)
     val recordThreads = ds.config.queries.recordThreads
