@@ -157,12 +157,16 @@ object TableManager {
       tableCache.get(table, _ => {
         withLock(tablePath(table), timeoutMillis, {
           val tableOps = client.tableOperations()
-          while (!tableOps.exists(table)) {
+          if (!tableOps.exists(table)) {
             try {
               tableOps.create(table, new NewTableConfiguration().setTimeType(timeType))
               created = true
             } catch {
               case _: TableExistsException => onTableExists(table)
+            }
+            val start = System.currentTimeMillis()
+            while (!tableOps.exists(table) && System.currentTimeMillis() - start < timeoutMillis) {
+              Thread.sleep(10)
             }
           }
         })
@@ -182,9 +186,13 @@ object TableManager {
       nsCache.get(ns, _ => {
         withLock(nsPath(ns), timeoutMillis, {
           val nsOps = client.namespaceOperations
-          while (!nsOps.exists(ns)) {
+          if (!nsOps.exists(ns)) {
             try { nsOps.create(ns) } catch {
               case _: NamespaceExistsException => onNamespaceExists(ns)
+            }
+            val start = System.currentTimeMillis()
+            while (!nsOps.exists(ns) && System.currentTimeMillis() - start < timeoutMillis) {
+              Thread.sleep(10)
             }
           }
         })
