@@ -117,7 +117,7 @@ object AccumuloJoinIndexAdapter {
     } else if (hints.isArrowQuery) {
       // check to see if we can execute against the index values
       if (index.canUseIndexSchema(ecql, transform)) {
-        if (ds.config.remote.bin) {
+        if (ds.config.remote.arrow) {
           val (iter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, filter.filter, ecql, hints)
           val iters = visibilityIter(index) :+ iter
           plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
@@ -139,7 +139,7 @@ object AccumuloJoinIndexAdapter {
         hints.clearTransforms()
         // next add the attribute value from the row key
         val rowValueIter = AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transformSft, 24)
-        if (ds.config.remote.bin) {
+        if (ds.config.remote.arrow) {
           // finally apply the arrow iterator on the resulting features
           val (iter, reduce) = ArrowIterator.configure(transformSft, index, ds.stats, None, None, hints)
           val iters = visibilityIter(index) ++ Seq(filterTransformIter, rowValueIter, iter)
@@ -298,6 +298,11 @@ object AccumuloJoinIndexAdapter {
     }
     val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
     val reducer = new LocalTransformReducer(resultSft, None, None, None, hints)
+    if (hints.isSkipReduce) {
+      // override the return sft to reflect what we're actually returning,
+      // since the arrow sft is only created in the local reduce step
+      hints.hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
+    }
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)
     val recordThreads = ds.config.queries.recordThreads
