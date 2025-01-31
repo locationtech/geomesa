@@ -50,6 +50,24 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       ps.getSimplifiedFilters(ECQL.toFilter("bbox(geom,-170,-80,170,80)")) must beNone
     }
 
+    "partition based on allow list containing attribute value" >> {
+      val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name", "allow-list" -> "test, bar")))
+      ps.getPartitionName(sf) mustEqual "test"
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('test')")) must beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq("test"), partial = false)))
+    }
+
+    "partition based on allow list not containing attribute value and default partition defaults to allow list head" >> {
+      val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name", "allow-list" -> "bar")))
+      ps.getPartitionName(sf) mustEqual "bar"
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('test')")) must beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq.empty, partial = false)))
+    }
+
+    "partition based on allow list not containing attribute value and default partition is set" >> {
+      val ps = PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name", "allow-list" -> "bar", "default-partition" -> "foo")))
+      ps.getPartitionName(sf) mustEqual "foo"
+      ps.getSimplifiedFilters(ECQL.toFilter("name IN ('test')")) must beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq.empty, partial = false)))
+    }
+
     "partition based on date" >> {
       val ps = DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", 2)
       ps.getPartitionName(sf) mustEqual "2017-02-03"

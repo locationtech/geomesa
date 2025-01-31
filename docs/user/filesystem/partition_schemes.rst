@@ -146,3 +146,9 @@ Attribute schemes lay out data based on a lexicoded attribute value.
 **Configuration:**
 
 * ``partitioned-attribute`` - The name of an attribute from the SimpleFeatureType to use for partitioning data.
+* ``allow-list`` - An optional comma separated list of allowed paths to use for partitioning data that must
+  equal the value of the specified ``partitioned-attribute`` from partitioned SimpleFeatures, otherwise it will return
+  an empty list of partitions.
+* ``default-partition`` - An optional config for setting the default partition for null or not allowed attribute values.
+  If not set, if an ``allow-list`` is set then ``default-partition`` will be set to the head of the list, otherwise
+  ``default-partition`` will equal "".
