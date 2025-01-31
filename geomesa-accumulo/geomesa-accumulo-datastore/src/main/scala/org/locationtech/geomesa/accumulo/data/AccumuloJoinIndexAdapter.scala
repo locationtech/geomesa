@@ -117,7 +117,7 @@ object AccumuloJoinIndexAdapter {
     } else if (hints.isArrowQuery) {
       // check to see if we can execute against the index values
       if (index.canUseIndexSchema(ecql, transform)) {
-        if (ds.config.remote.arrow) {
+        if (ds.config.remote.bin) {
           val (iter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, filter.filter, ecql, hints)
           val iters = visibilityIter(index) :+ iter
           plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
@@ -139,7 +139,7 @@ object AccumuloJoinIndexAdapter {
         hints.clearTransforms()
         // next add the attribute value from the row key
         val rowValueIter = AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transformSft, 24)
-        if (ds.config.remote.arrow) {
+        if (ds.config.remote.bin) {
           // finally apply the arrow iterator on the resulting features
           val (iter, reduce) = ArrowIterator.configure(transformSft, index, ds.stats, None, None, hints)
           val iters = visibilityIter(index) ++ Seq(filterTransformIter, rowValueIter, iter)
