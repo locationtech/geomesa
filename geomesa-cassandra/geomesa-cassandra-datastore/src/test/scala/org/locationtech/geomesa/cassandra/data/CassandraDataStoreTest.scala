@@ -38,15 +38,8 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
   var params: Map[String, String] = _
 
-  // Use placeholders for container images or other sensitive info
-  private val cassandraImage = "cassandra:4.0.8"
-  private val scyllaImage = "scylladb/scylla:6.2"
-
-  // Define Cassandra container
-  private val cassandraContainer = new GenericContainer[Nothing](cassandraImage)
-
-  // Define Scylla container
-  private val scyllaContainer = new GenericContainer[Nothing](scyllaImage)
+  private val cassandraContainer = new GenericContainer[Nothing]("cassandra:4.0.8")
+  private val scyllaContainer = new GenericContainer[Nothing]("scylladb/scylla:6.2")
   private var dsList: List[CassandraDataStore] = List()
 
   override def beforeAll(): Unit = {
@@ -65,34 +58,6 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
     super.afterAll()
   }
 
-
-  //  step {
-  //    storage = Files.createTempDirectory("cassandra")
-  //
-  //    System.setProperty("cassandra.storagedir", storage.toString)
-  //
-  //    EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
-  //
-  //    var readTimeout: Int = SystemProperty("cassandraReadTimeout", "12000").get.toInt
-  //
-  //    if (readTimeout < 0) {
-  //      readTimeout = 12000
-  //    }
-  //    val host = EmbeddedCassandraServerHelper.getHost
-  //    val port = EmbeddedCassandraServerHelper.getNativeTransportPort
-  //    val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
-  //      .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()
-  //    val session = cluster.connect()
-  //    val cqlDataLoader = new CQLDataLoader(session)
-  //    cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
-  //
-  //    params = Map(
-  //      Params.ContactPointParam.getName -> s"$host:$port",
-  //      Params.KeySpaceParam.getName -> "geomesa_cassandra",
-  //      Params.CatalogParam.getName -> "test_sft"
-  //    )
-  //    ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[CassandraDataStore]
-  //  }
 
   def dsFromContainer(container: GenericContainer[Nothing]): CassandraDataStore = {
     val cqlSession = new Cluster.Builder().addContactPoints(container.getHost).withPort(9042)
