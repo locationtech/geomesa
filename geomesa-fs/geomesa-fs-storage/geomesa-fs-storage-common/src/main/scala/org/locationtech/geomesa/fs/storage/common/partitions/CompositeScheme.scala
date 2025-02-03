@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
@@ -94,15 +95,17 @@ object CompositeScheme {
 
   val SchemeSeparator = ","
 
-  class CompositePartitionSchemeFactory extends PartitionSchemeFactory {
+  class CompositePartitionSchemeFactory extends PartitionSchemeFactory with LazyLogging {
     override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
       if (!config.name.contains(SchemeSeparator)) { None } else {
-        try {
-          val configs = config.name.split(SchemeSeparator).map(n => config.copy(name = n))
-          Some(CompositeScheme(configs.map(PartitionSchemeFactory.load(sft, _))))
-        } catch {
-          case NonFatal(_) => None
+        val configs = config.name.split(SchemeSeparator).map(n => config.copy(name = n))
+        val composites = configs.map { c =>
+          try { PartitionSchemeFactory.load(sft, c) } catch {
+            case NonFatal(e) =>
+              throw new IllegalArgumentException(s"Error creating composite scheme '${c.name}' (from '${config.name}'):", e)
+          }
         }
+        Some(CompositeScheme(composites))
       }
     }
   }
