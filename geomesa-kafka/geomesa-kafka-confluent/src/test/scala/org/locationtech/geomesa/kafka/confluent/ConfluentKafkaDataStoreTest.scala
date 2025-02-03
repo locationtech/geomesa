@@ -47,7 +47,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
     val props = new Properties()
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    // note: serializer will registry schemas with the registry automatically
+    // note: serializer will register schemas with the registry automatically
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
     props.put("schema.registry.url", schemaRegistryUrl)
     new KafkaProducer[String, GenericRecord](props)
@@ -62,7 +62,6 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       "kafka.topic.partitions" -> 1,
       "kafka.topic.replication" -> 1,
       "kafka.consumer.read-back" -> "Inf",
-      "kafka.zk.path" -> "",
       "kafka.consumer.count" -> 1
     ) ++ extraParams
 
@@ -100,7 +99,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
       val id2 = "2"
       val record2 = new GenericData.Record(schema1)
-      record2.put("id", id1)
+      record2.put("id", id2)
       record2.put("position", "POINT(15 35)")
       record2.put("speed", 0.00d)
       record2.put("date", "2021-12-07T17:23:25.372-05:00")
@@ -119,6 +118,45 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
         val expectedPosition = generatePoint(10d, 20d)
         SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft1
         feature.getID mustEqual id1
+        feature.getAttribute("position") mustEqual expectedPosition
+        feature.getAttribute("speed") mustEqual 12.325d
+        feature.getAttribute("date") mustEqual new Date(1638915744897L)
+        feature.getDefaultGeometry mustEqual expectedPosition
+        SecurityUtils.getVisibility(feature) mustEqual ""
+      }
+    }
+
+    "work with null keys" in {
+      val topic = newTopic()
+      val id1 = "1"
+      val record1 = new GenericData.Record(schema1)
+      record1.put("id", id1)
+      record1.put("position", "POINT(10 20)")
+      record1.put("speed", 12.325d)
+      record1.put("date", "2021-12-07T17:22:24.897-05:00")
+      record1.put("visibility", "")
+
+      val id2 = "2"
+      val record2 = new GenericData.Record(schema1)
+      record2.put("id", id2)
+      record2.put("position", "POINT(15 35)")
+      record2.put("speed", 0.00d)
+      record2.put("date", "2021-12-07T17:23:25.372-05:00")
+      record2.put("visibility", "hidden")
+
+      producer.send(new ProducerRecord[String, GenericRecord](topic, null, record1)).get
+      producer.send(new ProducerRecord[String, GenericRecord](topic, null, record2)).get
+
+      val fs = kds.getFeatureSource(topic)
+
+      eventually(20, 100.millis) {
+        // the record with "hidden" visibility doesn't appear because no auths are configured
+        val features = SelfClosingIterator(fs.getFeatures.features).toList
+        features must haveLength(1)
+        val feature = features.head
+        val expectedPosition = generatePoint(10d, 20d)
+        SimpleFeatureTypes.encodeType(feature.getType, includeUserData = false) mustEqual encodedSft1
+        feature.getID must beMatching("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
         feature.getAttribute("position") mustEqual expectedPosition
         feature.getAttribute("speed") mustEqual 12.325d
         feature.getAttribute("date") mustEqual new Date(1638915744897L)
