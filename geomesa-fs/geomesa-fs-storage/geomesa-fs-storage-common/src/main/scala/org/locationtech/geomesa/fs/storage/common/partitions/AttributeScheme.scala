@@ -36,15 +36,15 @@ case class AttributeScheme(attribute: String, index: Int, binding: Class[_], def
 
   override def getPartitionName(feature: SimpleFeature): String = {
     val value = feature.getAttribute(index)
-    if (value == null)
-      return defaultPartition
-    val encodedValue = AttributeIndexKey.typeEncode(value)
-    if (allowedValues.nonEmpty) {
-      if (allowedValues.contains(value))
-        return encodedValue
+    if (value == null) {
       return defaultPartition
     }
-    encodedValue
+    val encodedValue = AttributeIndexKey.typeEncode(value)
+    if (allowedValues.isEmpty || allowedValues.contains(encodedValue)) {
+      encodedValue
+    } else {
+      defaultPartition
+    }
   }
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
