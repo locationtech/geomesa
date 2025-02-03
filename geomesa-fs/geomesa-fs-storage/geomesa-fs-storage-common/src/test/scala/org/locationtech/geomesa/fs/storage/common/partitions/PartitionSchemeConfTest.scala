@@ -16,6 +16,8 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
+import scala.util.Try
+
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeConfTest extends Specification with AllExpectations {
 
@@ -74,6 +76,27 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
       scheme.asInstanceOf[CompositeScheme].schemes must haveLength(2)
       scheme.asInstanceOf[CompositeScheme].schemes must
           contain(beAnInstanceOf[DateTimeScheme], beAnInstanceOf[Z2Scheme]).copy(checkOrder = true)
+    }
+
+    "throw appropriate errors when a composite scheme can't be loaded" >> {
+      // note: missing datetime-format
+      val conf =
+        """
+          | {
+          |   scheme = "datetime,z2"
+          |   options = {
+          |     step-unit = HOURS
+          |     z2-resolution = 10
+          |   }
+          | }
+        """.stripMargin
+
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
+      val loaded = Try(PartitionSchemeFactory.load(sft, StorageSerialization.deserialize(conf)))
+      loaded must beAFailedTry
+      val e = loaded.failed.get
+      e must beAnInstanceOf[IllegalArgumentException]
+      e.getCause must not(beNull) // verify cause is from the failed delegate load
     }
   }
 }
