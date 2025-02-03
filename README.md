@@ -38,16 +38,14 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: [5.1.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.1.0)**
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-accumulo_2.12-5.1.0-bin.tar.gz) |
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-hbase_2.12-5.1.0-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-cassandra_2.12-5.1.0-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-kafka_2.12-5.1.0-bin.tar.gz) |
-  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-redis_2.12-5.1.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-fs_2.12-5.1.0-bin.tar.gz) |
-  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.1.0/geomesa-gt_2.12-5.1.0-bin.tar.gz)
+**Latest release: [5.2.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.2.0)** &nbsp;-&nbsp;
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-accumulo_2.12-5.2.0-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-hbase_2.12-5.2.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-cassandra_2.12-5.2.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-kafka_2.12-5.2.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-redis_2.12-5.2.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-fs_2.12-5.2.0-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.2.0/geomesa-gt_2.12-5.2.0-bin.tar.gz)
 
 ### Verifying Downloads
 
