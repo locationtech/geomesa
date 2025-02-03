@@ -73,24 +73,33 @@ object AccumuloJoinIndexAdapter {
 
     // TODO seems like this should be using 'schema' here, which may be a reduced version of the indexSft due to col groups
     val indexSft = index.indexSft
-    lazy val sort = hints.getSortFields
-    lazy val max = hints.getMaxFeatures
-    lazy val project = hints.getProjection
+    val transform = hints.getTransformSchema
 
     // for queries that don't require a join, creates a regular batch scan plan
     def plan(
         iters: Seq[IteratorSetting],
         kvsToFeatures: ResultsToFeatures[Entry[Key, Value]],
-        reduce: Option[FeatureReducer]): BatchScanPlan =
-      BatchScanPlan(filter, tables, ranges, iters, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
-
-    val transform = hints.getTransformSchema
+        reduce: Option[FeatureReducer]): BatchScanPlan = {
+      // add the attribute-level vis iterator if necessary
+      val iterators = visibilityIter(index) ++ iters
+      val sort = hints.getSortFields
+      val max = hints.getMaxFeatures
+      val project = hints.getProjection
+      BatchScanPlan(filter, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
+    }
 
     // used when remote processing is disabled
-    lazy val returnSchema = hints.getTransformSchema.getOrElse(indexSft)
-    lazy val fti = visibilityIter(index) ++ FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq
-    lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
-    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+    def localPlan(overrides: Option[Seq[IteratorSetting]] = None): BatchScanPlan = {
+      val returnSchema = transform.getOrElse(indexSft)
+      if (hints.isSkipReduce) {
+        // override the return sft to reflect what we're actually returning,
+        // since the bin sft is only created in the local reduce step
+        hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+      }
+      val iters = overrides.getOrElse(FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq)
+      val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+      plan(iters, AccumuloResultsToFeatures(index, returnSchema), localReducer)
+    }
 
     val qp = if (hints.isBinQuery) {
       // check to see if we can execute against the index values
@@ -99,16 +108,10 @@ object AccumuloJoinIndexAdapter {
           hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
           index.supportsFilter(ecql)) {
         if (ds.config.remote.bin) {
-          val iter = BinAggregatingIterator.configure(indexSft, index, ecql, hints)
-          val iters = visibilityIter(index) :+ iter
-          plan(iters, new AccumuloBinResultsToFeatures(), None)
+          val binIter = BinAggregatingIterator.configure(indexSft, index, ecql, hints)
+          plan(Seq(binIter), new AccumuloBinResultsToFeatures(), None)
         } else {
-          if (hints.isSkipReduce) {
-            // override the return sft to reflect what we're actually returning,
-            // since the bin sft is only created in the local reduce step
-            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-          }
-          plan(fti, resultsToFeatures, localReducer)
+          localPlan()
         }
       } else {
         // have to do a join against the record table
@@ -117,17 +120,11 @@ object AccumuloJoinIndexAdapter {
     } else if (hints.isArrowQuery) {
       // check to see if we can execute against the index values
       if (index.canUseIndexSchema(ecql, transform)) {
-        if (ds.config.remote.bin) {
-          val (iter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, filter.filter, ecql, hints)
-          val iters = visibilityIter(index) :+ iter
-          plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
+        if (ds.config.remote.arrow) {
+          val (arrowIter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, filter.filter, ecql, hints)
+          plan(Seq(arrowIter), new AccumuloArrowResultsToFeatures(), Some(reduce))
         } else {
-          if (hints.isSkipReduce) {
-            // override the return sft to reflect what we're actually returning,
-            // since the arrow sft is only created in the local reduce step
-            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-          }
-          plan(fti, resultsToFeatures, localReducer)
+          localPlan()
         }
       } else if (index.canUseIndexSchemaPlusKey(ecql, transform)) {
         val transformSft = transform.getOrElse {
@@ -135,22 +132,18 @@ object AccumuloJoinIndexAdapter {
         }
         // first filter and apply the transform
         val filterTransformIter = FilterTransformIterator.configure(indexSft, index, ecql, hints, 23).get
-        // clear the transforms as we've already accounted for them
-        hints.clearTransforms()
         // next add the attribute value from the row key
         val rowValueIter = AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transformSft, 24)
-        if (ds.config.remote.bin) {
+        if (ds.config.remote.arrow) {
+          // clear the transforms as we've already accounted for them
+          val newHints = new Hints(hints)
+          newHints.clearTransforms()
           // finally apply the arrow iterator on the resulting features
-          val (iter, reduce) = ArrowIterator.configure(transformSft, index, ds.stats, None, None, hints)
-          val iters = visibilityIter(index) ++ Seq(filterTransformIter, rowValueIter, iter)
+          val (arrowIter, reduce) = ArrowIterator.configure(transformSft, index, ds.stats, None, None, newHints)
+          val iters = Seq(filterTransformIter, rowValueIter, arrowIter)
           plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
         } else {
-          if (hints.isSkipReduce) {
-            // override the return sft to reflect what we're actually returning,
-            // since the arrow sft is only created in the local reduce step
-            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-          }
-          plan(fti, resultsToFeatures, localReducer)
+          localPlan(Some(Seq(filterTransformIter, rowValueIter)))
         }
       } else {
         // have to do a join against the record table
@@ -160,8 +153,7 @@ object AccumuloJoinIndexAdapter {
       // check to see if we can execute against the index values
       val weightIsAttribute = hints.getDensityWeight.contains(index.attributes.head)
       if (index.supportsFilter(ecql) && (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
-        if (ds.config.remote.bin) {
-          val visIter = visibilityIter(index)
+        if (ds.config.remote.density) {
           val iters = if (weightIsAttribute) {
             // create a transform sft with the attribute added
             val transform = {
@@ -181,18 +173,13 @@ object AccumuloJoinIndexAdapter {
             // priority needs to be between vis iter (21) and density iter (25)
             val keyValueIter = AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transform, 23)
             val densityIter = DensityIterator.configure(transform, index, ecql, hints)
-            visIter :+ keyValueIter :+ densityIter
+            Seq(keyValueIter, densityIter)
           } else {
-            visIter :+ DensityIterator.configure(indexSft, index, ecql, hints)
+            Seq(DensityIterator.configure(indexSft, index, ecql, hints))
           }
           plan(iters, new AccumuloDensityResultsToFeatures(), None)
         } else {
-          if (hints.isSkipReduce) {
-            // override the return sft to reflect what we're actually returning,
-            // since the density sft is only created in the local reduce step
-            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-          }
-          plan(fti, resultsToFeatures, localReducer)
+          localPlan()
         }
       } else {
         // have to do a join against the record table
@@ -201,18 +188,12 @@ object AccumuloJoinIndexAdapter {
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess && index.supportsFilter(ecql)) {
-        if (ds.config.remote.bin) {
-          val iter = StatsIterator.configure(indexSft, index, ecql, hints)
-          val iters = visibilityIter(index) :+ iter
+        if (ds.config.remote.stats) {
+          val statsIter = StatsIterator.configure(indexSft, index, ecql, hints)
           val reduce = Some(StatsScan.StatsReducer(indexSft, hints))
-          plan(iters, new AccumuloStatsResultsToFeatures(), reduce)
+          plan(Seq(statsIter), new AccumuloStatsResultsToFeatures(), reduce)
         } else {
-          if (hints.isSkipReduce) {
-            // override the return sft to reflect what we're actually returning,
-            // since the stats sft is only created in the local reduce step
-            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
-          }
-          plan(fti, resultsToFeatures, localReducer)
+          localPlan()
         }
       } else {
         // have to do a join against the record table
@@ -225,22 +206,17 @@ object AccumuloJoinIndexAdapter {
       val transformSft = transform.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute value scan")
       }
-      val iter = FilterTransformIterator.configure(indexSft, index, ecql, hints.getTransform, hints.getSampling)
-      // add the attribute-level vis iterator if necessary
-      val iters = visibilityIter(index) ++ iter.toSeq
+      val fti = FilterTransformIterator.configure(indexSft, index, ecql, hints.getTransform, hints.getSampling)
       // need to use transform to convert key/values
       val toFeatures = AccumuloResultsToFeatures(index, transformSft)
-      plan(iters, toFeatures, None)
+      plan(fti.toSeq, toFeatures, None)
     } else if (index.canUseIndexSchemaPlusKey(ecql, transform)) {
       // we can use the index PLUS the value
       val transformSft = transform.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
-      val iter = FilterTransformIterator.configure(indexSft, index, ecql, hints.getTransform, hints.getSampling)
-      // add the attribute-level vis iterator if necessary
-      val iters =
-        visibilityIter(index) ++ iter.toSeq :+
-            AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transformSft)
+      val fti = FilterTransformIterator.configure(indexSft, index, ecql, hints.getTransform, hints.getSampling)
+      val iters = fti.toSeq :+ AttributeKeyValueIterator.configure(index.asInstanceOf[AttributeIndex], transformSft)
       // need to use transform to convert key/values
       val toFeatures = AccumuloResultsToFeatures(index, transformSft)
       plan(iters, toFeatures, None)
@@ -301,7 +277,7 @@ object AccumuloJoinIndexAdapter {
     if (hints.isSkipReduce) {
       // override the return sft to reflect what we're actually returning,
       // since the arrow sft is only created in the local reduce step
-      hints.hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
+      hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
     }
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)

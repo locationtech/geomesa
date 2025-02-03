@@ -86,6 +86,7 @@ trait EvaluationContext {
 object EvaluationContext extends LazyLogging {
 
   val InputFilePathKey = "inputFilePath"
+  val FilterKey = "filter"
 
   /**
     * Creates a new, empty evaluation context
