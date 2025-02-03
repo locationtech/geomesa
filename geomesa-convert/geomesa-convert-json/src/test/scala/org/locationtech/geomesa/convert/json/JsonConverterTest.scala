@@ -1431,6 +1431,25 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "throw error if constructed with invalid root-paths" in {
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "$id"
+          |   fields = [
+          |     { name = "id",     json-type = "integer", root-path = "$.id",          transform = "toString($0)"      }
+          |     { name = "number", json-type = "integer", path = "$.number",                                           }
+          |     { name = "color",  json-type = "string",  path = "$.color",            transform = "trim($0)"          }
+          |     { name = "lat",    json-type = "double",  path = "$.lat",                                              }
+          |     { name = "lon",    json-type = "double",  path = "$.lon",                                              }
+          |     { name = "geom",                                                       transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+      SimpleFeatureConverter(sft, parserConf) must throwAn[IllegalArgumentException]
+    }
+
     "infer schema from geojson files" >> {
       val json =
         """{

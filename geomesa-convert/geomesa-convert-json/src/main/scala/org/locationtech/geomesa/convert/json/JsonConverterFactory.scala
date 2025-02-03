@@ -23,7 +23,7 @@ import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, Namer
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.ObjectType
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
@@ -37,6 +37,23 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
   JsonConverterFactory.TypeToProcess, JsonConfigConvert, JsonFieldConvert, BasicOptionsConvert) {
 
   import scala.collection.JavaConverters._
+
+  override def apply(sft: SimpleFeatureType, conf: Config): Option[JsonConverter] = {
+    val option = super.apply(sft, conf).asInstanceOf[Option[JsonConverter]]
+    option.foreach { converter =>
+      if (converter.config.featurePath.isEmpty) {
+        val hasRootPath = converter.fields.exists {
+          case f: TypedJsonField if f.pathIsRoot => true
+          case _ => false
+        }
+        if (hasRootPath) {
+          CloseWithLogging(converter)
+          throw new IllegalArgumentException("Invalid configuration - root paths can not be used without defining a feature path")
+        }
+      }
+    }
+    option
+  }
 
   override def infer(
       is: InputStream,
