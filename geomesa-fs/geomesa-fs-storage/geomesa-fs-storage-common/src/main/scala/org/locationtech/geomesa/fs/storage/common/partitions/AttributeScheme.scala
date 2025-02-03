@@ -115,6 +115,7 @@ object AttributeScheme {
           s"Invalid type binding '${binding.getName}' of attribute '$attribute'")
         val allowedValues: Seq[String] = config.options.get(Config.AllowedListOpt).map(_.split(',').toSeq).getOrElse(Seq.empty).map(allowed => AttributeIndexKey.encodeForQuery(allowed.trim(),binding))
         val defaultPartition = AttributeIndexKey.encodeForQuery(config.options.getOrElse(Config.DefaultPartitionOpt, allowedValues.headOption.getOrElse("")), binding)
+        require(allowedValues.isEmpty || allowedValues.contains(defaultPartition), "Default partition must be one of the allowed values")
         Some(AttributeScheme(attribute, index, binding, defaultPartition, allowedValues))
       }
     }
