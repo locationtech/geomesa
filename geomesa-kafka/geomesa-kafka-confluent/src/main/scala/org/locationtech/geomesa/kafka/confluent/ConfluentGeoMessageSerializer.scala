@@ -14,6 +14,8 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSeria
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 
 import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: ConfluentFeatureSerializer)
     extends GeoMessageSerializer(sft, serializer, null, null, 0) {
@@ -23,9 +25,13 @@ class ConfluentGeoMessageSerializer(sft: SimpleFeatureType, serializer: Confluen
       value: Array[Byte],
       headers: Map[String, Array[Byte]],
       timestamp: Long): GeoMessage = {
+    // support null keys - feature ID will be randomly generated
+    val validKey = if (key != null) { key } else { randomKey() }
     // by-pass header and old version checks
-    super.deserialize(key, value, serializer)
+    super.deserialize(validKey, value, serializer)
   }
+
+  private def randomKey(): Array[Byte] = UUID.randomUUID().toString.getBytes(StandardCharsets.UTF_8)
 }
 
 object ConfluentGeoMessageSerializer {
