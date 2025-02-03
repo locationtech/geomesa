@@ -113,7 +113,7 @@ object AttributeScheme {
         val binding = sft.getDescriptor(index).getType.getBinding
         require(AttributeIndexKey.encodable(binding),
           s"Invalid type binding '${binding.getName}' of attribute '$attribute'")
-        val allowedValues: Seq[String] = config.options.get(Config.AllowedListOpt).map(_.split(',').toSeq).getOrElse(Seq.empty).map(AttributeIndexKey.encodeForQuery(_,binding))
+        val allowedValues: Seq[String] = config.options.get(Config.AllowedListOpt).map(_.split(',').toSeq).getOrElse(Seq.empty).map(allowed => AttributeIndexKey.encodeForQuery(allowed.trim(),binding))
         val defaultPartition = AttributeIndexKey.encodeForQuery(config.options.getOrElse(Config.DefaultPartitionOpt, allowedValues.headOption.getOrElse("")), binding)
         Some(AttributeScheme(attribute, index, binding, defaultPartition, allowedValues))
       }
