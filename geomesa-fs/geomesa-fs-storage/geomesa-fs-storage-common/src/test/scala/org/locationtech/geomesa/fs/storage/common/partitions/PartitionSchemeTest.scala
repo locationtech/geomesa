@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import org.geotools.api.filter.{Filter, PropertyIsLessThan}
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.Assert.assertThrows
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.AttributeExpression.FunctionLiteral
@@ -18,6 +19,7 @@ import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
+import org.specs2.control.eff.Interpret.intercept
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
@@ -61,6 +63,12 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       ps.getPartitionName(sf) mustEqual "bar"
       ps.getSimplifiedFilters(ECQL.toFilter("name IN ('test')")) must beSome(Seq(SimplifiedFilter(Filter.INCLUDE, Seq.empty, partial = false)))
     }
+
+    "exception thrown for when allow-list does not contain default-partition" >> {
+        PartitionSchemeFactory.load(sft, NamedOptions("attribute", Map("partitioned-attribute" -> "name", "allow-list" -> "bar", "default-partition" -> "foo"))) must
+          throwAn[IllegalArgumentException]
+    }
+
 
     "partition based on date" >> {
       val ps = DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", 2)
