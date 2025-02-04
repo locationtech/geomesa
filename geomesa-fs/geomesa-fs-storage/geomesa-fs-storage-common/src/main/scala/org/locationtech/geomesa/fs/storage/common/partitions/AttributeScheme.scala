@@ -22,8 +22,9 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
   * @param attribute attribute name
   * @param index attribute index in the sft
   * @param binding type binding
+  * @param allowedValues list of allowedValues to partition
   */
-case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) extends PartitionScheme {
+case class AttributeScheme(attribute: String, index: Int, binding: Class[_], defaultPartition: String, allowedValues: Seq[String]) extends PartitionScheme {
 
   import FilterHelper.ff
 
@@ -35,7 +36,15 @@ case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) ext
 
   override def getPartitionName(feature: SimpleFeature): String = {
     val value = feature.getAttribute(index)
-    if (value == null) { "" } else { AttributeIndexKey.typeEncode(value) }
+    if (value == null) {
+      return defaultPartition
+    }
+    val encodedValue = AttributeIndexKey.typeEncode(value)
+    if (allowedValues.isEmpty || allowedValues.contains(encodedValue)) {
+      encodedValue
+    } else {
+      defaultPartition
+    }
   }
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
@@ -57,10 +66,11 @@ case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) ext
     if (bounds.disjoint) {
       Some(Seq.empty)
     } else if (bounds.isEmpty || !bounds.precise || !bounds.forall(_.isEquals)) {
-      None
+      if (allowedValues.nonEmpty) Some(allowedValues) else None
     } else {
       // note: we verified they are all single values above
-      Some(bounds.values.map(bound => AttributeIndexKey.encodeForQuery(bound.lower.value.get, binding)))
+      val partitions = bounds.values.map(bound => AttributeIndexKey.encodeForQuery(bound.lower.value.get, binding))
+      if (allowedValues.nonEmpty) Some(partitions.filter(partition => allowedValues.contains(partition))) else Some(partitions)
     }
   }
 
@@ -89,6 +99,8 @@ object AttributeScheme {
 
   object Config {
     val AttributeOpt: String = "partitioned-attribute"
+    val AllowedListOpt: String = "allow-list"
+    val DefaultPartitionOpt: String = "default-partition"
   }
 
   class AttributePartitionSchemeFactory extends PartitionSchemeFactory {
@@ -101,7 +113,10 @@ object AttributeScheme {
         val binding = sft.getDescriptor(index).getType.getBinding
         require(AttributeIndexKey.encodable(binding),
           s"Invalid type binding '${binding.getName}' of attribute '$attribute'")
-        Some(AttributeScheme(attribute, index, binding))
+        val allowedValues: Seq[String] = config.options.get(Config.AllowedListOpt).map(_.split(',').toSeq).getOrElse(Seq.empty).map(allowed => AttributeIndexKey.encodeForQuery(allowed.trim(),binding))
+        val defaultPartition = AttributeIndexKey.encodeForQuery(config.options.getOrElse(Config.DefaultPartitionOpt, allowedValues.headOption.getOrElse("")), binding)
+        require(allowedValues.isEmpty || allowedValues.contains(defaultPartition), "Default partition must be one of the allowed values")
+        Some(AttributeScheme(attribute, index, binding, defaultPartition, allowedValues))
       }
     }
   }
