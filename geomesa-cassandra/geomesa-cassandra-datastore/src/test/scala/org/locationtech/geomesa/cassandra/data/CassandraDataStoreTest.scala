@@ -192,6 +192,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           SelfClosingIterator(fr).toList must beEmpty
         }
       }
+      success
     }
 
     "handle bounds exclusivity" in {
@@ -222,6 +223,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         results mustEqual Seq(feature)
       }
+      success
     }
 
     "work with polys" in {
@@ -261,6 +263,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
         testQuery(ds, typeName, "(name = 'name5' OR name = 'name6') and bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, Seq(toAdd(5), toAdd(6)))
       }
+      success
     }
 
     "delete schemas" in {
@@ -323,6 +326,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
         ds.getSchema(typeName) must beNull
       }
+      success
     }
 
     "support long attribute names" in {
@@ -338,6 +342,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
           ds.createSchema(SimpleFeatureTypes.createType(typeName, spec)) must not(throwAn[Exception])
         }
       }
+      success
     }
   }
 
