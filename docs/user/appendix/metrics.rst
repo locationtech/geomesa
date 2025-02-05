@@ -186,9 +186,16 @@ Micrometer Metrics
 GeoMesa also has initial support for `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ metrics. Metric
 implementations can be configured at runtime through `Typesafe Config <https://github.com/lightbend/config/tree/main>`__:
 
-.. code-block:: scala
 
-    org.locationtech.geomesa.metrics.micrometer.MicrometerSetup.configure()
+.. tabs::
+
+    .. code-tab:: java
+
+        org.locationtech.geomesa.metrics.micrometer.MicrometerSetup.configure();
+
+    .. code-tab:: scala
+
+        org.locationtech.geomesa.metrics.micrometer.MicrometerSetup.configure()
 
 Configuration should be under the key ``geomesa.metrics``, and takes the following config:
 
@@ -222,13 +229,61 @@ Configuration should be under the key ``geomesa.metrics``, and takes the followi
           enabled = false
           tags = {}
         }
+        # apache commons-pool/dbcp metrics
+        commons-pool = {
+          enabled = false
+          tags = {}
+        }
       }
     }
+
+Apache Commons DBCP2
+--------------------
+
+GeoMesa provides a metrics-enabled DataSource that can be used in place of an Apache DBCP2 ``BasicDataSource`` for connection
+pooling. First, ensure that ``commons-pool`` metrics are enabled (above), then use the data source as follows:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource;
+
+        MetricsDataSource dataSource = new MetricsDataSource();
+
+        dataSource.setUrl("jdbc:postgresql://postgres/postgres");
+        dataSource.setUsername("postgres");
+        dataSource.setPassword("postgres");
+
+        // set pooling parameters as desired
+        dataSource.setMaxTotal(10);
+
+        // allows micrometer to instrument this data source
+        dataSource.registerJmx();
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
+
+        val dataSource = new MetricsDataSource()
+
+        dataSource.setUrl("jdbc:postgresql://postgres/postgres")
+        dataSource.setUsername("postgres")
+        dataSource.setPassword("postgres")
+
+        // set pooling parameters as desired
+        dataSource.setMaxTotal(10)
+
+        // allows micrometer to instrument this data source
+        dataSource.registerJmx()
+
+Reporters
+---------
 
 The following reporters are supported:
 
 Prometheus
-----------
+^^^^^^^^^^
 
 ::
 
@@ -252,7 +307,7 @@ Prometheus
     }
 
 Cloudwatch
-----------
+^^^^^^^^^^
 
 ::
 
