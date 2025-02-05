@@ -55,6 +55,8 @@ class MetricsConfigTest extends Specification {
       config.instrumentations.processor.tags mustEqual Map("processor" -> "foo")
       config.instrumentations.threads.enabled must beTrue
       config.instrumentations.threads.tags must beEmpty
+      config.instrumentations.commonsPool.enabled must beFalse
+      config.instrumentations.commonsPool.tags must beEmpty
       config.registries must haveSize(1)
       config.registries.get("prometheus") must beSome
       config.registries("prometheus") mustEqual ConfigFactory.parseString(reg)
@@ -97,6 +99,8 @@ class MetricsConfigTest extends Specification {
       config.instrumentations.processor.tags mustEqual Map("processor" -> "foo")
       config.instrumentations.threads.enabled must beTrue
       config.instrumentations.threads.tags must beEmpty
+      config.instrumentations.commonsPool.enabled must beFalse
+      config.instrumentations.commonsPool.tags must beEmpty
       config.registries must haveSize(1)
       config.registries.get("0") must beSome
       config.registries("0") mustEqual ConfigFactory.parseString(reg)

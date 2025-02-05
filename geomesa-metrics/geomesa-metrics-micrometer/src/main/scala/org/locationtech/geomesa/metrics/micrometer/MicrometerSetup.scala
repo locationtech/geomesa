@@ -10,6 +10,8 @@ package org.locationtech.geomesa.metrics.micrometer
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.StrictLogging
+import io.micrometer.core.instrument.binder.MeterBinder
+import io.micrometer.core.instrument.binder.commonspool2.CommonsObjectPool2Metrics
 import io.micrometer.core.instrument.binder.jvm.{ClassLoaderMetrics, JvmGcMetrics, JvmMemoryMetrics, JvmThreadMetrics}
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.{MeterRegistry, Metrics, Tag}
@@ -27,17 +29,23 @@ object MicrometerSetup extends StrictLogging {
 
   import scala.collection.JavaConverters._
 
+  // note: access to these is done inside a 'synchronized' block
   private val registries = scala.collection.mutable.Map.empty[String, String]
-  private val bindings = scala.collection.mutable.Set.empty[String]
+  private val bindings = scala.collection.mutable.Set.empty[(String, Map[String, String])]
 
   val ConfigPath = "geomesa.metrics"
+
+  /**
+   * Add registries to the global registry list, based on the default configuration paths
+   */
+  def configure(): Unit = configure(ConfigFactory.load())
 
   /**
    * Add registries to the global registry list, based on the default configuration paths
    *
    * @param conf conf
    */
-  def configure(conf: Config = ConfigFactory.load()): Unit = synchronized {
+  def configure(conf: Config): Unit = synchronized {
     if (conf.hasPath(ConfigPath)) {
       implicit val r0: ConfigReader[RegistryConfig] = deriveReader[RegistryConfig]
       val MetricsConfig(registries, instrumentations) = MetricsConfig(conf.getConfig(ConfigPath))
@@ -61,31 +69,12 @@ object MicrometerSetup extends StrictLogging {
         }
       }
 
-      if (instrumentations.classloader.enabled && bindings.add("classloader")) {
-        logger.debug("Enabling JVM classloader metrics")
-        val tags = instrumentations.classloader.tags.map { case (k, v) => Tag.of(k, v) }
-        new ClassLoaderMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
-      }
-      if (instrumentations.memory.enabled && bindings.add("memory")) {
-        logger.debug("Enabling JVM memory metrics")
-        val tags = instrumentations.memory.tags.map { case (k, v) => Tag.of(k, v) }
-        new JvmMemoryMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
-      }
-      if (instrumentations.gc.enabled && bindings.add("gc")) {
-        logger.debug("Enabling JVM garbage collection metrics")
-        val tags = instrumentations.gc.tags.map { case (k, v) => Tag.of(k, v) }
-        new JvmGcMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
-      }
-      if (instrumentations.processor.enabled && bindings.add("processor")) {
-        logger.debug("Enabling JVM processor metrics")
-        val tags = instrumentations.processor.tags.map { case (k, v) => Tag.of(k, v) }
-        new ProcessorMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
-      }
-      if (instrumentations.threads.enabled && bindings.add("threads")) {
-        logger.debug("Enabling JVM thread metrics")
-        val tags = instrumentations.threads.tags.map { case (k, v) => Tag.of(k, v) }
-        new JvmThreadMetrics(tags.asJava).bindTo(Metrics.globalRegistry)
-      }
+      addBinding(instrumentations.classloader, "JVM classloader", tags => new ClassLoaderMetrics(tags))
+      addBinding(instrumentations.memory,      "JVM memory",      tags => new JvmMemoryMetrics(tags))
+      addBinding(instrumentations.gc,          "JVM gc",          tags => new JvmGcMetrics(tags))
+      addBinding(instrumentations.processor,   "JVM processor",   tags => new ProcessorMetrics(tags))
+      addBinding(instrumentations.threads,     "JVM thread",      tags => new JvmThreadMetrics(tags))
+      addBinding(instrumentations.commonsPool, "commons pool",    tags => new CommonsObjectPool2Metrics(tags))
     }
   }
 
@@ -105,16 +94,31 @@ object MicrometerSetup extends StrictLogging {
     }
   }
 
+  /**
+   * Add a meter binding
+   *
+   * @param config config
+   * @param key unique key to identify this binding
+   * @param binder binder constructor
+   */
+  private def addBinding(config: Instrumentation, key: String, binder: java.lang.Iterable[Tag] => MeterBinder): Unit = {
+    if (config.enabled && bindings.add(key -> config.tags)) {
+      val tags = config.tags.map { case (k, v) => Tag.of(k, v) }
+      logger.debug(s"Enabling $key metrics with tags: ${tags.toSeq.map(t => s"${t.getKey}=${t.getValue}").sorted.mkString(", ")}")
+      binder(tags.asJava).bindTo(Metrics.globalRegistry)
+    }
+  }
+
   case class MetricsConfig(
       registries: Map[String, Config],
-      instrumentations: JvmInstrumentations,
+      instrumentations: Instrumentations,
     )
 
   object MetricsConfig {
     // noinspection ScalaUnusedSymbol
     def apply(conf: Config): MetricsConfig = {
       implicit val r0: ConfigReader[Instrumentation] = deriveReader[Instrumentation]
-      implicit val r1: ConfigReader[JvmInstrumentations] = deriveReader[JvmInstrumentations]
+      implicit val r1: ConfigReader[Instrumentations] = deriveReader[Instrumentations]
       implicit val r2: ConfigReader[MetricsConfig] = deriveReader[MetricsConfig]
       val source = ConfigSource.fromConfig(conf)
       try { source.loadOrThrow[MetricsConfig] } catch {
@@ -131,17 +135,18 @@ object MicrometerSetup extends StrictLogging {
   // back compatible structure
   private case class MetricsSeqConfig(
       registries: Seq[Config],
-      instrumentations: JvmInstrumentations,
+      instrumentations: Instrumentations,
     )
 
   case class Instrumentation(enabled: Boolean = false, tags: Map[String, String] = Map.empty)
 
-  case class JvmInstrumentations(
+  case class Instrumentations(
       classloader: Instrumentation = Instrumentation(),
       memory: Instrumentation = Instrumentation(),
       gc: Instrumentation = Instrumentation(),
       processor: Instrumentation = Instrumentation(),
       threads: Instrumentation = Instrumentation(),
+      commonsPool: Instrumentation = Instrumentation(),
     )
 
   private case class RegistryConfig(
