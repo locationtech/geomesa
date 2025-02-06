@@ -9,13 +9,11 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
-import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.data.DataUtilities
-import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -37,7 +35,7 @@ class KafkaStoreTest extends LambdaContainerTest {
 
   lazy val config = Map("bootstrap.servers" -> brokers)
 
-  val namespaces = new AtomicInteger(0)
+  lazy val namespaces = new AtomicInteger(0)
 
   def newNamespace(): String = s"ks-test-${namespaces.getAndIncrement()}"
 
@@ -55,21 +53,19 @@ class KafkaStoreTest extends LambdaContainerTest {
 
   "TransientStore" should {
     "synchronize features among stores" in {
-      implicit val clock = new TestClock()
+      implicit val clock: TestClock = new TestClock()
       val ns = newNamespace()
       val sft = SimpleFeatureTypes.createType(ns, "name:String,dtg:Date,*geom:Point:srid=4326")
       val feature = ScalaSimpleFeature.create(sft, "0", "0", "2017-06-05T00:00:00.000Z", "POINT (45 50)")
       feature.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
 
       createTopic(ns, sft)
-      val ds = new MemoryDataStore()
-
-      try {
+      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
-          new KafkaStore(ds, sft, None,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+          new KafkaStore(ds, sft, None, om,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
         }
 
         WithClose(newStore(), newStore()) { (store1, store2) =>
@@ -84,27 +80,24 @@ class KafkaStoreTest extends LambdaContainerTest {
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
           }
         }
-      } finally {
-        ds.dispose()
       }
     }
 
     "correctly expire features" in {
-      implicit val clock = new TestClock()
+      implicit val clock: TestClock = new TestClock()
       val ns = newNamespace()
       val sft = SimpleFeatureTypes.createType(ns, "name:String,dtg:Date,*geom:Point:srid=4326")
       val feature = ScalaSimpleFeature.create(sft, "0", "0", "2017-06-05T00:00:00.000Z", "POINT (45 50)")
       feature.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
 
       createTopic(ns, sft)
-      val ds = new MemoryDataStore()
 
-      try {
+      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
-          new KafkaStore(ds, sft, None,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+          new KafkaStore(ds, sft, None, om,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
@@ -123,16 +116,13 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          val persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
-          persisted.map(DataUtilities.encodeFeature) mustEqual Seq(DataUtilities.encodeFeature(feature))
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList mustEqual Seq(feature)
         }
-      } finally {
-        ds.dispose()
       }
     }
 
     "process updates and deletes" in {
-      implicit val clock = new TestClock()
+      implicit val clock: TestClock = new TestClock()
       val ns = newNamespace()
       val sft = SimpleFeatureTypes.createType(ns, "name:String,dtg:Date,*geom:Point:srid=4326")
       val feature1 = ScalaSimpleFeature.create(sft, "0", "0", "2017-06-05T00:00:00.000Z", "POINT (45 50)")
@@ -143,14 +133,12 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, feature2, update1, update2).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      val ds = new MemoryDataStore()
-
-      try {
+      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
-          new KafkaStore(ds, sft, None,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+          new KafkaStore(ds, sft, None, om,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
@@ -177,29 +165,28 @@ class KafkaStoreTest extends LambdaContainerTest {
           // move the clock forward and run persistence
           clock.tick = 2000
           store1.persist()
-          var persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
-          persisted.map(DataUtilities.encodeFeature) mustEqual Seq(update2).map(DataUtilities.encodeFeature)
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update2)
 
           store1.delete(update2)
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEmpty)
           }
+          // verify the delete was persisted to the backing store
+          eventually(40, 100.millis)(SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty)
+          // verify running persistence doesn't re-add the feature
           // move the clock forward and run persistence
           clock.tick = 4000
           store2.persist()
           foreach(Seq(store1, store2)) { store =>
             SelfClosingIterator(store.read().iterator()) must beEmpty
           }
-          persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
-          persisted must beEmpty
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty
         }
-      } finally {
-        ds.dispose()
       }
     }
 
     "only persist final updates" in {
-      implicit val clock = new TestClock()
+      implicit val clock: TestClock = new TestClock()
       val ns = newNamespace()
       val sft = SimpleFeatureTypes.createType(ns, "name:String,dtg:Date,*geom:Point:srid=4326")
       val feature1 = ScalaSimpleFeature.create(sft, "0", "0", "2017-06-05T00:00:00.000Z", "POINT (45 50)")
@@ -208,14 +195,12 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, update1).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      val ds = new MemoryDataStore()
-
-      try {
+      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
-          new KafkaStore(ds, sft, None,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms"), persist = true, om))
+          new KafkaStore(ds, sft, None, om,
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
@@ -234,8 +219,7 @@ class KafkaStoreTest extends LambdaContainerTest {
           // run persistence
           store1.persist()
           // ensure nothing was persisted
-          var persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
-          persisted must beEmpty
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty
           // ensure non-expired feature still comes back
           foreach(Seq(store1, store2)) { store =>
             SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(update1)
@@ -246,11 +230,8 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          persisted = SelfClosingIterator(ds.getFeatureReader(new Query(ns), Transaction.AUTO_COMMIT)).toSeq
-          persisted.map(DataUtilities.encodeFeature) mustEqual Seq(update1).map(DataUtilities.encodeFeature)
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update1)
         }
-      } finally {
-        ds.dispose()
       }
     }
   }

@@ -10,14 +10,13 @@ package org.locationtech.geomesa.fs.storage.common // get pureconfig converters 
 package metadata
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.hadoop.fs.Options.CreateOpts
-import org.apache.hadoop.fs.{CreateFlag, Path}
+import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.stats.DebugLogProfiling
 import pureconfig.{ConfigSource, ConfigWriter}
 
 import java.io.InputStreamReader
@@ -28,7 +27,7 @@ import scala.util.control.NonFatal
 /**
   * File storing the connection parameters for a metadata instance
   */
-object MetadataJson extends MethodProfiling {
+object MetadataJson extends DebugLogProfiling {
 
   val MetadataPath = "metadata.json"
 

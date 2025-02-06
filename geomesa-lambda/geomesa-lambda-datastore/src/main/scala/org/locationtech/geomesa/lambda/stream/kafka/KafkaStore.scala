@@ -14,7 +14,7 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, K
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.common.{Cluster, TopicPartition}
-import org.geotools.api.data.{DataStore, Query, Transaction}
+import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
@@ -38,7 +38,6 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import java.io.Flushable
 import java.time.Clock
 import java.util.{Collections, Properties, UUID}
-import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 
@@ -46,17 +45,16 @@ class KafkaStore(
     ds: DataStore,
     val sft: SimpleFeatureType,
     authProvider: Option[AuthorizationsProvider],
+    offsetManager: OffsetManager,
     config: LambdaConfig)
    (implicit clock: Clock = Clock.systemUTC()
    ) extends TransientStore with Flushable with LazyLogging {
 
-  private val offsetManager = config.offsetManager
+  private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
 
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 
-  private val topic = LambdaDataStore.topic(sft, config.zkNamespace)
-
-  private val cache = new KafkaFeatureCache(topic)
+  private val cache = new KafkaFeatureCache(ds, sft, offsetManager, topic, config.expiry, config.persistBatchSize)
 
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification
@@ -74,13 +72,6 @@ class KafkaStore(
     val frequency = KafkaStore.LoadIntervalProperty.toDuration.get.toMillis
     new KafkaCacheLoader(consumers, topic, frequency, serializer, cache)
   }
-
-  private val persistence = if (config.expiry == Duration.Inf) { None } else {
-    Some(new DataStorePersistence(ds, sft, offsetManager, cache, topic, config.expiry.toMillis, config.persist))
-  }
-
-  // register as a listener for offset changes
-  offsetManager.addOffsetListener(topic, cache)
 
   override def createSchema(): Unit = {
     val props = new Properties()
@@ -131,35 +122,20 @@ class KafkaStore(
   }
 
   override def delete(original: SimpleFeature): Unit = {
-    import org.locationtech.geomesa.filter.ff
     // send a message to delete from all transient stores
     val feature = GeoMesaFeatureWriter.featureWithFid(original)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
-    // also delete from persistent store
-    if (config.persist) {
-      val filter = ff.id(ff.featureId(feature.getID))
-      WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
-        while (writer.hasNext) {
-          writer.next()
-          writer.remove()
-        }
-      }
-    }
   }
 
-  override def persist(): Unit = persistence match {
-    case Some(p) => p.run()
-    case None => throw new IllegalStateException("Persistence disabled for this store")
-  }
+  override def persist(): Unit = cache.persist()
 
   override def flush(): Unit = producer.flush()
 
   override def close(): Unit = {
     CloseWithLogging(loader)
     CloseWithLogging(interceptors)
-    CloseWithLogging(persistence)
-    offsetManager.removeOffsetListener(topic, cache)
+    CloseWithLogging(cache)
   }
 }
 

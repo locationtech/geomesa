@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 
 import java.util.concurrent.atomic.AtomicLong
 
-trait MethodProfiling extends LazyLogging {
+trait MethodProfiling {
 
   protected def profile[R](onComplete: Long => Unit)(code: => R): R = {
     val start = System.currentTimeMillis
@@ -27,7 +27,9 @@ trait MethodProfiling extends LazyLogging {
     onComplete(result, System.currentTimeMillis - start)
     result
   }
+}
 
+trait DebugLogProfiling extends MethodProfiling with StrictLogging {
   protected def profile[R](message: String)(code: => R): R =
     profile(time => logger.debug(s"$message in ${time}ms"))(code)
 }

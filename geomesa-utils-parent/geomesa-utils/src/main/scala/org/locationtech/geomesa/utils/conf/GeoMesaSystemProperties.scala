@@ -41,6 +41,8 @@ object GeoMesaSystemProperties extends LazyLogging {
       }
     }
 
+    def toMillis: Option[Long] = toDuration.map(_.toMillis)
+
     def toUnboundedDuration: Option[Duration] = option.flatMap { value =>
       Try(DurationParsing.caseInsensitive(value)) match {
         case Success(v) => Some(v)

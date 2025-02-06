@@ -24,31 +24,13 @@ The typical use case for a Lambda data store is to be fed by an analytic streami
 update summary ``SimpleFeature``\ s with derived attributes containing analytic results. For example, when
 aggregating GPS tracks, there could be a dynamically updated field for current estimated heading.
 
-Typical streaming analytics will run in many concurrent threads, for example using `Apache Storm`_. The Lambda
+Typical streaming analytics will run in many concurrent threads. The Lambda
 store achieves parallelism based on the ``lambda.kafka.partitions`` parameter. Generally you should start with this
 set to the number of writer threads being used, and adjust up or down as needed.
 
-.. _Apache Storm: https://storm.apache.org/
-
-
 Any data store instances used only for reads (e.g. GeoServer) should generally disable writing by setting the
-``expiry`` parameter to ``Inf``. Note that there must be at least one data store instance with a valid ``expiry``,
+``lambda.persist`` parameter to ``false``. Note that there must be at least one data store instance with persistence enabled,
 or features will never be removed from memory and persisted to long-term storage.
-
-Manual Persistence
-------------------
-
-Instead of allowing features to be persisted to long-term storage automatically, you may instead control exactly
-when features are written. To do this, set the ``lambda.persist`` parameter to ``false`` on all data store instances.
-Write and remove features from the Lambda data store using ``SimpleFeatureWriter``\ s as usual to
-add and delete them from the in-memory cache. With ``lambda.persist`` disabled, this will not affect long-term storage.
-Note that data stores will still expire features from memory - this is required to clean up internal state.
-Make sure that the ``lambda.expiry`` parameter is set high enough that it won't remove features that you still want
-available in memory.
-
-To write features to long-term storage, instantiate an instance of the delegate data store (``AccumuloDataStore``)
-using the same connection parameters as for the Lambda store. Any features written to the delegate store will
-then be queryable by the Lambda store, and merged with the in-memory cache.
 
 Monitoring State
 ----------------
@@ -58,10 +40,10 @@ The state of a Lambda data store can be monitored by enabling logging on the fol
 ================================================================= ========= ===============================================
 Class                                                             Level     Info
 ================================================================= ========= ===============================================
-org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``debug`` Count of features written to long-term storage
-org.locationtech.geomesa.lambda.stream.kafka.DataStorePersistence ``trace`` All features written to long-term storage
 org.locationtech.geomesa.lambda.stream.kafka.KafkaStore           ``trace`` All features written to Kafka
 org.locationtech.geomesa.lambda.stream.kafka.KafkaCacheLoader     ``trace`` All features read from Kafka
-org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``debug`` Size of in-memory cache
+org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``debug`` Partition assignments, Size of in-memory cache,
+                                                                            summary of writes to persistent storage
 org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache    ``trace`` All features added/removed from in-memory cache
+                                                                            or written to persistent storage
 ================================================================= ========= ===============================================
