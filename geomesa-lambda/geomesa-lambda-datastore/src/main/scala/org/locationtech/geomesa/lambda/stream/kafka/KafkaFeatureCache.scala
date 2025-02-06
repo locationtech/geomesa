@@ -60,7 +60,7 @@ class KafkaFeatureCache(
 
   private val lockTimeout = KafkaFeatureCache.LockTimeout.toMillis.get
 
-  private val persistence = if (expiry.isFinite()) { Some(new Persistence()) } else {  None }
+  private val persistence = if (expiry.isFinite) { Some(new Persistence()) } else {  None }
 
   offsetManager.addOffsetListener(topic, this)
 
@@ -91,7 +91,7 @@ class KafkaFeatureCache(
     logger.trace(s"Deleting [$partition:$offset] $feature created at " +
         s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
     features.remove(feature.getID)
-    if (expiry.isFinite()) {
+    if (expiry.isFinite) {
       try {
         val filter = ff.id(ff.featureId(feature.getID))
         WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
@@ -142,7 +142,7 @@ class KafkaFeatureCache(
    * @return list of last persisted offsets per partition
    */
   def persist(): Seq[PartitionOffset] = {
-    if (!expiry.isFinite()) {
+    if (!expiry.isFinite) {
       throw new IllegalStateException("Persistence disabled for this store")
     }
     // lock per-partition to allow for multiple write threads
@@ -263,7 +263,7 @@ class KafkaFeatureCache(
    * @param batch expired feature
    * @return any features that were not persisted
    */
-  private def persistUpdates(partition: Int, batch: Map[String, FeatureReference]): Map[String, FeatureReference] = {
+  private def persistUpdates(partition: Int, batch: Map[String, FeatureReference]): Iterable[FeatureReference] = {
     val persistedKeys = scala.collection.mutable.Set.empty[String]
     profile((c: Int, time: Long) => logger.debug(s"Wrote $c updated feature(s) to persistent storage in ${time}ms")) {
       val filter = ff.id(batch.keys.map(ff.featureId).toSeq: _*)
@@ -286,7 +286,7 @@ class KafkaFeatureCache(
         count
       }
     }
-    batch.filterKeys(k => !persistedKeys.contains(k))
+    batch.collect { case (k, v) if !persistedKeys.contains(k) => v }
   }
 
   /**
@@ -295,11 +295,11 @@ class KafkaFeatureCache(
    * @param partition partition being persisted
    * @param batch expired feature
    */
-  private def persistAppends(partition: Int, batch: Map[String, FeatureReference]): Unit = {
+  private def persistAppends(partition: Int, batch: Iterable[FeatureReference]): Unit = {
     profile((c: Int, time: Long) => logger.debug(s"Wrote $c new feature(s) to persistent storage in ${time}ms")) {
       WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
         var count = 0
-        batch.values.foreach { p =>
+        batch.foreach { p =>
           logger.trace(s"Persistent store append [$topic:$partition:${p.offset}] ${p.feature}")
           try {
             FeatureUtils.write(writer, p.feature, useProvidedFid = true)
