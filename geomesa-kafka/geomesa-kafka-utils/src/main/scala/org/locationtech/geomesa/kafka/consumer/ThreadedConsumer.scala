@@ -51,8 +51,10 @@ abstract class ThreadedConsumer(
           try {
             val result = KafkaConsumerVersions.poll(consumer, frequency)
             lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
-            logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
-            if (!result.isEmpty) {
+            if (result.isEmpty) {
+              logger.trace(s"Consumer [$id] poll received 0 records")
+            } else {
+              logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
               val records = result.iterator()
               while (records.hasNext) {
                 consume(records.next())

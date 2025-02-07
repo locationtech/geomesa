@@ -117,7 +117,7 @@ class KafkaFeatureCache(
     }
 
     def onCompleted(count: Int, time: Long): Unit =
-      logger.debug(s"Size of cached state for [$topic]: features (removed): ${f"${features.size}%d ($count%+d)"} in ${time}ms")
+      logger.debug(f"Size of cached state for [$topic]: ${features.size}%d (removed $count%d entries in ${time}ms)")
 
     profile(onCompleted _) {
       var removed = 0
@@ -239,8 +239,8 @@ class KafkaFeatureCache(
         }
         builder.result()
       }
-      logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:\n\t" +
-        expired.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t"))
+      logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:" +
+        Option(expired).filter(_.nonEmpty).fold("")(_.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t", "\n\t", "")))
 
       if (expired.isEmpty) {
         lastPersistedOffset
