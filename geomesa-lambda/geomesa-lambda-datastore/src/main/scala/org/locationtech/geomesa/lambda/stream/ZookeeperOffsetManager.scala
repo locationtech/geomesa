@@ -127,7 +127,7 @@ object ZookeeperOffsetManager {
       import PathChildrenCacheEvent.Type.{CHILD_ADDED, CHILD_UPDATED}
       try {
         val eventPath = Option(event.getData).map(_.getPath).getOrElse("")
-        if ((event.getType == CHILD_ADDED || event.getType == CHILD_UPDATED) && eventPath.startsWith(path)) {
+        if ((event.getType == CHILD_ADDED || event.getType == CHILD_UPDATED) && eventPath.startsWith(path + "/")) {
           logger.trace(s"ZK event triggered for: $eventPath")
           val partition = partitionFromPath(eventPath)
           val offset = ZookeeperOffsetManager.deserializeOffsets(event.getData.getData)

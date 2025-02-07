@@ -174,6 +174,7 @@ class KafkaFeatureCache(
      * @return list of last persisted offsets per partition
      */
     def persist(): Seq[PartitionOffset] = {
+      logger.debug(s"Running persistence for [$topic]")
       // lock per-partition to allow for multiple write threads
       // randomly access the partitions to avoid contention if multiple data stores are all on the same schedule
       Random.shuffle(Range(0, offsets.length).toList).flatMap { partition =>
@@ -225,7 +226,7 @@ class KafkaFeatureCache(
       val expiry = clock.millis() - expiryMillis
 
       val lastOffset = offsetManager.getOffset(topic, partition)
-      logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
+      logger.debug(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
 
       var nextOffset = -1L
       // note: copy to a new collection so that any updates don't affect our persistence here
@@ -239,12 +240,12 @@ class KafkaFeatureCache(
         }
         builder.result()
       }
-      logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:" +
-        Option(expired).filter(_.nonEmpty).fold("")(_.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t", "\n\t", "")))
+      logger.debug(s"Found ${expired.size} expired entries for [$topic:$partition]")
 
       if (expired.isEmpty) {
         lastPersistedOffset
       } else {
+        logger.trace(expired.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("Expired entries:\n\t", "\n\t", ""))
         val batch = batchSize match {
           case Some(max) if expired.size > max =>
             logger.trace(s"Skipping persistence for ${expired.size - max} features based on batch size of $max")
@@ -257,7 +258,7 @@ class KafkaFeatureCache(
         }
         persist(partition, batch)
 
-        logger.trace(s"Committing offset [$topic:$partition:$nextOffset]")
+        logger.debug(s"Committing offset [$topic:$partition:$nextOffset]")
         // this will trigger our listener and cause the feature to be removed from the cache
         offsetManager.setOffset(topic, partition, nextOffset)
         if (batch.size < expired.size) {
@@ -292,6 +293,7 @@ class KafkaFeatureCache(
      * @return any features that were not persisted
      */
     private def persistUpdates(partition: Int, batch: Map[String, FeatureReference]): Iterable[FeatureReference] = {
+      logger.debug(s"Attempting persistent updates on ${batch.size} features")
       val persistedKeys = scala.collection.mutable.Set.empty[String]
       profile((c: Int, time: Long) => logger.debug(s"Wrote $c updated feature(s) to persistent storage in ${time}ms")) {
         val filter = ff.id(batch.keys.map(ff.featureId).toSeq: _*)
@@ -324,6 +326,7 @@ class KafkaFeatureCache(
      * @param batch expired feature
      */
     private def persistAppends(partition: Int, batch: Iterable[FeatureReference]): Unit = {
+      logger.debug(s"Attempting persistent appends on ${batch.size} features")
       profile((c: Int, time: Long) => logger.debug(s"Wrote $c new feature(s) to persistent storage in ${time}ms")) {
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           var count = 0
