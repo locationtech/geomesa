@@ -65,7 +65,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
         }
 
         WithClose(newStore(), newStore()) { (store1, store2) =>
@@ -97,7 +97,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
@@ -138,7 +138,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
@@ -200,7 +200,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Duration(1000, "ms")))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)

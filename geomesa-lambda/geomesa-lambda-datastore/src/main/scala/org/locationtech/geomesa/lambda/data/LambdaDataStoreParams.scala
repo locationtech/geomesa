@@ -16,7 +16,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.time.Clock
 import java.util.Properties
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
 
@@ -75,7 +75,6 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "lambda.expiry",
       "Duration before features expire from transient store. Use 'Inf' " +
           "to prevent this store from participating in feature expiration",
-      optional = false,
       default = Duration("1h"),
       deprecatedKeys = Seq("expiry"),
       supportsNiFiExpressions = true)
@@ -107,7 +106,9 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
-    val expiry = if (PersistParam.lookup(params).booleanValue) { ExpiryParam.lookup(params) } else { Duration.Inf }
+    val expiry = if (!PersistParam.lookup(params).booleanValue) { None } else {
+      ExpiryParam.lookupOpt(params).collect { case d: FiniteDuration => d}
+    }
 
     val partitions = PartitionsParam.lookup(params).intValue
     val consumers = ConsumersParam.lookup(params).intValue

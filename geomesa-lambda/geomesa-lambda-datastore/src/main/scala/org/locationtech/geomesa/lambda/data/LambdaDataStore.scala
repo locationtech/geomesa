@@ -32,7 +32,7 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.time.Clock
 import java.util.{Collections, Properties}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 class LambdaDataStore(val persistence: DataStore, offsetManager: OffsetManager, config: LambdaConfig)
     (implicit clock: Clock = Clock.systemUTC()) extends DataStore with HasGeoMesaStats with HasGeoMesaFeatureReader with LazyLogging {
@@ -216,7 +216,7 @@ object LambdaDataStore {
       consumerConfig: Map[String, String],
       partitions: Int,
       consumers: Int,
-      expiry: Duration,
+      expiry: Option[FiniteDuration],
       persistBatchSize: Option[Int] = None,
     )
 }

@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -38,7 +38,7 @@ class KafkaFeatureCache(
     sft: SimpleFeatureType,
     offsetManager: OffsetManager,
     topic: String,
-    expiry: Duration,
+    expiry: Option[FiniteDuration],
     batchSize: Option[Int])
    (implicit clock: Clock = Clock.systemUTC())
   extends WritableFeatureCache with ReadableFeatureCache with OffsetListener
@@ -60,7 +60,7 @@ class KafkaFeatureCache(
 
   private val lockTimeout = KafkaFeatureCache.LockTimeout.toMillis.get
 
-  private val persistence = if (expiry.isFinite) { Some(new Persistence()) } else {  None }
+  private val persistence = expiry.map(e => new Persistence(e.toMillis))
 
   offsetManager.addOffsetListener(topic, this)
 
@@ -91,15 +91,10 @@ class KafkaFeatureCache(
     logger.trace(s"Deleting [$partition:$offset] $feature created at " +
         s"${ZonedDateTime.ofInstant(Instant.ofEpochMilli(created), ZoneOffset.UTC)}")
     features.remove(feature.getID)
-    if (expiry.isFinite) {
+    persistence.foreach { p =>
       try {
-        val filter = ff.id(ff.featureId(feature.getID))
-        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
-          if (writer.hasNext) {
-            writer.next()
-            writer.remove()
-            logger.trace(s"Persistent store delete [$topic:$partition:$offset] $feature")
-          }
+        if (p.delete(feature.getID)) {
+          logger.trace(s"Persistent store delete [$topic:$partition:$offset] $feature")
         }
       } catch {
         case NonFatal(e) => logger.error(s"Error deleting feature in persistent store: $feature", e)
@@ -141,30 +136,8 @@ class KafkaFeatureCache(
    *
    * @return list of last persisted offsets per partition
    */
-  def persist(): Seq[PartitionOffset] = {
-    if (!expiry.isFinite) {
-      throw new IllegalStateException("Persistence disabled for this store")
-    }
-    // lock per-partition to allow for multiple write threads
-    // randomly access the partitions to avoid contention if multiple data stores are all on the same schedule
-    Random.shuffle(Range(0, offsets.length).toList).flatMap { partition =>
-      // if we don't get the lock just try again next run
-      logger.trace(s"Acquiring lock for [$topic:$partition]")
-      offsetManager.acquireLock(topic, partition, lockTimeout) match {
-        case None =>
-          logger.trace(s"Could not acquire lock for [$topic:$partition] within ${lockTimeout}ms")
-          None
-        case Some(lock) =>
-          try {
-            logger.trace(s"Acquired lock for [$topic:$partition]")
-            persist(partition).map(PartitionOffset(partition, _))
-          } finally {
-            lock.close()
-            logger.trace(s"Released lock for [$topic:$partition]")
-          }
-      }
-    }
-  }
+  def persist(): Seq[PartitionOffset] =
+    persistence.getOrElse(throw new IllegalStateException("Persistence is disabled for this store")).persist()
 
   override def close(): Unit = {
     CloseWithLogging(persistence)
@@ -185,142 +158,188 @@ class KafkaFeatureCache(
   }
 
   /**
-   * Persist any expired features that haven't yet been persisted
-   *
-   * @param partition partition to persist
-   * @return offset of latest persisted feature
+   * Wrapper for managing scheduled persistence runs
    */
-  @tailrec
-  private def persist(partition: Int, lastPersistedOffset: Option[Long] = None): Option[Long] = {
-    val expiry = clock.millis() - this.expiry.toMillis
+  private class Persistence(expiryMillis: Long) extends Closeable {
 
-    val lastOffset = offsetManager.getOffset(topic, partition)
-    logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
+    private val frequency = KafkaFeatureCache.PersistInterval.toMillis.get
+    private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
+    private val schedule = executor.scheduleWithFixedDelay(() => persist(), frequency, frequency, TimeUnit.MILLISECONDS)
 
-    var nextOffset = -1L
-    // note: copy to a new collection so that any updates don't affect our persistence here
-    val expired = {
-      val builder = Map.newBuilder[String, FeatureReference]
-      features.asScala.foreach { case (id, f) =>
-        if (f.partition == partition && f.created <= expiry && f.offset > lastOffset) {
-          nextOffset = math.max(nextOffset, f.offset)
-          builder += id -> f
+    /**
+     * Persist any expired features
+     *
+     * @return list of last persisted offsets per partition
+     */
+    def persist(): Seq[PartitionOffset] = {
+      // lock per-partition to allow for multiple write threads
+      // randomly access the partitions to avoid contention if multiple data stores are all on the same schedule
+      Random.shuffle(Range(0, offsets.length).toList).flatMap { partition =>
+        // if we don't get the lock just try again next run
+        logger.trace(s"Acquiring lock for [$topic:$partition]")
+        offsetManager.acquireLock(topic, partition, lockTimeout) match {
+          case None =>
+            logger.trace(s"Could not acquire lock for [$topic:$partition] within ${lockTimeout}ms")
+            None
+          case Some(lock) =>
+            try {
+              logger.trace(s"Acquired lock for [$topic:$partition]")
+              persist(partition).map(PartitionOffset(partition, _))
+            } finally {
+              lock.close()
+              logger.trace(s"Released lock for [$topic:$partition]")
+            }
         }
       }
-      builder.result()
     }
-    logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:\n\t" +
-      expired.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t"))
 
-    if (expired.isEmpty) {
-      lastPersistedOffset
-    } else {
-      var skippedExpiredFeatures = false
-      val batch = batchSize match {
-        case Some(max) if expired.size > max =>
-          skippedExpiredFeatures = true
-          logger.trace(s"Skipping persistence for ${expired.size - max} features based on batch size of $max")
-          // sort by offset since we track persistence based on offset
-          val sorted = expired.toList.sortBy(_._2.offset).take(max)
-          nextOffset = sorted.last._2.offset
-          sorted.toMap
-        case _ =>
-          expired
-      }
-
-      persist(partition, batch)
-
-      logger.trace(s"Committing offset [$topic:$partition:$nextOffset]")
-      // this will trigger our listener and cause the feature to be removed from the cache
-      offsetManager.setOffset(topic, partition, nextOffset)
-      if (skippedExpiredFeatures) {
-        persist(partition, Some(nextOffset)) // run again immediately
-      } else {
-        Some(nextOffset)
-      }
-    }
-  }
-
-  /**
-   * Persist expired features
-   *
-   * @param partition partition
-   * @param batch expired features
-   */
-  private def persist(partition: Int, batch: Map[String, FeatureReference]): Unit = {
-    // do an update query first
-    val remaining = persistUpdates(partition, batch)
-    // if any weren't updates, add them as inserts
-    if (remaining.nonEmpty) {
-      persistAppends(partition, remaining)
-    }
-  }
-
-  /**
-   * Attempt to persist expired features through modifying writes
-   *
-   * @param partition partition being persisted
-   * @param batch expired feature
-   * @return any features that were not persisted
-   */
-  private def persistUpdates(partition: Int, batch: Map[String, FeatureReference]): Iterable[FeatureReference] = {
-    val persistedKeys = scala.collection.mutable.Set.empty[String]
-    profile((c: Int, time: Long) => logger.debug(s"Wrote $c updated feature(s) to persistent storage in ${time}ms")) {
-      val filter = ff.id(batch.keys.map(ff.featureId).toSeq: _*)
+    /**
+     * Delete a feature
+     *
+     * @param id feature id
+     * @return true if feature was deleted
+     */
+    def delete(id: String): Boolean = {
+      val filter = ff.id(ff.featureId(id))
       WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
-        var count = 0
-        while (writer.hasNext) {
-          val next = writer.next()
-          batch.get(next.getID).foreach { p =>
-            logger.trace(s"Persistent store modify [$topic:$partition:${p.offset}] ${p.feature}")
-            persistedKeys += next.getID
-            FeatureUtils.copyToFeature(next, p.feature, useProvidedFid = true)
+        if (writer.hasNext) {
+          writer.next()
+          writer.remove()
+          true
+        } else {
+          false
+        }
+      }
+    }
+
+    /**
+     * Persist any expired features that haven't yet been persisted
+     *
+     * @param partition partition to persist
+     * @return offset of latest persisted feature
+     */
+    @tailrec
+    private def persist(partition: Int, lastPersistedOffset: Option[Long] = None): Option[Long] = {
+      val expiry = clock.millis() - expiryMillis
+
+      val lastOffset = offsetManager.getOffset(topic, partition)
+      logger.trace(s"Last persisted offsets for [$topic:$partition]: $lastOffset")
+
+      var nextOffset = -1L
+      // note: copy to a new collection so that any updates don't affect our persistence here
+      val expired = {
+        val builder = Map.newBuilder[String, FeatureReference]
+        features.asScala.foreach { case (id, f) =>
+          if (f.partition == partition && f.created <= expiry && f.offset > lastOffset) {
+            nextOffset = math.max(nextOffset, f.offset)
+            builder += id -> f
+          }
+        }
+        builder.result()
+      }
+      logger.trace(s"Found ${expired.size} expired entries for [$topic:$partition]:\n\t" +
+        expired.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("\n\t"))
+
+      if (expired.isEmpty) {
+        lastPersistedOffset
+      } else {
+        var skippedExpiredFeatures = false
+        val batch = batchSize match {
+          case Some(max) if expired.size > max =>
+            skippedExpiredFeatures = true
+            logger.trace(s"Skipping persistence for ${expired.size - max} features based on batch size of $max")
+            // sort by offset since we track persistence based on offset
+            val sorted = expired.toList.sortBy(_._2.offset).take(max)
+            nextOffset = sorted.last._2.offset
+            sorted.toMap
+          case _ =>
+            expired
+        }
+
+        persist(partition, batch)
+
+        logger.trace(s"Committing offset [$topic:$partition:$nextOffset]")
+        // this will trigger our listener and cause the feature to be removed from the cache
+        offsetManager.setOffset(topic, partition, nextOffset)
+        if (skippedExpiredFeatures) {
+          persist(partition, Some(nextOffset)) // run again immediately
+        } else {
+          Some(nextOffset)
+        }
+      }
+    }
+
+    /**
+     * Persist expired features
+     *
+     * @param partition partition
+     * @param batch expired features
+     */
+    private def persist(partition: Int, batch: Map[String, FeatureReference]): Unit = {
+      // do an update query first
+      val remaining = persistUpdates(partition, batch)
+      // if any weren't updates, add them as inserts
+      if (remaining.nonEmpty) {
+        persistAppends(partition, remaining)
+      }
+    }
+
+    /**
+     * Attempt to persist expired features through modifying writes
+     *
+     * @param partition partition being persisted
+     * @param batch expired feature
+     * @return any features that were not persisted
+     */
+    private def persistUpdates(partition: Int, batch: Map[String, FeatureReference]): Iterable[FeatureReference] = {
+      val persistedKeys = scala.collection.mutable.Set.empty[String]
+      profile((c: Int, time: Long) => logger.debug(s"Wrote $c updated feature(s) to persistent storage in ${time}ms")) {
+        val filter = ff.id(batch.keys.map(ff.featureId).toSeq: _*)
+        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+          var count = 0
+          while (writer.hasNext) {
+            val next = writer.next()
+            batch.get(next.getID).foreach { p =>
+              logger.trace(s"Persistent store modify [$topic:$partition:${p.offset}] ${p.feature}")
+              persistedKeys += next.getID
+              FeatureUtils.copyToFeature(next, p.feature, useProvidedFid = true)
+              try {
+                writer.write()
+                count += 1
+              } catch {
+                case NonFatal(e) => logger.error(s"Error persisting feature: ${p.feature}", e)
+              }
+            }
+          }
+          count
+        }
+      }
+      batch.collect { case (k, v) if !persistedKeys.contains(k) => v }
+    }
+
+    /**
+     * Attempt to persist expired features through appending writes
+     *
+     * @param partition partition being persisted
+     * @param batch expired feature
+     */
+    private def persistAppends(partition: Int, batch: Iterable[FeatureReference]): Unit = {
+      profile((c: Int, time: Long) => logger.debug(s"Wrote $c new feature(s) to persistent storage in ${time}ms")) {
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          var count = 0
+          batch.foreach { p =>
+            logger.trace(s"Persistent store append [$topic:$partition:${p.offset}] ${p.feature}")
             try {
-              writer.write()
+              FeatureUtils.write(writer, p.feature, useProvidedFid = true)
               count += 1
             } catch {
               case NonFatal(e) => logger.error(s"Error persisting feature: ${p.feature}", e)
             }
           }
+          count
         }
-        count
       }
     }
-    batch.collect { case (k, v) if !persistedKeys.contains(k) => v }
-  }
-
-  /**
-   * Attempt to persist expired features through appending writes
-   *
-   * @param partition partition being persisted
-   * @param batch expired feature
-   */
-  private def persistAppends(partition: Int, batch: Iterable[FeatureReference]): Unit = {
-    profile((c: Int, time: Long) => logger.debug(s"Wrote $c new feature(s) to persistent storage in ${time}ms")) {
-      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-        var count = 0
-        batch.foreach { p =>
-          logger.trace(s"Persistent store append [$topic:$partition:${p.offset}] ${p.feature}")
-          try {
-            FeatureUtils.write(writer, p.feature, useProvidedFid = true)
-            count += 1
-          } catch {
-            case NonFatal(e) => logger.error(s"Error persisting feature: ${p.feature}", e)
-          }
-        }
-        count
-      }
-    }
-  }
-
-  /**
-   * Wrapper for managing scheduled persistence runs
-   */
-  private class Persistence extends Closeable {
-
-    private val frequency = KafkaFeatureCache.PersistInterval.toMillis.get
-    private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
-    private val schedule = executor.scheduleWithFixedDelay(() => persist(), frequency, frequency, TimeUnit.MILLISECONDS)
 
     override def close(): Unit = {
       schedule.cancel(true)

@@ -40,7 +40,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       manager.acquireLock(anyString, anyInt, anyLong) returns Some(mock[Closeable])
       WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
-        WithClose(new KafkaFeatureCache(ds, sft, manager, "", Duration("1ms"), None)) { cache =>
+        WithClose(new KafkaFeatureCache(ds, sft, manager, "", Some(Duration(1, "ms")), None)) { cache =>
           cache.partitionAssigned(1, -1L)
           cache.partitionAssigned(0, -1L)
           cache.add(one, 0, 0, 0)
@@ -80,7 +80,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "expire features passively" in {
       implicit val clock: TestClock = new TestClock()
       val manager = mock[OffsetManager]
-      WithClose(new KafkaFeatureCache(null, sft, manager, "", Duration.Inf, None)) { cache =>
+      WithClose(new KafkaFeatureCache(null, sft, manager, "", None, None)) { cache =>
         cache.partitionAssigned(1, -1L)
         cache.partitionAssigned(0, -1L)
         cache.add(one, 0, 0, 0)

@@ -23,7 +23,7 @@ Parameter                              Type    Description
                                                See `Producer Configs <https://kafka.apache.org/documentation.html#producerconfigs>`_
 ``lambda.kafka.consumer.options``      String  Java-properties-formatted string that is passed directly to the Kafka consumer.
                                                See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
-``lambda.expiry *``                    String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
+``lambda.expiry``                      String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
 ``lambda.persist``                     Boolean Whether this instance should participate in persisting expired features to Accumulo
 ``lambda.persist.batch.size``          Integer Maximum number of features to persist in one run
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries via Accumulo
