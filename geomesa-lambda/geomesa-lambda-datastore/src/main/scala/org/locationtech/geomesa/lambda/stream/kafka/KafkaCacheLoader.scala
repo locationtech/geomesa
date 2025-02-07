@@ -17,7 +17,7 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import java.time.Duration
 
 /**
-  * Consumes from kakfa and populates the local cache
+  * Consumes from kafka and populates the local cache
   *   1. reads offsets stored in zk on startup
   *   2. scheduled repeating - reads features from kafka, adds to in-memory cache
   *   3. listens for offsets change in zk, removes expired features from in-memory cache
