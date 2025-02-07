@@ -103,15 +103,15 @@ class KafkaFeatureCache(
   }
 
   override def offsetChanged(partition: Int, offset: Long): Unit = {
-    logger.debug(s"Offsets changed for [$topic:$partition]: -> $offset")
-
     if (offsets.length <= partition) {
+      logger.debug(s"Offsets changed for [$topic:$partition]: (unassigned) -> $offset")
       ensurePartition(partition, offset)
       return
     }
 
     // update the valid offset
     var last = offsets(partition).get
+    logger.debug(s"Offsets changed for [$topic:$partition]: $last -> $offset")
     while (last < offset && !offsets(partition).compareAndSet(last, offset)) {
       last = offsets(partition).get
     }
@@ -233,6 +233,7 @@ class KafkaFeatureCache(
       val expired = {
         val builder = Map.newBuilder[String, FeatureReference]
         features.asScala.foreach { case (id, f) =>
+          // note: offset > lastOffset ensures we don't operate on features that have already been processed
           if (f.partition == partition && f.created <= expiry && f.offset > lastOffset) {
             nextOffset = math.max(nextOffset, f.offset)
             builder += id -> f
