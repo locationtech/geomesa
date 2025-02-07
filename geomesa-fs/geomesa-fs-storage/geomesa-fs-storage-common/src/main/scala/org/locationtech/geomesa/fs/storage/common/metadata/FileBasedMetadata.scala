@@ -10,7 +10,6 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config._
-import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs._
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
@@ -18,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.stats.DebugLogProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.{FileNotFoundException, InputStreamReader}
@@ -57,7 +56,7 @@ class FileBasedMetadata(
     val sft: SimpleFeatureType,
     private val meta: Metadata,
     private val converter: MetadataConverter
-  ) extends StorageMetadata with MethodProfiling with LazyLogging {
+  ) extends StorageMetadata with DebugLogProfiling {
 
   import FileBasedMetadata._
 

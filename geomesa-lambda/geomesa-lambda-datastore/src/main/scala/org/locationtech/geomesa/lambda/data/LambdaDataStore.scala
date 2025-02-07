@@ -32,10 +32,10 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.time.Clock
 import java.util.{Collections, Properties}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
-class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit clock: Clock = Clock.systemUTC())
-    extends DataStore with HasGeoMesaStats with HasGeoMesaFeatureReader with LazyLogging {
+class LambdaDataStore(val persistence: DataStore, offsetManager: OffsetManager, config: LambdaConfig)
+    (implicit clock: Clock = Clock.systemUTC()) extends DataStore with HasGeoMesaStats with HasGeoMesaFeatureReader with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -50,7 +50,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
   private [lambda] val transients = Caffeine.newBuilder().build[String, TransientStore](
     new CacheLoader[String, TransientStore] {
       override def load(key: String): TransientStore =
-        new KafkaStore(persistence, persistence.getSchema(key), authProvider, config)
+        new KafkaStore(persistence, persistence.getSchema(key), authProvider, offsetManager, config)
     }
   )
 
@@ -177,7 +177,7 @@ class LambdaDataStore(val persistence: DataStore, config: LambdaConfig)(implicit
   override def dispose(): Unit = {
     CloseWithLogging(transients.asMap.asScala.values)
     transients.invalidateAll()
-    CloseWithLogging(config.offsetManager)
+    CloseWithLogging(offsetManager)
     persistence.dispose()
   }
 
@@ -216,8 +216,7 @@ object LambdaDataStore {
       consumerConfig: Map[String, String],
       partitions: Int,
       consumers: Int,
-      expiry: Duration,
-      persist: Boolean,
-      offsetManager: OffsetManager
+      expiry: Option[FiniteDuration],
+      persistBatchSize: Option[Int] = None,
     )
 }

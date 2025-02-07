@@ -13,7 +13,7 @@ import org.locationtech.geomesa.fs.storage.api.{Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.{PartitionSchemeConfig, StoragePersistence, StoragePersistenceV1, StoragePersistenceV2}
 import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.stats.{DebugLogProfiling, MethodProfiling}
 import pureconfig.{ConfigConvert, ConfigSource, ConfigWriter}
 
 import java.io.{InputStream, InputStreamReader, OutputStream}
@@ -24,7 +24,7 @@ import scala.util.control.NonFatal
 /**
   * Serialization for basic metadata
   */
-object MetadataSerialization extends MethodProfiling {
+object MetadataSerialization extends DebugLogProfiling {
 
   /**
     * Serialize the metadata to the output stream as JSON

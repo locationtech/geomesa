@@ -12,6 +12,8 @@ import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.lambda.data.LambdaDataStoreParams.OffsetManagerParam
+import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -27,8 +29,10 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     // TODO GEOMESA-1891 attribute level vis
     val persistence = new AccumuloDataStoreFactory().createDataStore(LambdaDataStoreFactory.filter(params))
     val config = LambdaDataStoreParams.parse(params, persistence.config.catalog)
+    val offsetManager =
+      OffsetManagerParam.lookupOpt(params).getOrElse(new ZookeeperOffsetManager(config.zookeepers, config.zkNamespace))
     val clock = ClockParam.lookupOpt(params).getOrElse(Clock.systemUTC())
-    new LambdaDataStore(persistence, config)(clock)
+    new LambdaDataStore(persistence, offsetManager, config)(clock)
   }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
@@ -67,6 +71,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       ZookeepersParam,
       ExpiryParam,
       PersistParam,
+      BatchSizeParam,
       AuthsParam,
       ForceEmptyAuthsParam,
       QueryTimeoutParam,

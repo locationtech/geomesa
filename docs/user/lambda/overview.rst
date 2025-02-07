@@ -30,7 +30,7 @@ used directly, without the added complexity of Kafka. The Lambda data store coul
 cache of recent features.
 
 If features don't need to be stored long-term, then the Kafka data store can be used, without the complexity of
-managing persistent features. The Lambda data store could still be used with ``persist`` disabled.
+managing persistent features.
 
 Integration with Other Data Stores
 ----------------------------------

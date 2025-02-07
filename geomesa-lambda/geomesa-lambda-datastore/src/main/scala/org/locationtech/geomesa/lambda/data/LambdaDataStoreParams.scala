@@ -10,13 +10,13 @@ package org.locationtech.geomesa.lambda.data
 
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
-import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
+import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.time.Clock
 import java.util.Properties
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
 
@@ -75,7 +75,6 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "lambda.expiry",
       "Duration before features expire from transient store. Use 'Inf' " +
           "to prevent this store from participating in feature expiration",
-      optional = false,
       default = Duration("1h"),
       deprecatedKeys = Seq("expiry"),
       supportsNiFiExpressions = true)
@@ -83,9 +82,14 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
   val PersistParam =
     new GeoMesaParam[java.lang.Boolean](
       "lambda.persist",
-      "Whether to persist expired features to long-term storage",
+      "Whether this instance will persist expired features to long-term storage",
       default = java.lang.Boolean.TRUE,
       deprecatedKeys = Seq("persist"))
+
+  val BatchSizeParam =
+    new GeoMesaParam[Integer](
+      "lambda.persist.batch.size",
+      "Maximum number of features to persist in one run")
 
   // test params
   val ClockParam =
@@ -102,11 +106,13 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
-    val expiry = ExpiryParam.lookup(params)
+    val expiry = if (!PersistParam.lookup(params).booleanValue) { None } else {
+      ExpiryParam.lookupOpt(params).collect { case d: FiniteDuration => d}
+    }
 
     val partitions = PartitionsParam.lookup(params).intValue
     val consumers = ConsumersParam.lookup(params).intValue
-    val persist = PersistParam.lookup(params).booleanValue
+    val batchSize = BatchSizeParam.lookupOpt(params).map(_.intValue())
 
     val bootstrap = Map("bootstrap.servers" -> brokers)
     val consumerConfig = ConsumerOptsParam.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty) ++ bootstrap
@@ -115,8 +121,6 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
     val zk = ZookeepersParam.lookup(params)
     val zkNamespace = s"gm_lambda_$namespace"
 
-    val offsetManager = OffsetManagerParam.lookupOpt(params).getOrElse(new ZookeeperOffsetManager(zk, zkNamespace))
-
-    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, persist, offsetManager)
+    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize)
   }
 }

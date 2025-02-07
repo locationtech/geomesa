@@ -22,6 +22,6 @@ are described in :ref:`lambda_parameters`.
 .. note::
 
     To prevent GeoServer from participating in persistence of entries to Accumulo, you
-    can set the ``lambda.expiry`` parameter to ``Inf``
+    should set the ``lambda.persist`` parameter to ``false``
 
 Click "Save", and GeoServer will search your Accumulo table for any GeoMesa-managed feature types.
