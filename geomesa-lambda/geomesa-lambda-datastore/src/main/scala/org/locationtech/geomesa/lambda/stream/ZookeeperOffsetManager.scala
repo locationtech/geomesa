@@ -14,6 +14,7 @@ import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildr
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager.CuratorOffsetListener
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.zk.CuratorHelper
 
@@ -21,6 +22,7 @@ import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") extends OffsetManager {
 
@@ -127,18 +129,26 @@ object ZookeeperOffsetManager {
       import PathChildrenCacheEvent.Type.{CHILD_ADDED, CHILD_UPDATED}
       try {
         val eventPath = Option(event.getData).map(_.getPath).getOrElse("")
-        if ((event.getType == CHILD_ADDED || event.getType == CHILD_UPDATED) && eventPath.startsWith(path + "/")) {
+        if ((event.getType == CHILD_ADDED || event.getType == CHILD_UPDATED) && eventPath.startsWith(path)) {
           logger.trace(s"ZK event triggered for: $eventPath")
           val partition = partitionFromPath(eventPath)
-          val offset = ZookeeperOffsetManager.deserializeOffsets(event.getData.getData)
-          listeners.foreach { listener =>
-            executor.execute(new Runnable {
-              override def run(): Unit = {
-                try { listener.offsetChanged(partition, offset) } catch {
-                  case NonFatal(e) => logger.warn("Error calling offset listener", e)
-                }
+          val data = event.getData.getData
+          Try(ZookeeperOffsetManager.deserializeOffsets(data)) match {
+            case Success(offset) =>
+              listeners.foreach { listener =>
+                executor.execute(() => {
+                  try { listener.offsetChanged(partition, offset) } catch {
+                    case NonFatal(e) => logger.warn("Error calling offset listener", e)
+                  }
+                })
               }
-            })
+
+            case Failure(e) =>
+              // for some reason we get IP addresses sometimes... seems to be something curator is doing.
+              // we generally get the correct data immediately afterwards, so it appears to be harmless
+              logger.warn(
+                s"Error deserializing offset data " +
+                  s"'${Try(new String(data, StandardCharsets.UTF_8)).getOrElse(ByteArrays.toHex(data))}': ${e.getClass.getName}")
           }
         }
       } catch {
