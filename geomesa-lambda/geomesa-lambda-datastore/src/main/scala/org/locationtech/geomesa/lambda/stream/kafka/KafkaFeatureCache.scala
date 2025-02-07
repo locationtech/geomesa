@@ -116,19 +116,21 @@ class KafkaFeatureCache(
       last = offsets(partition).get
     }
 
-    var removed = 0
-    val start = System.currentTimeMillis()
-    val iter = features.values().iterator()
-    while (iter.hasNext) {
-      val next = iter.next()
-      if (next.partition == partition && next.offset <= offset) {
-        iter.remove()
-        removed += 1
-      }
-    }
+    def onCompleted(count: Int, time: Long): Unit =
+      logger.debug(s"Size of cached state for [$topic]: features (removed): ${f"${features.size}%d ($count%+d)"} in ${time}ms")
 
-    logger.debug(s"Size of cached state for [$topic:$partition]: features (removed): " +
-        s"${f"${features.size}%d ($removed%+d)"} in ${System.currentTimeMillis() - start}ms")
+    profile(onCompleted _) {
+      var removed = 0
+      val iter = features.values().iterator()
+      while (iter.hasNext) {
+        val next = iter.next()
+        if (next.partition == partition && next.offset <= offset) {
+          iter.remove()
+          removed += 1
+        }
+      }
+      removed
+    }
   }
 
   /**
@@ -200,8 +202,7 @@ class KafkaFeatureCache(
      * @return true if feature was deleted
      */
     def delete(id: String): Boolean = {
-      val filter = ff.id(ff.featureId(id))
-      WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
+      WithClose(ds.getFeatureWriter(sft.getTypeName, ff.id(ff.featureId(id)), Transaction.AUTO_COMMIT)) { writer =>
         if (writer.hasNext) {
           writer.next()
           writer.remove()
@@ -216,6 +217,7 @@ class KafkaFeatureCache(
      * Persist any expired features that haven't yet been persisted
      *
      * @param partition partition to persist
+     * @param lastPersistedOffset result from previous recursive run, if any
      * @return offset of latest persisted feature
      */
     @tailrec
@@ -243,10 +245,8 @@ class KafkaFeatureCache(
       if (expired.isEmpty) {
         lastPersistedOffset
       } else {
-        var skippedExpiredFeatures = false
         val batch = batchSize match {
           case Some(max) if expired.size > max =>
-            skippedExpiredFeatures = true
             logger.trace(s"Skipping persistence for ${expired.size - max} features based on batch size of $max")
             // sort by offset since we track persistence based on offset
             val sorted = expired.toList.sortBy(_._2.offset).take(max)
@@ -255,14 +255,14 @@ class KafkaFeatureCache(
           case _ =>
             expired
         }
-
         persist(partition, batch)
 
         logger.trace(s"Committing offset [$topic:$partition:$nextOffset]")
         // this will trigger our listener and cause the feature to be removed from the cache
         offsetManager.setOffset(topic, partition, nextOffset)
-        if (skippedExpiredFeatures) {
-          persist(partition, Some(nextOffset)) // run again immediately
+        if (batch.size < expired.size) {
+          // we skipped some expired features, so run again immediately
+          persist(partition, Some(nextOffset))
         } else {
           Some(nextOffset)
         }
