@@ -64,9 +64,9 @@ abstract class ThreadedConsumer(
               }
               logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
               if (System.currentTimeMillis() - lastOffsetCommitMs > offsetCommitIntervalMs) {
-                  logger.trace(s"Consumer [$id] committing offsets")
-                  consumer.commitAsync()
-                  lastOffsetCommitMs = System.currentTimeMillis()
+                logger.trace(s"Consumer [$id] committing offsets")
+                consumer.commitAsync()
+                lastOffsetCommitMs = System.currentTimeMillis()
               }
               errorCount = 0 // reset error count
             }
