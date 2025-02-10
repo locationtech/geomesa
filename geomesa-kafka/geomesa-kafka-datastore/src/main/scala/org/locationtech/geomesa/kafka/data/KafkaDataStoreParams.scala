@@ -113,12 +113,10 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-
-  // use of Long isn't working, will capture as Integer and convert to long
   val ConsumerOffsetCommitIntervalMs =
-    new GeoMesaParam[Integer](
+    new GeoMesaParam[java.lang.Long](
       "kafka.consumer.offset-commit-interval-ms",
-      "the frequency of calling commit offsets for the kafka consumer",
+      "The frequency of committing offsets for the Kafka consumer",
       default = 10000,
       readWrite = ReadWriteFlag.ReadOnly
     )
