@@ -139,8 +139,8 @@ joda-time:joda-time	2.12.6	compile
 net.java.dev.jna:jna	5.14.0	compile
 net.java.dev.jna:jna-platform	5.14.0	compile
 net.jodah:typetools	0.6.1	compile
-net.minidev:accessors-smart	2.5.1	compile
-net.minidev:json-smart	2.5.1	compile
+net.minidev:accessors-smart	2.5.2	compile
+net.minidev:json-smart	2.5.2	compile
 net.sf.geographiclib:GeographicLib-Java	1.49	compile
 net.sf.saxon:Saxon-HE	12.4	compile
 org.antlr:antlr4-runtime	4.7.2	compile
@@ -319,6 +319,7 @@ software.amazon.awssdk.crt:aws-crt	0.29.18	provided
 software.amazon.awssdk:s3-transfer-manager	2.25.64	provided
 software.amazon.awssdk:s3	2.25.64	provided
 
+com.github.erosb:everit-json-schema	1.14.4	test
 com.sun.xml.bind:jaxb-impl	2.2.3	test
 com.uber:h3	4.1.1	test
 commons-lang:commons-lang	2.6	test
