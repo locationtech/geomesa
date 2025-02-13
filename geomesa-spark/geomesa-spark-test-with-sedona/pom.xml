@@ -120,10 +120,22 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
+                        <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
+                        <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
