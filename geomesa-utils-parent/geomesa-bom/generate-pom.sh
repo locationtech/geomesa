@@ -38,11 +38,20 @@ function printDependency() {
       classifier="$classifier"$'\n'"                <scope>test</scope>"
     fi
   fi
+  if [[ $artifact =~ -runtime ]]; then
+    classifier="$classifier"$'\n'"                <!-- this is a shaded jar with all dependencies already included -->"
+    classifier="$classifier"$'\n'"                <exclusions>"
+    classifier="$classifier"$'\n'"                    <exclusion>"
+    classifier="$classifier"$'\n'"                        <groupId>*</groupId>"
+    classifier="$classifier"$'\n'"                        <artifactId>*</artifactId>"
+    classifier="$classifier"$'\n'"                    </exclusion>"
+    classifier="$classifier"$'\n'"                </exclusions>"
+  fi
   {
     echo "            <dependency>"
     echo "                <groupId>org.locationtech.geomesa</groupId>"
     echo "                <artifactId>${artifact%_*}_\${scala.binary.version}</artifactId>"
-    echo "                <version>\${geomesa.version}</version>$classifier"
+    echo "                <version>\${project.version}</version>$classifier"
     echo "            </dependency>"
   } | tee -a "$POM"
 }
