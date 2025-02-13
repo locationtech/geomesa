@@ -19,7 +19,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- explicitly mark provided so its not in the shaded jar -->
@@ -104,7 +103,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
 
@@ -116,7 +114,6 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -129,13 +126,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
-            <classifier>tests</classifier>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>

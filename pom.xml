@@ -86,7 +86,7 @@
         <curator.version>5.6.0</curator.version>
         <gson.version>2.10.1</gson.version>
         <jedis.version>5.1.0</jedis.version>
-        <json4s.version>3.6.12</json4s.version> <!-- version 4+ causes issues with spark 3.5 -->
+        <json4s.version>4.0.7</json4s.version>
         <json.path.version>2.9.0</json.path.version>
         <kryo.version>4.0.3</kryo.version>
         <mango.version>3.0.0</mango.version>
@@ -394,6 +394,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -410,6 +416,28 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-spark-runtime-accumulo20_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -520,6 +548,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -563,6 +596,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -618,6 +657,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -649,6 +694,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-distributed-runtime-hbase2_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -659,6 +710,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-jobs_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -859,12 +915,6 @@
                 <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
                 <classifier>tests</classifier>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
 

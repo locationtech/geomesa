@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.spark
+package org.locationtech.geomesa.spark.accumulo
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}

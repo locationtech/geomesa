@@ -7,9 +7,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>GeoMesa Spark Test With Sedona</name>
-    <artifactId>geomesa-spark-test-with-sedona_2.12</artifactId>
+    <name>GeoMesa Spark Test</name>
+    <artifactId>geomesa-spark-test_2.12</artifactId>
     <packaging>pom</packaging>
+
+    <description>This module provides the classpath isolation needed to run spark with the GeoMesa runtime shaded jars</description>
 
     <properties>
         <!-- version used by spark - our json4s is shaded and relocated -->
@@ -20,14 +22,29 @@
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <!-- orc is shaded in our fs-spark jar, but we still need to exclude it here for some reason -->
+                <exclusion>
+                    <groupId>org.apache.orc</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-core_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- test -->
@@ -41,50 +58,51 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
+            <classifier>tests</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <!-- for testing Apache Sedona integration -->
         <dependency>
-            <groupId>org.wololo</groupId>
-            <artifactId>jts2geojson</artifactId>
-            <version>${jts2geojson.version}</version>
-            <scope>test</scope>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-spark-${sedona.spark.version}_${scala.binary.version}</artifactId>
-            <scope>test</scope>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-spark-common-${sedona.spark.version}_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.sedona</groupId>
-            <artifactId>sedona-common</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-render</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.uber</groupId>
-            <artifactId>h3</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
