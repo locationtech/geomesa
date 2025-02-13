@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.3.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* json-smart ``2.5.1`` -> ``2.5.2``
+
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
