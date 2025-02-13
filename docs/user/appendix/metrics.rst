@@ -202,7 +202,7 @@ Configuration should be under the key ``geomesa.metrics``, and takes the followi
 ::
 
     geomesa.metrics = {
-      reporters = {}
+      registries = {}
       instrumentations = {
         # jvm classloader metrics
         classloader = {
@@ -277,10 +277,10 @@ pooling. First, ensure that ``commons-pool`` metrics are enabled (above), then u
         // allows micrometer to instrument this data source
         dataSource.registerJmx()
 
-Reporters
----------
+Registries
+----------
 
-The following reporters are supported:
+The following registries are supported:
 
 Prometheus
 ^^^^^^^^^^
