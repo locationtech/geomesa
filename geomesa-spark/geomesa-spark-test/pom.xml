@@ -20,6 +20,14 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-core_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <scope>test</scope>
@@ -29,7 +37,8 @@
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <scope>test</scope>
             <exclusions>
-                <!-- orc is shaded in our fs-spark jar, but we still need to exclude it here for some reason -->
+                <!-- orc is shaded in our fs-spark jar, but we still need to exclude it here for some
+                     reason or else we get classpath errors -->
                 <exclusion>
                     <groupId>org.apache.orc</groupId>
                     <artifactId>*</artifactId>
@@ -47,15 +56,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- test -->
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
@@ -93,17 +93,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geomesa.testcontainers</groupId>
             <artifactId>testcontainers-accumulo</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
@@ -113,7 +113,7 @@
     </dependencies>
 
     <build>
-        <!-- enabled normal test lifecycle that is not bound by default since this module has packaging of pom -->
+        <!-- enable the normal test lifecycle, which is not bound by default b/c this module has <packaging>pom</packaging> -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

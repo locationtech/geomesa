@@ -95,7 +95,7 @@
     </dependencies>
 
     <build>
-        <!-- enabled normal test lifecycle that is not bound by default since this module has packaging of pom -->
+        <!-- enable the normal test lifecycle, which is not bound by default b/c this module has <packaging>pom</packaging> -->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
