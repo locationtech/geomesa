@@ -98,6 +98,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
 
 Version 5.2.0 Upgrade Guide
