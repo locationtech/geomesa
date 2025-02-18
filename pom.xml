@@ -112,7 +112,7 @@
         <hsql.version>2.7.2</hsql.version>
         <jna.version>5.14.0</jna.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
-        <netty.version>4.1.114.Final</netty.version>
+        <netty.version>4.1.118.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.4</commons.collections4.version>
