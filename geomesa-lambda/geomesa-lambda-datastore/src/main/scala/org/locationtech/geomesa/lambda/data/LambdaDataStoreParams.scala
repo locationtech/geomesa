@@ -104,6 +104,13 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "Offset manager instance to use",
       deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
 
+  val ConsumerOffsetCommitIntervalMs =
+    new GeoMesaParam[java.lang.Long](
+      "lambda.kafka.consumer.offset-commit-interval-ms",
+      "The frequency of committing offsets for the Kafka consumer",
+      default = 10000
+    )
+
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
     val expiry = if (!PersistParam.lookup(params).booleanValue) { None } else {
@@ -121,6 +128,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
     val zk = ZookeepersParam.lookup(params)
     val zkNamespace = s"gm_lambda_$namespace"
 
-    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize)
+    val offsetCommitIntervalMs : Long = ConsumerOffsetCommitIntervalMs.lookupOpt(params).map(_.toLong).getOrElse(10000)
+
+    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize, offsetCommitIntervalMs)
   }
 }

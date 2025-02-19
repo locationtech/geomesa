@@ -33,7 +33,8 @@ class KafkaCacheLoader(
     topic: String,
     frequency: Long,
     serializer: KryoFeatureSerializer,
-    cache: WritableFeatureCache) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) {
+    cache: WritableFeatureCache,
+    offsetCommitIntervalMs: Long) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), offsetCommitIntervalMs) {
 
   startConsumers()
 
