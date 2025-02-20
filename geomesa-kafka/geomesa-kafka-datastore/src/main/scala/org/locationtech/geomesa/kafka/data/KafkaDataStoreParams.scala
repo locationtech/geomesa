@@ -113,6 +113,14 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
+  val ConsumerOffsetCommitIntervalMs =
+    new GeoMesaParam[java.lang.Long](
+      "kafka.consumer.offset-commit-interval-ms",
+      "The frequency of committing offsets for the Kafka consumer",
+      default = 10000,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   val TopicPartitions =
     new GeoMesaParam[Integer](
       "kafka.topic.partitions",

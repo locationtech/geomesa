@@ -109,6 +109,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.ConsumerCount,
       KafkaDataStoreParams.ConsumerGroupPrefix,
       KafkaDataStoreParams.ConsumerConfig,
+      KafkaDataStoreParams.ConsumerOffsetCommitIntervalMs,
       KafkaDataStoreParams.ConsumerReadBack,
       KafkaDataStoreParams.CacheExpiry,
       KafkaDataStoreParams.DynamicCacheExpiry,
@@ -151,7 +152,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
       val props = ConsumerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
       val readBack = ConsumerReadBack.lookupOpt(params)
-      KafkaDataStore.ConsumerConfig(count, prefix, props, readBack)
+      val offsetCommitIntervalMs = ConsumerOffsetCommitIntervalMs.lookupOpt(params).map(_.toLong)
+      KafkaDataStore.ConsumerConfig(count, prefix, props, readBack, offsetCommitIntervalMs)
     }
 
     val producers = {

@@ -100,7 +100,8 @@ class KafkaDataStore(
         val serializer = serialization.apply(sft)
         val initialLoad = config.consumers.readBack.isDefined
         val expiry = config.indices.expiry
-        val loader = new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
+        val offsetCommitIntervalMs = config.consumers.offsetCommitIntervalMs.getOrElse(10000L)
+        val loader = new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry, offsetCommitIntervalMs)
         try { loader.start() } catch {
           case NonFatal(e) =>
             CloseWithLogging(loader)
@@ -587,7 +588,8 @@ object KafkaDataStore extends LazyLogging {
       count: Int,
       groupPrefix: String,
       properties: Map[String, String],
-      readBack: Option[Duration]
+      readBack: Option[Duration],
+      offsetCommitIntervalMs: Option[Long]
     )
 
   case class ProducerConfig(properties: Map[String, String])
