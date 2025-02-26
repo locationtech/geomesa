@@ -26,7 +26,8 @@ class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogg
 
   sequential
 
-  val dsParams: JMap[String, String] = Map("cqengine" -> "true", "geotools" -> "true").asJava
+  val dsParams: JMap[String, String] =
+    Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true").asJava
 
   var ds: DataStore = _
   var spark: SparkSession = _
