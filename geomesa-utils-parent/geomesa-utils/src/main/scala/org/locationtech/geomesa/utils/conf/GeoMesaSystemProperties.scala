@@ -41,6 +41,8 @@ object GeoMesaSystemProperties extends LazyLogging {
       }
     }
 
+    def toJavaDuration: Option[java.time.Duration] = toDuration.map(d => java.time.Duration.ofMillis(d.toMillis))
+
     def toMillis: Option[Long] = toDuration.map(_.toMillis)
 
     def toUnboundedDuration: Option[Duration] = option.flatMap { value =>

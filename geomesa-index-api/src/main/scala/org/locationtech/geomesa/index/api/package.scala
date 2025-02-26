@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{andOption, filterToString}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -213,17 +214,27 @@ package object api {
     * @param keyRanges ranges, as raw values (for columnar data stores)
     * @param tieredKeyRanges tiered ranges, as raw values (for columnar data stores)
     * @param ecql secondary filter not encapsulated in the ranges
-    * @param hints query hints
     * @param values raw query values (e.g. extracted geometries, dates, etc)
     */
-  case class QueryStrategy(filter: FilterStrategy,
-                           ranges: Seq[ByteRange],
-                           keyRanges: Seq[ScanRange[_]],
-                           tieredKeyRanges: Seq[ByteRange],
-                           ecql: Option[Filter],
-                           hints: Hints,
-                           values: Option[_]) {
+  case class QueryStrategy(
+      filter: FilterStrategy,
+      ranges: Seq[ByteRange],
+      keyRanges: Seq[ScanRange[_]],
+      tieredKeyRanges: Seq[ByteRange],
+      ecql: Option[Filter],
+      values: Option[_]) {
     def index: GeoMesaFeatureIndex[_, _] = filter.index
+    def hints: Hints = filter.hints
+
+    /**
+     * Runs any configured query guards, throwing any exceptions raised
+     *
+     * @param ds data store
+     * @tparam DS data store type
+     */
+    @throws[IllegalArgumentException]
+    def runGuards[DS <: GeoMesaDataStore[DS]](ds: DS): Unit =
+      ds.interceptors(filter.index.sft).foreach(_.guard(this).foreach(e => throw e))
   }
 
   /**
@@ -243,7 +254,10 @@ package object api {
       primary: Option[Filter],
       secondary: Option[Filter],
       temporal: Boolean,
-      costMultiplier: Float) {
+      costMultiplier: Float,
+      hints: Hints) {
+
+    private var queryStrategy: QueryStrategy = _
 
     lazy val filter: Option[Filter] = andOption(primary.toSeq ++ secondary)
 
@@ -251,8 +265,18 @@ package object api {
 
     def isPreferredScan: Boolean = costMultiplier < FilterStrategy.PreferredMultiplierThreshold
 
-    def getQueryStrategy(hints: Hints, explain: Explainer = ExplainNull): QueryStrategy =
-      index.getQueryStrategy(this, hints, explain)
+    def getQueryStrategy(explain: Explainer = ExplainNull): QueryStrategy = synchronized {
+      if (queryStrategy == null) {
+        explain.pushLevel(s"Creating query strategy for ${index.identifier}")
+        val start = System.currentTimeMillis()
+        queryStrategy = try { index.getQueryStrategy(this, explain) } finally {
+          explain(s"Query strategy took ${System.currentTimeMillis() - start}ms").popLevel()
+        }
+      } else {
+        explain(s"Using cached query strategy for ${index.identifier}")
+      }
+      queryStrategy
+    }
 
     override lazy val toString: String =
       s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +

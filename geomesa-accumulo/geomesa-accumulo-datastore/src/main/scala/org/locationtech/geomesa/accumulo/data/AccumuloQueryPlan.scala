@@ -16,7 +16,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -80,7 +80,7 @@ object AccumuloQueryPlan extends LazyLogging {
     Key.toPrintableString(k.getRow.getBytes, 0, k.getRow.getLength, k.getRow.getLength)
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends AccumuloQueryPlan {
+  case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends AccumuloQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val iterators: Seq[IteratorSetting] = Seq.empty
     override val ranges: Seq[org.apache.accumulo.core.data.Range] = Seq.empty
@@ -95,7 +95,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
   // batch scan plan
   case class BatchScanPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
       iterators: Seq[IteratorSetting],
@@ -109,6 +109,8 @@ object AccumuloQueryPlan extends LazyLogging {
     ) extends AccumuloQueryPlan {
 
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+      // query guard hook - also handles full table scan checks
+      strategy.runGuards(ds)
       // convert the relative timeout to an absolute timeout up front
       val timeout = ds.config.queries.timeout.map(Timeout.apply)
       // note: calculate authorizations up front so that multi-threading doesn't mess up auth providers
@@ -124,7 +126,7 @@ object AccumuloQueryPlan extends LazyLogging {
      * @param timeout absolute stop time, as sys time
      * @return
      */
-    def scan(
+    private[accumulo] def scan(
         connector: AccumuloClient,
         auths: Authorizations,
         partitionParallelScans: Boolean,
@@ -163,7 +165,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
   // join on multiple tables - requires multiple scans
   case class JoinPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
       iterators: Seq[IteratorSetting],
@@ -181,6 +183,8 @@ object AccumuloQueryPlan extends LazyLogging {
     override def projection: Option[QueryReferenceSystems] = joinQuery.projection
 
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+      // query guard hook - also handles full table scan checks
+      strategy.runGuards(ds)
       // convert the relative timeout to an absolute timeout up front
       val timeout = ds.config.queries.timeout.map(Timeout.apply)
       // calculate authorizations up front so that multi-threading doesn't mess up auth providers
@@ -231,8 +235,8 @@ object AccumuloQueryPlan extends LazyLogging {
       override protected val underlying: AccumuloScanner,
       plan: AccumuloQueryPlan
     ) extends ManagedScan[Entry[Key, Value]] {
-    override protected def typeName: String = plan.filter.index.sft.getTypeName
-    override protected def filter: Option[Filter] = plan.filter.filter
+    override protected def typeName: String = plan.strategy.index.sft.getTypeName
+    override protected def filter: Option[Filter] = plan.strategy.filter.filter
   }
 
   private class AccumuloScanner(scanner: ScannerBase) extends LowLevelScanner[Entry[Key, Value]] {

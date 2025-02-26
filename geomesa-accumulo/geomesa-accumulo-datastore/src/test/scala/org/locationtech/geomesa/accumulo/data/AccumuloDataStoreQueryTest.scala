@@ -517,7 +517,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         }
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList must throwA[RuntimeException]
         }
         // verify that we won't block if max features is set
         foreach(fullScans) { filter =>
@@ -538,7 +538,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "true")
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList must throwA[RuntimeException]
         }
       } finally {
         QueryProperties.BlockFullTableScans.threadLocalValue.remove()

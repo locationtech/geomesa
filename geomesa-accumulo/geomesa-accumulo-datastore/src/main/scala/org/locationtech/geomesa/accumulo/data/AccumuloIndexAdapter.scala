@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.accumulo.AccumuloProperties.TableProperties.TableCacheExpiry
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter._
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.data.writer.tx.AccumuloAtomicIndexWriter
@@ -35,6 +37,7 @@ import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
@@ -57,6 +60,13 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
   import scala.collection.JavaConverters._
 
   private val tableOps = ds.connector.tableOperations()
+
+  private val tableSizeCache =
+    Caffeine.newBuilder().expireAfterWrite(TableCacheExpiry.toJavaDuration.get).build[String, Integer](
+      new CacheLoader[String, Integer]() {
+        override def load(table: String): Integer = tableOps.listSplits(table).size() + 1
+      }
+    )
 
   // noinspection ScalaDeprecation
   override def createTable(
@@ -153,21 +163,12 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
   override def createQueryPlan(strategy: QueryStrategy): AccumuloQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
-    val index = filter.index
-    // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
-    // index api defines start row inclusive, end row exclusive
-    val ranges = byteRanges.map {
-      case BoundedByteRange(start, end) =>
-          val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
-          val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
-          new Range(startKey, true, endKey, false)
-
-      case SingleRowByteRange(row) =>
-        new Range(new Text(row))
-    }
+    val index = strategy.index
+    val ecql = strategy.ecql
+    val hints = strategy.hints
+    val ranges = strategy.ranges.map(toAccumuloRange)
     val numThreads = if (index.name == IdIndex.name) { ds.config.queries.recordThreads } else { ds.config.queries.threads }
-    val tables = index.getTablesForQuery(filter.filter)
+    val tables = index.getTablesForQuery(strategy.filter.filter)
     val (colFamily, schema) = {
       val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
       (Some(new Text(ColumnFamilyMapper(index)(cf))), s)
@@ -180,10 +181,10 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
 
     index match {
       case i: AttributeJoinIndex =>
-        AccumuloJoinIndexAdapter.createQueryPlan(ds, i, filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
+        AccumuloJoinIndexAdapter.createQueryPlan(ds, i, strategy, tables, ranges, colFamily, schema, ecql, hints, numThreads)
 
       case _ =>
-        val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
+        val (iter, eToF, reduce) = if (hints.isBinQuery) {
           if (ds.config.remote.bin) {
             val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
             (Seq(iter), new AccumuloBinResultsToFeatures(), None)
@@ -195,9 +196,9 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
             }
             (fti, resultsToFeatures, localReducer)
           }
-        } else if (strategy.hints.isArrowQuery) {
+        } else if (hints.isArrowQuery) {
           if (ds.config.remote.arrow) {
-            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, strategy.filter.filter, ecql, hints)
             (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
           } else {
             if (hints.isSkipReduce) {
@@ -207,7 +208,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
             }
             (fti, resultsToFeatures, localReducer)
           }
-        } else if (strategy.hints.isDensityQuery) {
+        } else if (hints.isDensityQuery) {
           if (ds.config.remote.density) {
             val iter = DensityIterator.configure(schema, index, ecql, hints)
             (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
@@ -219,7 +220,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
             }
             (fti, resultsToFeatures, localReducer)
           }
-        } else if (strategy.hints.isStatsQuery) {
+        } else if (hints.isStatsQuery) {
           if (ds.config.remote.stats) {
             val iter = StatsIterator.configure(schema, index, ecql, hints)
             val reduce = Some(StatsScan.StatsReducer(schema, hints))
@@ -236,7 +237,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
           (fti, resultsToFeatures, None)
         }
 
-        if (ranges.isEmpty) { EmptyPlan(strategy.filter, reduce) } else {
+        if (ranges.isEmpty) { EmptyPlan(strategy, reduce) } else {
           // configure additional iterators based on the index
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
           val indexIter = if (index.name == Z3Index.name) {
@@ -272,7 +273,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
           val max = hints.getMaxFeatures
           val project = hints.getProjection
 
-          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
+          BatchScanPlan(strategy, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
         }
     }
   }
@@ -290,11 +291,55 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
       case (true, true)   => new AccumuloAtomicIndexWriter(ds, sft, indices, wrapper, partition)  with RequiredVisibilityWriter
     }
   }
+
+  override def getStrategyCost(strategy: FilterStrategy, explain: Explainer): Option[Long] = {
+    explain.pushLevel(s"Calculating cost for ${strategy.index.identifier}")
+    val start = System.currentTimeMillis()
+    try {
+      val tables = strategy.index.getTablesForQuery(strategy.filter)
+      if (tables.isEmpty) {
+        return Some(0L)
+      }
+      val ranges = strategy.getQueryStrategy(explain).ranges.map(toAccumuloRange).asJava
+      val cost =
+        tables.foldLeft(0d) { case (sum, table) =>
+          val numTablets = tableSizeCache.get(table)
+          val tabletsScanned = tableOps.locate(table, ranges).groupByTablet().size()
+          explain(s"Strategy hits $tabletsScanned/$numTablets tablets for table $table")
+          val cost = 100 * (tabletsScanned.toDouble / numTablets)
+          sum + cost
+        }
+      Some(cost.toLong)
+    } finally {
+      explain(s"Cost calculations took ${System.currentTimeMillis() - start}ms").popLevel()
+    }
+  }
 }
 
 object AccumuloIndexAdapter {
 
   val ZIterPriority = 23
+
+  /**
+   * Converts a generic index-api range into an Accumulo range
+   *
+   * @param range range
+   * @return
+   */
+  private def toAccumuloRange(range: ByteRange): Range = range match {
+    case BoundedByteRange(lower, upper) =>
+      // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
+      val start = if (lower.length == 0) { null } else { new Key(new Text(lower)) }
+      val end = if (upper.length == 0) { null } else { new Key(new Text(upper)) }
+      // index api defines start row inclusive, end row exclusive
+      new Range(start, true, end, false)
+
+    case SingleRowByteRange(row) =>
+      new Range(new Text(row))
+
+    case _ =>
+      throw new IllegalArgumentException(s"Unexpected range type $range")
+  }
 
   /**
     * Accumulo entries to features

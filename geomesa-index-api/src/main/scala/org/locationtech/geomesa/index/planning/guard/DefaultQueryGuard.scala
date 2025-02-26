@@ -10,15 +10,18 @@ package org.locationtech.geomesa.index.planning.guard
 
 import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.index.api._
+import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 
-class FullTableScanQueryGuard extends QueryInterceptor {
+/**
+ * Query guard that enforces the default full table scan checks
+ */
+class DefaultQueryGuard extends QueryInterceptor {
 
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {}
 
   override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] =
-    strategy.index.checkQueryBlock(strategy, blockByDefault = true)
+    strategy.index.checkQueryBlock(strategy, blockByDefault = false)
 
   override def rewrite(query: Query): Unit = {}
 

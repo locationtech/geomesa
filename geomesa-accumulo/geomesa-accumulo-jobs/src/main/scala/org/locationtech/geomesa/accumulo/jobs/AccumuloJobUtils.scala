@@ -17,7 +17,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.api.{FilterStrategy, QueryStrategy}
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -75,7 +75,9 @@ object AccumuloJobUtils extends LazyLogging {
       val queryPlans = ds.getQueryPlan(query)
 
       if (queryPlans.isEmpty) {
-        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity))
+        val filter =
+          FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity, query.getHints)
+        EmptyPlan(QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, filter.filter, None))
       } else if (queryPlans.lengthCompare(1) > 0) {
         // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
@@ -121,7 +123,9 @@ object AccumuloJobUtils extends LazyLogging {
 
       val queryPlans = ds.getQueryPlan(query)
       if (queryPlans.isEmpty) {
-        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity)))
+        val filter =
+          FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity, query.getHints)
+        Seq(EmptyPlan(QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, filter.filter, None)))
       } else {
         queryPlans
       }

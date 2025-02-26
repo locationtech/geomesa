@@ -11,6 +11,7 @@ package index
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
@@ -19,6 +20,7 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
@@ -61,15 +63,17 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
+    val byteRanges = strategy.ranges
+    val ecql = strategy.ecql
+    val hints = strategy.hints
 
     val reducer = {
       val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
       Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints))
     }
 
-    if (byteRanges.isEmpty) { EmptyPlan(filter, reducer) } else {
-      val tables = strategy.index.getTablesForQuery(filter.filter)
+    if (byteRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+      val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
         byteRanges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
@@ -80,7 +84,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       val max = hints.getMaxFeatures
       val project = hints.getProjection
 
-      ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, results, reducer, sort, max, project)
+      ZLexPlan(strategy, tables, ranges, ds.config.pipeline, ecql, results, reducer, sort, max, project)
     }
   }
 
@@ -98,6 +102,9 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       new RedisIndexWriter(ds.connection, indices, partition, aging, wrapper)
     }
   }
+
+  override def getStrategyCost(strategy: FilterStrategy, explain: Explainer): Option[Long] =
+    ds.stats.getCount(strategy.index.sft, strategy.primary.getOrElse(Filter.INCLUDE))
 }
 
 object RedisIndexAdapter extends LazyLogging {

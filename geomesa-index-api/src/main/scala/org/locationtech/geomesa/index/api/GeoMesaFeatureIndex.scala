@@ -12,10 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.{ExcludeFilter, Filter}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
 import org.locationtech.geomesa.index.conf.QueryProperties
-import org.locationtech.geomesa.index.conf.QueryProperties.BlockFullTableScans
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -51,6 +49,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
                                          val version: Int,
                                          val attributes: Seq[String],
                                          val mode: IndexMode) extends NamedIndex with LazyLogging {
+
+  import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.{FullTableKeyRange, IdFromRow}
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   protected val tableNameKey: String = GeoMesaFeatureIndex.baseTableNameKey(name, attributes, version)
 
@@ -245,54 +246,32 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * Because the input is simple, it can be satisfied with a single query filter.
     *
     * @param filter input filter
-    * @param transform attribute transforms
+    * @param hints query hints
     * @return a filter strategy which can satisfy the query, if available
     */
-  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy]
+  def getFilterStrategy(filter: Filter, hints: Hints): Option[FilterStrategy]
 
   /**
     * Plans the query
     *
     * @param filter filter strategy
-    * @param hints query hints
     * @param explain explainer
     * @return
     */
-  def getQueryStrategy(filter: FilterStrategy, hints: Hints, explain: Explainer = ExplainNull): QueryStrategy = {
-
-    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
+  def getQueryStrategy(filter: FilterStrategy, explain: Explainer = ExplainNull): QueryStrategy = {
     val sharing = keySpace.sharing
     val indexValues = filter.primary.map(keySpace.getIndexValues(_, explain))
 
-    val useFullFilter = keySpace.useFullFilter(indexValues, Some(ds.config), hints)
+    val useFullFilter = keySpace.useFullFilter(indexValues, Some(ds.config), filter.hints)
     val ecql = if (useFullFilter) { filter.filter } else { filter.secondary }
 
     indexValues match {
       case None =>
         if (filter.filter.exists(_.isInstanceOf[ExcludeFilter])) {
-          QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, ecql, hints, indexValues)
+          QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, ecql, indexValues)
         } else {
-          // check that full table scans are allowed
-          if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
-            // check that full table scans are allowed
-            lazy val filterString =
-              org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
-            val block =
-              QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
-                  .orElse(BlockFullTableScans.toBoolean)
-                  .getOrElse(false)
-            if (block) {
-              throw new RuntimeException(
-                s"Full-table scans are disabled. Query being stopped for ${sft.getTypeName}: $filterString")
-            } else {
-              logger.warn(s"Running full table scan for schema '${sft.getTypeName}' with filter: $filterString")
-            }
-          }
-          val keyRanges = Seq(UnboundedRange(null))
           val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
-
-          QueryStrategy(filter, byteRanges, keyRanges, Seq.empty, ecql, hints, indexValues)
+          QueryStrategy(filter, byteRanges, FullTableKeyRange, Seq.empty, ecql, indexValues)
         }
 
       case Some(values) =>
@@ -306,7 +285,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
         }
 
         if (tier == null) {
-          QueryStrategy(filter, bytes, keyRanges, Seq.empty, ecql, hints, indexValues)
+          QueryStrategy(filter, bytes, keyRanges, Seq.empty, ecql, indexValues)
         } else if (secondary == null || tiers.exists(_.isInstanceOf[UnboundedByteRange])) {
           val byteRanges = keySpace.getRangeBytes(keyRanges.iterator, tier = true).map {
             case BoundedByteRange(lo, hi)      => BoundedByteRange(lo, ByteArrays.concat(hi, ByteRange.UnboundedUpperRange))
@@ -316,10 +295,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
             case UnboundedByteRange(lo, hi)    => BoundedByteRange(lo, hi)
             case r => throw new IllegalArgumentException(s"Unexpected range type $r")
           }.toSeq
-          QueryStrategy(filter, byteRanges, keyRanges, Seq.empty, ecql, hints, indexValues)
+          QueryStrategy(filter, byteRanges, keyRanges, Seq.empty, ecql, indexValues)
         } else if (tiers.isEmpty) {
           // disjoint secondary filter
-          QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, ecql, hints, indexValues)
+          QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, ecql, indexValues)
         } else {
           lazy val minTier = ByteRange.min(tiers)
           lazy val maxTier = ByteRange.max(tiers)
@@ -352,9 +331,46 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
               throw new IllegalArgumentException(s"Unexpected range type $r")
           }
 
-          QueryStrategy(filter, byteRanges, keyRanges, tiers, ecql, hints, indexValues)
+          QueryStrategy(filter, byteRanges, keyRanges, tiers, ecql, indexValues)
         }
     }
+  }
+
+  /**
+   * Check that full table scans are allowed
+   *
+   * @param strategy strategy
+   * @param blockByDefault default behavior in case no system props are configured
+   * @return
+   */
+  private[index] def checkQueryBlock(strategy: QueryStrategy, blockByDefault: Boolean): Option[IllegalArgumentException] = {
+    if (!isFullTableScan(strategy)) {
+      return None
+    }
+    lazy val filterString = org.locationtech.geomesa.filter.filterToString(strategy.filter.filter.getOrElse(Filter.INCLUDE))
+    val block = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
+    if (block.getOrElse(blockByDefault)) {
+      Some(new IllegalArgumentException(s"Full-table scans are disabled. Query being stopped for ${sft.getTypeName}: $filterString"))
+    } else {
+      lazy val warning = s"Running full table scan for schema '${sft.getTypeName}' with filter: $filterString"
+      if (block.isDefined) {
+        logger.info(warning) // turn down log level if full table scans are explicitly allowed
+      } else {
+        logger.warn(warning)
+      }
+      None
+    }
+  }
+
+  /**
+   * Check if the strategy will scan the entire index table
+   *
+   * @param strategy strategy
+   * @return
+   */
+  private def isFullTableScan(strategy: QueryStrategy): Boolean = {
+    strategy.keyRanges == FullTableKeyRange &&
+      !strategy.hints.getMaxFeatures.exists(_ <= QueryProperties.BlockMaxThreshold.toInt.get)
   }
 
   /**
@@ -364,7 +380,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * @param limit limit on the length of a table name in the underlying database
     * @return
     */
-  protected def generateTableName(partition: Option[String] = None, limit: Option[Int] = None): String = {
+  private def generateTableName(partition: Option[String] = None, limit: Option[Int] = None): String = {
     import StringSerialization.alphaNumericSafeString
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -404,6 +420,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 object GeoMesaFeatureIndex {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  private val FullTableKeyRange = Seq(UnboundedRange(null))
 
   /**
     * Some predefined indexing schemes

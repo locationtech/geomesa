@@ -340,6 +340,8 @@ object RichSimpleFeatureType extends Conversions {
 
     def getRemoteVersion: Option[SemanticVersion] = userData[String](RemoteVersion).map(SemanticVersion.apply)
 
+    def getQueryInterceptors: Seq[String] = userData[String](QueryInterceptors).toSeq.flatMap(_.split(","))
+
     def getKeywords: Set[String] =
       userData[String](Keywords).map(_.split(KeywordsDelimiter).toSet).getOrElse(Set.empty)
 
