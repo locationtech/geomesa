@@ -59,7 +59,7 @@ object GeoCQEngineDataStoreFactory {
     UseGeoIndexDefault
   )
 
-  val NamespaceParam: Param = new Param("namespace", classOf[String], "Namespace")
+  val NamespaceParam: Param = new Param("namespace", classOf[String], "Namespace", false)
 
   val params: Array[Param] = Array(
     CqEngineParam,
