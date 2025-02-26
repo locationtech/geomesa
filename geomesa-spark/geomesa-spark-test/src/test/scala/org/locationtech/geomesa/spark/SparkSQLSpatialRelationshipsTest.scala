@@ -36,6 +36,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
     // BucketIndex doesn't do polygon <-> polygon comparisons properly;
     // acceptable performance-wise because the test data set is small
     val dsParams: JMap[String, String] = Map(
+      "namespace" -> getClass.getSimpleName,
       "cqengine" -> "true",
       "geotools" -> "true",
       "useGeoIndex" -> "false").asJava

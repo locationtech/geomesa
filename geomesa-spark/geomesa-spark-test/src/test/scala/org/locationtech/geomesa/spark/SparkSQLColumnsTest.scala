@@ -87,6 +87,7 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
   // acceptable performance-wise because the test data set is small
   val dsParams = Map(
     "geotools" -> "true",
+    "namespace" -> getClass.getSimpleName,
     "cqengine" -> "true",
     "useGeoIndex" -> "false"
   )
