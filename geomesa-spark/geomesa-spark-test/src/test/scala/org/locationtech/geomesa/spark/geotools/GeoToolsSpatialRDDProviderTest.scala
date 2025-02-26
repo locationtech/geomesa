@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.geotools.spark
+package org.locationtech.geomesa.spark.geotools
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
@@ -34,7 +34,7 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     sc = SparkContext.getOrCreate(conf)
   }
 
-  val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
+  val dsParams = Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true")
 
   lazy val chicagoSft =
     SimpleFeatureTypes.createType("chicago",

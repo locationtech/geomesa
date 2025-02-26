@@ -26,7 +26,7 @@ class SparkSQLWithoutSedonaIT extends Specification {
 
   import scala.collection.JavaConverters._
 
-  val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
+  val dsParams = Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true")
 
   lazy val chicagoSft =
     SimpleFeatureTypes.createType("chicago",

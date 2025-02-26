@@ -10,16 +10,17 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStoreFactory.{CqEngineParam, NamespaceParam}
 
 import java.awt.RenderingHints.Key
 import java.util
 
 class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
-  override def createDataStore(params: java.util.Map[String, _]): DataStore =
-    if (GeoCQEngineDataStoreFactory.getUseGeoIndex(params))
-      GeoCQEngineDataStore.engine
-    else
-      GeoCQEngineDataStore.engineNoGeoIndex
+
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
+    val namespace = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
+    GeoCQEngineDataStore.getStore(GeoCQEngineDataStoreFactory.getUseGeoIndex(params), namespace)
+  }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
@@ -28,7 +29,7 @@ class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = "GeoCQEngine DataStore"
 
   override def canProcess(params: util.Map[String, _]): Boolean =
-    params.containsKey("cqengine")
+    params.containsKey(CqEngineParam.key) && CqEngineParam.lookUp(params).asInstanceOf[java.lang.Boolean].booleanValue()
 
   override def isAvailable: Boolean = true
 
@@ -39,17 +40,31 @@ class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object GeoCQEngineDataStoreFactory {
-  val UseGeoIndexKey = "useGeoIndex"
-  val UseGeoIndexDefault = true
-  val UseGeoIndexParam = new Param(
+
+  private val UseGeoIndexKey = "useGeoIndex"
+  private val UseGeoIndexDefault = true
+
+  val CqEngineParam: Param = new Param(
+    "cqengine",
+    classOf[java.lang.Boolean],
+    "Use the CQEngine data store",
+    true
+  )
+
+  val UseGeoIndexParam: Param = new Param(
     UseGeoIndexKey,
     classOf[java.lang.Boolean],
     "Enable an index on the default geometry",
     false,
     UseGeoIndexDefault
   )
-  val params = Array(
-    UseGeoIndexParam
+
+  val NamespaceParam: Param = new Param("namespace", classOf[String], "Namespace", false)
+
+  val params: Array[Param] = Array(
+    CqEngineParam,
+    UseGeoIndexParam,
+    NamespaceParam,
   )
 
   def getUseGeoIndex(params: java.util.Map[String, _]): Boolean = {

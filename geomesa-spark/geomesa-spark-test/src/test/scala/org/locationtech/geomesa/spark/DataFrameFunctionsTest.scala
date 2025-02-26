@@ -19,8 +19,6 @@ import org.locationtech.geomesa.spark.sql.DataFrameFunctions._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.{lang => jl}
-
 @RunWith(classOf[JUnitRunner])
 class DataFrameFunctionsTest extends Specification with LazyLogging with SpatialRelations {
 

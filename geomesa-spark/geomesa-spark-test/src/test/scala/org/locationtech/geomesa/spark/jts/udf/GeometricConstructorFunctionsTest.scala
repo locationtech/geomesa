@@ -12,7 +12,6 @@ import org.apache.spark.sql.functions._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
-import org.locationtech.geomesa.spark.jts.util.util.GeometryContainer
 import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -6,14 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark.jts.util
+package org.locationtech.geomesa.spark.jts.udf
 
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
-package object util {
-  case class PointContainer(geom: Point)
-  case class PolygonContainer(geom: Polygon)
-  case class LineStringContainer(geom: LineString)
-  case class GeometryContainer(geom: Geometry)
-}
-
+case class PointContainer(geom: Point)
+case class PolygonContainer(geom: Polygon)
+case class LineStringContainer(geom: LineString)
+case class GeometryContainer(geom: Geometry)
