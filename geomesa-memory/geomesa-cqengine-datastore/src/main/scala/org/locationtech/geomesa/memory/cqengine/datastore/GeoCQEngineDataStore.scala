@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
@@ -47,6 +48,13 @@ class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with L
 }
 
 object GeoCQEngineDataStore {
-  lazy val engine = new GeoCQEngineDataStore(useGeoIndex = true)
-  lazy val engineNoGeoIndex = new GeoCQEngineDataStore(useGeoIndex = false)
+
+  private val stores = Caffeine.newBuilder().build[(String, Boolean), GeoCQEngineDataStore](
+    new CacheLoader[(String, Boolean), GeoCQEngineDataStore]() {
+      override def load(key: (String, Boolean)): GeoCQEngineDataStore = new GeoCQEngineDataStore(useGeoIndex = key._2)
+    }
+  )
+
+  def getStore(useGeoIndex: Boolean = true, namespace: Option[String] = None): GeoCQEngineDataStore =
+    stores.get((namespace.getOrElse(""), useGeoIndex))
 }

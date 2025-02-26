@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.spark
+package org.locationtech.geomesa.spark.fs
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{SQLContext, SparkSession}
@@ -22,7 +22,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
 
 @RunWith(classOf[JUnitRunner])
 class FileSystemRDDProviderTest extends Specification with LazyLogging {
