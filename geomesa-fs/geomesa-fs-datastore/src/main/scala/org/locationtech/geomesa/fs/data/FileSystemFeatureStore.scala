@@ -74,7 +74,9 @@ class FileSystemFeatureStore(
 
     val reader = queryTimeout match {
       case None => storage.getReader(query, threads = readThreads)
-      case Some(timeout) => new ManagedReader(Timeout(timeout), new FileSystemScanner(storage, query, readThreads))
+      case Some(timeout) =>
+        val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
+        new ManagedScan(new FileSystemScanner(storage, query, readThreads), Timeout(timeout), query.getTypeName, filter)
     }
     // get a closeable java iterator that DelegateSimpleFeatureIterator will process correctly
     val iter = new FileSystemFeatureIterator(reader)
@@ -124,12 +126,6 @@ object FileSystemFeatureStore {
         reader.close()
       }
     }
-  }
-
-  private class ManagedReader(override val timeout: Timeout, override protected val underlying: FileSystemScanner)
-      extends ManagedScan[SimpleFeature] {
-    override protected def typeName: String = underlying.query.getTypeName
-    override protected val filter: Option[Filter] = Option(underlying.query.getFilter).filter(_ != Filter.INCLUDE)
   }
 
   /**
