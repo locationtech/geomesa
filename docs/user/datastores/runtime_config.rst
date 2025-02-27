@@ -24,8 +24,8 @@ property as final.
 Common Properties
 -----------------
 
-These properties apply to all GeoMesa implementations. Additional properties for different back-end
-databases can be found in the chapters for each one.
+These properties apply to **most** GeoMesa implementations, although not always to the Kafka, Partitioned PostGIS, and File
+System stores. Additional properties for different back-end databases can be found in the chapters for each one.
 
 geomesa.arrow.format.version
 ++++++++++++++++++++++++++++

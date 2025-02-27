@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.utils
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
@@ -81,17 +80,8 @@ object HBaseBatchScan {
     val scanner = new HBaseBatchScan(connection, table, ranges, threads, BufferSize)
     timeout match {
       case None => scanner.start()
-      case Some(t) => new ManagedScanIterator(t, new HBaseScanner(scanner), plan)
+      case Some(t) => new ManagedScan(new HBaseScanner(scanner), t, plan)
     }
-  }
-
-  private class ManagedScanIterator(
-      override val timeout: Timeout,
-      override protected val underlying: HBaseScanner,
-      plan: HBaseQueryPlan
-    ) extends ManagedScan[Result] {
-    override protected def typeName: String = plan.filter.index.sft.getTypeName
-    override protected def filter: Option[Filter] = plan.filter.filter
   }
 
   private class HBaseScanner(scanner: HBaseBatchScan) extends LowLevelScanner[Result] {

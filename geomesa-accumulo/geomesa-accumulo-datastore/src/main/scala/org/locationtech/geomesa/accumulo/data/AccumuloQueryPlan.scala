@@ -13,7 +13,6 @@ import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, Scanner
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
@@ -156,7 +155,7 @@ object AccumuloQueryPlan extends LazyLogging {
       configure(scanner)
       timeout match {
         case None => new ScanIterator(scanner)
-        case Some(t) => new ManagedScanIterator(t, new AccumuloScanner(scanner), this)
+        case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, this)
       }
     }
   }
@@ -224,15 +223,6 @@ object AccumuloQueryPlan extends LazyLogging {
     override def hasNext: Boolean = iter.hasNext
     override def next(): Entry[Key, Value] = iter.next()
     override def close(): Unit = scanner.close()
-  }
-
-  private class ManagedScanIterator(
-      override val timeout: Timeout,
-      override protected val underlying: AccumuloScanner,
-      plan: AccumuloQueryPlan
-    ) extends ManagedScan[Entry[Key, Value]] {
-    override protected def typeName: String = plan.filter.index.sft.getTypeName
-    override protected def filter: Option[Filter] = plan.filter.filter
   }
 
   private class AccumuloScanner(scanner: ScannerBase) extends LowLevelScanner[Entry[Key, Value]] {

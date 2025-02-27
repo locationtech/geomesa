@@ -15,6 +15,7 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
+import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
@@ -32,22 +33,10 @@ import scala.util.control.NonFatal
  * File system data store
  *
  * @param fs file system - note, this is expected to be a shared resource, and is not cleaned up on data store dispose
- * @param conf conf
- * @param root root path
- * @param readThreads number of threads used for read ops
- * @param writeTimeout timeout for write ops
- * @param defaultEncoding default file encoding
- * @param namespace geoserver namespace
+ * @param config config
  */
-class FileSystemDataStore(
-    fs: FileSystem,
-    conf: Configuration,
-    root: Path,
-    readThreads: Int,
-    writeTimeout: Duration,
-    defaultEncoding: Option[String],
-    namespace: Option[String]
-  ) extends ContentDataStore with HasGeoMesaStats with LazyLogging {
+class FileSystemDataStore(fs: FileSystem, config: FileSystemDataStoreConfig)
+    extends ContentDataStore with HasGeoMesaStats with LazyLogging {
 
   // noinspection ScalaUnusedSymbol
   @deprecated("Use FileSystem instead of FileContext")
@@ -58,12 +47,14 @@ class FileSystemDataStore(
       readThreads: Int,
       writeTimeout: Duration,
       defaultEncoding: Option[String],
-      namespace: Option[String]) =
-    this(FileSystem.get(root.toUri, conf), conf, root, readThreads, writeTimeout, defaultEncoding, namespace)
+      namespace: Option[String]) = {
+    this(FileSystem.get(root.toUri, conf),
+      FileSystemDataStoreConfig(conf, root, readThreads, writeTimeout, None, defaultEncoding, namespace))
+  }
 
-  namespace.foreach(setNamespaceURI)
+  config.namespace.foreach(setNamespaceURI)
 
-  private val manager = FileSystemStorageManager(fs, conf, root, namespace)
+  private val manager = FileSystemStorageManager(fs, config.conf, config.root, config.namespace)
 
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
@@ -91,7 +82,7 @@ class FileSystemDataStore(
         val scheme = sft.removeScheme().getOrElse {
           throw new IllegalArgumentException("Partition scheme must be specified in the SimpleFeatureType user data")
         }
-        val encoding = sft.removeEncoding().orElse(defaultEncoding).getOrElse {
+        val encoding = sft.removeEncoding().orElse(config.defaultEncoding).getOrElse {
           throw new IllegalArgumentException("Encoding type must be specified in either " +
               "the SimpleFeatureType user data or the data store parameters")
         }
@@ -106,20 +97,22 @@ class FileSystemDataStore(
         val fileSize = sft.removeTargetFileSize()
 
         val path = manager.defaultPath(sft.getTypeName)
-        val context = FileSystemContext(fs, conf, path, namespace)
+        val context = FileSystemContext(fs, config.conf, path, config.namespace)
 
         val metadata =
           StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage, fileSize))
         try { manager.register(path, FileSystemStorageFactory(context, metadata)) } catch {
           case NonFatal(e) => CloseQuietly(metadata).foreach(e.addSuppressed); throw e
         }
-        PathCache.register(fs, root)
+        PathCache.register(fs, config.root)
         PathCache.register(fs, path)
     }
   }
 
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource =
-    new FileSystemFeatureStore(storage(entry.getTypeName), entry, Query.ALL, readThreads, writeTimeout)
+  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+    val storage = this.storage(entry.getTypeName)
+    new FileSystemFeatureStore(storage, entry, Query.ALL, config.readThreads, config.writeTimeout, config.queryTimeout)
+  }
 
   /**
     * Get a handle on the underlying storage instance for a given simple feature type
@@ -132,3 +125,14 @@ class FileSystemDataStore(
   }
 }
 
+object FileSystemDataStore {
+  case class FileSystemDataStoreConfig(
+    conf: Configuration,
+    root: Path,
+    readThreads: Int,
+    writeTimeout: Duration,
+    queryTimeout: Option[Duration],
+    defaultEncoding: Option[String],
+    namespace: Option[String],
+  )
+}
