@@ -58,7 +58,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
     val readThreads = ReadThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite())
+    val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
 
     val namespace = NamespaceParam.lookupOpt(params)
 
