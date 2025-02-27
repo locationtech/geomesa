@@ -30,6 +30,7 @@ import java.io.{File, IOException}
 import java.nio.file.Files
 import java.util.Collections
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 class FileSystemDataStoreTest extends Specification {
@@ -171,6 +172,26 @@ class FileSystemDataStoreTest extends Specification {
           val features = SelfClosingIterator(reader).toList
           features must not(beEmpty)
           foreach(features)(_.getFeatureType.getName mustEqual name)
+        }
+      }
+    }
+
+    "support query timeouts" >> {
+      foreach(formats) { case (format, _, _) =>
+        val dir = dirs(format)
+        // Load a new datastore to read metadata and stuff
+        val params = java.util.Map.of("fs.path", dir.getPath, "fs.read-threads", "2", "geomesa.query.timeout", "200ms")
+        val ds = DataStoreFinder.getDataStore(params)
+        ds.getTypeNames.toList must containTheSameElementsAs(Seq(format))
+
+        val reader = ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)
+        try {
+          eventually(10, 200.millis) {
+            reader.hasNext must beTrue
+            reader.next() must throwA[RuntimeException]
+          }
+        } finally {
+          reader.close()
         }
       }
     }

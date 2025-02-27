@@ -12,7 +12,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -56,12 +58,15 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
     val readThreads = ReadThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
+    val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite())
 
     val namespace = NamespaceParam.lookupOpt(params)
 
     val fs = FileSystem.get(path.toUri, conf)
 
-    new FileSystemDataStore(fs, conf, path, readThreads, writeTimeout, encoding, namespace)
+    val config = FileSystemDataStoreConfig(conf, path, readThreads, writeTimeout, queryTimeout, encoding, namespace)
+
+    new FileSystemDataStore(fs, config)
   }
 
   override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
@@ -94,6 +99,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.EncodingParam,
       FileSystemDataStoreParams.ReadThreadsParam,
       FileSystemDataStoreParams.WriteTimeoutParam,
+      FileSystemDataStoreParams.QueryTimeoutParam,
       FileSystemDataStoreParams.ConfigPathsParam,
       FileSystemDataStoreParams.ConfigsParam
     )
@@ -162,6 +168,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
         supportsNiFiExpressions = true,
         readWrite = ReadWriteFlag.WriteOnly
       )
+
+    val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
 
     @deprecated("ConfigsParam")
     val ConfParam =

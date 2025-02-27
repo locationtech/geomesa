@@ -140,7 +140,8 @@ object ThreadManagement {
 
   object Timeout {
     def apply(relative: Long): Timeout = Timeout(relative, System.currentTimeMillis() + relative)
-    def apply(relative: String): Timeout = Timeout(Duration(relative).toMillis)
+    def apply(relative: Duration): Timeout = apply(relative.toMillis)
+    def apply(relative: String): Timeout = apply(Duration(relative))
   }
 
   /**

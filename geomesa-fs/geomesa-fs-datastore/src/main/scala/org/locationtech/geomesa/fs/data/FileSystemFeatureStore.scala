@@ -18,10 +18,11 @@ import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.data.FileSystemFeatureStore.{FileSystemFeatureIterator, FileSystemFeatureWriterAppend, FileSystemFeatureWriterModify}
+import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
 
 import java.io.{Closeable, Flushable}
@@ -34,7 +35,8 @@ class FileSystemFeatureStore(
     entry: ContentEntry,
     query: Query,
     readThreads: Int,
-    writeTimeout: Duration
+    writeTimeout: Duration,
+    queryTimeout: Option[Duration],
   ) extends ContentFeatureStore(entry, query) with LazyLogging {
 
   private val sft = storage.metadata.sft
@@ -70,8 +72,12 @@ class FileSystemFeatureStore(
     // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(sft.getTypeName)
 
+    val reader = queryTimeout match {
+      case None => storage.getReader(query, threads = readThreads)
+      case Some(timeout) => new ManagedReader(Timeout(timeout), new FileSystemScanner(storage, query, readThreads))
+    }
     // get a closeable java iterator that DelegateSimpleFeatureIterator will process correctly
-    val iter = new FileSystemFeatureIterator(storage.getReader(query, threads = readThreads))
+    val iter = new FileSystemFeatureIterator(reader)
 
     // transforms will be set after getting the iterator
     val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
@@ -102,6 +108,28 @@ object FileSystemFeatureStore {
   private val capabilities = new QueryCapabilities() {
     override def isReliableFIDSupported: Boolean = true
     override def isUseProvidedFIDSupported: Boolean = true
+  }
+
+  private class FileSystemScanner(storage: FileSystemStorage, val query: Query, threads: Int)
+      extends LowLevelScanner[SimpleFeature] {
+
+    private var reader: CloseableFeatureIterator = _
+
+    override def iterator: Iterator[SimpleFeature] = synchronized {
+      reader = storage.getReader(query, threads = threads)
+      reader
+    }
+    override def close(): Unit = synchronized {
+      if (reader != null) {
+        reader.close()
+      }
+    }
+  }
+
+  private class ManagedReader(override val timeout: Timeout, override protected val underlying: FileSystemScanner)
+      extends ManagedScan[SimpleFeature] {
+    override protected def typeName: String = underlying.query.getTypeName
+    override protected val filter: Option[Filter] = Option(underlying.query.getFilter).filter(_ != Filter.INCLUDE)
   }
 
   /**
