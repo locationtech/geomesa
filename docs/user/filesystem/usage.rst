@@ -18,6 +18,8 @@ Parameter                       Type   Description
 ``fs.config.paths``             String Additional Hadoop configuration resource files (comma-delimited)
 ``fs.config.xml``               String Additional Hadoop configuration properties, as a standard XML ``<configuration>``
                                        element
+``geomesa.query.timeout``       String The max time a query will be allowed to run before being killed. The
+                                       timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 =============================== ====== ===================================================================================
 
 Programmatic Access

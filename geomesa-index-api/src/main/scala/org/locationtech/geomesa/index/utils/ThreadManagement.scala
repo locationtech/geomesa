@@ -11,13 +11,14 @@ package org.locationtech.geomesa.index.utils
 import com.typesafe.scalalogging.Logger
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.slf4j.LoggerFactory
 
 import java.io.Closeable
-import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
@@ -35,47 +36,29 @@ object ThreadManagement {
   }
 
   /**
-   * Register a scan with the thread manager
+   * Class for scans that are managed, i.e. tracked and terminated if they exceed a specified timeout
    *
-   * @param scan scan to terminate
-   * @return
-   */
-  def register(scan: ManagedScan[_]): ScheduledFuture[_] = {
-    val timeout = math.max(1, scan.timeout.absolute - System.currentTimeMillis())
-    executor.schedule(new QueryKiller(scan), timeout, TimeUnit.MILLISECONDS)
-  }
-
-  /**
-   * Trait for scans that are managed, i.e. tracked and terminated if they exceed a specified timeout
-   *
+   * @param underlying low-level scan to be stopped
+   * @param timeout scan timeout
+   * @param typeName type name, used for log messages
+   * @param filter query filter, used for log messages
    * @tparam T type
    */
-  trait ManagedScan[T] extends CloseableIterator[T] {
+  class ManagedScan[T](underlying: LowLevelScanner[T], timeout: Timeout, typeName: String, filter: Option[Filter])
+      extends CloseableIterator[T] {
 
-    /**
-     * Scan timeout
-     *
-     * @return
-     */
-    def timeout: Timeout
-
-    /**
-     * Low-level scan to be stopped
-     *
-     * @return
-     */
-    protected def underlying: LowLevelScanner[T]
-
-    // used for log messages
-    protected def typeName: String
-    protected def filter: Option[Filter]
+    def this(underlying: LowLevelScanner[T], timeout: Timeout, plan: QueryPlan[_]) =
+      this(underlying, timeout, plan.filter.index.sft.getTypeName, plan.filter.filter)
 
     // we can use a volatile var since we only update the value with a single thread
     @volatile
     private var terminated = timeout.absolute <= System.currentTimeMillis()
 
     private val iter = ExceptionalIterator(if (terminated) { Iterator.empty } else { underlying.iterator })
-    private val cancel = if (terminated) { None } else { Some(ThreadManagement.register(this)) }
+    private val cancel = if (terminated) { None } else {
+      val timeout = math.max(1, this.timeout.absolute - System.currentTimeMillis())
+      Some(executor.schedule(new QueryKiller(this), timeout, TimeUnit.MILLISECONDS))
+    }
 
     // note: check iter.hasNext first so we get updated terminated flag
     override def hasNext: Boolean = iter.hasNext || terminated
@@ -140,7 +123,8 @@ object ThreadManagement {
 
   object Timeout {
     def apply(relative: Long): Timeout = Timeout(relative, System.currentTimeMillis() + relative)
-    def apply(relative: String): Timeout = Timeout(Duration(relative).toMillis)
+    def apply(relative: Duration): Timeout = apply(relative.toMillis)
+    def apply(relative: String): Timeout = apply(Duration(relative))
   }
 
   /**
