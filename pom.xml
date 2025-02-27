@@ -191,7 +191,7 @@
         <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
         <maven.checkstyle.plugin.version>3.6.0</maven.checkstyle.plugin.version>
         <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
-        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version>
+        <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
         <maven.project.info.reports.plugin.version>3.8.0</maven.project.info.reports.plugin.version>
 
         <!-- testing properties -->
