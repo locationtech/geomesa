@@ -68,9 +68,9 @@ jobs:
       matrix:
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ env.ACCUMULO_TEST_SPLIT }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="$ACCUMULO_TEST_SPLIT"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ env.ACCUMULO_TEST_SPLIT }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="$ACCUMULO_TEST_SPLIT"
           - name: accumulo-other
             selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
           - name: arrow
