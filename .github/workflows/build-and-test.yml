@@ -7,9 +7,9 @@ on:
         required: false
         type: string
         default: "2.12"
-      # list of tests that are run in job-1, and excluded in job-2 (which runs all the other accumulo tests)
-      # we define it here as an input as 'matrix' doesn't have access to most other contexts (like env)
-      accumulo-test-splits:
+      # splitting up the tests in the accumulo-datastore module reduces the overall CI build time
+      # tests are defined here as an input b/c 'matrix' doesn't have access to most other contexts (like env)
+      accumulo-test-splits-1:
         required: false
         type: string
         default: >-
@@ -23,6 +23,28 @@ on:
           AccumuloDataStoreTransformsTest,
           ArrowDictionaryTest,
           VisibilitiesTest
+      accumulo-test-splits-2:
+        required: false
+        type: string
+        default: >-
+          AccumuloDataStoreAttributeVisibilityTest,
+          AttributeIndexFilteringIteratorTest,
+          AccumuloPartitioningTest,
+          AccumuloFeatureReaderTest,
+          AccumuloDataStoreAtomicWriteTest,
+          AttributeIndexValuesTest,
+          TubeSelectProcessTest,
+          AccumuloDataStoreColumnGroupsTest,
+          ZIntervalTest,
+          S2IndexTest,
+          AccumuloFeatureWriterTest,
+          KryoLazyStatsIteratorTest,
+          AccumuloDataStoreSortTest,
+          AccumuloDataStoreUuidTest,
+          AccumuloDataStoreAuthTest,
+          LiveAccumuloDataStoreTest,
+          DensityIteratorTest,
+          S3IndexTest
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
@@ -71,9 +93,11 @@ jobs:
       matrix:
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-1 }}"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ inputs.accumulo-test-splits }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-2 }}"
+          - name: accumulo-ds-3
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ inputs.accumulo-test-splits-1 }}, ${{ inputs.accumulo-test-splits-2 }}"
           - name: accumulo-other
             selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
           - name: arrow
