@@ -33,7 +33,7 @@ jobs:
       - name: Generate cache key
         env:
           MOD_SELECTOR: "${{ inputs.module-selector }}"
-        run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g')" >> $GITHUB_ENV
+        run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 512)" >> $GITHUB_ENV
       - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ inputs.scala-version }}-${{ env.MOD_SELECTOR }}
