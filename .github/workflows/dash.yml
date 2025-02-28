@@ -30,18 +30,14 @@ jobs:
           else
             pomChanged="false"
             # get the changed files: https://stackoverflow.com/a/74268200/7809538
-            changedFiles=()
-            commitShas='${{ join(github.event.commits.*.id, ' ') }}'
-            for filename in $(git diff --name-only HEAD^1 HEAD); do
-              changedFiles+=("$filename")
-              if [[ $filename =~ .*pom.xml ]]; then
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only HEAD^1 HEAD && printf '\0' )
+            echo "Changed files:"
+            for file in "${changedFiles[@]}"; do
+              echo "  $file"
+              if [[ $file =~ .*pom.xml ]]; then
                 pomChanged="true"
               fi
             done
-            echo "Changed files:"
-            for file in "${changedFiles[@]}"; do
-             echo "  $file"
-            done 
           fi
           echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
