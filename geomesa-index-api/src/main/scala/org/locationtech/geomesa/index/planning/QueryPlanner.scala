@@ -126,17 +126,14 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
       output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
           s"stats[${hints.isStatsQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
-      output(s"Sort: ${query.getHints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
-      output(s"Transforms: ${query.getHints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
-      output(s"Max features: ${query.getHints.getMaxFeatures.getOrElse("none")}")
+      output(s"Sort: ${hints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
+      output(s"Transforms: ${hints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
+      output(s"Max features: ${hints.getMaxFeatures.getOrElse("none")}")
       hints.getFilterCompatibility.foreach(c => output(s"Filter compatibility: $c"))
 
       output.pushLevel("Strategy selection:")
       val requestedIndex = requested.orElse(hints.getRequestedIndex)
-      val transform = query.getHints.getTransformSchema
-      val evaluation = query.getHints.getCostEvaluation
-      val strategies =
-        StrategyDecider.getFilterPlan(ds, sft, query.getFilter, transform, evaluation, requestedIndex, output)
+      val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, requestedIndex, output)
       output.popLevel()
 
       var strategyCount = 1
@@ -150,9 +147,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
         strategyCount += 1
         output(s"Strategy filter: $strategy")
         profile(complete _) {
-          val qs = strategy.getQueryStrategy(hints, output)
-          // query guard hook
-          interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
+          val qs = strategy.getQueryStrategy(output)
           ds.adapter.createQueryPlan(qs)
         }
       }
