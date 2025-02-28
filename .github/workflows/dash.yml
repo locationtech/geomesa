@@ -43,23 +43,26 @@ jobs:
         run: |
           # get the changed files: https://stackoverflow.com/a/77153325/7809538
           commitShas='${{ join(github.event.commits.*.id, ' ') }}'
-          declare -A changedFiles
+          changedFiles=()
+          pomChanged="false"
           for sha in $commitShas; do
             commits=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/${{ github.repository }}/commits/${sha}")
+              "/repos/locationtech/geomesa/commits/${sha}")
             filenames=$(jq --join-output '.files[] | select(.status == "modified" or .status == "added") | "\(.filename) "' <<<"${commits}")
-            pomChanged="false"
             for filename in $filenames; do
-              changedFiles[$filename]=1
-              if [[ $filename ~= pom.xml ]]; then
+              changedFiles+=("$sha $filename")
+              if [[ $filename =~ .*pom.xml ]]; then
                 pomChanged="true"
               fi
             done
           done
-          echo "changedFiles=${!changedFiles[@]}"
-          echo "pom_changed=$pomChanged" >> $GITHUB_OUTPUT
+          echo "Changed files:"
+          for file in "${changedFiles[@]}"; do
+           echo "  $file"
+          done
+          echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
       - name: License check
         if: steps.pom_changes.outputs.pom_changed == 'true'
         run: mvn org.eclipse.dash:license-tool-plugin:license-check $MAVEN_CLI_OPTS -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
