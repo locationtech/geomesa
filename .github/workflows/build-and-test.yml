@@ -54,8 +54,10 @@ jobs:
       fail-fast: false
       matrix:
         tests:
-          - name: accumulo-ds
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }}
+          - name: accumulo-ds-1
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest='AccumuloDataStoreTest,AccumuloDataStoreStatsTest'
+          - name: accumulo-ds-2
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes='AccumuloDataStoreTest,AccumuloDataStoreStatsTest'
           - name: accumulo-other
             selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
           - name: arrow

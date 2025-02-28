@@ -200,6 +200,8 @@
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
+        <test.includes>**/*Test.java</test.includes>
+        <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.accumulo.docker.tag>2.1.3</test.accumulo.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
@@ -3140,8 +3142,12 @@
                         <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
-                            <include>**/*Test.java</include>
+                            <include>${test.includes}</include>
                         </includes>
+                        <excludes>
+                            <exclude>**/*IT.java</exclude>
+                            <exclude>${test.excludes}</exclude>
+                        </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                         <systemPropertyVariables>
                             <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
