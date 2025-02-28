@@ -50,14 +50,27 @@ jobs:
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   unit-tests:
     name: unit-tests (${{ matrix.tests.name }})
+    env:
+      # list of tests that are run in job-1, and excluded in job-2, which runs all the other accumulo tests
+      ACCUMULO_TEST_SPLIT: >-
+        AccumuloDataStoreTest,
+        AccumuloDataStoreQueryTest,
+        AccumuloDataStoreStatsTest,
+        AttributeIndexStrategyTest,
+        AccumuloDataStoreAlterSchemaTest,
+        ArrowBatchIteratorTest,
+        MultiIteratorTest,
+        AccumuloDataStoreTransformsTest,
+        ArrowDictionaryTest,
+        VisibilitiesTest
     strategy:
       fail-fast: false
       matrix:
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest='AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest'
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ env.ACCUMULO_TEST_SPLIT }}"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes='AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest'
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ env.ACCUMULO_TEST_SPLIT }}"
           - name: accumulo-other
             selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
           - name: arrow
