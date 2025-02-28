@@ -8,10 +8,11 @@
 
 package org.locationtech.geomesa.convert.avro
 
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
+import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -23,6 +24,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
+import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
 class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
@@ -36,12 +38,11 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
   "AvroConverter should" should {
 
     "properly convert a GenericRecord to a SimpleFeature" >> {
-      val conf = ConfigFactory.parseString(
+      val confWithReferencedSchema = ConfigFactory.parseString(
         """
           | {
           |   type        = "avro"
           |   schema-file = "/schema.avsc"
-          |   sft         = "testsft"
           |   id-field    = "uuid()"
           |   fields = [
           |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
@@ -53,17 +54,24 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | }
         """.stripMargin)
 
-      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
-        val ec = converter.createEvaluationContext()
-        val res = WithClose(converter.process(new ByteArrayInputStream(bytes), ec))(_.toList)
-        res must haveLength(1)
-        val sf = res.head
-        sf.getAttributeCount must be equalTo 2
-        sf.getAttribute("dtg") must not(beNull)
+      val avroSchema =
+        WithClose(getClass.getClassLoader.getResourceAsStream("schema.avsc"))(IOUtils.toString(_, StandardCharsets.UTF_8))
+      val confWithInlineSchema =
+        confWithReferencedSchema.withoutPath("schema-file").withValue("schema", ConfigValueFactory.fromAnyRef(avroSchema))
 
-        ec.failure.getCount mustEqual 0L
-        ec.success.getCount mustEqual 1L
-        ec.line mustEqual 1L  // only 1 record passed in itr
+      foreach(Seq(confWithReferencedSchema, confWithInlineSchema)) { conf =>
+        WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+          val ec = converter.createEvaluationContext()
+          val res = WithClose(converter.process(new ByteArrayInputStream(bytes), ec))(_.toList)
+          res must haveLength(1)
+          val sf = res.head
+          sf.getAttributeCount must be equalTo 2
+          sf.getAttribute("dtg") must not(beNull)
+
+          ec.failure.getCount mustEqual 0L
+          ec.success.getCount mustEqual 1L
+          ec.line mustEqual 1L  // only 1 record passed in itr
+        }
       }
     }
 
@@ -73,7 +81,6 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | {
           |   type        = "avro"
           |   schema-file = "/schema.avsc"
-          |   sft         = "testsft"
           |   id-field    = "uuid()"
           |   user-data   = {
           |     my.user.key = "$lat"
@@ -109,7 +116,6 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | {
           |   type        = "avro"
           |   schema-file = "/schema.avsc"
-          |   sft         = "testsft"
           |   id-field    = "md5($0)"
           |   fields = [
           |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
@@ -144,7 +150,6 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         """
           | {
           |   type        = "avro"
-          |   sft         = "testsft"
           |   schema      = "embedded"
           |   id-field    = "md5($0)"
           |   fields = [

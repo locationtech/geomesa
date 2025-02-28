@@ -178,7 +178,6 @@ The following converter config would be sufficient to parse the Avro::
     {
       type        = "avro"
       schema-file = "/tmp/schema.avsc"
-      sft         = "testsft"
       id-field    = "uuid()"
       fields = [
         { name = "tobj", transform = "avroPath($1, '/content$type=DataObj')" },
