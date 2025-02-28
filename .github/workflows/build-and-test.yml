@@ -93,6 +93,7 @@ jobs:
     needs: compile
     uses: ./.github/workflows/unit-tests.yml
     with:
+      test-name: ${{ matrix.tests.name }}
       module-selector: ${{ matrix.tests.selector }}
       scala-version: ${{ inputs.scala-version }}
   integration-tests:
