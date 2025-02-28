@@ -13,6 +13,18 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+  # list of tests that are run in job-1, and excluded in job-2, which runs all the other accumulo tests
+  ACCUMULO_TEST_SPLIT: >-
+    AccumuloDataStoreTest,
+    AccumuloDataStoreQueryTest,
+    AccumuloDataStoreStatsTest,
+    AttributeIndexStrategyTest,
+    AccumuloDataStoreAlterSchemaTest,
+    ArrowBatchIteratorTest,
+    MultiIteratorTest,
+    AccumuloDataStoreTransformsTest,
+    ArrowDictionaryTest,
+    VisibilitiesTest
 
 jobs:
   compile:
@@ -50,19 +62,6 @@ jobs:
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   unit-tests:
     name: unit-tests (${{ matrix.tests.name }})
-    env:
-      # list of tests that are run in job-1, and excluded in job-2, which runs all the other accumulo tests
-      ACCUMULO_TEST_SPLIT: >-
-        AccumuloDataStoreTest,
-        AccumuloDataStoreQueryTest,
-        AccumuloDataStoreStatsTest,
-        AttributeIndexStrategyTest,
-        AccumuloDataStoreAlterSchemaTest,
-        ArrowBatchIteratorTest,
-        MultiIteratorTest,
-        AccumuloDataStoreTransformsTest,
-        ArrowDictionaryTest,
-        VisibilitiesTest
     strategy:
       fail-fast: false
       matrix:
