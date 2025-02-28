@@ -48,63 +48,63 @@ jobs:
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-#  unit-tests:
-#    name: unit-tests (${{ matrix.tests.name }})
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        tests:
-#          - name: accumulo-ds
-#            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }}
-#          - name: accumulo-other
-#            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
-#          - name: arrow
-#            selector: -f geomesa-arrow
-#          - name: cassandra
-#            selector: -f geomesa-cassandra
-#          - name: convert
-#            selector: -f geomesa-convert
-#          - name: cqengine
-#            selector: -f geomesa-memory
-#          - name: features
-#            selector: -f geomesa-features
-#          - name: fs
-#            selector: -f geomesa-fs
-#          - name: gt
-#            selector: -f geomesa-gt
-#          - name: hbase
-#            selector: -f geomesa-hbase
-#          - name: kafka
-#            selector: -f geomesa-kafka
-#          - name: lambda
-#            selector: -f geomesa-lambda
-#          - name: metrics
-#            selector: -f geomesa-metrics
-#          - name: process
-#            selector: -f geomesa-process
-#          - name: redis
-#            selector: -f geomesa-redis
-#          - name: spark
-#            selector: -f geomesa-spark
-#          - name: utils
-#            selector: -f geomesa-utils-parent
-#          - name: others
-#            selector: -pl geomesa-filter,geomesa-index-api,geomesa-jobs,geomesa-security,geomesa-tools,geomesa-z3
-#    needs: compile
-#    uses: ./.github/workflows/unit-tests.yml
-#    with:
-#      module-selector: ${{ matrix.tests.selector }}
-#      scala-version: ${{ inputs.scala-version }}
-#  integration-tests:
-#    needs: compile
-#    uses: ./.github/workflows/integration-tests.yml
-#    with:
-#      scala-version: ${{ inputs.scala-version }}
-#  javadocs:
-#    needs: compile
-#    uses: ./.github/workflows/javadocs.yml
-#    with:
-#      scala-version: ${{ inputs.scala-version }}
+  unit-tests:
+    name: unit-tests (${{ matrix.tests.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        tests:
+          - name: accumulo-ds
+            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }}
+          - name: accumulo-other
+            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+          - name: arrow
+            selector: -f geomesa-arrow
+          - name: cassandra
+            selector: -f geomesa-cassandra
+          - name: convert
+            selector: -f geomesa-convert
+          - name: cqengine
+            selector: -f geomesa-memory
+          - name: features
+            selector: -f geomesa-features
+          - name: fs
+            selector: -f geomesa-fs
+          - name: gt
+            selector: -f geomesa-gt
+          - name: hbase
+            selector: -f geomesa-hbase
+          - name: kafka
+            selector: -f geomesa-kafka
+          - name: lambda
+            selector: -f geomesa-lambda
+          - name: metrics
+            selector: -f geomesa-metrics
+          - name: process
+            selector: -f geomesa-process
+          - name: redis
+            selector: -f geomesa-redis
+          - name: spark
+            selector: -f geomesa-spark
+          - name: utils
+            selector: -f geomesa-utils-parent
+          - name: others
+            selector: -pl geomesa-filter,geomesa-index-api,geomesa-jobs,geomesa-security,geomesa-tools,geomesa-z3
+    needs: compile
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      module-selector: ${{ matrix.tests.selector }}
+      scala-version: ${{ inputs.scala-version }}
+  integration-tests:
+    needs: compile
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      scala-version: ${{ inputs.scala-version }}
+  javadocs:
+    needs: compile
+    uses: ./.github/workflows/javadocs.yml
+    with:
+      scala-version: ${{ inputs.scala-version }}
   dash:
     needs: compile
     uses: ./.github/workflows/dash.yml
