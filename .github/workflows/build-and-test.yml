@@ -49,7 +49,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   unit-tests:
-    name: unit-tests (${{ matrix.tests.name }})
+    name: unit-tests
     strategy:
       fail-fast: false
       matrix:
