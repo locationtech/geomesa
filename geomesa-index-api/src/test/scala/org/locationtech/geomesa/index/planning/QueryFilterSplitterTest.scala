@@ -6,20 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.index.planning
 
 import org.geotools.api.filter._
 import org.geotools.api.filter.temporal.During
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory
+import org.locationtech.geomesa.index.api.{FilterPlan, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.specs2.matcher.MatchResult
@@ -29,6 +29,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class QueryFilterSplitterTest extends Specification {
 
+  import QueryFilterSplitterTest.RichSplitter
   import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -47,7 +48,7 @@ class QueryFilterSplitterTest extends Specification {
 
   sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
 
-  val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
+  private val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -88,7 +89,6 @@ class QueryFilterSplitterTest extends Specification {
   "QueryFilterSplitter" should {
 
     "return for filter include" >> {
-      val filter = Filter.INCLUDE
       val options = splitter.getQueryOptions(Filter.INCLUDE)
       options must haveLength(1)
       options.head.strategies must haveLength(1)
@@ -601,5 +601,11 @@ class QueryFilterSplitterTest extends Specification {
         }
       }
     }
+  }
+}
+
+object QueryFilterSplitterTest {
+  private implicit class RichSplitter(val splitter: FilterSplitter) extends AnyVal {
+    def getQueryOptions(filter: Filter): Seq[FilterPlan] = splitter.getQueryOptions(filter, new Hints())
   }
 }

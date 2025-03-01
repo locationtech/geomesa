@@ -18,8 +18,10 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{IsCloseable, IsFlushableImplicits}
 
@@ -194,8 +196,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
-    val index = filter.index
+    val byteRanges = strategy.ranges
+    val ecql = strategy.ecql
+    val hints = strategy.hints
+    val index = strategy.index
 
     // index api defines empty start/end for open-ended range
     // index api defines start row inclusive, end row exclusive
@@ -206,28 +210,28 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     }
     val small = byteRanges.headOption.exists(_.isInstanceOf[SingleRowByteRange])
 
-    val tables = index.getTablesForQuery(filter.filter).map(TableName.valueOf)
+    val tables = index.getTablesForQuery(strategy.filter.filter).map(TableName.valueOf)
     val (colFamily, schema) = groups.group(index.sft, hints.getTransformDefinition, ecql)
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
     // check for an empty query plan, if there are no tables or ranges to scan
     def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
-      if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(filter, reducer)) } else { None }
+      if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(strategy, reducer)) } else { None }
 
     if (!ds.config.remoteFilter) {
       // everything is done client side
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
-      val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints))
+      val reducer = Some(new LocalTransformReducer(schema, strategy.filter.filter, None, transform, hints))
       empty(reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
         val sort = hints.getSortFields
         val max = hints.getMaxFeatures
         val project = hints.getProjection
-        ScanPlan(filter, ranges, scans, resultsToFeatures, reducer, sort, max, project)
+        ScanPlan(strategy, ranges, scans, resultsToFeatures, reducer, sort, max, project)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
@@ -278,31 +282,31 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           if (ds.config.coprocessors.enabled.density) {
             val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseDensityResultsToFeatures()
-            CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
+            CoprocessorPlan(strategy, ranges, coprocessorScans, options, results, None, max, projection)
           } else {
             if (hints.isSkipReduce) {
               // override the return sft to reflect what we're actually returning,
               // since the density sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else if (hints.isArrowQuery) {
-        val config = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+        val config = HBaseArrowAggregator.configure(schema, index, ds.stats, strategy.filter.filter, ecql, hints)
         val reducer = Some(config.reduce)
         empty(reducer).getOrElse {
           if (ds.config.coprocessors.enabled.arrow) {
             val options = config.config ++ coprocessorOptions
             val results = new HBaseArrowResultsToFeatures()
-            CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
+            CoprocessorPlan(strategy, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
             if (hints.isSkipReduce) {
               // override the return sft to reflect what we're actually returning,
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else if (hints.isStatsQuery) {
@@ -311,14 +315,14 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           if (ds.config.coprocessors.enabled.stats) {
             val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseStatsResultsToFeatures()
-            CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
+            CoprocessorPlan(strategy, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
             if (hints.isSkipReduce) {
               // override the return sft to reflect what we're actually returning,
               // since the stats sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else if (hints.isBinQuery) {
@@ -326,19 +330,19 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           if (ds.config.coprocessors.enabled.bin) {
             val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseBinResultsToFeatures()
-            CoprocessorPlan(filter, ranges, coprocessorScans, options , results, None, max, projection)
+            CoprocessorPlan(strategy, ranges, coprocessorScans, options , results, None, max, projection)
           } else {
             if (hints.isSkipReduce) {
               // override the return sft to reflect what we're actually returning,
               // since the bin sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
       } else {
         empty(None).getOrElse {
-          ScanPlan(filter, ranges, scans, resultsToFeatures, None, hints.getSortFields, max, projection)
+          ScanPlan(strategy, ranges, scans, resultsToFeatures, None, hints.getSortFields, max, projection)
         }
       }
     }
@@ -357,6 +361,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       new HBaseIndexWriter(ds, indices, wrapper, partition)
     }
   }
+
+  override def getStrategyCost(strategy: FilterStrategy, explain: Explainer): Option[Long] =
+    ds.stats.getCount(strategy.index.sft, strategy.primary.getOrElse(Filter.INCLUDE))
 
   /**
    * Configure the hbase scan
