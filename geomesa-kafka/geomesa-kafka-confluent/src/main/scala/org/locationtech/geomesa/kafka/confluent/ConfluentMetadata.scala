@@ -80,7 +80,7 @@ class ConfluentMetadata(schemaRegistry: SchemaRegistryClient, sftOverrides: Map[
     }
   }
 
-  override def close(): Unit = {}
+  override def close(): Unit = schemaRegistry.close()
 
   override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, String)] =
     throw new NotImplementedError(s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
