@@ -1,0 +1,47 @@
+name: javadocs
+
+on:
+  workflow_call:
+    inputs:
+      scala-version:
+        required: false
+        type: string
+        default: "2.12"
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
+
+jobs:
+  build-javadocs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ inputs.scala-version }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+      - name: Download artifacts
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: classes-and-jars-${{ inputs.scala-version }}
+      - name: Install artifacts
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: Build scaladocs
+        run: mvn generate-sources scala:doc-jar $MAVEN_CLI_OPTS
+      - name: Build javadocs
+        run: mvn generate-sources javadoc:jar $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
