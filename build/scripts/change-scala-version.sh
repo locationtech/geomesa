@@ -35,7 +35,7 @@ if [[ ($# -ne 1) || ( $1 == "--help") ||  $1 == "-h" ]]; then
   usage
 fi
 
-BASEDIR=$(dirname "$0")/..
+BASEDIR="$(dirname "$0")/../.."
 TO_VERSION=$1
 FULL_VERSION=""
 
