@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.kafka.consumer
 
 import com.typesafe.scalalogging.Logger
-import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMetadata, OffsetCommitCallback}
+import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LogOffsetCommitCallback}
@@ -49,18 +49,7 @@ abstract class ThreadedConsumer(
         var interrupted = false
         while (isOpen && !interrupted) {
           try {
-            val result = KafkaConsumerVersions.poll(consumer, frequency)
-            lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
-            logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
-            if (!result.isEmpty) {
-              val records = result.iterator()
-              while (records.hasNext) {
-                consume(records.next())
-              }
-              logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
-              consumer.commitAsync(callback)
-              errorCount = 0 // reset error count
-            }
+            processPoll(KafkaConsumerVersions.poll(consumer, frequency))
           } catch {
             case _: WakeupException | _: InterruptException | _: InterruptedException => interrupted = true
             case NonFatal(e) =>
@@ -80,6 +69,25 @@ abstract class ThreadedConsumer(
             case NonFatal(e) => logger.warn(s"Error calling close on consumer: ", e)
           }
         }
+      }
+    }
+
+    /**
+     * Process the results of a call to poll()
+     *
+     * @param result records
+     */
+    protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
+      lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
+      logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
+      if (!result.isEmpty) {
+        val records = result.iterator()
+        while (records.hasNext) {
+          consume(records.next())
+        }
+        logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
+        consumer.commitAsync(callback)
+        errorCount = 0 // reset error count
       }
     }
   }
