@@ -1,4 +1,4 @@
-name: scala-2.12
+name: build
 
 on:
   push:
@@ -12,8 +12,15 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
+
 jobs:
-  build-and-test:
+  build-scala:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [ "2.12", "2.13" ]
     uses: ./.github/workflows/build-and-test.yml
     with:
-      scala-version: "2.12"
+      scala-version: ${{ matrix.version }}
