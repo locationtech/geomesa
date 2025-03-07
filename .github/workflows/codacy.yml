@@ -11,14 +11,16 @@
 # For more information on Codacy Analysis CLI in general, see
 # https://github.com/codacy/codacy-analysis-cli.
 
-name: Codacy Security Scan
+name: codacy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+    tags:
+      - '**'
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ main ]
   schedule:
     - cron: '20 21 * * 4'
 
@@ -30,7 +32,6 @@ jobs:
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    name: Codacy Security Scan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -47,15 +48,14 @@ jobs:
           - SQLint
           - shellcheck
           - stylelint
-          - tsqllint
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       # Execute Codacy Analysis CLI and generate a SARIF output with the security issues identified during the analysis
       - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@33d455949345bddfdb845fba76b57b70cc83754b
+        uses: codacy/codacy-analysis-cli-action@97bf5df3c09e75f5bcd72695998f96ebd701846e
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations
@@ -72,7 +72,7 @@ jobs:
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@d39d31e687223d841ef683f52467bd88e9b21c14 # v3.25.3
+        uses: github/codeql-action/upload-sarif@b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d # v3.28.10
         with:
           sarif_file: results.sarif
           category: codacy-${{ matrix.tool }}

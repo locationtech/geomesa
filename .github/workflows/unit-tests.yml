@@ -1,0 +1,75 @@
+name: unit-tests
+
+on:
+  workflow_call:
+    inputs:
+      scala-version:
+        required: false
+        type: string
+        default: "2.12"
+      test-name:
+        required: true
+        type: string
+      module-selector:
+        required: true
+        type: string
+
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true -Dtest.fork.count=1 --batch-mode
+
+jobs:
+  test:
+    name: test-${{ inputs.test-name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - name: Generate cache key
+        env:
+          MOD_SELECTOR: "${{ inputs.module-selector }}"
+        run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> $GITHUB_ENV
+      - uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ inputs.scala-version }}-${{ env.MOD_SELECTOR }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+      - name: Download artifacts
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: classes-and-jars-${{ inputs.scala-version }}
+      - name: Install artifacts
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: Unit tests
+        id: test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mvn surefire:test $MAVEN_CLI_OPTS ${{ inputs.module-selector }} | tee -a test.log
+      - name: Unit tests (retry)
+        id: test-retry
+        if: steps.test.outcome=='failure'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+          mvn surefire:test $MAVEN_CLI_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
+      - name: Unit tests (retry)
+        id: test-retry-retry
+        if: steps.test-retry.outcome=='failure'
+        run: |
+          set -o pipefail
+          RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
+          mvn surefire:test $MAVEN_CLI_OPTS $RESUME_FROM ${{ inputs.module-selector }} | tee -a test.log
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
