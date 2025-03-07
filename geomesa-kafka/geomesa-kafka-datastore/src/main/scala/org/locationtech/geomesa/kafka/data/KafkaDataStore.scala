@@ -526,6 +526,7 @@ object KafkaDataStore extends LazyLogging {
     override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
     override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+      logger.debug(s"Partitions assigned: ${topicPartitions.asScala.mkString(", ")}")
       topicPartitions.asScala.foreach { tp =>
         if (partitions.add(tp.partition())) {
           KafkaConsumerVersions.pause(consumer, tp)
