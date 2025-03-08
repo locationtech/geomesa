@@ -22,6 +22,7 @@ User Manual
    accumulo/index
    hbase/index
    cassandra/index
+   scylladb/index
    postgis/index
    kafka/index
    redis/index

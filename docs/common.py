@@ -99,6 +99,8 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3
 
+.. |scylladb_version| replace:: 6.2
+
 .. |redis_supported_versions| replace:: versions 5.0 and later
 
 .. |spark_required_version| replace:: %(spark_version)s
