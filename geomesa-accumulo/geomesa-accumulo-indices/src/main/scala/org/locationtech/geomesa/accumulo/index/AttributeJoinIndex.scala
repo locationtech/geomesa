@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.kryo.serialization.IndexValueSerializer
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api._
@@ -22,6 +23,8 @@ trait AttributeJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], 
 
   this: AttributeIndex =>
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   import scala.collection.JavaConverters._
 
   private val attribute = attributes.head
@@ -33,21 +36,19 @@ trait AttributeJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], 
   override val name: String = JoinIndex.name
   override val identifier: String = GeoMesaFeatureIndex.identifier(name, version, attributes)
 
-  abstract override def getFilterStrategy(
-      filter: Filter,
-      transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
-    super.getFilterStrategy(filter, transform).flatMap { strategy =>
+  abstract override def getFilterStrategy(filter: Filter, hints: Hints): Option[FilterStrategy] = {
+    super.getFilterStrategy(filter, hints).flatMap { strategy =>
       // verify that it's ok to return join plans, and filter them out if not
-      if (!requiresJoin(strategy.secondary, transform)) {
+      if (!requiresJoin(strategy.secondary, hints.getTransformSchema)) {
         Some(strategy)
       } else if (!JoinIndex.AllowJoinPlans.get) {
         None
       } else {
         val primary = strategy.primary.getOrElse(Filter.INCLUDE)
         val bounds = FilterHelper.extractAttributeBounds(primary, attribute, binding)
-        val joinMultiplier = 9f + bounds.values.length // 10 plus 1 per additional range being scanned
+        val joinMultiplier = 10f + (bounds.values.length / 10) // 10 plus 1 per 10 additional ranges being scanned
         val multiplier = strategy.costMultiplier * joinMultiplier
-        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, multiplier))
+        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, multiplier, hints))
       }
     }
   }

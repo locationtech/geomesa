@@ -62,7 +62,7 @@ object AccumuloJoinIndexAdapter {
   def createQueryPlan(
       ds: AccumuloDataStore,
       index: AttributeJoinIndex,
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
       colFamily: Option[Text],
@@ -85,7 +85,7 @@ object AccumuloJoinIndexAdapter {
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      BatchScanPlan(filter, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
+      BatchScanPlan(strategy, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
     }
 
     // used when remote processing is disabled
@@ -115,13 +115,13 @@ object AccumuloJoinIndexAdapter {
         }
       } else {
         // have to do a join against the record table
-        createJoinPlan(ds, index, filter, tables, ranges, colFamily, ecql, hints)
+        createJoinPlan(ds, index, strategy, tables, ranges, colFamily, ecql, hints)
       }
     } else if (hints.isArrowQuery) {
       // check to see if we can execute against the index values
       if (index.canUseIndexSchema(ecql, transform)) {
         if (ds.config.remote.arrow) {
-          val (arrowIter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, filter.filter, ecql, hints)
+          val (arrowIter, reduce) = ArrowIterator.configure(indexSft, index, ds.stats, strategy.filter.filter, ecql, hints)
           plan(Seq(arrowIter), new AccumuloArrowResultsToFeatures(), Some(reduce))
         } else {
           localPlan()
@@ -147,7 +147,7 @@ object AccumuloJoinIndexAdapter {
         }
       } else {
         // have to do a join against the record table
-        createJoinPlan(ds, index, filter, tables, ranges, colFamily, ecql, hints)
+        createJoinPlan(ds, index, strategy, tables, ranges, colFamily, ecql, hints)
       }
     } else if (hints.isDensityQuery) {
       // check to see if we can execute against the index values
@@ -183,7 +183,7 @@ object AccumuloJoinIndexAdapter {
         }
       } else {
         // have to do a join against the record table
-        createJoinPlan(ds, index, filter, tables, ranges, colFamily, ecql, hints)
+        createJoinPlan(ds, index, strategy, tables, ranges, colFamily, ecql, hints)
       }
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
@@ -197,7 +197,7 @@ object AccumuloJoinIndexAdapter {
         }
       } else {
         // have to do a join against the record table
-        createJoinPlan(ds, index, filter, tables, ranges, colFamily, ecql, hints)
+        createJoinPlan(ds, index, strategy, tables, ranges, colFamily, ecql, hints)
       }
     } else if (index.canUseIndexSchema(ecql, transform)) {
       // we can use the index value
@@ -222,10 +222,10 @@ object AccumuloJoinIndexAdapter {
       plan(iters, toFeatures, None)
     } else {
       // have to do a join against the record table
-      createJoinPlan(ds, index, filter, tables, ranges, colFamily, ecql, hints)
+      createJoinPlan(ds, index, strategy, tables, ranges, colFamily, ecql, hints)
     }
 
-    if (ranges.nonEmpty) { qp } else { EmptyPlan(qp.filter, qp.reducer) }
+    if (ranges.nonEmpty) { qp } else { EmptyPlan(strategy, qp.reducer) }
   }
 
   /**
@@ -235,7 +235,7 @@ object AccumuloJoinIndexAdapter {
   private def createJoinPlan(
       ds: AccumuloDataStore,
       index: AttributeJoinIndex,
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
       colFamily: Option[Text],
@@ -280,7 +280,7 @@ object AccumuloJoinIndexAdapter {
       hints.put(QueryHints.Internal.RETURN_SFT, resultSft)
     }
 
-    val recordTables = recordIndex.getTablesForQuery(filter.filter)
+    val recordTables = recordIndex.getTablesForQuery(strategy.filter.filter)
     val recordThreads = ds.config.queries.recordThreads
 
     // function to join the attribute index scan results to the record table
@@ -294,13 +294,13 @@ object AccumuloJoinIndexAdapter {
       }
     }
 
-    val joinQuery = BatchScanPlan(filter, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
+    val joinQuery = BatchScanPlan(strategy, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
       Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads)
 
     val attributeIters = visibilityIter(index) ++
         FilterTransformIterator.configure(index.indexSft, index, stFilter, None, hints.getSampling).toSeq
 
-    JoinPlan(filter, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
+    JoinPlan(strategy, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
   }
 
   private def visibilityIter(index: AttributeJoinIndex): Seq[IteratorSetting] = {

@@ -105,7 +105,7 @@ object TestGeoMesaDataStore {
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy.filter, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
+      TestQueryPlan(strategy, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
     }
 
     override def createWriter(
@@ -123,11 +123,14 @@ object TestGeoMesaDataStore {
       }
     }
 
+    override def getStrategyCost(strategy: FilterStrategy, explain: Explainer): Option[Long] =
+      ds.stats.getCount(strategy.index.sft, strategy.primary.getOrElse(Filter.INCLUDE))
+
     override def toString: String = getClass.getSimpleName
   }
 
   case class TestQueryPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Map[String, SortedSet[SingleRowKeyValue[_]]],
       sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
@@ -144,6 +147,8 @@ object TestGeoMesaDataStore {
     override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(sft)
 
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
+      strategy.runGuards(ds) // query guard hook - also handles full table scan checks
+
       def contained(range: TestRange, row: Array[Byte]): Boolean =
         ByteArrays.ByteOrdering.compare(range.start, row) <= 0 &&
             (range.end.isEmpty || ByteArrays.ByteOrdering.compare(range.end, row) > 0)
@@ -154,7 +159,7 @@ object TestGeoMesaDataStore {
         } else {
           kv.values.iterator.map { value =>
             val sf = serializer.deserialize(value.value).asInstanceOf[ScalaSimpleFeature]
-            sf.setId(filter.index.getIdFromRow(kv.row, 0, kv.row.length, sf))
+            sf.setId(strategy.index.getIdFromRow(kv.row, 0, kv.row.length, sf))
             sf
           }
         }

@@ -36,11 +36,18 @@ trait QueryPlan[DS <: GeoMesaDataStore[DS]] {
   type Results
 
   /**
-    * Reference back to the strategy
+    * Reference back to the query strategy
     *
     * @return
     */
-  def filter: FilterStrategy
+  def strategy: QueryStrategy
+
+  /**
+   * Reference back to the filter strategy
+   *
+   * @return
+   */
+  def filter: FilterStrategy = strategy.filter
 
   /**
     * Runs the query plan against the underlying database
