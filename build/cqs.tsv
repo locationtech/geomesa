@@ -311,9 +311,9 @@ org.apache.kafka:kafka-streams-scala_2.12	3.9.0	provided
 org.apache.kafka:kafka-streams	3.9.0	provided
 org.apache.sedona:sedona-spark-3.4_2.12	1.5.0	provided
 org.apache.sedona:sedona-spark-common-3.4_2.12	1.5.0	provided
-org.apache.spark:spark-catalyst_2.12	3.5.0	provided
-org.apache.spark:spark-core_2.12	3.5.0	provided
-org.apache.spark:spark-sql_2.12	3.5.0	provided
+org.apache.spark:spark-catalyst_2.12	3.5.5	provided
+org.apache.spark:spark-core_2.12	3.5.5	provided
+org.apache.spark:spark-sql_2.12	3.5.5	provided
 org.scala-lang:scala-compiler	2.12.19	provided
 org.slf4j:slf4j-reload4j	1.7.36	provided
 org.springframework.security:spring-security-core	5.8.15	provided
