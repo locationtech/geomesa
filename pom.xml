@@ -213,7 +213,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>5.2.0</geomesa.release.version>
+        <geomesa.release.version>5.2.1</geomesa.release.version>
         <geomesa.devel.version>5.3.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2025</copyright.year>
 
