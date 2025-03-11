@@ -44,6 +44,7 @@ if [[ -n "$REL" ]]; then
   RELEASE="$REL"
   TAG="geomesa-$REL"
 fi
+RELEASE_SHORT="${RELEASE%.*}"
 
 LAST_RELEASE="$(grep VERSION: "$WEBSITE_DIR"/documentation/stable/_static/documentation_options.js | awk '{ print $2 }' | sed "s/[', ]//g")"
 if [[ -z "$LAST_RELEASE" ]]; then
@@ -63,27 +64,41 @@ virtualenv .sphinx && source .sphinx/bin/activate && pip install -r docs/require
 # build the docs
 mvn clean install -pl docs/ -Pdocs
 
-# move current docs to a versioned folder
+DOCS_DIR="stable"
+
+# ensure docs repo is up to date
 pushd "$WEBSITE_DIR" && \
   git checkout main && \
-  git pull origin main && \
-  mv documentation/stable "documentation/${LAST_RELEASE_SHORT}" && \
-  mkdir documentation/stable/ && \
+  git pull origin main
+# move current docs to a versioned folder
+if [[ $LAST_RELEASE_SHORT == "$RELEASE_SHORT" ]]; then
+  # new bug fix on latest release
+  rm -r documentation/stable/
+elif [[ -d "documentation/$RELEASE_SHORT" ]]; then
+  # new bug fix on older release
+  DOCS_DIR="$RELEASE_SHORT"
+  rm -r "documentation/$DOCS_DIR"
+else
+  # new major/minor release
+  mv documentation/stable "documentation/${LAST_RELEASE_SHORT}"
+  # add link to previous docs
+  sed -i "s|<li class=\"dropdown-header\">Previous Releases</li>|\0\n            <li><a href=\"/documentation/${LAST_RELEASE_SHORT}/\">${LAST_RELEASE}</a></li>|" _includes/header.html
+fi
+mkdir "documentation/$DOCS_DIR/" && \
   popd
 
 # copy the docs we just built
-cp -r docs/target/html/* "$WEBSITE_DIR"/documentation/stable/
+cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$DOCS_DIR/"
 
 # build site docs - takes ~an hour
 mvn clean package scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
   mvn generate-sources site && \
-  mvn site:stage -DstagingDirectory="$WEBSITE_DIR"/documentation/stable/site/
+  mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$DOCS_DIR/site/"
 
 # update 'stable version'
-sed -i "s/^stableVersion:.*/stableVersion: \"$RELEASE\"/" "$WEBSITE_DIR"/_config.yml
-
-# add link to previous docs
-sed -i "s|<li class=\"dropdown-header\">Previous Releases</li>|\0\n            <li><a href=\"/documentation/${LAST_RELEASE_SHORT}/\">${LAST_RELEASE}</a></li>|" "$WEBSITE_DIR"/_includes/header.html
+if [[ $DOCS_DIR == "stable" ]]; then
+  sed -i "s/^stableVersion:.*/stableVersion: \"$RELEASE\"/" "$WEBSITE_DIR"/_config.yml
+fi
 
 # commit and push docs
 pushd "$WEBSITE_DIR" && \
