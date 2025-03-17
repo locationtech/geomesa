@@ -874,6 +874,28 @@ class ExpressionTest extends Specification {
       val trans = Expression("withDefault($0, 'foo')")
       trans.apply(Array("bar")) mustEqual "bar"
       trans.apply(Array("")) mustEqual ""
+      trans.apply(Array(null)) mustEqual "foo"
+    }
+    "handle lists of default values" >> {
+      val trans = Expression("withDefault($0,$1,$2,$3)")
+      trans.apply(Array("a", "b", "c", "d")) mustEqual "a"
+      trans.apply(Array(null, "b", "c", "d")) mustEqual "b"
+      trans.apply(Array(null, null, "c", "d")) mustEqual "c"
+      trans.apply(Array(null, null, null, "d")) mustEqual "d"
+      trans.apply(Array(null, null, null, null)) must beNull
+    }
+    "lazily evaluate default values" >> {
+      try {
+        TestFunctionFactory.LazyAccess.get().get() mustEqual 0
+        val trans = Expression("withDefault($0,lazyTest())")
+        TestFunctionFactory.LazyAccess.get().get() mustEqual 0
+        trans.apply(Array("a")) mustEqual "a"
+        TestFunctionFactory.LazyAccess.get().get() mustEqual 0
+        trans.apply(Array(null)) mustEqual 0
+        TestFunctionFactory.LazyAccess.get().get() mustEqual 1
+      } finally {
+        TestFunctionFactory.LazyAccess.remove()
+      }
     }
     "convert integer to boolean" >> {
       val trans = Expression("intToBoolean($0)")

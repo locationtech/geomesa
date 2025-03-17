@@ -299,4 +299,45 @@ object Expression {
     override def children(): Seq[Expression] = Seq(toTry, fallback)
     override def toString: String = s"try($toTry,$fallback)"
   }
+
+  case class WithDefaultExpression(expressions: Seq[Expression]) extends Expression {
+
+    require(expressions.lengthCompare(1) > 0)
+
+    @volatile private var contextDependent: Int = -1
+
+    private def this(expressions: Seq[Expression], contextDependent: Int) = {
+      this(expressions)
+      this.contextDependent = contextDependent
+    }
+
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = {
+      expressions.foreach { e =>
+        val result = e.apply(args)
+        if (result != null) {
+          return result
+        }
+      }
+      null
+    }
+
+    override def withContext(ec: EvaluationContext): Expression = {
+      // this code is thread-safe, in that it will ensure correctness, but does not guarantee
+      // that the dependency check is only performed once
+      if (contextDependent == 0) { this } else {
+        lazy val ewc = expressions.map(_.withContext(ec))
+        if (contextDependent == 1) {
+          new WithDefaultExpression(ewc, 1)
+        } else {
+          contextDependent = if (ewc.zip(expressions).forall { case (e1, e2) => e1.eq(e2) }) { 0 } else { 1 }
+          if (contextDependent == 0) { this } else { new WithDefaultExpression(ewc, 1) }
+        }
+      }
+    }
+
+    override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
+      expressions.flatMap(_.dependencies(stack, fieldMap)).toSet
+    override def children(): Seq[Expression] = expressions
+    override def toString: String = s"withDefault(${expressions.mkString(",")})"
+  }
 }
