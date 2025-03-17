@@ -18,17 +18,6 @@ object MiscFunctionFactory {
     if (args(0) == null) null else args(0).asInstanceOf[Int] != 0
   }
 
-  def withDefault(args: Array[Any]): Any = {
-    var i = 0
-    while (i < args.length) {
-      if (args(i) != null) {
-        return args(i)
-      }
-      i += 1
-    }
-    null
-  }
-
   def require(args: Array[Any]): Any = {
     if (args(0) == null) {
       throw new IllegalArgumentException("Required field is null")
@@ -44,11 +33,9 @@ object MiscFunctionFactory {
 
 class MiscFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions: Seq[TransformerFunction] = Seq(lineNumber, withDefault, require, intToBoolean)
+  override def functions: Seq[TransformerFunction] = Seq(lineNumber, require, intToBoolean)
 
   private val lineNumber = new LineNumber(null)
-
-  private val withDefault = TransformerFunction.pure("withDefault")(MiscFunctionFactory.withDefault)
 
   private val require = TransformerFunction.pure("require")(MiscFunctionFactory.require)
 
