@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, FileSystemDele
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io.{IOException, InputStream, OutputStream}
-import java.net.{MalformedURLException, URL}
+import java.net.{MalformedURLException, URI, URL}
 import java.util.Locale
 import scala.collection.mutable.ListBuffer
 
@@ -57,7 +57,7 @@ class HadoopDelegate(conf: Configuration) extends FileSystemDelegate {
   // based on logic from hadoop FileInputFormat
   override def interpretPath(path: String): Seq[FileHandle] = {
     val p = new Path(path)
-    val fs = FileSystem.get(p.toUri, conf)
+    val fs = FileSystem.get(standardizeFsUri(p.toUri), conf)
     val files = fs.globStatus(p, HiddenFileFilter)
 
     if (files == null) {
@@ -97,6 +97,9 @@ class HadoopDelegate(conf: Configuration) extends FileSystemDelegate {
       case e: MalformedURLException => throw new IllegalArgumentException(s"Invalid URL $path: ", e)
     }
   }
+
+  private def standardizeFsUri(uri: URI): URI =
+    if (uri.getScheme == null || uri.getAuthority == null) { uri } else { uri.resolve("/") }
 }
 
 object HadoopDelegate extends LazyLogging {
