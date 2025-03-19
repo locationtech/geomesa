@@ -11,8 +11,8 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.{BinaryLogicOperator, Filter, Or}
 import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.{BinaryLogicOperator, Filter, Or}
 import org.geotools.data.postgis.{PostGISPSDialect, PostgisPSFilterToSql}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -53,14 +53,6 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     MethodHandles.lookup.findSpecial(classOf[PostGISPSDialect], "setValue", methodType, classOf[PartitionedPostgisPsDialect])
   }
 
-  private lazy val classToSqlMappings: Map[Class[_], Seq[String]] = {
-    val map = scala.collection.mutable.Map.empty[Class[_], Seq[String]]
-    dataStore.getSqlTypeNameToClassMappings.asScala.foreach { case (k, v) =>
-      map.put(v, map.getOrElse(v, Seq.empty) :+ k)
-    }
-    map.toMap.withDefaultValue(Seq.empty)
-  }
-
   override def createPreparedFilterToSQL: PreparedFilterToSQL = {
     val fts = new PartitionedPostgisPsFilterToSql(this, delegate.getPostgreSQLVersion(null))
     fts.setFunctionEncodingEnabled(delegate.isFunctionEncodingEnabled)
@@ -90,18 +82,18 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
           if (list.isEmpty) {
             ps.setNull(column, Types.ARRAY)
           } else {
-            setArray(list.toArray(), ps, column, cx)
+            setArrayValue(list.toArray(), att, ps, column, cx)
           }
 
         case array: Array[_] =>
           if (array.isEmpty) {
             ps.setNull(column, Types.ARRAY)
           } else {
-            setArray(array, ps, column, cx)
+            setArrayValue(array, att, ps, column, cx)
           }
 
         case singleton =>
-          setArray(Array(singleton), ps, column, cx)
+          setArrayValue(Array(singleton), att, ps, column, cx)
       }
     } else {
       super.setValue(value, binding, att, ps, column, cx)
@@ -145,7 +137,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   // based on setArrayValue, but we don't have the attribute descriptor to use
   private def setArray(array: Array[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
     val componentType = array(0).getClass
-    val componentTypeName = classToSqlMappings(componentType).headOption.getOrElse {
+    val sqlType = dataStore.getSqlTypeNameToClassMappings.asScala.collectFirst { case (k, v) if v == componentType => k }
+    val componentTypeName = sqlType.getOrElse {
       throw new java.sql.SQLException(s"Failed to find a SQL type for $componentType")
     }
     ps.setArray(column, super.convertToArray(array, componentTypeName, componentType, cx))
