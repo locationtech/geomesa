@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, FileSystemDele
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import java.io.{IOException, InputStream, OutputStream}
-import java.net.{MalformedURLException, URI, URL}
+import java.net.{MalformedURLException, URL}
 import java.util.Locale
 import scala.collection.mutable.ListBuffer
 
@@ -46,7 +46,7 @@ class HadoopDelegate(conf: Configuration) extends FileSystemDelegate {
 
   override def getHandle(path: String): FileHandle = {
     val p = new Path(path)
-    val fs = FileSystem.get(p.toUri, conf)
+    val fs = getSharedFs(p)
     PathUtils.getUncompressedExtension(p.getName).toLowerCase(Locale.US) match {
       case TAR       => new HadoopTarHandle(fs, p)
       case ZIP | JAR => new HadoopZipHandle(fs, p)
@@ -57,7 +57,7 @@ class HadoopDelegate(conf: Configuration) extends FileSystemDelegate {
   // based on logic from hadoop FileInputFormat
   override def interpretPath(path: String): Seq[FileHandle] = {
     val p = new Path(path)
-    val fs = FileSystem.get(standardizeFsUri(p.toUri), conf)
+    val fs = getSharedFs(p)
     val files = fs.globStatus(p, HiddenFileFilter)
 
     if (files == null) {
@@ -98,8 +98,12 @@ class HadoopDelegate(conf: Configuration) extends FileSystemDelegate {
     }
   }
 
-  private def standardizeFsUri(uri: URI): URI =
-    if (uri.getScheme == null || uri.getAuthority == null) { uri } else { uri.resolve("/") }
+  private def getSharedFs(path: Path): FileSystem = {
+    // standardize the uri so we get the same cached instance
+    val uri = path.toUri
+    val root = if (uri.getScheme == null || uri.getAuthority == null) { uri } else { uri.resolve("/") }
+    FileSystem.get(root, conf)
+  }
 }
 
 object HadoopDelegate extends LazyLogging {
