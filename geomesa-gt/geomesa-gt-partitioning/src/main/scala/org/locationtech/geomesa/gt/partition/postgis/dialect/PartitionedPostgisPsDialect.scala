@@ -18,6 +18,7 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.jdbc.{JDBCDataStore, PreparedFilterToSQL}
 import org.geotools.util.Version
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisPsDialect.PartitionedPostgisPsFilterToSql
 
 import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
@@ -237,11 +238,15 @@ object PartitionedPostgisPsDialect {
       result.getOrElse(super.getExpressionType(expression))
     }
 
-    // skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries.
-    // the geotools comments indicate INs are required to use table indices in "some" databases -
-    // it seems unlikely that postgres would have such an issue, although I have not verified
-    override def visit(filter: Or, extraData: AnyRef): AnyRef =
-      visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
+    override def visit(filter: Or, extraData: AnyRef): AnyRef = {
+      // for array-types, skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries
+      // for other types, keep the super handling as INs may be more efficient that ORs
+      if (FilterHelper.propertyNames(filter).flatMap(name => Option(featureType.getDescriptor(name))).exists(_.getType.getBinding.isArray)) {
+        visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
+      } else {
+        super.visit(filter, extraData)
+      }
+    }
   }
 
   // uses eq on the prepared statement to ensure that we compute json fields exactly once per prepared statement/col
