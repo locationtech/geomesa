@@ -124,6 +124,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     container = new GenericContainer(image)
     container.addEnv("POSTGRES_HOST_AUTH_METHOD", "trust")
     container.addExposedPort(5432)
+    if (logger.underlying.isTraceEnabled()) {
+      container.setCommand("postgres", "-c", "log_statement=all")
+    }
     container.start()
     container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
@@ -344,9 +347,22 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
         }
 
+        val orFilters = Seq(
+          ECQL.toFilter("name IN('name0','name1')"),
+          ECQL.toFilter("name = 'name0' OR name = 'name1'"),
+        )
+        foreach(orFilters) { filter =>
+          WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result must haveLength(2)
+            result.map(compFromDb) must containTheSameElementsAs(features.take(2).map(compWithFid(_, sft)))
+          }
+        }
+
         val nonMatchingFilters = Seq(
           fif.equal(fif.property("name"), fif.literal("name0"), false, MatchAction.ALL),
           fif.equal(fif.property("name"), fif.literal(Collections.singletonList("name0")), false, MatchAction.ALL),
+          ECQL.toFilter("name = 'name0' AND name = 'name1'"),
         )
         foreach(nonMatchingFilters) { filter =>
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)) { reader =>

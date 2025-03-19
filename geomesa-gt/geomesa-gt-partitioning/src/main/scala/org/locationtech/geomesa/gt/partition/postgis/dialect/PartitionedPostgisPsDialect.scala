@@ -11,13 +11,14 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 import org.geotools.api.filter.expression.{Expression, PropertyName}
+import org.geotools.api.filter.{BinaryLogicOperator, Filter, Or}
 import org.geotools.data.postgis.{PostGISPSDialect, PostgisPSFilterToSql}
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.jdbc.{JDBCDataStore, PreparedFilterToSQL}
 import org.geotools.util.Version
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisPsDialect.PartitionedPostgisPsFilterToSql
 
 import java.lang.invoke.{MethodHandle, MethodHandles, MethodType}
@@ -81,18 +82,18 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
           if (list.isEmpty) {
             ps.setNull(column, Types.ARRAY)
           } else {
-            setArray(list.toArray(), ps, column, cx)
+            setArrayValue(list.toArray(), att, ps, column, cx)
           }
 
         case array: Array[_] =>
           if (array.isEmpty) {
             ps.setNull(column, Types.ARRAY)
           } else {
-            setArray(array, ps, column, cx)
+            setArrayValue(array, att, ps, column, cx)
           }
 
         case singleton =>
-          setArray(Array(singleton), ps, column, cx)
+          setArrayValue(Array(singleton), att, ps, column, cx)
       }
     } else {
       super.setValue(value, binding, att, ps, column, cx)
@@ -228,6 +229,16 @@ object PartitionedPostgisPsDialect {
       }
 
       result.getOrElse(super.getExpressionType(expression))
+    }
+
+    override def visit(filter: Or, extraData: AnyRef): AnyRef = {
+      // for array-types, skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries
+      // for other types, keep the super handling as INs may be more efficient that ORs
+      if (FilterHelper.propertyNames(filter).flatMap(name => Option(featureType.getDescriptor(name))).exists(_.getType.getBinding.isArray)) {
+        visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
+      } else {
+        super.visit(filter, extraData)
+      }
     }
   }
 
