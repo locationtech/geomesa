@@ -11,7 +11,7 @@ package org.locationtech.geomesa.gt.partition.postgis.dialect
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
+import org.geotools.api.filter.{BinaryLogicOperator, Filter, Or}
 import org.geotools.api.filter.expression.{Expression, PropertyName}
 import org.geotools.data.postgis.{PostGISPSDialect, PostgisPSFilterToSql}
 import org.geotools.feature.AttributeTypeBuilder
@@ -50,6 +50,14 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     val methodType =
       MethodType.methodType(classOf[Unit], classOf[Object], classOf[Class[_]], classOf[PreparedStatement], classOf[Int], classOf[Connection])
     MethodHandles.lookup.findSpecial(classOf[PostGISPSDialect], "setValue", methodType, classOf[PartitionedPostgisPsDialect])
+  }
+
+  private lazy val classToSqlMappings: Map[Class[_], Seq[String]] = {
+    val map = scala.collection.mutable.Map.empty[Class[_], Seq[String]]
+    dataStore.getSqlTypeNameToClassMappings.asScala.foreach { case (k, v) =>
+      map.put(v, map.getOrElse(v, Seq.empty) :+ k)
+    }
+    map.toMap.withDefaultValue(Seq.empty)
   }
 
   override def createPreparedFilterToSQL: PreparedFilterToSQL = {
@@ -136,8 +144,7 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
   // based on setArrayValue, but we don't have the attribute descriptor to use
   private def setArray(array: Array[_], ps: PreparedStatement, column: Int, cx: Connection): Unit = {
     val componentType = array(0).getClass
-    val sqlType = dataStore.getSqlTypeNameToClassMappings.asScala.collectFirst { case (k, v) if v == componentType => k }
-    val componentTypeName = sqlType.getOrElse {
+    val componentTypeName = classToSqlMappings(componentType).headOption.getOrElse {
       throw new java.sql.SQLException(s"Failed to find a SQL type for $componentType")
     }
     ps.setArray(column, super.convertToArray(array, componentTypeName, componentType, cx))
@@ -229,6 +236,12 @@ object PartitionedPostgisPsDialect {
 
       result.getOrElse(super.getExpressionType(expression))
     }
+
+    // skip the super-class implementation, which merges ORs into INs, as it breaks array OR queries.
+    // the geotools comments indicate INs are required to use table indices in "some" databases -
+    // it seems unlikely that postgres would have such an issue, although I have not verified
+    override def visit(filter: Or, extraData: AnyRef): AnyRef =
+      visit(filter.asInstanceOf[BinaryLogicOperator], "OR")
   }
 
   // uses eq on the prepared statement to ensure that we compute json fields exactly once per prepared statement/col
