@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.planning
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.EmptyIndex
@@ -33,22 +34,52 @@ trait StrategyDecider {
    *
    * @param sft simple feature type being queried
    * @param options filter plans that can satisfy the query
-   * @param stats stats (if available)
+   * @param stats optional stats that can be used for selecting a plan
    * @param explain explain logging
    * @return filter plan to execute
    */
+  @deprecated("Replaced with alternate signature")
   def selectFilterPlan(
+    sft: SimpleFeatureType,
+    options: Seq[FilterPlan],
+    stats: Option[GeoMesaStats],
+    explain: Explainer): FilterPlan = throw new NotImplementedError()
+
+  /**
+   * Select from available filter plans.
+   *
+   * This method has a default implementation that delegates to the old method for
+   * back-compatibility, but should be overridden going forward
+   *
+   * @param ds data store
+   * @param sft simple feature type being queried
+   * @param options filter plans that can satisfy the query
+   * @param evaluation cost evaluation type
+   * @param explain explain logging
+   * @return filter plan to execute
+   */
+  def selectFilterPlan[DS <: GeoMesaDataStore[DS]](
+      ds: DS,
       sft: SimpleFeatureType,
       options: Seq[FilterPlan],
-      stats: Option[GeoMesaStats],
-      explain: Explainer): FilterPlan
+      evaluation: CostEvaluation,
+      explain: Explainer): FilterPlan = {
+    val stats = evaluation match {
+      case CostEvaluation.Stats => Option(ds.stats)
+      case CostEvaluation.Index => None
+    }
+    // noinspection ScalaDeprecation
+    selectFilterPlan(sft, options, stats, explain)
+  }
 }
 
 object StrategyDecider extends MethodProfiling with LazyLogging {
 
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
   private val decider: StrategyDecider = SystemProperty("geomesa.strategy.decider").option match {
     case None       => new CostBasedStrategyDecider()
-    case Some(clas) => Class.forName(clas).newInstance().asInstanceOf[StrategyDecider]
+    case Some(clas) => Class.forName(clas).getConstructor().newInstance().asInstanceOf[StrategyDecider]
   }
 
   logger.debug(s"Using strategy provider '${decider.getClass.getName}'")
@@ -65,98 +96,94 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
     * @param ds data store
     * @param sft simple feature type
     * @param filter filter to execute
-    * @param transform return transformation
+    * @param hints query hints (transform, etc)
     * @param requested requested index
     * @param explain for trace logging
     * @return
     */
-  def getFilterPlan[DS <: GeoMesaDataStore[DS]](ds: DS,
-                                                sft: SimpleFeatureType,
-                                                filter: Filter,
-                                                transform: Option[SimpleFeatureType],
-                                                evaluation: CostEvaluation,
-                                                requested: Option[String],
-                                                explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
+  def getFilterPlan[DS <: GeoMesaDataStore[DS]](
+      ds: DS,
+      sft: SimpleFeatureType,
+      filter: Filter,
+      hints: Hints,
+      requested: Option[String],
+      explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
 
     def complete(op: String, time: Long, count: Int): Unit = explain(s"$op took ${time}ms for $count options")
 
+    val evaluation = hints.getCostEvaluation
     val indices = ds.manager.indices(sft, mode = IndexMode.Read)
 
     // get the various options that we could potentially use
     val options = profile((o: Seq[FilterPlan], t: Long) => complete("Query processing", t, o.length)) {
-      new FilterSplitter(sft, indices).getQueryOptions(filter, transform)
+      new FilterSplitter(sft, indices).getQueryOptions(filter, hints)
     }
 
     val selected = profile(t => complete("Strategy selection", t, options.length)) {
       if (requested.isDefined) {
-        val forced = matchRequested(requested.get, indices, options, filter)
+        val id = requested.get
+        // see if one of the normal plans matches the requested type - if not, force it
+        val forced = matchRequested(id, options).getOrElse {
+          val index =
+            indices.find(_.identifier.equalsIgnoreCase(id))
+              .orElse(indices.find(_.name.equalsIgnoreCase(id)))
+              .getOrElse {
+                throw new IllegalArgumentException(s"Invalid index strategy: $id. Valid values are " +
+                  indices.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
+              }
+          val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
+          FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, Float.PositiveInfinity, hints)))
+        }
         explain(s"Filter plan forced to $forced")
         forced
       } else if (options.isEmpty) {
         // corresponds to filter.exclude
         // we still need to return something so that we can handle reduce steps, if needed
         explain("No filter plans found - creating empty plan")
-        FilterPlan(Seq(FilterStrategy(new EmptyIndex(ds, sft), Some(Filter.EXCLUDE), None, temporal = false, 1f)))
+        FilterPlan(Seq(FilterStrategy(new EmptyIndex(ds, sft), Some(Filter.EXCLUDE), None, temporal = false, 1f, hints)))
       } else if (options.lengthCompare(1) == 0) {
         // only a single option, so don't bother with cost
         explain(s"Filter plan: ${options.head}")
         options.head
       } else {
-        // choose the best option based on cost
-        val stats = evaluation match {
-          case CostEvaluation.Stats => Some(ds.stats)
-          case CostEvaluation.Index => None
-        }
-        decider.selectFilterPlan(sft, options, stats, explain)
+        // let the decider implementation choose the best option
+        decider.selectFilterPlan(ds, sft, options, evaluation, explain)
       }
     }
 
     selected.strategies
   }
 
-  private def matchRequested(id: String,
-                             indices: Seq[GeoMesaFeatureIndex[_, _]],
-                             options: Seq[FilterPlan],
-                             filter: Filter): FilterPlan = {
-    // see if one of the normal plans matches the requested type - if not, force it
+  private def matchRequested(id: String, options: Seq[FilterPlan]): Option[FilterPlan] = {
     def byId: Option[FilterPlan] = options.find(_.strategies.forall(_.index.identifier.equalsIgnoreCase(id)))
     def byName: Option[FilterPlan] = options.find(_.strategies.forall(_.index.name.equalsIgnoreCase(id)))
     // back-compatibility for attr vs join index name
     def byJoin: Option[FilterPlan] = if (!AttributeIndex.name.equalsIgnoreCase(id)) { None } else {
       options.find(_.strategies.forall(_.index.name == AttributeIndex.JoinIndexName))
     }
-
-    def fallback: FilterPlan = {
-      val index = indices.find(_.identifier.equalsIgnoreCase(id))
-          .orElse(indices.find(_.name.equalsIgnoreCase(id)))
-          .getOrElse {
-            throw new IllegalArgumentException(s"Invalid index strategy: $id. Valid values are " +
-                indices.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
-          }
-      val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
-      FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, Float.PositiveInfinity)))
-    }
-
-    byId.orElse(byName).orElse(byJoin).getOrElse(fallback)
+    byId.orElse(byName).orElse(byJoin)
   }
 
-  class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
+  private class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    override def selectFilterPlan(
+    override def selectFilterPlan[DS <: GeoMesaDataStore[DS]](
+        ds: DS,
         sft: SimpleFeatureType,
         options: Seq[FilterPlan],
-        stats: Option[GeoMesaStats],
+        evaluation: CostEvaluation,
         explain: Explainer): FilterPlan = {
 
       def cost(option: FilterPlan): FilterPlanCost = {
         profile((fpc: FilterPlanCost, time: Long) => fpc.copy(time = time)) {
           var cost = BigInt(0)
           option.strategies.foreach { strategy =>
-            val filter = strategy.primary.getOrElse(Filter.INCLUDE)
-            val count = stats.flatMap(_.getCount(sft, filter, exact = false)).getOrElse(100L)
-            cost = cost + BigInt((count * strategy.costMultiplier).toLong)
+            val count = evaluation match {
+              case CostEvaluation.Stats => ds.adapter.getStrategyCost(strategy, explain)
+              case CostEvaluation.Index => None
+            }
+            cost = cost + BigInt((count.getOrElse(100L) * strategy.costMultiplier).toLong)
           }
           FilterPlanCost(option, if (cost.isValidLong) { cost.longValue } else { Long.MaxValue }, 0L)
         }

@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.index.planning
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
+import org.locationtech.geomesa.index.planning.guard.{DefaultQueryGuard, FullTableScanQueryGuard}
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
@@ -81,20 +82,27 @@ object QueryInterceptor extends LazyLogging {
 
       private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
-      private val loader = new CacheLoader[String, Seq[QueryInterceptor]]() {
-        override def load(key: String): Seq[QueryInterceptor] = QueryInterceptorFactoryImpl.this.load(key)
-        override def reload(key: String, oldValue: Seq[QueryInterceptor]): Seq[QueryInterceptor] = {
-          // only recreate the interceptors if they have changed
-          Option(ds.getSchema(key)).flatMap(s => Option(s.getUserData.get(Configs.QueryInterceptors))) match {
-            case None if oldValue.isEmpty => oldValue
-            case Some(classes) if classes == oldValue.map(_.getClass.getName).mkString(",") => oldValue
-            case _ => CloseWithLogging(oldValue); QueryInterceptorFactoryImpl.this.load(key)
+      private val cache =
+        Caffeine.newBuilder().refreshAfterWrite(expiry, TimeUnit.MILLISECONDS).build[String, Seq[QueryInterceptor]](
+          new CacheLoader[String, Seq[QueryInterceptor]]() {
+            override def load(typeName: String): Seq[QueryInterceptor] = reload(typeName, Seq.empty)
+            override def reload(typeName: String, oldValue: Seq[QueryInterceptor]): Seq[QueryInterceptor] = {
+              // only recreate the interceptors if they have changed
+              val sft = ds.getSchema(typeName)
+              if (sft == null) {
+                CloseWithLogging(oldValue)
+                return Seq.empty
+              }
+              val classes = getInterceptorClasses(sft)
+              if (classes == oldValue.map(_.getClass.getName)) {
+                oldValue
+              } else {
+                CloseWithLogging(oldValue)
+                classes.flatMap(createInterceptor(ds, sft, _))
+              }
+            }
           }
-        }
-      }
-
-      private val cache: LoadingCache[String, Seq[QueryInterceptor]] =
-        Caffeine.newBuilder().refreshAfterWrite(expiry, TimeUnit.MILLISECONDS).build(loader)
+        )
 
       override def apply(sft: SimpleFeatureType): Seq[QueryInterceptor] = cache.get(sft.getTypeName)
 
@@ -102,30 +110,32 @@ object QueryInterceptor extends LazyLogging {
         cache.asMap.asScala.foreach { case (_, interceptors) => CloseWithLogging(interceptors) }
         cache.invalidateAll()
       }
+    }
+  }
 
-      private def load(typeName: String): Seq[QueryInterceptor] = {
-        val sft = ds.getSchema(typeName)
-        if (sft == null) { Seq.empty } else {
-          val classes = sft.getUserData.get(Configs.QueryInterceptors).asInstanceOf[String]
-          if (classes == null || classes.isEmpty) { Seq.empty } else {
-            classes.split(",").toSeq.flatMap { c =>
-              var interceptor: QueryInterceptor = null
-              try {
-                interceptor = Class.forName(c).getDeclaredConstructor().newInstance().asInstanceOf[QueryInterceptor]
-                interceptor.init(ds, sft)
-                Seq(interceptor)
-              } catch {
-                case NonFatal(e) =>
-                  logger.error(s"Error creating query interceptor '$c':", e)
-                  if (interceptor != null) {
-                    CloseWithLogging(interceptor)
-                  }
-                  Seq.empty
-              }
-            }
-          }
+  private def getInterceptorClasses(sft: SimpleFeatureType) : Seq[String] = {
+    val configured = sft.getQueryInterceptors
+    // add default full table scan check, if the more restrictive FullTableScanQueryGuard doesn't make it redundant
+    if (Seq(classOf[FullTableScanQueryGuard], classOf[DefaultQueryGuard]).map(_.getName).exists(configured.contains)) {
+      configured
+    } else {
+      configured :+ classOf[DefaultQueryGuard].getName
+    }
+  }
+
+  private def createInterceptor(ds: DataStore, sft: SimpleFeatureType, className: String): Option[QueryInterceptor] = {
+    var interceptor: QueryInterceptor = null
+    try {
+      interceptor = Class.forName(className).getDeclaredConstructor().newInstance().asInstanceOf[QueryInterceptor]
+      interceptor.init(ds, sft)
+      Some(interceptor)
+    } catch {
+      case NonFatal(e) =>
+        logger.error(s"Error creating query interceptor '$className':", e)
+        if (interceptor != null) {
+          CloseWithLogging(interceptor)
         }
-      }
+        None
     }
   }
 }

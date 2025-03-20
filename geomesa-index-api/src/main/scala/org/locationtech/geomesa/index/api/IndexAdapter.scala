@@ -13,6 +13,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.security.VisibilityChecker
 
 import java.io.{Closeable, Flushable}
@@ -83,6 +84,16 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
     * @return
     */
   def createQueryPlan(strategy: QueryStrategy): QueryPlan[DS]
+
+  /**
+   * Gets the cost of running a filter strategy, if possible. The exact values returned do not matter, as long as they
+   * are consistent relative to each other
+   *
+   * @param strategy strategy to evaluate
+   * @param explain explainer
+   * @return
+   */
+  def getStrategyCost(strategy: FilterStrategy, explain: Explainer = ExplainNull): Option[Long]
 }
 
 object IndexAdapter {
