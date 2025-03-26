@@ -70,7 +70,7 @@ class KafkaStore(
   private val loader = {
     val consumers = KafkaStore.consumers(config.consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
     val frequency = KafkaStore.LoadIntervalProperty.toDuration.get.toMillis
-    new KafkaCacheLoader(consumers, topic, frequency, serializer, cache, config.offsetCommitIntervalMs)
+    new KafkaCacheLoader(consumers, topic, frequency, config.offsetCommitInterval, serializer, cache)
   }
 
   override def createSchema(): Unit = {

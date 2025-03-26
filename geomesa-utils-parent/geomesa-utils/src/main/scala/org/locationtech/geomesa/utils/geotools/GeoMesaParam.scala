@@ -17,7 +17,7 @@ import org.locationtech.geomesa.utils.text.DurationParsing
 
 import java.io.{IOException, StringReader, StringWriter}
 import java.util.{Collections, Properties}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -65,6 +65,8 @@ class GeoMesaParam[T <: AnyRef](
   private val toTypedValue: AnyRef => T = {
     if (ct.runtimeClass == classOf[Duration]) {
       v => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[T]
+    } else if (ct.runtimeClass == classOf[FiniteDuration]) {
+      v => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[FiniteDuration].asInstanceOf[T]
     } else if (ct.runtimeClass == classOf[Properties]) {
       v => GeoMesaParam.parseProperties(v.asInstanceOf[String]).asInstanceOf[T]
     } else {
@@ -73,7 +75,7 @@ class GeoMesaParam[T <: AnyRef](
   }
 
   private val fromTypedValue: T => AnyRef = {
-    if (ct.runtimeClass == classOf[Duration]) {
+    if (classOf[Duration].isAssignableFrom(ct.runtimeClass)) {
       v => GeoMesaParam.printDuration(v.asInstanceOf[Duration])
     } else if (ct.runtimeClass == classOf[Properties]) {
       v => GeoMesaParam.printProperties(v.asInstanceOf[Properties])
@@ -249,7 +251,7 @@ object GeoMesaParam {
   }
 
   def binding[T <: AnyRef](ct: ClassTag[T]): Class[_] = ct.runtimeClass match {
-    case c if c == classOf[Duration] | c == classOf[Properties] => classOf[String]
+    case c if classOf[Duration].isAssignableFrom(c) | c == classOf[Properties] => classOf[String]
     case c => c
   }
 

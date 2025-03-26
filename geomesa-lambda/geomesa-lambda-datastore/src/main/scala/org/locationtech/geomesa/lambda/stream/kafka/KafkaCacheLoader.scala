@@ -15,6 +15,7 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.WritableFe
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 
 import java.time.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /**
   * Consumes from kafka and populates the local cache
@@ -32,9 +33,10 @@ class KafkaCacheLoader(
     consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
     topic: String,
     frequency: Long,
+    offsetCommitInterval: FiniteDuration,
     serializer: KryoFeatureSerializer,
     cache: WritableFeatureCache,
-    offsetCommitIntervalMs: Long) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), offsetCommitIntervalMs) {
+  ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), offsetCommitInterval) {
 
   startConsumers()
 
