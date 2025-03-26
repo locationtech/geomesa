@@ -218,6 +218,6 @@ object LambdaDataStore {
       consumers: Int,
       expiry: Option[FiniteDuration],
       persistBatchSize: Option[Int] = None,
-      offsetCommitIntervalMs: Long = 10000
+      offsetCommitInterval: FiniteDuration,
     )
 }

@@ -16,18 +16,20 @@ import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHa
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 
 import java.time.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
 abstract class ThreadedConsumer(
     consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
     frequency: Duration,
-    offsetCommitIntervalMs: Long,
+    offsetCommitInterval: FiniteDuration,
     closeConsumers: Boolean = true
   ) extends BaseThreadedConsumer(consumers) {
 
   import scala.collection.JavaConverters._
 
-  private val callback = new LogOffsetCommitCallback(logger)
+  private val offsetCommitIntervalMillis = offsetCommitInterval.toMillis
+  private val logOffsetCallback = new LogOffsetCommitCallback(logger)
 
   override protected def createConsumerRunnable(
       id: String,
@@ -45,7 +47,7 @@ abstract class ThreadedConsumer(
 
     lazy private val topics = consumer.subscription().asScala.mkString(", ")
 
-    private var lastOffsetCommitMs = System.currentTimeMillis()
+    private var lastOffsetCommit = System.currentTimeMillis()
 
     override def run(): Unit = {
       try {
@@ -91,10 +93,10 @@ abstract class ThreadedConsumer(
           consume(records.next())
         }
         logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
-        if (System.currentTimeMillis() - lastOffsetCommitMs > offsetCommitIntervalMs) {
+        if (System.currentTimeMillis() - lastOffsetCommit > offsetCommitIntervalMillis) {
           logger.trace(s"Consumer [$id] committing offsets")
-          consumer.commitAsync()
-          lastOffsetCommitMs = System.currentTimeMillis()
+          consumer.commitAsync(logOffsetCallback)
+          lastOffsetCommit = System.currentTimeMillis()
         }
         errorCount = 0 // reset error count
       }
