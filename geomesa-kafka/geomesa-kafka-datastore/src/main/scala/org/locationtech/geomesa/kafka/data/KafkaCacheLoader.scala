@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, ConsumerRecords}
+import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
+import org.apache.kafka.common.TopicPartition
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
@@ -25,9 +26,10 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import java.io.Closeable
 import java.time.Duration
 import java.util.Collections
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 /**
   * Reads from Kafka and populates a `KafkaFeatureCache`.
@@ -74,27 +76,29 @@ object KafkaCacheLoader extends LazyLogging {
       override val cache: KafkaFeatureCache,
       consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
       topic: String,
-      frequency: Long,
+      frequency: Duration,
       serializer: GeoMessageSerializer,
-      doInitialLoad: Boolean,
+      initialLoad: Option[scala.concurrent.duration.Duration],
       initialLoadConfig: ExpiryTimeConfig
-    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) with KafkaCacheLoader {
+    ) extends ThreadedConsumer(consumers, frequency) with KafkaCacheLoader {
+
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    private val initialLoader =
-      if (doInitialLoad) {
-        // for the initial load, don't bother spatially indexing until we have the final state
-        Some(new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this))
-      } else {
-        None
-      }
+    private val initialLoader = initialLoad.map { readBack =>
+      // for the initial load, don't bother spatially indexing until we have the final state
+      new InitialLoader(sft, consumers, topic, frequency, serializer, readBack, initialLoadConfig, this)
+    }
 
     def start(): Unit = {
       initialLoader match {
-        case None => startConsumers()
-        case Some(loader) => loader.start()
+        case None =>
+          consumers.foreach(KafkaConsumerVersions.subscribe(_, topic))
+          startConsumers()
+        case Some(loader) =>
+          consumers.foreach(KafkaConsumerVersions.subscribe(_, topic, loader))
+          loader.start()
       }
     }
 
@@ -120,24 +124,28 @@ object KafkaCacheLoader extends LazyLogging {
   }
 
   /**
-    * Handles initial loaded 'from-beginning' without indexing features in the spatial index. Will still
-    * trigger message events.
-    *
-    * @param consumers consumers, won't be closed even on call to 'close()'
-    * @param topic kafka topic
-    * @param frequency polling frequency in milliseconds
-    * @param serializer message serializer
-    * @param toLoad main cache loader, used for callback when bulk loading is done
-    */
+   * Handles initial loaded 'from-beginning' without indexing features in the spatial index. Will still
+   * trigger message events.
+   *
+   * @param sft simple feature type
+   * @param consumers consumers, won't be closed even on call to 'close()'
+   * @param topic kafka topic
+   * @param frequency polling frequency
+   * @param serializer message serializer
+   * @param readBack initial load read back
+   * @param ordering feature ordering
+   * @param toLoad main cache loader, used for callback when bulk loading is done
+   */
   private class InitialLoader(
       sft: SimpleFeatureType,
       consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
       topic: String,
-      frequency: Long,
+      frequency: Duration,
       serializer: GeoMessageSerializer,
+      readBack: scala.concurrent.duration.Duration,
       ordering: ExpiryTimeConfig,
       toLoad: KafkaCacheLoaderImpl
-    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
+    ) extends ThreadedConsumer(consumers, frequency, false) with Runnable with ConsumerRebalanceListener {
 
     import scala.collection.JavaConverters._
 
@@ -145,10 +153,59 @@ object KafkaCacheLoader extends LazyLogging {
 
     // track the offsets that we want to read to
     private val offsets = new ConcurrentHashMap[Int, Long]()
-    private val done = new AtomicBoolean(false)
+    private val assignment = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean]())
+    @volatile
+    private var done: Boolean = false
     private var latch: CountDownLatch = _
     @volatile
     private var submission: Future[_] = _
+
+    override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
+
+    override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+      logger.debug(s"Partitions assigned: ${topicPartitions.asScala.mkString(", ")}")
+      topicPartitions.asScala.foreach { tp =>
+        if (assignment.add(tp.partition())) {
+          val consumer = consumers.find(_.assignment().contains(tp)).orNull
+          if (consumer == null) {
+            logger.warn("Partition assigned but no consumer contains the assignment")
+          } else {
+            KafkaConsumerVersions.pause(consumer, tp)
+            try {
+              logger.debug(s"Checking offsets for [${tp.topic()}:${tp.partition()}]")
+              // the only reliable way we've found to check max offset is to seek to the end and check the position there
+              consumer.seekToEnd(Collections.singleton(tp))
+              val end = consumer.position(tp)
+              logger.debug(s"Setting max offset to [${tp.topic}:${tp.partition}:${end - 1}]")
+              offsets.put(tp.partition(), end - 1)
+              if (!readBack.isFinite) {
+                KafkaConsumerVersions.seekToBeginning(consumer, tp)
+              } else {
+                val offset = Try {
+                  val time = System.currentTimeMillis() - readBack.toMillis
+                  KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
+                }
+                offset match {
+                  case Success(Some(o)) =>
+                    logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
+                    consumer.seek(tp, o)
+
+                  case Success(None) =>
+                    logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
+                      "reading from head of queue")
+
+                  case Failure(e) =>
+                    logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
+                    KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                }
+              }
+            } finally {
+              KafkaConsumerVersions.resume(consumer, tp)
+            }
+          }
+        }
+      }
+    }
 
     override protected def createConsumerRunnable(
         id: String,
@@ -158,7 +215,7 @@ object KafkaCacheLoader extends LazyLogging {
     }
 
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
-      if (done.get) { toLoad.consume(record) } else {
+      if (done) { toLoad.consume(record) } else {
         val headers = RecordVersions.getHeaders(record)
         val timestamp = RecordVersions.getTimestamp(record)
         val message = serializer.deserialize(record.key, record.value, headers, timestamp)
@@ -179,27 +236,10 @@ object KafkaCacheLoader extends LazyLogging {
       LoaderStatus.startLoad(this)
       try {
         val partitions = consumers.head.partitionsFor(topic).asScala.map(_.partition)
-        val doInitialLoad =
-          try {
-            // note: these methods are not available in kafka 0.9, which will cause it to fall back to normal loading
-            val beginningOffsets = KafkaConsumerVersions.beginningOffsets(consumers.head, topic, partitions.toSeq)
-            val endOffsets = KafkaConsumerVersions.endOffsets(consumers.head, topic, partitions.toSeq)
-            partitions.exists(p => beginningOffsets.getOrElse(p, 0L) < endOffsets.getOrElse(p, 0L))
-          } catch {
-            case e: NoSuchMethodException =>
-              logger.warn(s"Can't support initial bulk loading for current Kafka version: $e")
-              false
-          }
-        if (doInitialLoad) {
-          logger.info(s"Starting initial load for [$topic] with ${partitions.size} partitions")
-          latch = new CountDownLatch(partitions.size)
-          startConsumers() // kick off the asynchronous consumer threads
-          submission = CachedThreadPool.submit(this)
-        } else {
-          // don't bother spinning up the consumer threads if we don't need to actually bulk load anything
-          startNormalLoad()
-          LoaderStatus.completedLoad(this)
-        }
+        logger.info(s"Starting initial load for [$topic] with ${partitions.size} partitions")
+        latch = new CountDownLatch(partitions.size)
+        startConsumers() // kick off the asynchronous consumer threads
+        submission = CachedThreadPool.submit(this)
       } catch {
         case NonFatal(e) =>
           LoaderStatus.completedLoad(this)
@@ -216,11 +256,11 @@ object KafkaCacheLoader extends LazyLogging {
         }
         // set a flag just in case the consumer threads haven't finished spinning down, so that we will
         // pass any additional messages back to the main loader
-        done.set(true)
+        done = true
         logger.info(s"Finished initial load, transferring to indexed cache for [$topic]")
         cache.query(Filter.INCLUDE).foreach(toLoad.cache.put)
-        logger.info(s"Finished transfer for [$topic]")
-        startNormalLoad()
+        logger.info(s"Finished transfer for [$topic], starting normal load")
+        toLoad.startConsumers()
       } finally {
         LoaderStatus.completedLoad(this)
       }
@@ -233,16 +273,9 @@ object KafkaCacheLoader extends LazyLogging {
         }
       }
     }
-    // start the normal loading
-    private def startNormalLoad(): Unit = {
-      logger.info(s"Starting normal load for [$topic]")
-      toLoad.startConsumers()
-    }
 
     /**
-     * Consumer runnable for the initial load. It's not possible to check assignments until after poll() has been called,
-     * and checking endOffsets is not reliable as a high water mark, due to transaction markers or other issues that
-     * may advance the endOffset past where the consumer can actually reach (unless new messages are written).
+     * Consumer runnable that tracks when we have completed the initial load
      *
      * @param id id
      * @param consumer consumer
@@ -251,22 +284,7 @@ object KafkaCacheLoader extends LazyLogging {
     private class InitialLoaderConsumerRunnable(id: String, consumer: Consumer[Array[Byte], Array[Byte]], handler: ConsumerErrorHandler)
         extends ConsumerRunnable(id, consumer, handler) {
 
-      private var checkOffsets = true
-
       override protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
-        if (checkOffsets) {
-          consumer.assignment().asScala.foreach { tp =>
-            // the only reliable way we've found to check max offset is to seek to the end and check the position there
-            val position = consumer.position(tp)
-            consumer.seekToEnd(Collections.singleton(tp))
-            val end = consumer.position(tp)
-            // return to the original position
-            consumer.seek(tp, position)
-            logger.debug(s"Setting max offset to [${tp.topic}:${tp.partition}:${end - 1}]")
-            offsets.put(tp.partition(), end - 1)
-          }
-          checkOffsets = false
-        }
         try {
           super.processPoll(result)
         } finally {
