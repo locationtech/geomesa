@@ -837,8 +837,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features)
+          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features.drop(6).map(ScalaSimpleFeature.retype(sft2, _)))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
@@ -855,8 +855,8 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
 
           eventually(40, 100.millis)(ids.asScala mustEqual Seq.tabulate(10)(_.toString).slice(1, 9))
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
-            containTheSameElementsAs(features.slice(1, 9))
+          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must
+            containTheSameElementsAs(features.slice(1, 9)))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must
             containTheSameElementsAs(features.drop(6).dropRight(1).map(ScalaSimpleFeature.retype(sft2, _)))
           SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must
@@ -866,7 +866,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
 
           producer.getFeatureSource(sft.getTypeName).removeFeatures(Filter.INCLUDE)
           eventually(40, 100.millis)(ids.asScala must beEmpty)
-          SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
+          eventually(40, 100.millis)(SelfClosingIterator(consumer.getFeatureReader(new Query("test"), Transaction.AUTO_COMMIT)).toSeq must beEmpty)
           SelfClosingIterator(consumer.getFeatureReader(new Query("test2"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
           SelfClosingIterator(consumer.getFeatureReader(new Query("test3"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
           SelfClosingIterator(consumer.getFeatureReader(new Query("test4"), Transaction.AUTO_COMMIT)).toSeq must beEmpty
