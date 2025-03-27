@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-all</artifactId>
-            <version>3.11.14</version>
+            <version>${cassandra.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>cassandra-thrift</artifactId>
-            <version>3.11.14</version>
+            <version>${cassandra.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
