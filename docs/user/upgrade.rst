@@ -119,6 +119,7 @@ The following dependencies have been upgraded:
 * hadoop ``3.4.0`` -> ``3.4.1``
 * kafka ``3.7.0`` -> ``3.9.0``
 * orc ``1.9.4`` -> ``1.9.5``
+* protobuf ``3.25.3`` -> ``3.25.6``
 * spring-security ``5.8.14`` -> ``5.8.15``
 * zookeeper ``3.9.2`` -> ``3.9.3``
 
