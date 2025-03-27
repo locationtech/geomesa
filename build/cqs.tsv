@@ -28,7 +28,7 @@ com.google.guava:guava	27.0-jre	compile
 com.google.guava:guava	33.0.0-jre	compile
 com.google.guava:guava	33.2.1-jre	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
-com.google.protobuf:protobuf-java	3.25.3	compile
+com.google.protobuf:protobuf-java	3.25.6	compile
 com.google.re2j:re2j	1.1	compile
 com.google.re2j:re2j	1.6	compile
 com.googlecode.concurrent-trees:concurrent-trees	2.6.1	compile
