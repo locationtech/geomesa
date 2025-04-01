@@ -225,7 +225,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
     override def run(): Unit = {
       try {
-        iter.foreach(queue.put)
+        WithClose(iter)(_.foreach(queue.put))
       } catch {
         case NonFatal(e) => logger.error(s"Error reading file $path", e)
       } finally {
