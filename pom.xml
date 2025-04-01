@@ -3274,7 +3274,7 @@
                     <configuration>
                         <properties>
                             <year>${copyright.year}</year>
-                            <owner>Commonwealth Computer Research, Inc.</owner>
+                            <owner>General Atomics Integrated Intelligence, Inc.</owner>
                         </properties>
                         <licenseSets>
                             <licenseSet>
