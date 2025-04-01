@@ -12,7 +12,8 @@ The feature-to-feature converter expects a ``type`` of ``simple-feature``. It al
 defined with ``input-sft``, which must reference the name of a feature type available on the classpath - see
 :ref:`converter_sft_defs` for details on making the feature type available.
 
-The ``fields`` of the converter can reference the attributes of the input feature type by name, using ``$`` notation. Any
+The ``fields`` of the converter can reference the attributes of the input feature type by name, using ``$`` notation. Note
+that the input feature type will take precedence over any converter fields when resolving attribute references. Any
 fields that have the same name as the input type will be automatically copied, unless they are explicitly redefined in the
 converter definition. The feature ID will also be copied, unless it is redefined with ``id-field``.
 
