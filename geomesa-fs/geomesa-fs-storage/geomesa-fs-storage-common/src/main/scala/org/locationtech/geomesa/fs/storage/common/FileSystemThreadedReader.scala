@@ -16,7 +16,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileActio
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.util.concurrent._
 import scala.util.control.NonFatal
