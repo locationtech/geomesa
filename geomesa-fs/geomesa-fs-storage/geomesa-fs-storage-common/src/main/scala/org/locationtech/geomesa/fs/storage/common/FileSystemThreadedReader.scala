@@ -224,14 +224,12 @@ object FileSystemThreadedReader extends StrictLogging {
     ) extends Runnable {
 
     override def run(): Unit = {
-      val ci = iter
       try {
-        ci.foreach(queue.put)
+        WithClose(iter)(_.foreach(queue.put))
       } catch {
         case NonFatal(e) => logger.error(s"Error reading file $path", e)
       } finally {
         phaser.arriveAndDeregister()
-        CloseWithLogging(ci)
       }
     }
   }
