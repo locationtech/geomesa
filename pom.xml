@@ -3278,16 +3278,16 @@
                         </properties>
                         <licenseSets>
                             <licenseSet>
-                                <header>build/copyright/ccri.txt</header>
+                                <header>build/copyright/gai3.txt</header>
                                 <validHeaders>
-                                    <validHeader>build/copyright/ccri-azavea.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-dstl.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
                                     <validHeader>build/copyright/dstl.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-azavea.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-dstl-mitre.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-dstl.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-mitre.txt</validHeader>
+                                    <validHeader>build/copyright/ibm-gai3.txt</validHeader>
                                     <validHeader>build/copyright/ibm.txt</validHeader>
-                                    <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                                     <validHeader>build/copyright/mitre.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-mitre.txt</validHeader>
                                 </validHeaders>
                                 <includes>
                                     <include>src/main/java/**</include>
