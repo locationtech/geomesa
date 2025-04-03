@@ -71,7 +71,11 @@ class FileSystemThreadedReader private (es: ExecutorService, phaser: Phaser, que
     }
   }
 
-  override def close(): Unit = es.shutdownNow()
+  override def close(): Unit = {
+    try { es.shutdownNow() } finally {
+      phaser.forceTermination() // unregister any tasks that didn't start
+    }
+  }
 }
 
 object FileSystemThreadedReader extends StrictLogging {
