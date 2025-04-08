@@ -19,7 +19,6 @@ import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom._
@@ -170,7 +169,7 @@ object FilterHelper {
                              round: ZonedDateTime => ZonedDateTime,
                              roundExclusive: Boolean): Bound[ZonedDateTime] = {
     if (bound.value.isEmpty) { Bound.unbounded } else {
-      val dt = bound.value.map(d => ZonedDateTime.ofInstant(toInstant(d), ZoneOffset.UTC))
+      val dt = bound.value.map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))
       if (roundExclusive && !bound.inclusive) {
         Bound(dt.map(round), inclusive = true)
       } else {
