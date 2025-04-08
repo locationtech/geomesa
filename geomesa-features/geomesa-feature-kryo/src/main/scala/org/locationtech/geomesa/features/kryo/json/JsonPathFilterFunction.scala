@@ -14,17 +14,11 @@ import org.geotools.api.filter.expression.{PropertyName, VolatileFunction}
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.expression.PropertyAccessor
-import org.locationtech.geomesa.utils.geotools.filter.FilterFunctions
 import org.locationtech.geomesa.utils.geotools.{SimpleFeaturePropertyAccessor, SimpleFeatureTypes}
 
 import java.util.concurrent.ConcurrentHashMap
 
-class JsonPathFilterFunction extends FunctionExpressionImpl(
-  new FunctionNameImpl("jsonPath",
-    FilterFunctions.parameter[String]("value"),
-    FilterFunctions.parameter[String]("path"), // can be a full path expression, OR an attribute name
-    FilterFunctions.parameter[String]("nested-path", required = false)) // (optional) if path is an attribute name, the nested path into the attribute
-  ) with LazyLogging with VolatileFunction {
+class JsonPathFilterFunction extends FunctionExpressionImpl(JsonPathFilterFunction.Name) with LazyLogging with VolatileFunction {
 
   private val cache = new ConcurrentHashMap[String, PropertyAccessor]
 
@@ -50,4 +44,14 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
     }
     accessor.get(sf, path, classOf[AnyRef])
   }
+}
+
+object JsonPathFilterFunction {
+  val Name =
+    new FunctionNameImpl(
+      "jsonPath",
+      FunctionNameImpl.parameter("value", classOf[String]),
+      FunctionNameImpl.parameter("path", classOf[String]), // can be a full path expression, OR an attribute name
+      FunctionNameImpl.parameter("nested-path", classOf[String], 0, 1) // (optional) if path is an attribute name, the nested path into the attribute
+    )
 }

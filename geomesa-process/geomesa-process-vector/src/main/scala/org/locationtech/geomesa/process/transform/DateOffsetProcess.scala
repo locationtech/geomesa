@@ -14,7 +14,6 @@ import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 
 import java.time._
 import java.time.format.DateTimeParseException
@@ -44,7 +43,7 @@ class DateOffsetProcess extends GeoMesaProcess {
 
     val iter = SelfClosingIterator(obsFeatures.features()).map { sf =>
       val dtg = sf.getAttribute(dateField).asInstanceOf[Date]
-      val offset = ZonedDateTime.ofInstant(toInstant(dtg), ZoneOffset.UTC).plus(period)
+      val offset = ZonedDateTime.ofInstant(dtg.toInstant, ZoneOffset.UTC).plus(period)
       val newDtg = Date.from(offset.toInstant)
       sf.setAttribute(dtgIndex, newDtg)
       sf
