@@ -43,8 +43,13 @@ The nar contains bundled dependencies. To change the dependency versions, modify
 Install the Processors
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To install the GeoMesa processors you will need to copy the NAR files into the ``lib`` directory of your
+To install the GeoMesa processors you will need to copy the NAR files into the ``extensions`` directory of your
 NiFi installation. There two common NAR files, and seven datastore-specific NAR files.
+
+.. note::
+
+  In the official NiFi 2.x docker, the ``extensions`` directory is renamed to ``nar_extensions``. Adjust the following
+  commands as necessary.
 
 Common NAR files:
 
