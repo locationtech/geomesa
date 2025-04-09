@@ -16,7 +16,6 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, TableBasedMetadata}
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.{ZoneOffset, ZonedDateTime}
@@ -57,7 +56,7 @@ class TimePartition(metadata: GeoMesaMetadata[String], typeName: String, dtg: St
 
   override def partition(feature: SimpleFeature): String = {
     val date = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-    f"${toBin(ZonedDateTime.ofInstant(toInstant(date), ZoneOffset.UTC))}%05d" // a short should fit into 5 digits
+    f"${toBin(ZonedDateTime.ofInstant(date.toInstant, ZoneOffset.UTC))}%05d" // a short should fit into 5 digits
   }
 
   override def partitions(filter: Filter): Option[Seq[String]] = {
