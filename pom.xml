@@ -3178,9 +3178,6 @@
                             <user.region>US</user.region>
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
                             <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
-                            <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
-                                 We need to disable it for the mini clusters to work in unit tests -->
-                            <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
@@ -3211,11 +3208,6 @@
                         <argLine>${maven.test.opens}</argLine>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
-                        <systemProperties>
-                            <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
-                                 We need to disable it for the mini clusters to work in unit tests -->
-                            <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
-                        </systemProperties>
                     </configuration>
                 </plugin>
                 <plugin>
