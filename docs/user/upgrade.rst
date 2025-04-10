@@ -102,6 +102,7 @@ The following dependencies have been upgraded:
 * json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
 * netty ``4.1.114.Final`` -> ``4.1.118.Final``
+* parquet ``1.13.1`` -> ``1.15.1``
 * spark ``3.5.0`` -> ``3.5.5``
 
 NiFi 2 Support
