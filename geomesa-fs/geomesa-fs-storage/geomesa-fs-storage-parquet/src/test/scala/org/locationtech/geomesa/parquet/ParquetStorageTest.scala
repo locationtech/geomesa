@@ -355,7 +355,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 2100L
+      val targetSize = 2400L
 
       withTestDir { dir =>
         val context = FileSystemContext(dir, config)
