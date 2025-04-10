@@ -8,6 +8,7 @@ Installation instructions are available for each data store implementation:
 * :doc:`/user/accumulo/install`
 * :doc:`/user/hbase/install`
 * :doc:`/user/cassandra/install`
+* :doc:`/user/scylladb/install`
 * :doc:`/user/kafka/install`
 * :doc:`/user/redis/install`
 * :doc:`/user/filesystem/install`
