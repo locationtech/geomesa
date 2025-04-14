@@ -11,18 +11,19 @@ package org.locationtech.geomesa.convert.parquet
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.conf.Configuration
+import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
 import org.apache.parquet.io.api._
+import org.apache.parquet.schema.LogicalTypeAnnotation._
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema._
 import org.locationtech.geomesa.convert.parquet.AvroReadSupport.AvroRecordMaterializer
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.{BooleanConverter, BytesConverter, DateConverter, DoubleConverter, FloatConverter, IntConverter, LongConverter, Settable, StringConverter}
+import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport._
 
 import java.util.{Collections, Date}
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * Read support for parsing an arbitrary parquet file into avro records.
@@ -40,6 +41,14 @@ class AvroReadSupport extends ReadSupport[GenericRecord] {
       keyValueMetaData: java.util.Map[String, String],
       fileSchema: MessageType,
       readContext: ReadContext): RecordMaterializer[GenericRecord] = {
+    new AvroRecordMaterializer(fileSchema)
+  }
+
+  override def prepareForRead(
+    configuration: ParquetConfiguration,
+    keyValueMetaData: java.util.Map[String, String],
+    fileSchema: MessageType,
+    readContext: ReadContext): RecordMaterializer[GenericRecord] = {
     new AvroRecordMaterializer(fileSchema)
   }
 }
@@ -90,79 +99,85 @@ object AvroReadSupport {
     *
     * @param fields fields
     */
-  class GenericGroupConverter(fields: Seq[Type]) extends GroupConverter with Settable {
+  class GenericGroupConverter(fields: Seq[Type]) extends GroupConverter with ValueMaterializer {
 
     private val names = fields.map(_.getName).toIndexedSeq
-    private val converters = Array.tabulate(fields.length)(i => converter(fields(i), i, this))
+    private val converters = Array.tabulate(fields.length)(i => converter(fields(i)))
 
     private var rec: AvroRecord = _
 
     def record: GenericRecord = rec
 
-    override def set(i: Int, value: AnyRef): Unit = rec.put(i, value)
-
     override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
-    override def start(): Unit = rec = new AvroRecord(names)
-    override def end(): Unit = {}
+    override def start(): Unit = {
+      rec = new AvroRecord(names)
+      converters.foreach(_.reset())
+    }
+    override def end(): Unit = {
+      var i = 0
+      while (i < fields.length) {
+        rec.put(i, converters(i).materialize())
+        i += 1
+      }
+    }
+    override def reset(): Unit = rec = null
+    override def materialize(): AnyRef = rec
   }
 
   /**
     * Get a converter for a field type
     *
     * @param field field
-    * @param i callback index to set
-    * @param callback callback to set result
     * @return
     */
-  private def converter(field: Type, i: Int, callback: Settable): Converter = {
-    val original = field.getOriginalType
+  private def converter(field: Type): Converter with ValueMaterializer = {
+    val logical = field.getLogicalTypeAnnotation
     if (field.isPrimitive) {
-      lazy val string = original match {
-        case OriginalType.UTF8 => new StringConverter(i, callback)
-        case _ => new BytesConverter(i, callback)
+      lazy val stringOrBytes = logical match {
+        case _: StringLogicalTypeAnnotation => new StringConverter()
+        case _ => new BytesConverter()
       }
-      lazy val int32 = original match {
-        case OriginalType.DATE => new DaysConverter(i, callback)
-        case _ => new IntConverter(i, callback)
+      lazy val intOrDate = logical match {
+        case _: DateLogicalTypeAnnotation => new DaysConverter()
+        case _ => new IntConverter()
       }
-      lazy val int64 = original match {
-        case OriginalType.TIMESTAMP_MILLIS => new DateConverter(i, callback)
-        case OriginalType.TIMESTAMP_MICROS => new MicrosConverter(i, callback)
-        case _ => new LongConverter(i, callback)
+      lazy val longOrTimestamp = logical match {
+        case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MILLIS => new DateConverter()
+        case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MICROS => new MicrosConverter()
+        case _ => new LongConverter()
       }
-      field.asPrimitiveType().getPrimitiveTypeName match {
-        case PrimitiveTypeName.BINARY               => string
-        case PrimitiveTypeName.INT32                => int32
-        case PrimitiveTypeName.INT64                => int64
-        case PrimitiveTypeName.DOUBLE               => new DoubleConverter(i, callback)
-        case PrimitiveTypeName.FLOAT                => new FloatConverter(i, callback)
-        case PrimitiveTypeName.BOOLEAN              => new BooleanConverter(i, callback)
-        case PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY => new BytesConverter(i, callback)
+      val convert = field.asPrimitiveType().getPrimitiveTypeName match {
+        case PrimitiveTypeName.BINARY               => stringOrBytes
+        case PrimitiveTypeName.INT32                => intOrDate
+        case PrimitiveTypeName.INT64                => longOrTimestamp
+        case PrimitiveTypeName.DOUBLE               => new DoubleConverter()
+        case PrimitiveTypeName.FLOAT                => new FloatConverter()
+        case PrimitiveTypeName.BOOLEAN              => new BooleanConverter()
+        case PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY => new BytesConverter()
         case _                                      => NullPrimitiveConverter
+      }
+      if (field.isRepetition(Repetition.REPEATED)) {
+        new RepeatedPrimitiveConverter(convert)
+      } else {
+        convert
       }
     } else {
       val group = field.asGroupType()
-      original match {
-        case OriginalType.LIST =>
+      logical match {
+        case _: ListLogicalTypeAnnotation =>
           require(group.getFieldCount == 1 && !group.getType(0).isPrimitive, s"Invalid list type: $group")
           val list = group.getType(0).asGroupType()
           require(list.getFieldCount == 1 && list.isRepetition(Repetition.REPEATED), s"Invalid list type: $group")
-          new GenericListConverter(list.getType(0), i, callback)
+          new GenericListConverter(list.getType(0))
 
-        case OriginalType.MAP =>
+        case _: MapLogicalTypeAnnotation =>
           require(group.getFieldCount == 1 && !group.getType(0).isPrimitive, s"Invalid map type: $group")
           val map = group.getType(0).asGroupType()
           require(map.getFieldCount == 2 && map.isRepetition(Repetition.REPEATED), s"Invalid map type: $group")
-          new GenericMapConverter(map.getType(0), map.getType(1), i, callback)
+          new GenericMapConverter(map.getType(0), map.getType(1))
 
         case _ =>
-          if (group.getFields.asScala.forall(t => t.isPrimitive && t.isRepetition(Repetition.REPEATED))) {
-            new GroupedRepeatedConverter(group.getFields.asScala.map(_.asPrimitiveType).toSeq, i, callback)
-          } else {
-            new GenericGroupConverter(group.getFields.asScala.toSeq) {
-              override def end(): Unit = callback.set(i, record)
-            }
-          }
+          new GenericGroupConverter(group.getFields.asScala.toSeq)
       }
     }
   }
@@ -171,29 +186,23 @@ object AvroReadSupport {
     * Converter for any LIST element, will recursively handle complex list elements
     *
     * @param elements element type
-    * @param index callback index to set
-    * @param callback callback to set result
     */
-  class GenericListConverter(elements: Type, index: Int, callback: Settable) extends GroupConverter {
-
-    import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.valueToSettable
+  class GenericListConverter(elements: Type) extends GroupConverter with ValueMaterializer {
 
     private var list: java.util.List[AnyRef] = _
 
-    private val group: GroupConverter = if (elements.isPrimitive && elements.isRepetition(Repetition.REPEATED)) {
-      new RepeatedConverter(elements.asPrimitiveType(), 0, (value: AnyRef) => list.add(value))
-    } else {
-      new GroupConverter {
-        private val converter = AvroReadSupport.converter(elements, 0, (value: AnyRef) => list.add(value))
-        override def getConverter(fieldIndex: Int): Converter = converter // better only be one field (0)
-        override def start(): Unit = {}
-        override def end(): Unit = {}
-      }
+    private val group: GroupConverter = new GroupConverter {
+      private val converter = AvroReadSupport.converter(elements)
+      override def getConverter(fieldIndex: Int): Converter = converter // better only be one field (0)
+      override def start(): Unit = converter.reset()
+      override def end(): Unit = list.add(converter.materialize())
     }
 
     override def getConverter(fieldIndex: Int): GroupConverter = group
     override def start(): Unit = list = new java.util.ArrayList[AnyRef]
-    override def end(): Unit = callback.set(index, list)
+    override def end(): Unit = {}
+    override def reset(): Unit = list = null
+    override def materialize(): AnyRef = list
   }
 
   /**
@@ -201,142 +210,103 @@ object AvroReadSupport {
     *
     * @param keys key type
     * @param values value type
-    * @param index callback index to set
-    * @param callback callback to set result
     */
-  class GenericMapConverter(keys: Type, values: Type, index: Int, callback: Settable) extends GroupConverter {
-
-    import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.valueToSettable
+  class GenericMapConverter(keys: Type, values: Type) extends GroupConverter with ValueMaterializer {
 
     private var map: java.util.Map[AnyRef, AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
-      private var k: AnyRef = _
-      private var v: AnyRef = _
-      private val keyConverter = AvroReadSupport.converter(keys, 0, (value: AnyRef) => k = value)
-      private val valueConverter = AvroReadSupport.converter(values, 1, (value: AnyRef) => v = value)
+      private val keyConverter = AvroReadSupport.converter(keys)
+      private val valueConverter = AvroReadSupport.converter(values)
 
       override def getConverter(fieldIndex: Int): Converter =
         if (fieldIndex == 0) { keyConverter } else { valueConverter }
 
-      override def start(): Unit = { k = null; v = null }
-      override def end(): Unit = map.put(k, v)
+      override def start(): Unit = { keyConverter.reset(); valueConverter.reset() }
+      override def end(): Unit = map.put(keyConverter.materialize(), valueConverter.materialize())
     }
 
     override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = map = new java.util.HashMap[AnyRef, AnyRef]
-    override def end(): Unit = callback.set(index, map)
+    override def start(): Unit = map = new java.util.HashMap[AnyRef, AnyRef]()
+    override def end(): Unit = {}
+    override def reset(): Unit = map = null
+    override def materialize(): AnyRef = map
   }
 
   /**
-    * Group converter for handling REPEATED fields. Doesn't wrap the field in a record, but just returns
-    * a List
-    *
-    * @param field repeated field type
-    * @param index callback index to set
-    * @param callback callback to set result
-    */
-  class RepeatedConverter(field: PrimitiveType, index: Int, callback: Settable)
-      extends GroupConverter with Settable {
+   * Converter for primitive fields with repetition of 'repeated'
+   *
+   * @param delegate single value converter
+   */
+  private class RepeatedPrimitiveConverter(delegate: PrimitiveConverter with ValueMaterializer)
+    extends PrimitiveConverter with ValueMaterializer {
 
-    private val array = ArrayBuffer.empty[Any]
+    private var list: java.util.List[AnyRef] = _
 
-    private val converter = AvroReadSupport.converter(field, 0, this)
+    override def addBinary(value: Binary): Unit = { delegate.asPrimitiveConverter().addBinary(value); addElement() }
+    override def addBoolean(value: Boolean): Unit = { delegate.asPrimitiveConverter().addBoolean(value); addElement() }
+    override def addInt(value: Int): Unit = { delegate.asPrimitiveConverter().addInt(value); addElement() }
+    override def addFloat(value: Float): Unit = { delegate.asPrimitiveConverter().addFloat(value); addElement() }
+    override def addLong(value: Long): Unit = { delegate.asPrimitiveConverter().addLong(value); addElement() }
+    override def addDouble(value: Double): Unit = { delegate.asPrimitiveConverter().addDouble(value); addElement() }
 
-    override def getConverter(fieldIndex: Int): Converter = converter
-
-    override def start(): Unit = array.clear()
-
-    override def end(): Unit = {
-      val list = new java.util.ArrayList[Any](array.length)
-      array.foreach(list.add)
-      callback.set(index, list)
-    }
-
-    override def set(ignored: Int, value: AnyRef): Unit = array += value
-  }
-
-  /**
-    * Group converter for handling groups that consist solely of REPEATED fields. Returns a GenericRecord
-    * containing the repeated fields
-    *
-    * @param fields repeated field types
-    * @param index callback index to set
-    * @param callback callback to set result
-    */
-  class GroupedRepeatedConverter(fields: Seq[PrimitiveType], index: Int, callback: Settable)
-      extends GroupConverter with Settable {
-
-    private val names = fields.map(_.getName).toIndexedSeq
-
-    private val arrays = Array.fill(fields.length)(ArrayBuffer.empty[Any])
-
-    private val converters = Array.tabulate(fields.length)(i => AvroReadSupport.converter(fields(i), i, this))
-
-    override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
-
-    override def start(): Unit = arrays.foreach(_.clear())
-
-    override def end(): Unit = {
-      val rec = new AvroRecord(names)
-      var i = 0
-      while (i < arrays.length) {
-        val list = new java.util.ArrayList[Any](arrays(i).length)
-        arrays(i).foreach(list.add)
-        rec.put(i, list)
-        i += 1
+    private def addElement(): Unit = {
+      if (list == null) {
+        list = new java.util.ArrayList[AnyRef]()
       }
-      callback.set(index, rec)
+      list.add(delegate.materialize())
+      delegate.reset()
     }
-
-    override def set(i: Int, value: AnyRef): Unit = arrays(i) += value
+    override def reset(): Unit = list = null
+    override def materialize(): AnyRef = list
   }
 
   /**
     * Converter for a DAYS encoded INT32 field
-    *
-    * @param index callback index to set
-    * @param callback callback to set result
     */
-  class DaysConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addInt(value: Int): Unit =
-      callback.set(index, Date.from(BinnedTime.Epoch.plusDays(value).toInstant))
+  class DaysConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Int = -1
+    private var set = false
+
+    override def addInt(value: Int): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Date.from(BinnedTime.Epoch.plusDays(value).toInstant) } else { null }
   }
 
   /**
     * Converter for a MICROS encoded INT64 field
-    *
-    * @param index callback index to set
-    * @param callback callback to set result
     */
-  class MicrosConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addLong(value: Long): Unit = callback.set(index, new Date(value / 1000L))
-  }
+  class MicrosConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Long = -1
+    private var set = false
 
-  /**
-    * Converter for fields that we can't handle - will always return null
-    */
-  object NullConverter {
-    def apply(field: Type): Converter = {
-      if (field.isPrimitive) { NullPrimitiveConverter } else {
-        val group = field.asGroupType()
-        new NullGroupConverter(IndexedSeq.tabulate(group.getFieldCount)(i => apply(group.getType(i))))
-      }
+    override def addLong(value: Long): Unit = {
+      this.value = value
+      set = true
     }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { new Date(value / 1000L) } else { null }
   }
 
-  object NullPrimitiveConverter extends PrimitiveConverter {
+  object NullPrimitiveConverter extends PrimitiveConverter with ValueMaterializer {
     override def addBinary(value: Binary): Unit = {}
     override def addBoolean(value: Boolean): Unit = {}
     override def addDouble(value: Double): Unit = {}
     override def addFloat(value: Float): Unit = {}
     override def addInt(value: Int): Unit = {}
     override def addLong(value: Long): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = null
   }
 
-  class NullGroupConverter(children: IndexedSeq[Converter]) extends GroupConverter {
+  class NullGroupConverter(children: IndexedSeq[Converter]) extends GroupConverter with ValueMaterializer {
     override def getConverter(fieldIndex: Int): Converter = children(fieldIndex)
     override def start(): Unit = {}
     override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = null
   }
 }

@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.WithClose
@@ -120,6 +121,35 @@ class ParquetConverterTest extends Specification {
       features(0).getAttributes.asScala mustEqual Seq("red", 1L, 0d, 0d, 123L, "5'11", 127.5d, WKTUtils.read("POINT (0 0)"))
       features(1).getAttributes.asScala mustEqual Seq("blue", 2L, 1d, 1d, 456L, "5'11", 150d, WKTUtils.read("POINT (1 1)"))
       features(2).getAttributes.asScala mustEqual Seq("green", 3L, 4.4d, 3.3d, 789L, "6'2", 200.4d, WKTUtils.read("POINT (3.3 4.4)"))
+    }
+
+    "read visibilities with an inferred geomesa parquet file" >> {
+      val file = getClass.getClassLoader.getResource("example-with-vis.parquet")
+      val path = new File(file.toURI).getAbsolutePath
+
+      val factory = new ParquetConverterFactory()
+      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      inferred must beASuccessfulTry
+
+      val (sft, config) = inferred.get
+
+      sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("fid", "name", "age", "lastseen", "geom")
+      sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+        Seq(classOf[java.lang.Integer], classOf[String], classOf[java.lang.Integer], classOf[Date], classOf[Point])
+
+      val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
+        WithClose(converter.process(file.openStream(), ec))(_.toList)
+      }
+
+      res must haveLength(3)
+      res.map(_.getID) mustEqual Seq("23623", "26236", "3233")
+      res.map(_.getAttribute("fid")) mustEqual Seq(23623, 26236, 3233)
+      res.map(_.getAttribute("name")) mustEqual Seq("Harry", "Hermione", "Severus")
+      res.map(_.getAttribute("age")) mustEqual Seq(20, 25, 30)
+      res.map(_.getAttribute("lastseen")) mustEqual Seq("2015-05-06", "2015-06-07", "2015-10-23").map(FastConverter.convert(_, classOf[Date]))
+      res.map(_.getAttribute("geom")) mustEqual Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)").map(FastConverter.convert(_, classOf[Point]))
+      res.map(SecurityUtils.getVisibility) mustEqual Seq("user", "user", "user&admin")
     }
 
     "handle all attribute types" >> {

@@ -186,6 +186,17 @@ Metadata persistence can be specified through the user data key ``geomesa.fs.met
   The metadata configuration supports property substitution using environment variables and Java system
   properties. Property substitutions are specified using ``${}`` syntax, e.g. ``${HOME}`` or ``${user.home}``.
 
+Configuring Visibility Persistence
+----------------------------------
+
+GeoMesa will by default persist feature visibility flags as a column in the FSDS files. If feature visibilities are not being
+used, this may be disabled by settings ``geomesa.fs.visibilities`` to ``false``, either in the feature type user data
+or in any Hadoop configuration files.
+
+.. note::
+
+  Visibilities are currently only implemented when using the Parquet encoding.
+
 Configuring Custom Observer Callbacks
 -------------------------------------
 

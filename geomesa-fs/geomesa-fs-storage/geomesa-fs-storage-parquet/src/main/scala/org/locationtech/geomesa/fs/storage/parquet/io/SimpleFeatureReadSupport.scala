@@ -10,20 +10,21 @@
 package org.locationtech.geomesa.fs.storage.parquet.io
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
 import org.apache.parquet.io.api._
 import org.apache.parquet.schema.MessageType
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Coordinate
 
-import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 import scala.collection.mutable.ArrayBuffer
 
@@ -39,11 +40,20 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
     new ReadContext(schema.schema, schema.metadata)
   }
 
+  // noinspection ScalaDeprecation
   override def prepareForRead(
       configuration: Configuration,
       keyValueMetaData: java.util.Map[String, String],
       fileSchema: MessageType,
-      readContext: ReadSupport.ReadContext): RecordMaterializer[SimpleFeature] = {
+      readContext: ReadContext): RecordMaterializer[SimpleFeature] = {
+    new SimpleFeatureRecordMaterializer(schema)
+  }
+
+  override def prepareForRead(
+      configuration: ParquetConfiguration,
+      keyValueMetaData: java.util.Map[String, String],
+      fileSchema: MessageType,
+      readContext: ReadContext): RecordMaterializer[SimpleFeature] = {
     new SimpleFeatureRecordMaterializer(schema)
   }
 }
@@ -86,18 +96,9 @@ object SimpleFeatureReadSupport {
 
   class SimpleFeatureRecordMaterializer(schema: SimpleFeatureParquetSchema)
       extends RecordMaterializer[SimpleFeature] {
-    private val converter = new SimpleFeatureGroupConverter(schema.sft)
+    private val converter = new SimpleFeatureGroupConverter(schema)
     override def getRootConverter: GroupConverter = converter
     override def getCurrentRecord: SimpleFeature = converter.materialize
-  }
-
-  trait Settable {
-    def set(i: Int, value: AnyRef): Unit
-  }
-
-  // noinspection LanguageFeature
-  implicit def valueToSettable[T](lambda: AnyRef => T): Settable = new Settable {
-    override def set(i: Int, value: AnyRef): Unit = lambda(value)
   }
 
   /**
@@ -107,163 +108,234 @@ object SimpleFeatureReadSupport {
     * which will mean they are only converted and then added to simple features if a
     * record passes the parquet filters and needs to be materialized.
     */
-  class SimpleFeatureGroupConverter(sft: SimpleFeatureType) extends GroupConverter with Settable {
+  class SimpleFeatureGroupConverter(schema: SimpleFeatureParquetSchema) extends GroupConverter {
 
-    // temp placeholders
-    private var id: Binary = _
-    private val values: Array[AnyRef] = new Array[AnyRef](sft.getAttributeCount)
-
-    private val idConverter = new PrimitiveConverter {
+    private val idConverter = new PrimitiveConverter with ValueMaterializer {
+      private var id: Binary = _
+      override def materialize(): AnyRef = if (id == null) { null } else { id.toStringUsingUTF8 }
+      override def reset(): Unit = id = null
       override def addBinary(value: Binary): Unit = id = value
     }
+    private val visConverter = new PrimitiveConverter with ValueMaterializer {
+      private var vis: Binary = _
+      override def materialize(): AnyRef = if (vis == null) { null } else { vis.toStringUsingUTF8.intern() }
+      override def reset(): Unit = vis = null
+      override def addBinary(value: Binary): Unit = vis = value
+    }
 
-    private val converters = Array.tabulate(sft.getAttributeCount)(attribute) :+ idConverter
-
-    override def set(idx: Int, value: AnyRef): Unit = values(idx) = value
+    private val converters = {
+      val builder = Array.newBuilder[Converter with ValueMaterializer]
+      var i = 0
+      while (i < schema.sft.getAttributeCount) {
+        builder += SimpleFeatureReadSupport.attribute(ObjectType.selectType(schema.sft.getDescriptor(i)))
+        i += 1
+      }
+      builder += idConverter
+      if (schema.hasVisibilities) {
+        builder += visConverter
+      }
+      builder.result()
+    }
 
     // don't materialize unless we have to
     def materialize: SimpleFeature = {
-      // deep copy array since the next record may change references in the array
-      new ScalaSimpleFeature(sft, id.toStringUsingUTF8, java.util.Arrays.copyOf(values, values.length))
-    }
-
-    protected def attribute(i: Int): Converter =
-      SimpleFeatureReadSupport.attribute(ObjectType.selectType(sft.getDescriptor(i)), i, this)
-
-    override def start(): Unit = {
-      id = null
-      var i = 0
-      while (i < values.length) {
-        values(i) = null
-        i += 1
+      val id = idConverter.materialize().asInstanceOf[String]
+      val vis = visConverter.materialize().asInstanceOf[String]
+      val values = Array.tabulate[AnyRef](schema.sft.getAttributeCount)(i => converters(i).materialize())
+      val userData = if (vis == null) { null } else {
+        val map = new java.util.HashMap[AnyRef, AnyRef](1)
+        map.put(SecurityUtils.FEATURE_VISIBILITY, vis)
+        map
       }
+      new ScalaSimpleFeature(schema.sft, id, values, userData)
     }
+
+    override def start(): Unit = converters.foreach(_.reset())
 
     override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
 
     override def end(): Unit = {}
   }
 
-  // TODO we are creating lots of objects and boxing primitives here when we may not need to
-  // unless a record is materialized so we can likely speed this up by not creating any of
-  // the true SFT types util a record passes a filter in the SimpleFeatureRecordMaterializer
-
-  private def attribute(bindings: Seq[ObjectType], i: Int, callback: Settable): Converter = {
+  private def attribute(bindings: Seq[ObjectType]): Converter with ValueMaterializer = {
     bindings.head match {
-      case ObjectType.GEOMETRY => geometry(bindings.last, i, callback)
-      case ObjectType.DATE     => new DateConverter(i, callback)
-      case ObjectType.STRING   => new StringConverter(i, callback)
-      case ObjectType.INT      => new IntConverter(i, callback)
-      case ObjectType.DOUBLE   => new DoubleConverter(i, callback)
-      case ObjectType.LONG     => new LongConverter(i, callback)
-      case ObjectType.FLOAT    => new FloatConverter(i, callback)
-      case ObjectType.BOOLEAN  => new BooleanConverter(i, callback)
-      case ObjectType.BYTES    => new BytesConverter(i, callback)
-      case ObjectType.LIST     => new ListConverter(bindings(1), i, callback)
-      case ObjectType.MAP      => new MapConverter(bindings(1), bindings(2), i, callback)
-      case ObjectType.UUID     => new UuidConverter(i, callback)
+      case ObjectType.GEOMETRY => geometry(bindings.last)
+      case ObjectType.DATE     => new DateConverter()
+      case ObjectType.STRING   => new StringConverter()
+      case ObjectType.INT      => new IntConverter()
+      case ObjectType.DOUBLE   => new DoubleConverter()
+      case ObjectType.LONG     => new LongConverter()
+      case ObjectType.FLOAT    => new FloatConverter()
+      case ObjectType.BOOLEAN  => new BooleanConverter()
+      case ObjectType.BYTES    => new BytesConverter()
+      case ObjectType.LIST     => new ListConverter(bindings(1))
+      case ObjectType.MAP      => new MapConverter(bindings(1), bindings(2))
+      case ObjectType.UUID     => new UuidConverter()
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
     }
   }
 
-  private def geometry(binding: ObjectType, i: Int, callback: Settable): Converter = {
+  private def geometry(binding: ObjectType): Converter with ValueMaterializer = {
     binding match {
-      case ObjectType.POINT           => new PointConverter(i, callback)
-      case ObjectType.LINESTRING      => new LineStringConverter(i, callback)
-      case ObjectType.POLYGON         => new PolygonConverter(i, callback)
-      case ObjectType.MULTIPOINT      => new MultiPointConverter(i, callback)
-      case ObjectType.MULTILINESTRING => new MultiLineStringConverter(i, callback)
-      case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter(i, callback)
-      case ObjectType.GEOMETRY        => new GeometryWkbConverter(i, callback)
+      case ObjectType.POINT           => new PointConverter()
+      case ObjectType.LINESTRING      => new LineStringConverter()
+      case ObjectType.POLYGON         => new PolygonConverter()
+      case ObjectType.MULTIPOINT      => new MultiPointConverter()
+      case ObjectType.MULTILINESTRING => new MultiLineStringConverter()
+      case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter()
+      case ObjectType.GEOMETRY        => new GeometryWkbConverter()
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type $binding")
     }
   }
 
-  class DateConverter(index: Int, callback: Settable) extends PrimitiveConverter {
+  trait ValueMaterializer {
+    def reset(): Unit
+    def materialize(): AnyRef
+  }
+
+  class DateConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Long = -1
+    private var set = false
+
     override def addLong(value: Long): Unit = {
-      // TODO this can be optimized to set a long and not materialize date objects
-      callback.set(index, new Date(value))
+      this.value = value
+      set = true
     }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { new Date(value) } else { null }
   }
 
-  class StringConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addBinary(value: Binary): Unit = callback.set(index, value.toStringUsingUTF8)
+  class StringConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Binary = _
+    override def reset(): Unit = value = null
+    override def materialize(): AnyRef = if (value == null) { null } else { value.toStringUsingUTF8 }
+    override def addBinary(value: Binary): Unit = this.value = value
   }
 
-  class IntConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addInt(value: Int): Unit = callback.set(index, Int.box(value))
+  class IntConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Int = -1
+    private var set = false
+
+    override def addInt(value: Int): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Int.box(value) } else { null }
   }
 
-  class LongConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addLong(value: Long): Unit = callback.set(index, Long.box(value))
+  class LongConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Long = -1
+    private var set = false
+
+    override def addLong(value: Long): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Long.box(value) } else { null }
   }
 
-  class FloatConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addFloat(value: Float): Unit = callback.set(index, Float.box(value))
+  class FloatConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Float = -1
+    private var set = false
+
+    override def addFloat(value: Float): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Float.box(value) } else { null }
   }
 
-  class DoubleConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addInt(value: Int): Unit = callback.set(index, Double.box(value.toDouble))
-    override def addDouble(value: Double): Unit = callback.set(index, Double.box(value))
-    override def addFloat(value: Float): Unit = callback.set(index, Double.box(value.toDouble))
-    override def addLong(value: Long): Unit = callback.set(index, Double.box(value.toDouble))
+  class DoubleConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Double = -1
+    private var set = false
+
+    override def addDouble(value: Double): Unit = {
+      this.value = value
+      set = true
+    }
+    override def addInt(value: Int): Unit = addDouble(value.toDouble)
+    override def addFloat(value: Float): Unit = addDouble(value.toDouble)
+    override def addLong(value: Long): Unit = addDouble(value.toDouble)
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Double.box(value) } else { null }
+
   }
 
-  class BooleanConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addBoolean(value: Boolean): Unit = callback.set(index, Boolean.box(value))
+  class BooleanConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Boolean = false
+    private var set = false
+
+    override def addBoolean(value: Boolean): Unit = {
+      this.value = value
+      set = true
+    }
+    override def reset(): Unit = set = false
+    override def materialize(): AnyRef = if (set) { Boolean.box(value) } else { null }
   }
 
-  class BytesConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addBinary(value: Binary): Unit = callback.set(index, value.getBytes)
+  class BytesConverter extends PrimitiveConverter with ValueMaterializer {
+    private var value: Binary = _
+    override def addBinary(value: Binary): Unit = this.value = value
+    override def reset(): Unit = value = null
+    override def materialize(): AnyRef = if (value == null) { null } else { value.getBytes }
   }
 
-  class ListConverter(binding: ObjectType, index: Int, callback: Settable) extends GroupConverter {
+  class ListConverter(binding: ObjectType) extends GroupConverter with ValueMaterializer {
 
     private var list: java.util.List[AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
-      private val converter = attribute(Seq(binding), 0, (value: AnyRef) => list.add(value))
+      private val converter = attribute(Seq(binding))
       override def getConverter(fieldIndex: Int): Converter = converter // better only be one field (0)
-      override def start(): Unit = {}
-      override def end(): Unit = {}
+      override def start(): Unit = converter.reset()
+      override def end(): Unit = list.add(converter.materialize())
     }
 
     override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = list = new java.util.ArrayList[AnyRef]
-    override def end(): Unit = callback.set(index, list)
+    override def start(): Unit = list = new java.util.ArrayList[AnyRef]()
+    override def end(): Unit = {}
+    override def reset(): Unit = list = null
+    override def materialize(): AnyRef = list
   }
 
-  class MapConverter(keyBinding: ObjectType, valueBinding: ObjectType, index: Int, callback: Settable)
-      extends GroupConverter {
+  class MapConverter(keyBinding: ObjectType, valueBinding: ObjectType) extends GroupConverter with ValueMaterializer {
 
     private var map: java.util.Map[AnyRef, AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
-      private var k: AnyRef = _
-      private var v: AnyRef = _
-      private val keyConverter = attribute(Seq(keyBinding), 0, (value: AnyRef) => k = value)
-      private val valueConverter = attribute(Seq(valueBinding), 1, (value: AnyRef) => v = value)
+      private val keyConverter = attribute(Seq(keyBinding))
+      private val valueConverter = attribute(Seq(valueBinding))
 
       override def getConverter(fieldIndex: Int): Converter =
         if (fieldIndex == 0) { keyConverter } else { valueConverter }
 
-      override def start(): Unit = { k = null; v = null }
-      override def end(): Unit = map.put(k, v)
+      override def start(): Unit = { keyConverter.reset(); valueConverter.reset() }
+      override def end(): Unit = map.put(keyConverter.materialize(), valueConverter.materialize())
     }
 
     override def getConverter(fieldIndex: Int): GroupConverter = group
-    override def start(): Unit = map = new java.util.HashMap[AnyRef, AnyRef]
-    override def end(): Unit = callback.set(index, map)
+    override def start(): Unit = map = new java.util.HashMap[AnyRef, AnyRef]()
+    override def end(): Unit = {}
+    override def reset(): Unit = map = null
+    override def materialize(): AnyRef = map
   }
 
-  class UuidConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addBinary(value: Binary): Unit = {
-      val bb = ByteBuffer.wrap(value.getBytes)
-      callback.set(index, new UUID(bb.getLong, bb.getLong))
+  class UuidConverter extends BytesConverter {
+    private var value: Binary = _
+    override def addBinary(value: Binary): Unit = this.value = value
+    override def reset(): Unit = value = null
+    override def materialize(): AnyRef = {
+      if (value == null) { null } else {
+        val bb = value.toByteBuffer
+        new UUID(bb.getLong, bb.getLong)
+      }
     }
   }
 
-  class PointConverter(index: Int, callback: Settable) extends GroupConverter {
+  class PointConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -272,15 +344,13 @@ object SimpleFeatureReadSupport {
 
     override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { x } else { y }
 
-    override def start(): Unit = {
-      x.c = 0.0
-      y.c = 0.0
-    }
-
-    override def end(): Unit = callback.set(index, gf.createPoint(new Coordinate(x.c, y.c)))
+    override def start(): Unit = {}
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = gf.createPoint(new Coordinate(x.c, y.c))
   }
 
-  class LineStringConverter(index: Int, callback: Settable) extends GroupConverter {
+  class LineStringConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -294,18 +364,20 @@ object SimpleFeatureReadSupport {
       y.i = 0
     }
 
-    override def end(): Unit = {
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = {
       val coords = Array.ofDim[Coordinate](x.i)
       var i = 0
       while (i < coords.length) {
         coords(i) = new Coordinate(x.coords(i), y.coords(i))
         i += 1
       }
-      callback.set(index, gf.createLineString(coords))
+      gf.createLineString(coords)
     }
   }
 
-  class MultiPointConverter(index: Int, callback: Settable) extends GroupConverter {
+  class MultiPointConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -319,18 +391,20 @@ object SimpleFeatureReadSupport {
       y.i = 0
     }
 
-    override def end(): Unit = {
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = {
       val coords = Array.ofDim[Coordinate](x.i)
       var i = 0
       while (i < coords.length) {
         coords(i) = new Coordinate(x.coords(i), y.coords(i))
         i += 1
       }
-      callback.set(index, gf.createMultiPointFromCoords(coords))
+      gf.createMultiPointFromCoords(coords)
     }
   }
 
-  class PolygonConverter(index: Int, callback: Settable) extends GroupConverter {
+  class PolygonConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -340,17 +414,18 @@ object SimpleFeatureReadSupport {
     override def getConverter(fieldIndex: Int): Converter =  if (fieldIndex == 0) { x } else { y }
 
     override def start(): Unit = {}
-
-    override def end(): Unit = {
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = {
       val shell = gf.createLinearRing(zip(x.lines.head, y.lines.head))
       val holes = if (x.lines.lengthCompare(1) == 0) { null } else {
         Array.tabulate(x.lines.length - 1)(i => gf.createLinearRing(zip(x.lines(i + 1), y.lines(i + 1))))
       }
-      callback.set(index, gf.createPolygon(shell, holes))
+      gf.createPolygon(shell, holes)
     }
   }
 
-  class MultiLineStringConverter(index: Int, callback: Settable) extends GroupConverter {
+  class MultiLineStringConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -360,14 +435,15 @@ object SimpleFeatureReadSupport {
     override def getConverter(fieldIndex: Int): Converter =  if (fieldIndex == 0) { x } else { y }
 
     override def start(): Unit = {}
-
-    override def end(): Unit = {
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = {
       val lines = Array.tabulate(x.lines.length)(i => gf.createLineString(zip(x.lines(i), y.lines(i))))
-      callback.set(index, gf.createMultiLineString(lines))
+      gf.createMultiLineString(lines)
     }
   }
 
-  class MultiPolygonConverter(index: Int, callback: Settable) extends GroupConverter {
+  class MultiPolygonConverter extends GroupConverter with ValueMaterializer {
 
     private val gf = JTSFactoryFinder.getGeometryFactory
 
@@ -377,8 +453,9 @@ object SimpleFeatureReadSupport {
     override def getConverter(fieldIndex: Int): Converter = if (fieldIndex == 0) { x } else { y }
 
     override def start(): Unit = {}
-
-    override def end(): Unit = {
+    override def end(): Unit = {}
+    override def reset(): Unit = {}
+    override def materialize(): AnyRef = {
       val polys = Array.tabulate(x.polys.length) { i =>
         val shell = gf.createLinearRing(zip(x.polys(i).head, y.polys(i).head))
         val holes = if (x.polys(i).lengthCompare(1) == 0) { null } else {
@@ -386,12 +463,17 @@ object SimpleFeatureReadSupport {
         }
         gf.createPolygon(shell, holes)
       }
-      callback.set(index, gf.createMultiPolygon(polys))
+      gf.createMultiPolygon(polys)
     }
   }
 
-  class GeometryWkbConverter(index: Int, callback: Settable) extends PrimitiveConverter {
-    override def addBinary(value: Binary): Unit = callback.set(index, WKBUtils.read(value.getBytes))
+  class GeometryWkbConverter extends BytesConverter {
+    override def materialize(): AnyRef = {
+      super.materialize() match {
+        case b: Array[Byte] => WKBUtils.read(b)
+        case _ => null
+      }
+    }
   }
 
   /**
