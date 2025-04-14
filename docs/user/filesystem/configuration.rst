@@ -13,13 +13,6 @@ The following properties control the writing of data files.
 
 .. _fsds_size_threshold_prop:
 
-
-geomesa.fs.validate.file
-++++++++++++++++++++++++
-
-This property is implemented only for Parquet files. If set, it checks a file for any potential data corruption
-upon closing the file writer.
-
 geomesa.fs.size.threshold
 +++++++++++++++++++++++++
 
@@ -31,6 +24,11 @@ The threshold is specified as a float greater than ``0`` and less than ``1``, wi
 For example, if the target file size is 100 bytes, then an error threshold of ``0.05`` means that files will not
 be compacted if they are between 95 and 105 bytes.
 
+geomesa.fs.validate.file
+++++++++++++++++++++++++
+
+This property is implemented only for Parquet files. If set, it checks a file for any potential data corruption
+upon closing the file writer.
 
 geomesa.fs.writer.partition.timeout
 +++++++++++++++++++++++++++++++++++

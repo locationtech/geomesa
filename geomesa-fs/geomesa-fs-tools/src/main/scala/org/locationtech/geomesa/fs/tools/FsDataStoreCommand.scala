@@ -63,12 +63,16 @@ object FsDataStoreCommand {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
     var path: String = _
 
-    @Parameter(names = Array("--config"), description = "Configuration properties, in the form k=v", variableArity = true)
+    @Parameter(
+      names = Array("--config"),
+      description = "Configuration properties, in the form k=v",
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter])
     var configuration: java.util.List[String] = _
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)", variableArity = true)
+    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)")
     var partitions: java.util.List[String] = new util.ArrayList[String]()
   }
 
@@ -90,7 +94,6 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--storage-opt"),
       description = "Additional storage options to set as SimpleFeatureType user data, in the form key=value",
-      variableArity = true,
       converter = classOf[KeyValueConverter],
       splitter = classOf[NoopParameterSplitter])
     var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()

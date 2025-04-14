@@ -97,7 +97,7 @@ object ObjectType extends Enumeration {
   }
 
   private def mapType(metadata: jMap[_, _]): Seq[ObjectType] = {
-    val keyClass   = Class.forName(metadata.get(UserDataMapKeyType).asInstanceOf[String])
+    val keyClass = Class.forName(metadata.get(UserDataMapKeyType).asInstanceOf[String])
     val keyType = selectType(keyClass) match {
       case Seq(binding) => binding
       case _ => throw new IllegalArgumentException(s"Can't serialize map key type of ${keyClass.getName}")
