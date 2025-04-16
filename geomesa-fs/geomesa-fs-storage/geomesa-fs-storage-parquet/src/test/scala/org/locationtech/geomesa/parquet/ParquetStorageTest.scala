@@ -6,7 +6,6 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-
 package org.locationtech.geomesa.parquet
 
 import com.typesafe.scalalogging.LazyLogging
@@ -28,8 +27,8 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
-import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata
+import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -231,9 +230,24 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         sf
       }
 
+      val testCases = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name")).flatMap { transforms =>
+        Seq(
+          ("INCLUDE", transforms, features),
+          ("IN('0', '2')", transforms, Seq(features(0), features(2))),
+          ("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2)),
+          ("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2)),
+          ("bbox(geom,42,48,52,62)", transforms, features.drop(2)),
+          ("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2)),
+          ("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6)),
+          ("name < 'name5'", transforms, features.take(5)),
+          ("name = 'name5'", transforms, features.slice(5, 6)),
+          ("age < 5", transforms, features.take(5)),
+        )
+      }
+
       withTestDir { dir =>
         val config = new Configuration(this.config)
-        config.set(SimpleFeatureParquetSchema.VisibilityEncodingKey, "true")
+        config.set(AuthsParam.key, "user,admin")
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
@@ -255,29 +269,23 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
           logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-          val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
-
-          val doTest = testQuery(storage, sft) _
-
-          foreach(transformsList) { transforms =>
-            doTest("INCLUDE", transforms, features)
-            doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
-            doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-            doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-            doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-            doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-            doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-            doTest("name < 'name5'", transforms, features.take(5))
-            doTest("name = 'name5'", transforms, features.slice(5, 6))
-            doTest("age < 5", transforms, features.take(5))
+          foreach(testCases) { case (filter, transforms, expected) =>
+            testQuery(storage, sft)(filter, transforms, expected)
           }
         }
 
         // verify we can load an existing storage, without specifying vis
         val loaded = new FileBasedMetadataFactory().load(context)
         loaded must beSome
-        WithClose(new ParquetFileSystemStorageFactory().apply(FileSystemContext(dir, this.config), loaded.get)) { storage =>
-          testQuery(storage, sft)("INCLUDE", null, features)
+        foreach(Seq("user", "")) { auths =>
+          val config = new Configuration(this.config)
+          config.set(AuthsParam.key, auths)
+          WithClose(new ParquetFileSystemStorageFactory().apply(FileSystemContext(dir, config), loaded.get)) { storage =>
+            foreach(testCases) { case (filter, transforms, expected) =>
+              val isVisible = VisibilityUtils.visible(Some(new DefaultAuthorizationsProvider(auths.split(",").filter(_.nonEmpty))))
+              testQuery(storage, sft)(filter, transforms, expected.filter(isVisible))
+            }
+          }
         }
       }
     }

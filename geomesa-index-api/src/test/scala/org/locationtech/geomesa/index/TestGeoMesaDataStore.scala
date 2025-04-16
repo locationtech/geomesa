@@ -214,7 +214,7 @@ object TestGeoMesaDataStore {
 
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
-    override val authProvider = new DefaultAuthorizationsProvider()
+    override val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
     override val audit: Option[AuditWriter] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {

@@ -91,7 +91,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
       parallelPartitionScans = PartitionParallelScansParam.lookup(params)
     )
 
-    val authProvider = new DefaultAuthorizationsProvider()
+    val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 

@@ -17,6 +17,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.security.VisibilityUtils.IsVisible
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 
@@ -28,6 +29,7 @@ class ParquetPathReader(
     readSft: SimpleFeatureType,
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
+    visFilter: IsVisible,
     transform: Option[(String, SimpleFeatureType)]
   ) extends FileSystemPathReader with LazyLogging {
 
@@ -71,7 +73,7 @@ class ParquetPathReader(
         }
         if (read == null) {
           false
-        } else if (gtf == null || gtf.evaluate(read)) {
+        } else if (visFilter(read) && (gtf == null || gtf.evaluate(read))) {
           staged = if (transformFeature == null) { read } else { transformFeature(read) }
           true
         } else {

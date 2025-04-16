@@ -11,18 +11,12 @@ package org.locationtech.geomesa.security
 /**
  * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations
  */
-class DefaultAuthorizationsProvider extends AuthorizationsProvider {
+class DefaultAuthorizationsProvider(authorizations: Seq[String]) extends AuthorizationsProvider {
 
-  private var authorizations: java.util.List[String] = new java.util.ArrayList[String]()
+  import scala.collection.JavaConverters._
 
-  override def getAuthorizations: java.util.List[String] = authorizations
+  private val asJava = authorizations.asJava
 
-  override def configure(params: java.util.Map[String, _]) {
-    val authString = AuthsParam.lookup(params)
-    if (authString == null || authString.isEmpty) {
-      authorizations = new java.util.ArrayList[String]()
-    } else {
-      authorizations = java.util.Arrays.asList(authString.split(","): _*)
-    }
-  }
+  override def getAuthorizations: java.util.List[String] = asJava
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 }
