@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,16 +13,18 @@ import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
-import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.{FeatureToFeatureConfig, FeatureToFeatureConfigConvert}
+import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.{FeatureToFeatureConfig, FeatureToFeatureConfigConvert, SftLookupVisitor}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.transforms.Expression._
+import org.locationtech.geomesa.convert2.transforms.ExpressionVisitor.ExpressionTreeVisitor
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigSource}
 
 import java.io.InputStream
-import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Try}
 
 class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
 
@@ -59,12 +61,15 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
       }
 
       // add transform expressions to look up the attribute
+      val visitor = new SftLookupVisitor(inputSft)
       val columns = fields.map { field =>
-        field.transforms match {
-          case None => field.copy(transforms = Some(Expression.Column(inputSft.indexOf(field.name))))
-          case Some(Expression.FieldLookup(n, _)) => field.copy(transforms = Some(Expression.Column(inputSft.indexOf(n))))
-          case _ => field
+        val transforms = field.transforms match {
+          case Some(transforms) => Some(transforms.accept(visitor))
+          case None =>
+            val i = inputSft.indexOf(field.name)
+            if (i == -1) { None } else { Some(Expression.Column(i)) }
         }
+        field.copy(transforms = transforms)
       }
 
       // any matching fields that aren't explicitly defined will be copied over by default
@@ -119,5 +124,17 @@ object FeatureToFeatureConverterFactory {
 
     override protected def encodeConfig(config: FeatureToFeatureConfig, base: java.util.Map[String, AnyRef]): Unit =
       base.put(InputSftPath, config.inputSft)
+  }
+
+  /**
+   * Replaces field name lookups with column lookups referencing the input sft
+   *
+   * @param sft input sft
+   */
+  private class SftLookupVisitor(sft: SimpleFeatureType) extends ExpressionTreeVisitor {
+    override def visit(e: FieldLookup): Expression = {
+      val i = sft.indexOf(e.n)
+      if (i == -1) { e } else { Expression.Column(i) }
+    }
   }
 }

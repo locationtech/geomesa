@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -109,7 +109,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.ConsumerCount,
       KafkaDataStoreParams.ConsumerGroupPrefix,
       KafkaDataStoreParams.ConsumerConfig,
-      KafkaDataStoreParams.ConsumerOffsetCommitIntervalMs,
+      KafkaDataStoreParams.ConsumerOffsetCommitInterval,
       KafkaDataStoreParams.ConsumerReadBack,
       KafkaDataStoreParams.CacheExpiry,
       KafkaDataStoreParams.DynamicCacheExpiry,
@@ -152,8 +152,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
       val props = ConsumerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
       val readBack = ConsumerReadBack.lookupOpt(params)
-      val offsetCommitIntervalMs = ConsumerOffsetCommitIntervalMs.lookupOpt(params).map(_.toLong)
-      KafkaDataStore.ConsumerConfig(count, prefix, props, readBack, offsetCommitIntervalMs)
+      val offsetCommitInterval = ConsumerOffsetCommitInterval.lookup(params)
+      KafkaDataStore.ConsumerConfig(count, prefix, props, readBack, offsetCommitInterval)
     }
 
     val producers = {

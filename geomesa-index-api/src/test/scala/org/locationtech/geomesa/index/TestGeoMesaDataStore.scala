@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -219,7 +219,7 @@ object TestGeoMesaDataStore {
 
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
-    override val authProvider = new DefaultAuthorizationsProvider()
+    override val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
     override val audit: Option[AuditWriter] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,8 +7,6 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.text
-
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 
 import java.time._
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
@@ -129,7 +127,7 @@ object DateParsing {
   def format(value: ZonedDateTime, format: DateTimeFormatter = format): String = value.format(format)
 
   def formatDate(value: Date, format: DateTimeFormatter = format): String =
-    ZonedDateTime.ofInstant(toInstant(value), ZoneOffset.UTC).format(format)
+    ZonedDateTime.ofInstant(value.toInstant, ZoneOffset.UTC).format(format)
 
   def formatInstant(value: Instant, format: DateTimeFormatter = format): String =
     ZonedDateTime.ofInstant(value, ZoneOffset.UTC).format(format)

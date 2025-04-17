@@ -17,6 +17,9 @@ tutorial requires the GeoMesa Kafka and HBase NARs, as well as the standard GeoM
 
 Add and Configure the Processors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. note::
+
+  These instructions are for NiFi 1.x - in NiFi 2.x the screens and buttons will be slightly different.
 
 The first step is to add two processors to your flow, a ``GetGeoMesaKafkaRecord`` processor and an
 ``AvroToPutGeoMesa`` processor. Connect the output of the ``Get`` processor to the input of the ``Put``

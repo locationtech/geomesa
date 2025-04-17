@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,12 +18,12 @@ import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
+import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
@@ -68,7 +68,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
     val hints = strategy.hints
 
     val reducer = {
-      val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
+      val visible = Some(VisibilityUtils.visible(Some(ds.config.authProvider)))
       Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints))
     }
 

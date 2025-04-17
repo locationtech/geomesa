@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,9 +13,10 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.format.converter.ParquetMetadataConverter
 import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.schema.LogicalTypeAnnotation._
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
-import org.apache.parquet.schema.{MessageType, OriginalType, Type}
+import org.apache.parquet.schema.{LogicalTypeAnnotation, MessageType, Type}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -24,6 +25,7 @@ import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, Infer
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.io.PathUtils
 
@@ -63,7 +65,7 @@ class ParquetConverterFactory
         // note: get the path as a URI so that we handle local files appropriately
         val filePath = new Path(PathUtils.getUrl(p).toURI)
         val footer = ParquetFileReader.readFooter(new Configuration(), filePath, ParquetMetadataConverter.NO_FILTER)
-        val (schema, fields, id) = SimpleFeatureParquetSchema.read(footer.getFileMetaData) match {
+        val (schema, fields, id, userData) = SimpleFeatureParquetSchema.read(footer.getFileMetaData) match {
           case Some(parquet) =>
             // this is a geomesa encoded parquet file
             val fields = parquet.sft.getAttributeDescriptors.asScala.map { descriptor =>
@@ -84,12 +86,18 @@ class ParquetConverterFactory
               BasicField(descriptor.getLocalName, Some(Expression(expression)))
             }
             val id = Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.FeatureIdField}')")
+            val userData =
+              if (parquet.hasVisibilities) {
+                Map(SecurityUtils.FEATURE_VISIBILITY -> Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.VisibilitiesField}')"))
+              } else {
+                Map.empty[String, Expression]
+              }
 
             // validate the existing schema, if any
             if (sft.exists(_.getAttributeDescriptors.asScala != parquet.sft.getAttributeDescriptors.asScala)) {
               throw new IllegalArgumentException("Inferred schema does not match existing schema")
             }
-            (parquet.sft, fields, Some(id))
+            (parquet.sft, fields, Some(id), userData)
 
           case _ =>
             // this is an arbitrary parquet file, create fields based on the schema
@@ -101,10 +109,10 @@ class ParquetConverterFactory
             // validate the existing schema, if any
             sft.foreach(AbstractConverterFactory.validateInferredType(_, types.map(_.typed)))
 
-            (dataSft, fields, None)
+            (dataSft, fields, None, Map.empty[String, Expression])
         }
 
-        val converterConfig = BasicConfig(typeToProcess, id, Map.empty, Map.empty)
+        val converterConfig = BasicConfig(typeToProcess, id, Map.empty, userData)
 
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields.toSeq))
@@ -129,7 +137,7 @@ object ParquetConverterFactory {
     * @param schema avro schema
     * @return
     */
-  def schemaTypes(schema: MessageType): Seq[InferredType] = {
+  private def schemaTypes(schema: MessageType): Seq[InferredType] = {
     val namer = new Namer()
     val types = scala.collection.mutable.ArrayBuffer.empty[InferredType]
 
@@ -138,27 +146,26 @@ object ParquetConverterFactory {
       val name = namer(field.getName)
       val transform = FunctionTransform("avroPath(", s",'$path/${field.getName}')")
 
-      val original = field.getOriginalType
+      val logical = field.getLogicalTypeAnnotation
       if (field.isPrimitive) {
         // note: date field transforms are handled by AvroReadSupport
-        lazy val int32: InferredType = original match {
-          case OriginalType.DATE => InferredType(name, ObjectType.DATE, transform)
+        lazy val intOrDate: InferredType = logical match {
+          case _: DateLogicalTypeAnnotation => InferredType(name, ObjectType.DATE, transform)
           case _ => InferredType(name, ObjectType.INT, transform)
         }
-        lazy val int64: InferredType = original match {
-          case OriginalType.TIMESTAMP_MILLIS => InferredType(name, ObjectType.DATE, transform)
-          case OriginalType.TIMESTAMP_MICROS => InferredType(name, ObjectType.DATE, transform)
+        lazy val longOrTimestamp: InferredType = logical match {
+          case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MILLIS => InferredType(name, ObjectType.DATE, transform)
+          case t: TimestampLogicalTypeAnnotation if t.getUnit == LogicalTypeAnnotation.TimeUnit.MICROS => InferredType(name, ObjectType.DATE, transform)
           case _ => InferredType(name, ObjectType.LONG, transform)
         }
-        lazy val binary: InferredType = original match {
-          case OriginalType.UTF8 => InferredType(name, ObjectType.STRING, transform)
+        lazy val stringOrBytes: InferredType = logical match {
+          case _: StringLogicalTypeAnnotation => InferredType(name, ObjectType.STRING, transform)
           case _ => InferredType(name, ObjectType.BYTES, transform)
         }
-
         field.asPrimitiveType().getPrimitiveTypeName match {
-          case PrimitiveTypeName.BINARY               => types += binary
-          case PrimitiveTypeName.INT32                => types += int32
-          case PrimitiveTypeName.INT64                => types += int64
+          case PrimitiveTypeName.BINARY               => types += stringOrBytes
+          case PrimitiveTypeName.INT32                => types += intOrDate
+          case PrimitiveTypeName.INT64                => types += longOrTimestamp
           case PrimitiveTypeName.FLOAT                => types += InferredType(name, ObjectType.FLOAT, transform)
           case PrimitiveTypeName.DOUBLE               => types += InferredType(name, ObjectType.DOUBLE, transform)
           case PrimitiveTypeName.BOOLEAN              => types += InferredType(name, ObjectType.BOOLEAN, transform)
@@ -167,8 +174,8 @@ object ParquetConverterFactory {
         }
       } else {
         val group = field.asGroupType()
-        original match {
-          case OriginalType.LIST =>
+        logical match {
+          case _: ListLogicalTypeAnnotation =>
             if (group.getFieldCount == 1 && !group.getType(0).isPrimitive) {
               val list = group.getType(0).asGroupType()
               if (list.getFieldCount == 1 && list.isRepetition(Repetition.REPEATED) && list.getType(0).isPrimitive) {
@@ -176,7 +183,7 @@ object ParquetConverterFactory {
               }
             }
 
-          case OriginalType.MAP =>
+          case _: MapLogicalTypeAnnotation =>
             if (group.getFieldCount == 1 && !group.getType(0).isPrimitive) {
               val map = group.getType(0).asGroupType()
               if (map.getFieldCount == 2 && map.isRepetition(Repetition.REPEATED) &&

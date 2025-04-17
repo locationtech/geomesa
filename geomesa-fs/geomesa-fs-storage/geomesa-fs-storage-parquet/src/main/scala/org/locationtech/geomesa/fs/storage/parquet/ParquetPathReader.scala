@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,6 +17,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.security.VisibilityUtils.IsVisible
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 
@@ -28,6 +29,7 @@ class ParquetPathReader(
     readSft: SimpleFeatureType,
     parquetFilter: FilterCompat.Filter,
     gtFilter: Option[org.geotools.api.filter.Filter],
+    visFilter: IsVisible,
     transform: Option[(String, SimpleFeatureType)]
   ) extends FileSystemPathReader with LazyLogging {
 
@@ -48,7 +50,7 @@ class ParquetPathReader(
   private class ParquetFileIterator(path: Path) extends CloseableIterator[SimpleFeature] {
 
     private val reader: ParquetReader[SimpleFeature] =
-      ParquetReader.builder(new SimpleFeatureReadSupport, path).withFilter(parquetFilter).withConf(conf).build()
+      ParquetReader.builder(new SimpleFeatureReadSupport, path).withConf(conf).withFilter(parquetFilter).build()
 
     private var staged: SimpleFeature = _
 
@@ -71,7 +73,7 @@ class ParquetPathReader(
         }
         if (read == null) {
           false
-        } else if (gtf == null || gtf.evaluate(read)) {
+        } else if (visFilter(read) && (gtf == null || gtf.evaluate(read))) {
           staged = if (transformFeature == null) { read } else { transformFeature(read) }
           true
         } else {

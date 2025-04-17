@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,10 +16,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.slf4j.LoggerFactory
 import org.specs2.mutable.Specification
@@ -31,7 +30,6 @@ import org.testcontainers.utility.DockerImageName
 
 import java.io.{BufferedOutputStream, ByteArrayInputStream}
 import java.nio.charset.StandardCharsets
-import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class ConverterDataStoreTest extends Specification with BeforeAfterAll {
@@ -111,20 +109,22 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
     }
 
     "work with something else" >> {
-      val ds = DataStoreFinder.getDataStore(Map(
+      val params = Map(
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore2")
-      ).asJava)
-      ds must not(beNull)
+      )
+      WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+        ds must not(beNull)
 
-      val types = ds.getTypeNames
-      types must haveSize(1)
-      types.head mustEqual "fs-test"
+        val types = ds.getTypeNames
+        types must haveSize(1)
+        types.head mustEqual "fs-test"
 
-      val q = new Query("fs-test", Filter.INCLUDE)
-      val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
-      feats must haveLength(4)
+        val q = new Query("fs-test", Filter.INCLUDE)
+        val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        feats must haveLength(4)
+      }
     }
 
     "read tar.gz files from s3 storage" >> {
@@ -137,6 +137,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
           prop("fs.s3a.secret.key", minio.getPassword),
           prop("fs.s3a.path.style.access", "true"),
           prop("dfs.client.use.datanode.hostname", "true"),
+          prop("fs.s3a.connection.maximum", "20") // reduce connection pool size to show resource leaks quickly
         ).mkString("\n")
         fsConfig(props, "datastore1")
       }
@@ -151,40 +152,45 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
       Seq("00", "15", "30", "45").foreach { file =>
         val path = s"datastore1/2017/001/01/$file"
         val contents = WithClose(getClass.getClassLoader.getResourceAsStream(s"example/$path"))(IOUtils.toByteArray)
-        WithClose(fc.create(new Path(s"$bucket$path.tgz"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
-          WithClose(new BufferedOutputStream(os)) { buf =>
-            WithClose(new GzipCompressorOutputStream(buf)) { gz =>
-              WithClose(new TarArchiveOutputStream(gz)) { tar =>
-                val entry = new TarArchiveEntry(file)
-                entry.setSize(contents.length * multiplier)
-                tar.putArchiveEntry(entry)
-                var i = 0
-                while (i < multiplier) {
-                  tar.write(contents)
-                  i += 1
-                }
-                tar.closeArchiveEntry()
-                tar.finish()
-              }
-            }
-          }
-        }
+        writePlain(fc, s"$bucket$path", contents, multiplier)
+        writePlainGz(fc, s"$bucket$path", contents, multiplier)
+        writeTarGz(fc, s"$bucket$path", contents, multiplier)
       }
 
-      val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"         -> bucket,
-        "fs.encoding"     -> "converter",
-        "fs.config.xml"   -> config,
-      ).asJava)
-      ds must not(beNull)
+      foreach(Seq(("100 millis", true), ("60 seconds", false))) { case (timeout, expectTimeout) =>
+        val params = Map(
+          "fs.path"               -> bucket,
+          "fs.encoding"           -> "converter",
+          "fs.config.xml"         -> config,
+          "fs.read-threads"       -> "12",
+          "geomesa.query.timeout" -> timeout,
+        )
+        WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+          ds must not(beNull)
 
-      val types = ds.getTypeNames
-      types must haveSize(1)
-      types.head mustEqual "fs-test"
+          val types = ds.getTypeNames
+          types must haveSize(1)
+          types.head mustEqual "fs-test"
 
-      val q = new Query("fs-test", Filter.INCLUDE)
-      val count = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).length
-      count mustEqual multiplier * 4
+          var i = 0
+          while (i < 5) {
+            i += 1
+            val count = try {
+              val q = new Query("fs-test", Filter.INCLUDE)
+              val iter = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT))
+              try { iter.length } finally { iter.close() }
+            } catch {
+              case _: RuntimeException => -1
+            }
+            if (expectTimeout) {
+              count mustEqual -1
+            } else {
+              count mustEqual multiplier * 12
+            }
+          }
+          ok
+        }
+      }
     }
 
     "load sft as a string" >> {
@@ -221,25 +227,69 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
         """.stripMargin
       ).root().render(ConfigRenderOptions.concise)
 
-      val ds = DataStoreFinder.getDataStore(Map(
+      val params = Map(
         "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
         "fs.encoding"   -> "converter",
         "fs.config.xml" -> fsConfig(sftByConf(conf), "datastore1")
-      ).asJava)
+      )
+      WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
+        ds must not(beNull)
 
-      ds must not(beNull)
+        val types = ds.getTypeNames
+        types must haveSize(1)
+        types.head mustEqual "fs-test"
 
-      val types = ds.getTypeNames
-      types must haveSize(1)
-      types.head mustEqual "fs-test"
-
-      val q = new Query("fs-test", Filter.INCLUDE)
-      val fr = ds.getFeatureReader(q, Transaction.AUTO_COMMIT)
-      val feats = mutable.ListBuffer.empty[SimpleFeature]
-      while (fr.hasNext) {
-        feats += fr.next()
+        val q = new Query("fs-test", Filter.INCLUDE)
+        val feats = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        feats must haveSize(4)
       }
-      feats.size mustEqual 4
+    }
+  }
+
+  private def writePlain(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fc.create(new Path(path), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+      WithClose(new BufferedOutputStream(os)) { buf =>
+        var i = 0
+        while (i < multiplier) {
+          buf.write(contents)
+          i += 1
+        }
+      }
+    }
+  }
+
+  private def writePlainGz(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fc.create(new Path(s"$path.gz"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+      WithClose(new BufferedOutputStream(os)) { buf =>
+        WithClose(new GzipCompressorOutputStream(buf)) { gz =>
+          var i = 0
+          while (i < multiplier) {
+            gz.write(contents)
+            i += 1
+          }
+        }
+      }
+    }
+  }
+
+  private def writeTarGz(fc: FileContext, path: String, contents: Array[Byte], multiplier: Int): Unit = {
+    WithClose(fc.create(new Path(s"$path.tgz"), java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent())) { os =>
+      WithClose(new BufferedOutputStream(os)) { buf =>
+        WithClose(new GzipCompressorOutputStream(buf)) { gz =>
+          WithClose(new TarArchiveOutputStream(gz)) { tar =>
+            val entry = new TarArchiveEntry("file")
+            entry.setSize(contents.length * multiplier)
+            tar.putArchiveEntry(entry)
+            var i = 0
+            while (i < multiplier) {
+              tar.write(contents)
+              i += 1
+            }
+            tar.closeArchiveEntry()
+            tar.finish()
+          }
+        }
+      }
     }
   }
 }

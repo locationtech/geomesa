@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,7 +19,6 @@ import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.IntervalConverter
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 
@@ -100,7 +99,7 @@ object ManagePartitionsCommand {
       }
       val (start, end) = {
         val (s, e) = new IntervalConverter("value").convert(params.value)
-        (ZonedDateTime.ofInstant(toInstant(s), ZoneOffset.UTC), ZonedDateTime.ofInstant(toInstant(e), ZoneOffset.UTC))
+        (ZonedDateTime.ofInstant(s.toInstant, ZoneOffset.UTC), ZonedDateTime.ofInstant(e.toInstant, ZoneOffset.UTC))
       }
       val tables = params.tables.asScala
 

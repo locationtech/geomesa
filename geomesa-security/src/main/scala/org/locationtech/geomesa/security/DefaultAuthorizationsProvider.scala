@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,18 +11,12 @@ package org.locationtech.geomesa.security
 /**
  * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations
  */
-class DefaultAuthorizationsProvider extends AuthorizationsProvider {
+class DefaultAuthorizationsProvider(authorizations: Seq[String]) extends AuthorizationsProvider {
 
-  private var authorizations: java.util.List[String] = new java.util.ArrayList[String]()
+  import scala.collection.JavaConverters._
 
-  override def getAuthorizations: java.util.List[String] = authorizations
+  private val asJava = authorizations.asJava
 
-  override def configure(params: java.util.Map[String, _]) {
-    val authString = AuthsParam.lookup(params)
-    if (authString == null || authString.isEmpty) {
-      authorizations = new java.util.ArrayList[String]()
-    } else {
-      authorizations = java.util.Arrays.asList(authString.split(","): _*)
-    }
-  }
+  override def getAuthorizations: java.util.List[String] = asJava
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 }

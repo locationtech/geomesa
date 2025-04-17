@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Properties}
 
@@ -65,7 +66,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
         }
 
         WithClose(newStore(), newStore()) { (store1, store2) =>
@@ -97,7 +98,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
@@ -138,7 +139,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
@@ -200,7 +201,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s"))))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)

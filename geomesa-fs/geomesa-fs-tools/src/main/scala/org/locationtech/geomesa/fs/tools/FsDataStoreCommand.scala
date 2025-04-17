@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -63,12 +63,16 @@ object FsDataStoreCommand {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
     var path: String = _
 
-    @Parameter(names = Array("--config"), description = "Configuration properties, in the form k=v", variableArity = true)
+    @Parameter(
+      names = Array("--config"),
+      description = "Configuration properties, in the form k=v",
+      converter = classOf[KeyValueConverter],
+      splitter = classOf[NoopParameterSplitter])
     var configuration: java.util.List[String] = _
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)", variableArity = true)
+    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)")
     var partitions: java.util.List[String] = new util.ArrayList[String]()
   }
 
@@ -90,7 +94,6 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--storage-opt"),
       description = "Additional storage options to set as SimpleFeatureType user data, in the form key=value",
-      variableArity = true,
       converter = classOf[KeyValueConverter],
       splitter = classOf[NoopParameterSplitter])
     var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()

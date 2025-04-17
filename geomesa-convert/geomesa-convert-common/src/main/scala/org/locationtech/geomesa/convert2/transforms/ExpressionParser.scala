@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.StrictLogging
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Expression._
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, ParsingException}
@@ -40,8 +39,6 @@ private [transforms] class ExpressionParser extends BasicParser {
 
   import org.parboiled.scala._
 
-  implicit private val ec: EvaluationContext = EvaluationContext.empty
-
   // full expression
   def expression: Rule1[Expression] = rule("expression") { expr ~ EOI }
 
@@ -54,7 +51,7 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def nonCast: Rule1[Expression] = rule {
-    tryFunction | function | column | field | literal
+    tryFunction | withDefaultFunction | function | column | field | literal
   }
 
   private def literal: Rule1[Expression] = rule("literal") {
@@ -72,6 +69,12 @@ private [transforms] class ExpressionParser extends BasicParser {
 
   private def tryFunction: Rule1[Expression] = rule("try") {
     ("try" ~ whitespace ~ "(" ~ expr ~ "," ~ expr ~ ")") ~~> { (primary, fallback) => TryExpression(primary, fallback) }
+  }
+
+  private def withDefaultFunction: Rule1[Expression] = rule("withDefault") {
+    ("withDefault" ~ whitespace ~ "(" ~ expr ~ "," ~ oneOrMore(expr, ",") ~ ")") ~~> {
+      (primary, fallback) => WithDefaultExpression(Seq(primary) ++ fallback)
+    }
   }
 
   private def function: Rule1[Expression] = rule("function") {

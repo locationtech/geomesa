@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -33,22 +33,6 @@ class MiscFunctionFactoryTest extends Specification {
       "throw an error if faced with a non-int value" >> {
         MiscFunctionFactory.intToBoolean(Array(Double.box(0.55567))) must throwA[ClassCastException]
         MiscFunctionFactory.intToBoolean(Array("0")) must throwA[ClassCastException]
-      }
-    }
-
-    "withDefault" should {
-      "return the first argument, if it's not null" >> {
-        MiscFunctionFactory.withDefault(Array("a", Int.box(1))) mustEqual "a"
-      }
-      "return the default if the first argument is null" >> {
-        MiscFunctionFactory.withDefault(Array(null, Int.box(1))) mustEqual 1
-      }
-      "return the first non-null argument" >> {
-        MiscFunctionFactory.withDefault(Array("a", "b", "c", "d")) mustEqual "a"
-        MiscFunctionFactory.withDefault(Array(null, "b", "c", "d")) mustEqual "b"
-        MiscFunctionFactory.withDefault(Array(null, null, "c", "d")) mustEqual "c"
-        MiscFunctionFactory.withDefault(Array(null, null, null, "d")) mustEqual "d"
-        MiscFunctionFactory.withDefault(Array(null, null, null, null)) must beNull
       }
     }
 

@@ -58,8 +58,8 @@
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <!-- geotools -->
-        <gt.version>32.1</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.26.1</geoserver.version>
+        <gt.version>33.0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.27.0</geoserver.version>
         <jts.version>1.20.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
@@ -95,7 +95,7 @@
         <orc.version>1.9.5</orc.version>
         <parboiled.version>1.4.1</parboiled.version>
         <parboiled.scala.version>1.3.1</parboiled.scala.version>
-        <parquet.version>1.13.1</parquet.version>
+        <parquet.version>1.15.1</parquet.version>
         <postgres.version>42.7.2</postgres.version>
         <prometheus.version>1.3.1</prometheus.version>
         <pureconfig.version>0.17.4</pureconfig.version>
@@ -135,16 +135,17 @@
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.4.1</hadoop.version>
-        <spark.version>3.5.0</spark.version>
+        <spark.version>3.5.5</spark.version>
         <hbase.version>2.6.1-hadoop3</hbase.version>
         <hbase.hadoop.version>3.4.1</hbase.hadoop.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
-        <protobuf.version>3.25.3</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
-        <cassandra.version>3.11.5</cassandra.version>
+        <protobuf.version>3.25.6</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
+        <cassandra.driver.version>3.11.5</cassandra.driver.version>
+        <cassandra.version>3.11.19</cassandra.version>
         <kafka.version>3.9.0</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
-        <confluent.protobuf.version>3.25.5</confluent.protobuf.version>
+        <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
         <sedona.version>1.5.0</sedona.version>
         <sedona.spark.version>3.4</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
@@ -177,7 +178,7 @@
         <maven.assembly.plugin.version>3.7.1</maven.assembly.plugin.version>
         <maven.shade.plugin.version>3.6.0</maven.shade.plugin.version>
         <!-- note: we use an older version that still supports using zinc compile server -->
-        <scala.maven.plugin.version>3.4.4</scala.maven.plugin.version>
+        <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
         <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
         <maven.deploy.plugin.version>3.1.3</maven.deploy.plugin.version>
@@ -200,6 +201,8 @@
         <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
+        <test.includes>**/*Test.java</test.includes>
+        <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.accumulo.docker.tag>2.1.3</test.accumulo.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
@@ -211,7 +214,7 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>5.2.0</geomesa.release.version>
+        <geomesa.release.version>5.2.2</geomesa.release.version>
         <geomesa.devel.version>5.3.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2025</copyright.year>
 
@@ -219,8 +222,8 @@
         <accumulo.version.recommended>${accumulo.version}</accumulo.version.recommended>
         <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>4.1.9</hbase.thirdparty.version.recommended>
-        <cassandra.server.version.recommended>3.11.14</cassandra.server.version.recommended>
-        <cassandra.driver.version.recommended>${cassandra.version}</cassandra.driver.version.recommended>
+        <cassandra.server.version.recommended>${cassandra.version}</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>${cassandra.driver.version}</cassandra.driver.version.recommended>
         <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
         <zookeeper.version.recommended>${zookeeper.version}</zookeeper.version.recommended>
         <confluent.version.recommended>7.8.0</confluent.version.recommended>
@@ -306,6 +309,26 @@
                                 <goals>
                                     <goal>makeBom</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-java-version</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <!-- ensure that we're using the expected jdk when we release to central -->
+                                        <requireJavaVersion>
+                                            <version>[${jdk.version},${jdk.version}.1)</version>
+                                        </requireJavaVersion>
+                                    </rules>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -2517,13 +2540,13 @@
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-core</artifactId>
-                <version>${cassandra.version}</version>
+                <version>${cassandra.driver.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.datastax.cassandra</groupId>
                 <artifactId>cassandra-driver-mapping</artifactId>
-                <version>${cassandra.version}</version>
+                <version>${cassandra.driver.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -3140,8 +3163,12 @@
                         <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
-                            <include>**/*Test.java</include>
+                            <include>${test.includes}</include>
                         </includes>
+                        <excludes>
+                            <exclude>**/*IT.java</exclude>
+                            <exclude>${test.excludes}</exclude>
+                        </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                         <systemPropertyVariables>
                             <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
@@ -3151,9 +3178,6 @@
                             <user.region>US</user.region>
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
                             <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
-                            <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
-                                 We need to disable it for the mini clusters to work in unit tests -->
-                            <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
@@ -3184,11 +3208,6 @@
                         <argLine>${maven.test.opens}</argLine>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
-                        <systemProperties>
-                            <!-- ZooKeeper uses a JMX feature of log4j that reload4j doesn't support.
-                                 We need to disable it for the mini clusters to work in unit tests -->
-                            <zookeeper.jmx.log4j.disable>true</zookeeper.jmx.log4j.disable>
-                        </systemProperties>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -3267,20 +3286,20 @@
                     <configuration>
                         <properties>
                             <year>${copyright.year}</year>
-                            <owner>Commonwealth Computer Research, Inc.</owner>
+                            <owner>General Atomics Integrated Intelligence, Inc.</owner>
                         </properties>
                         <licenseSets>
                             <licenseSet>
-                                <header>build/copyright/ccri.txt</header>
+                                <header>build/copyright/gai3.txt</header>
                                 <validHeaders>
-                                    <validHeader>build/copyright/ccri-azavea.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-dstl.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-dstl-mitre.txt</validHeader>
                                     <validHeader>build/copyright/dstl.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-azavea.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-dstl-mitre.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-dstl.txt</validHeader>
+                                    <validHeader>build/copyright/gai3-mitre.txt</validHeader>
+                                    <validHeader>build/copyright/ibm-gai3.txt</validHeader>
                                     <validHeader>build/copyright/ibm.txt</validHeader>
-                                    <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                                     <validHeader>build/copyright/mitre.txt</validHeader>
-                                    <validHeader>build/copyright/ccri-mitre.txt</validHeader>
                                 </validHeaders>
                                 <includes>
                                     <include>src/main/java/**</include>

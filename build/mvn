@@ -67,7 +67,7 @@ install_mvn() {
   local MVN_VERSION="3.8.4"
 
   install_app \
-    "http://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries" \
+    "https://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries" \
     "apache-maven-${MVN_VERSION}-bin.tar.gz" \
     "apache-maven-${MVN_VERSION}/bin/mvn"
 
@@ -80,7 +80,7 @@ install_zinc() {
   local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \
-    "http://downloads.typesafe.com/zinc/${ZINC_VERSION}" \
+    "https://downloads.typesafe.com/zinc/${ZINC_VERSION}" \
     "zinc-${ZINC_VERSION}.tgz" \
     "${zinc_path}"
   ZINC_BIN="${_DIR}/${zinc_path}"

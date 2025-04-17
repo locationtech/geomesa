@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -97,7 +97,7 @@ object ObjectType extends Enumeration {
   }
 
   private def mapType(metadata: jMap[_, _]): Seq[ObjectType] = {
-    val keyClass   = Class.forName(metadata.get(UserDataMapKeyType).asInstanceOf[String])
+    val keyClass = Class.forName(metadata.get(UserDataMapKeyType).asInstanceOf[String])
     val keyType = selectType(keyClass) match {
       case Seq(binding) => binding
       case _ => throw new IllegalArgumentException(s"Can't serialize map key type of ${keyClass.getName}")

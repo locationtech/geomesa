@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,7 +13,6 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
@@ -60,7 +59,7 @@ case class DateTimeScheme(
   override val depth: Int = pattern.count(_ == '/') + 1
 
   override def getPartitionName(feature: SimpleFeature): String =
-    formatter.format(toInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date]).atZone(ZoneOffset.UTC))
+    formatter.format(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
     getCoveringPartitions(filter).map { case (covered, intersecting) =>

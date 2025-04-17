@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,7 +12,6 @@ import com.google.gson._
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
@@ -151,7 +150,7 @@ object Stat {
   }
   private val DateSerializer = new JsonSerializer[Date] {
     def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
-      new JsonPrimitive(GeoToolsDateFormat.format(toInstant(d)))
+      new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
   }
   private val DoubleSerializer = new JsonSerializer[jDouble]() {
     def serialize(double: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = double match {
@@ -343,7 +342,7 @@ object Stat {
     val toString: Any => String = if (classOf[Geometry].isAssignableFrom(clas)) {
       v => WKTUtils.write(v.asInstanceOf[Geometry])
     } else if (classOf[Date].isAssignableFrom(clas)) {
-      v => GeoToolsDateFormat.format(toInstant(v.asInstanceOf[Date]))
+      v => GeoToolsDateFormat.format(v.asInstanceOf[Date].toInstant)
     } else {
       v => v.toString
     }

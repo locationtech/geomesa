@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -29,7 +29,7 @@ class UsageStatReaderTest extends Specification {
 
   lazy val client = AccumuloContainer.Container.client()
   lazy val writer = new AccumuloAuditWriter(client, "UsageStatReaderTest_queries", new ParamsAuditProvider, enabled = true)
-  lazy val reader = new AccumuloAuditReader(client, writer.table, new DefaultAuthorizationsProvider())
+  lazy val reader = new AccumuloAuditReader(client, writer.table, new DefaultAuthorizationsProvider(Seq.empty))
 
   step {
     writer.writeQueryEvent(featureName, "root", ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), Seq.empty,

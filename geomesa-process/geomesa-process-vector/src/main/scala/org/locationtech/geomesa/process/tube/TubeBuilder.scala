@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,7 +15,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -240,10 +239,10 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
         //If the distance between points is greater than the buffer distance, segment the line
         //So that no segment is larger than the buffer. This ensures that each segment has an
         //times and distance. Also ensure that features do not share a time value.
-        val timeDiffMillis = toInstant(t2).toEpochMilli - toInstant(t1).toEpochMilli
+        val timeDiffMillis = t2.getTime - t1.getTime
         val segCount = (dist / bufferDistance).toInt
         val segDuration = timeDiffMillis / segCount
-        val timeSteps = NumericRange.inclusive(toInstant(t1).toEpochMilli, toInstant(t2).toEpochMilli, segDuration)
+        val timeSteps = NumericRange.inclusive(t1.getTime, t2.getTime, segDuration)
         if (dist > bufferDistance && timeSteps.lengthCompare(1) > 0) {
           val heading = calc.getAzimuth
           var segStep = new Coordinate(p1.getX, p1.getY, 0)

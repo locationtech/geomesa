@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -238,7 +238,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     val path = new Path(PathUtils.getUrl(file).toURI)
     val conf = new Configuration()
     StorageConfiguration.setSft(conf, sft)
-    WithClose(new ParquetPathReader(conf, sft, FilterCompat.NOOP, None, None).read(path)) { iter =>
+    WithClose(new ParquetPathReader(conf, sft, FilterCompat.NOOP, None, _ => true, None).read(path)) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }

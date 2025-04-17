@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,12 +9,14 @@
 package org.locationtech.geomesa.fs.storage.parquet.io
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.api.WriteSupport.{FinalizedWriteContext, WriteContext}
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.geotools.api.feature.`type`.AttributeDescriptor
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema.GeoParquetMetadata.GeoParquetObserver
+import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.GeoParquetObserver
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -38,10 +40,20 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
     val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from write context")
     }
-    this.writer = SimpleFeatureWriteSupport.SimpleFeatureWriter(schema.sft)
+    init(schema)
+  }
+
+  override def init(conf: ParquetConfiguration): WriteContext = {
+    val schema = SimpleFeatureParquetSchema.write(conf).getOrElse {
+      throw new IllegalArgumentException("Could not extract SimpleFeatureType from write context")
+    }
+    init(schema)
+  }
+
+  private def init(schema: SimpleFeatureParquetSchema): WriteContext = {
+    this.writer = SimpleFeatureWriteSupport.SimpleFeatureWriter(schema)
     this.geoParquetObserver = new GeoParquetObserver(schema.sft)
     this.baseMetadata = schema.metadata
-
     new WriteContext(schema.schema, schema.metadata)
   }
 
@@ -69,9 +81,10 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
 
 object SimpleFeatureWriteSupport {
 
-  class SimpleFeatureWriter(attributes: Array[AttributeWriter[AnyRef]]) {
+  class SimpleFeatureWriter(attributes: Array[AttributeWriter[AnyRef]], includeVisibilities: Boolean) {
 
     private val fids = new FidWriter(attributes.length) // put the ID at the end of the record
+    private val vis = new VisibilityWriter(attributes.length + 1)
 
     def write(consumer: RecordConsumer, value: SimpleFeature): Unit = {
       consumer.startMessage()
@@ -81,14 +94,17 @@ object SimpleFeatureWriteSupport {
         i += 1
       }
       fids.apply(consumer, value.getID)
+      if (includeVisibilities) {
+        vis.apply(consumer, SecurityUtils.getVisibility(value))
+      }
       consumer.endMessage()
     }
   }
 
   object SimpleFeatureWriter {
-    def apply(sft: SimpleFeatureType): SimpleFeatureWriter = {
-      val attributes = Array.tabulate(sft.getAttributeCount)(i => attribute(sft.getDescriptor(i), i))
-      new SimpleFeatureWriter(attributes.asInstanceOf[Array[AttributeWriter[AnyRef]]])
+    def apply(schema: SimpleFeatureParquetSchema): SimpleFeatureWriter = {
+      val attributes = Array.tabulate(schema.sft.getAttributeCount)(i => attribute(schema.sft.getDescriptor(i), i))
+      new SimpleFeatureWriter(attributes.asInstanceOf[Array[AttributeWriter[AnyRef]]], schema.hasVisibilities)
     }
   }
 
@@ -152,6 +168,11 @@ object SimpleFeatureWriteSupport {
   }
 
   class FidWriter(index: Int) extends AttributeWriter[String](SimpleFeatureParquetSchema.FeatureIdField, index) {
+    override protected def write(consumer: RecordConsumer, value: String): Unit =
+      consumer.addBinary(Binary.fromString(value))
+  }
+
+  class VisibilityWriter(index: Int) extends AttributeWriter[String](SimpleFeatureParquetSchema.VisibilitiesField, index) {
     override protected def write(consumer: RecordConsumer, value: String): Unit =
       consumer.addBinary(Binary.fromString(value))
   }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -39,6 +39,14 @@ sealed trait Expression extends ContextDependent[Expression] {
     * @return
     */
   def children(): Seq[Expression] = Seq.empty
+
+  /**
+   * Visitor pattern for processing an expression tree
+   *
+   * @param visitor visitor
+   * @return
+   */
+  def accept[T](visitor: ExpressionVisitor[T]): T
 }
 
 object Expression {
@@ -69,6 +77,7 @@ object Expression {
     override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
     override def toString: String = String.valueOf(value)
+    override def accept[V](visitor: ExpressionVisitor[V]): V = visitor.visit(this)
   }
 
   case class LiteralString(value: String) extends Literal[String] {
@@ -110,6 +119,7 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToInt(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class CastToLong(e: Expression) extends CastExpression(e, "long") {
@@ -126,6 +136,7 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToLong(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class CastToFloat(e: Expression) extends CastExpression(e, "float") {
@@ -142,6 +153,7 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToFloat(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class CastToDouble(e: Expression) extends CastExpression(e, "double") {
@@ -158,6 +170,7 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToDouble(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class CastToBoolean(e: Expression) extends CastExpression(e, "boolean") {
@@ -173,6 +186,7 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToBoolean(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class CastToString(e: Expression) extends CastExpression(e, "string") {
@@ -187,12 +201,14 @@ object Expression {
       val ewc = e.withContext(ec)
       if (e.eq(ewc)) { this } else { CastToString(ewc) }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
   }
 
   case class Column(i: Int) extends Expression {
     override def apply(args: Array[_ <: AnyRef]): AnyRef = args(i)
     override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
     override def toString: String = s"$$$i"
   }
 
@@ -210,6 +226,7 @@ object Expression {
           }
       }
     }
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
     override def toString: String = s"$$$n"
   }
 
@@ -218,6 +235,7 @@ object Expression {
     override def apply(args: Array[_ <: AnyRef]): AnyRef = compiled
     override def withContext(ec: EvaluationContext): Expression = this
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
     override def toString: String = s"$s::r"
   }
 
@@ -265,6 +283,7 @@ object Expression {
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependencies(stack, fieldMap)).toSet
     override def children(): Seq[Expression] = arguments
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
     override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
   }
 
@@ -297,6 +316,49 @@ object Expression {
     override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependencies(stack, fieldMap) ++ fallback.dependencies(stack, fieldMap)
     override def children(): Seq[Expression] = Seq(toTry, fallback)
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
     override def toString: String = s"try($toTry,$fallback)"
+  }
+
+  case class WithDefaultExpression(expressions: Seq[Expression]) extends Expression {
+
+    require(expressions.lengthCompare(1) > 0)
+
+    @volatile private var contextDependent: Int = -1
+
+    private def this(expressions: Seq[Expression], contextDependent: Int) = {
+      this(expressions)
+      this.contextDependent = contextDependent
+    }
+
+    override def apply(args: Array[_ <: AnyRef]): AnyRef = {
+      expressions.foreach { e =>
+        val result = e.apply(args)
+        if (result != null) {
+          return result
+        }
+      }
+      null
+    }
+
+    override def withContext(ec: EvaluationContext): Expression = {
+      // this code is thread-safe, in that it will ensure correctness, but does not guarantee
+      // that the dependency check is only performed once
+      if (contextDependent == 0) { this } else {
+        lazy val ewc = expressions.map(_.withContext(ec))
+        if (contextDependent == 1) {
+          new WithDefaultExpression(ewc, 1)
+        } else {
+          contextDependent = if (ewc.zip(expressions).forall { case (e1, e2) => e1.eq(e2) }) { 0 } else { 1 }
+          if (contextDependent == 0) { this } else { new WithDefaultExpression(ewc, 1) }
+        }
+      }
+    }
+
+    override def dependencies(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
+      expressions.flatMap(_.dependencies(stack, fieldMap)).toSet
+    override def children(): Seq[Expression] = expressions
+    override def accept[T](visitor: ExpressionVisitor[T]): T = visitor.visit(this)
+    override def toString: String = s"withDefault(${expressions.mkString(",")})"
   }
 }

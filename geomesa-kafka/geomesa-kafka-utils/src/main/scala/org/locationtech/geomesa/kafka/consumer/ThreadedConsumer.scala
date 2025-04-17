@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,25 +9,27 @@
 package org.locationtech.geomesa.kafka.consumer
 
 import com.typesafe.scalalogging.Logger
-import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMetadata, OffsetCommitCallback}
+import org.apache.kafka.clients.consumer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.{ConsumerErrorHandler, LogOffsetCommitCallback}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 
 import java.time.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 
 abstract class ThreadedConsumer(
     consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
     frequency: Duration,
-    offsetCommitIntervalMs: Long,
+    offsetCommitInterval: FiniteDuration,
     closeConsumers: Boolean = true
   ) extends BaseThreadedConsumer(consumers) {
 
   import scala.collection.JavaConverters._
 
-  private val callback = new LogOffsetCommitCallback(logger)
+  private val offsetCommitIntervalMillis = offsetCommitInterval.toMillis
+  private val logOffsetCallback = new LogOffsetCommitCallback(logger)
 
   override protected def createConsumerRunnable(
       id: String,
@@ -45,31 +47,14 @@ abstract class ThreadedConsumer(
 
     lazy private val topics = consumer.subscription().asScala.mkString(", ")
 
-    private var lastOffsetCommitMs = System.currentTimeMillis()
+    private var lastOffsetCommit = System.currentTimeMillis()
 
     override def run(): Unit = {
       try {
         var interrupted = false
         while (isOpen && !interrupted) {
           try {
-            val result = KafkaConsumerVersions.poll(consumer, frequency)
-            lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
-            if (result.isEmpty) {
-              logger.trace(s"Consumer [$id] poll received 0 records")
-            } else {
-              logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
-              val records = result.iterator()
-              while (records.hasNext) {
-                consume(records.next())
-              }
-              logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
-              if (System.currentTimeMillis() - lastOffsetCommitMs > offsetCommitIntervalMs) {
-                logger.trace(s"Consumer [$id] committing offsets")
-                consumer.commitAsync()
-                lastOffsetCommitMs = System.currentTimeMillis()
-              }
-              errorCount = 0 // reset error count
-            }
+            processPoll(KafkaConsumerVersions.poll(consumer, frequency))
           } catch {
             case _: WakeupException | _: InterruptException | _: InterruptedException => interrupted = true
             case NonFatal(e) =>
@@ -89,6 +74,31 @@ abstract class ThreadedConsumer(
             case NonFatal(e) => logger.warn(s"Error calling close on consumer: ", e)
           }
         }
+      }
+    }
+
+    /**
+     * Process the results of a call to poll()
+     *
+     * @param result records
+     */
+    protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
+      if (result.isEmpty) {
+        logger.trace(s"Consumer [$id] poll received 0 records")
+      } else {
+        lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
+        logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
+        val records = result.iterator()
+        while (records.hasNext) {
+          consume(records.next())
+        }
+        logger.trace(s"Consumer [$id] finished processing ${result.count()} records from topic $topics")
+        if (System.currentTimeMillis() - lastOffsetCommit > offsetCommitIntervalMillis) {
+          logger.trace(s"Consumer [$id] committing offsets")
+          consumer.commitAsync(logOffsetCallback)
+          lastOffsetCommit = System.currentTimeMillis()
+        }
+        errorCount = 0 // reset error count
       }
     }
   }

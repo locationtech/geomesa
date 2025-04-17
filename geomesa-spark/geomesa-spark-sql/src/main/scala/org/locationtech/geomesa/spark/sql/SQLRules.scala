@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,7 +26,6 @@ import org.locationtech.geomesa.spark.haveSedona
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.sql.GeoMesaRelation.PartitionedIndexedRDD
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import java.time.{LocalDateTime, ZoneId, ZoneOffset}
@@ -143,7 +142,7 @@ object SQLRules extends LazyLogging {
       lazy val zone = c.timeZoneId.map(ZoneId.of).orNull
       sparkExprToGTExpr(c.child).map {
         case lit: GTLiteral if lit.getValue.isInstanceOf[Date] && zone != null =>
-          val date = LocalDateTime.ofInstant(toInstant(lit.getValue.asInstanceOf[Date]), zone)
+          val date = LocalDateTime.ofInstant(lit.getValue.asInstanceOf[Date].toInstant, zone)
           ff.literal(new Date(date.atZone(ZoneOffset.UTC).toInstant.toEpochMilli))
         case e => e
       }

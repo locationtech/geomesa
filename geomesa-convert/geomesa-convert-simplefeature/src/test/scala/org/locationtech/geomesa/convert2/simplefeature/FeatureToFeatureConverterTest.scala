@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -32,6 +32,7 @@ class FeatureToFeatureConverterTest extends Specification {
           |    { name = "color",    type = "String"  }
           |    { name = "weight",   type = "Double"  }
           |    { name = "numberx2", type = "Integer" }
+          |    { name = "numberx3", type = "Integer" }
           |    { name = "geom",     type = "Point"   }
           |  ]
           |}
@@ -44,10 +45,11 @@ class FeatureToFeatureConverterTest extends Specification {
           |  input-sft = "intype"
           |  fields = [
           |    { name = "number",   transform = "$number" }
-          |    { name = "color" ,   transform = "$color"  }
+          |    { name = "color" ,   transform = "concat($color,'-x')"  }
           |    { name = "weight",   transform = "$weight" }
           |    { name = "geom",     transform = "$geom"   }
           |    { name = "numberx2", transform = "add($number, $number)::int" }
+          |    { name = "numberx3", transform = "add(withDefault($numberx2,0),$number)" }
           |  ]
           |}
         """.stripMargin)
@@ -69,7 +71,9 @@ class FeatureToFeatureConverterTest extends Specification {
       val res = converter.convert(CloseableIterator.single(sf), ec).toSeq
 
       res must haveLength(1)
+      res.head.getAttribute("color") mustEqual "blue-x"
       res.head.getAttribute("numberx2") mustEqual 2
+      res.head.getAttribute("numberx3") mustEqual 3
     }
 
     "copy default fields" >> {

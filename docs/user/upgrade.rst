@@ -102,6 +102,19 @@ The following dependencies have been upgraded:
 * json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
 * netty ``4.1.114.Final`` -> ``4.1.118.Final``
+* parquet ``1.13.1`` -> ``1.15.1``
+* spark ``3.5.0`` -> ``3.5.5``
+
+NiFi 2 Support
+--------------
+
+GeoMesa NiFi now supports NiFi 2.3.0. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
+
+Parquet Version
+---------------
+
+The bundled version of Parquet has been updated to ``1.15.1``. Any files written with the newer version may not be
+readable with older versions of Parquet.
 
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
@@ -118,6 +131,7 @@ The following dependencies have been upgraded:
 * hadoop ``3.4.0`` -> ``3.4.1``
 * kafka ``3.7.0`` -> ``3.9.0``
 * orc ``1.9.4`` -> ``1.9.5``
+* protobuf ``3.25.3`` -> ``3.25.6``
 * spring-security ``5.8.14`` -> ``5.8.15``
 * zookeeper ``3.9.2`` -> ``3.9.3``
 

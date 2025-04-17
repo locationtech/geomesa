@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,7 +26,6 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -99,7 +98,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
           ds.metadata.insert(sft.getTypeName, index.tableNameKey(Some("foo")), table)
         }
         def zonedDateTime(sf: SimpleFeature) =
-          ZonedDateTime.ofInstant(toInstant(sf.getAttribute("dtg").asInstanceOf[Date]), ZoneOffset.UTC)
+          ZonedDateTime.ofInstant(sf.getAttribute("dtg").asInstanceOf[Date].toInstant, ZoneOffset.UTC)
         TablePartition(ds, sft).get.asInstanceOf[TimePartition].register("foo", zonedDateTime(toAdd(8)), zonedDateTime(toAdd(9)))
 
         // verify the table was adopted

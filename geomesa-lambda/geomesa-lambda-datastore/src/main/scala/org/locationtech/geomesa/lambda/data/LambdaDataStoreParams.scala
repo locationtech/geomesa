@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,6 +16,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.time.Clock
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -104,11 +105,11 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
       "Offset manager instance to use",
       deprecatedKeys = Seq("lamdab.offset-manager", "offsetManager"))
 
-  val ConsumerOffsetCommitIntervalMs =
-    new GeoMesaParam[java.lang.Long](
-      "lambda.kafka.consumer.offset-commit-interval-ms",
+  val ConsumerOffsetCommitInterval =
+    new GeoMesaParam[FiniteDuration](
+      "lambda.kafka.consumer.offset-commit-interval",
       "The frequency of committing offsets for the Kafka consumer",
-      default = 10000
+      default = Duration(10, TimeUnit.SECONDS)
     )
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
@@ -128,8 +129,8 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
     val zk = ZookeepersParam.lookup(params)
     val zkNamespace = s"gm_lambda_$namespace"
 
-    val offsetCommitIntervalMs : Long = ConsumerOffsetCommitIntervalMs.lookupOpt(params).map(_.toLong).getOrElse(10000)
+    val offsetCommitInterval = ConsumerOffsetCommitInterval.lookup(params)
 
-    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize, offsetCommitIntervalMs)
+    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize, offsetCommitInterval)
   }
 }

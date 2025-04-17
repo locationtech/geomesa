@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,25 +8,17 @@
 
 package org.locationtech.geomesa.security
 
-import java.util
-import scala.collection.JavaConverters._
-
 /**
  * AuthorizationsProvider that wraps another provider and ensures that the auths returned do not exceed a pre-set list
  */
-class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvider)
+class FilteringAuthorizationsProvider(val wrappedProvider: AuthorizationsProvider, filter: java.util.List[String])
     extends AuthorizationsProvider {
 
-  private var filter: Option[Array[String]] = None
-
-  override def getAuthorizations: util.List[String] =
-    filter match {
-      case None    => wrappedProvider.getAuthorizations
-      case Some(f) => wrappedProvider.getAuthorizations.asScala.intersect(f).asJava
-    }
-
-  override def configure(params: java.util.Map[String, _]): Unit = {
-    filter = AuthsParam.lookupOpt(params).filterNot(_.isEmpty).map(_.split(","))
-    wrappedProvider.configure(params)
+  override def getAuthorizations: java.util.List[String] = {
+    val auths = new java.util.ArrayList(wrappedProvider.getAuthorizations)
+    auths.retainAll(filter)
+    auths
   }
+
+  override def configure(params: java.util.Map[String, _]): Unit = wrappedProvider.configure(params)
 }

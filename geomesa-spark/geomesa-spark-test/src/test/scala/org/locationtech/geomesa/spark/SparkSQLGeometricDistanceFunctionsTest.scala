@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -104,7 +104,7 @@ class SparkSQLGeometricDistanceFunctionsTest extends Specification with LazyLogg
 
       "should transform the coordinates of a point" >> {
         val pointWGS84 = "POINT(-0.871722 52.023636)"
-        val expectedOSGB36 = "POINT(477514.0081191745 236736.03179981938)"
+        val expectedOSGB36 = "POINT(477514.0081191745 236736.03179981868)"
         val r = sc.sql(
           s"select st_transform(st_geomFromWKT('$pointWGS84'), 'EPSG:4326', 'EPSG:27700')"
         ).collect()

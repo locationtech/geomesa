@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.access.{AccessEvaluator, Authorizations}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -24,7 +23,7 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.{AuthorizationsProvider, VisibilityUtils}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
@@ -35,7 +34,6 @@ import org.locationtech.geomesa.utils.stats.Stat
 import org.locationtech.jts.geom.Envelope
 
 import java.io.ByteArrayOutputStream
-import scala.util.control.NonFatal
 
 /**
   * Query runner that handles transforms, visibilities and analytic queries locally. Subclasses are responsible
@@ -75,7 +73,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     explain.popLevel()
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
-    val visible = LocalQueryRunner.visible(authProvider)
+    val visible = VisibilityUtils.visible(authProvider)
     val iter = features(sft, filter).filter(visible.apply)
 
     var result = transform(sft, iter, query.getHints.getTransform, query.getHints)
@@ -125,12 +123,8 @@ object LocalQueryRunner extends LazyLogging {
     * @param provider auth provider, if any
     * @return
     */
-  def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = {
-    provider match {
-      case None    => noAuthVisibilityCheck
-      case Some(p) => new AuthVisibilityCheck(p.getAuthorizations)
-    }
-  }
+  @deprecated("Replaced with `VisibilityUtils.visible`")
+  def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = VisibilityUtils.visible(provider)
 
   /**
     * Reducer for local transforms. Handles ecql and visibility filtering, transforms and analytic queries.
@@ -393,40 +387,6 @@ object LocalQueryRunner extends LazyLogging {
     if (nth <= 1) { features } else {
       val sample = FeatureSampler.sample(nth, field)
       features.filter(sample.apply)
-    }
-  }
-
-  /**
-    * Used when we don't have an auth provider - any visibilities in the feature will
-    * cause the check to fail, so we can skip parsing
-    *
-    * @param f simple feature to check
-    * @return true if feature is visible without any authorizations, otherwise false
-    */
-  private def noAuthVisibilityCheck(f: SimpleFeature): Boolean = {
-    val vis = SecurityUtils.getVisibility(f)
-    vis == null || vis.isEmpty
-  }
-
-  /**
-   * Parses any visibilities in the feature and compares with the user's authorizations
-   *
-   * @param auths authorizations for the current user
-   */
-  private class AuthVisibilityCheck(auths: java.util.List[String]) extends (SimpleFeature => Boolean) {
-
-    private val access = AccessEvaluator.of(Authorizations.of(auths))
-    private val cache = scala.collection.mutable.Map.empty[String, Boolean]
-
-    /**
-     * Checks auths against the feature's visibility
-     *
-     * @param f feature
-     * @return true if feature is visible to the current user, otherwise false
-     */
-    override def apply(f: SimpleFeature): Boolean = {
-      val vis = SecurityUtils.getVisibility(f)
-      vis == null || cache.getOrElseUpdate(vis, try { access.canAccess(vis) } catch { case NonFatal(_) => false })
     }
   }
 }

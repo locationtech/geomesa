@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,9 +18,9 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
-import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import java.util.{Locale, Properties}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object KafkaDataStoreParams extends NamespaceParams {
   // deprecated lookups
@@ -113,11 +113,11 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  val ConsumerOffsetCommitIntervalMs =
-    new GeoMesaParam[java.lang.Long](
-      "kafka.consumer.offset-commit-interval-ms",
-      "The frequency of committing offsets for the Kafka consumer",
-      default = 10000,
+  val ConsumerOffsetCommitInterval =
+    new GeoMesaParam[FiniteDuration](
+      "kafka.consumer.offset-commit-interval",
+      "The frequency of committing offsets for the Kafka consumer, e.g. '10 seconds'",
+      default = Duration(10, TimeUnit.SECONDS),
       readWrite = ReadWriteFlag.ReadOnly
     )
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -71,7 +71,11 @@ class FileSystemThreadedReader private (es: ExecutorService, phaser: Phaser, que
     }
   }
 
-  override def close(): Unit = es.shutdownNow()
+  override def close(): Unit = {
+    try { es.shutdownNow() } finally {
+      phaser.forceTermination() // unregister any tasks that didn't start
+    }
+  }
 }
 
 object FileSystemThreadedReader extends StrictLogging {
@@ -225,7 +229,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
     override def run(): Unit = {
       try {
-        iter.foreach(queue.put)
+        WithClose(iter)(_.foreach(queue.put))
       } catch {
         case NonFatal(e) => logger.error(s"Error reading file $path", e)
       } finally {

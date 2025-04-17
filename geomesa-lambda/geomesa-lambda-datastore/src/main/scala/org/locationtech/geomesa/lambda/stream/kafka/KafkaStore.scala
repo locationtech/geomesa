@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -70,7 +70,7 @@ class KafkaStore(
   private val loader = {
     val consumers = KafkaStore.consumers(config.consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
     val frequency = KafkaStore.LoadIntervalProperty.toDuration.get.toMillis
-    new KafkaCacheLoader(consumers, topic, frequency, serializer, cache, config.offsetCommitIntervalMs)
+    new KafkaCacheLoader(consumers, topic, frequency, config.offsetCommitInterval, serializer, cache)
   }
 
   override def createSchema(): Unit = {

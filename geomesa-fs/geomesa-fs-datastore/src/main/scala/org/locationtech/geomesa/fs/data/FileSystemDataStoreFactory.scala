@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2025 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -59,6 +59,9 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val readThreads = ReadThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).filter(_.isFinite)
+    AuthsParam.lookupOpt(params).foreach { auths =>
+      conf.set(AuthsParam.key, auths)
+    }
 
     val namespace = NamespaceParam.lookupOpt(params)
 
@@ -101,7 +104,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.WriteTimeoutParam,
       FileSystemDataStoreParams.QueryTimeoutParam,
       FileSystemDataStoreParams.ConfigPathsParam,
-      FileSystemDataStoreParams.ConfigsParam
+      FileSystemDataStoreParams.ConfigsParam,
+      FileSystemDataStoreParams.AuthsParam,
     )
 
   // lazy to avoid masking classpath errors with missing hadoop
@@ -170,6 +174,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       )
 
     val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
+
+    val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
 
     @deprecated("ConfigsParam")
     val ConfParam =
