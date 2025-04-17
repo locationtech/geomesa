@@ -29,7 +29,7 @@ class UsageStatReaderTest extends Specification {
 
   lazy val client = AccumuloContainer.Container.client()
   lazy val writer = new AccumuloAuditWriter(client, "UsageStatReaderTest_queries", new ParamsAuditProvider, enabled = true)
-  lazy val reader = new AccumuloAuditReader(client, writer.table, new DefaultAuthorizationsProvider())
+  lazy val reader = new AccumuloAuditReader(client, writer.table, new DefaultAuthorizationsProvider(Seq.empty))
 
   step {
     writer.writeQueryEvent(featureName, "root", ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), Seq.empty,

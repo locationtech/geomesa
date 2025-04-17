@@ -301,7 +301,7 @@ class ExportCommandTest extends Specification with Retries {
     val path = new Path(PathUtils.getUrl(file).toURI)
     val conf = new Configuration()
     StorageConfiguration.setSft(conf, sft)
-    WithClose(new ParquetPathReader(conf, sft, FilterCompat.NOOP, None, None).read(path)) { iter =>
+    WithClose(new ParquetPathReader(conf, sft, FilterCompat.NOOP, None, _ => true, None).read(path)) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }

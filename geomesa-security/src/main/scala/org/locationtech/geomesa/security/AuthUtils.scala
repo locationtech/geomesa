@@ -37,7 +37,7 @@ object AuthUtils {
       GEOMESA_AUTH_PROVIDER_IMPL.option match {
         case None =>
           if (providers.isEmpty) {
-            new DefaultAuthorizationsProvider()
+            new DefaultAuthorizationsProvider(authorizations)
           } else if (providers.lengthCompare(1) == 0) {
             providers.head
           } else {
@@ -49,7 +49,7 @@ object AuthUtils {
 
         case Some(p) =>
           if (p == classOf[DefaultAuthorizationsProvider].getName) {
-            new DefaultAuthorizationsProvider()
+            new DefaultAuthorizationsProvider(authorizations)
           } else {
             providers.find(_.getClass.getName == p).getOrElse {
               throw new IllegalArgumentException(
@@ -61,7 +61,12 @@ object AuthUtils {
     }
 
     // we wrap the authorizations provider in one that will filter based on the configured max auths
-    val filtered = new FilteringAuthorizationsProvider(provider)
+    val filtered =
+      if (authorizations.isEmpty || provider.getClass == classOf[DefaultAuthorizationsProvider]) {
+        provider // don't bother filtering if it will be a no-op
+      } else {
+        new FilteringAuthorizationsProvider(provider, authorizations.asJava)
+      }
 
     // update the authorizations in the parameters and then configure the auth provider
     // we copy the map so as not to modify the original

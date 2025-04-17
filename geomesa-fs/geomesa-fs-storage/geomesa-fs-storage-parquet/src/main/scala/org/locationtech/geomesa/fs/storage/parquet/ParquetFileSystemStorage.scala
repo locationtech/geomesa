@@ -9,26 +9,28 @@
 package org.locationtech.geomesa.fs.storage.parquet
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.parquet.hadoop.ParquetReader
-import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.example.data.Group
 import org.apache.parquet.filter2.compat.FilterCompat
+import org.apache.parquet.hadoop.ParquetReader
+import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
+import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
+import java.util.Collections
 import scala.util.control.NonFatal
 
 /**
@@ -38,6 +40,12 @@ import scala.util.control.NonFatal
   */
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
+
+  private val authProvider: AuthorizationsProvider =
+    AuthUtils.getProvider(
+      Collections.emptyMap[String, String](),
+      context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
+    )
 
   override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
     new ParquetFileSystemWriter(metadata.sft, context, file, observer)
@@ -50,6 +58,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val ReadFilter(fc, residualFilter) = ReadFilter(readSft, filter)
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
+    val visFilter = VisibilityUtils.visible(Some(authProvider))
 
     logger.debug(s"Parquet filter: $parquetFilter and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
@@ -60,7 +69,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val conf = new Configuration(context.conf)
     StorageConfiguration.setSft(conf, readSft)
 
-    new ParquetPathReader(conf, readSft, parquetFilter, gtFilter, readTransform)
+    new ParquetPathReader(conf, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
 }
 
