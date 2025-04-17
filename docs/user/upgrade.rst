@@ -110,6 +110,12 @@ NiFi 2 Support
 
 GeoMesa NiFi now supports NiFi 2.3.0. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
 
+Parquet Version
+---------------
+
+The bundled version of Parquet has been updated to ``1.15.1``. Any files written with the newer version may not be
+readable with older versions of Parquet.
+
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
