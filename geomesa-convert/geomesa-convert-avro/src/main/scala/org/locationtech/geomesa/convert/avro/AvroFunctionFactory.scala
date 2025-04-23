@@ -16,6 +16,7 @@ import org.locationtech.geomesa.features.avro.serialization.AvroField.UuidBinary
 import org.locationtech.geomesa.features.avro.serialization.CollectionSerialization
 
 import java.nio.ByteBuffer
+import java.util.UUID
 
 class AvroFunctionFactory extends TransformerFunctionFactory {
 
@@ -45,6 +46,7 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   private val binaryUuid = TransformerFunction.pure("avroBinaryUuid") { args =>
     args(0) match {
       case bytes: Array[Byte] => UuidBinaryField.decode(ByteBuffer.wrap(bytes))
+      case uuid: UUID => uuid
       case null => null
       case arg => throw new IllegalArgumentException(s"Expected byte array but got: $arg")
     }

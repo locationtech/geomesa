@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert.parquet
 
 import com.typesafe.config.ConfigFactory
+import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -17,6 +18,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
@@ -30,8 +32,6 @@ import java.util.{Date, UUID}
 class ParquetConverterTest extends Specification {
 
   import scala.collection.JavaConverters._
-
-  sequential
 
   "ParquetConverter" should {
     "parse a parquet file" in {
@@ -69,12 +69,12 @@ class ParquetConverterTest extends Specification {
       res.map(_.getAttribute("geom")) mustEqual Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)").map(FastConverter.convert(_, classOf[Point]))
     }
 
-    "infer a converter from a geomesa parquet file" >> {
+    "infer a converter from a simple geomesa parquet file" >> {
       val file = getClass.getClassLoader.getResource("example.parquet")
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
       inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
@@ -97,13 +97,83 @@ class ParquetConverterTest extends Specification {
       res.map(_.getAttribute("geom")) mustEqual Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)").map(FastConverter.convert(_, classOf[Point]))
     }
 
+    "infer a converter from a complex geomesa parquet file, for all supported encodings" >> {
+      val factory = new ParquetConverterFactory()
+      val files =
+        Seq("geomesav1-test.parquet", "geoparquet-native-test.parquet", "geoparquet-wkb-test.parquet")
+          .map(getClass.getClassLoader.getResource)
+      val attributes =
+        Seq("dtg", "name", "age", "time", "height", "weight", "bool", "uuid", "bytes", "list", "map", "line",
+            "multipt", "poly", "multiline", "multipoly", "geom", "pt")
+      foreach(files) { file =>
+        val path = new File(file.toURI).getAbsolutePath
+
+        val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
+        inferred must beASuccessfulTry
+
+        val (sft, config) = inferred.get
+
+        sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual attributes
+        sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
+          Seq(classOf[Date], classOf[String], classOf[java.lang.Integer], classOf[java.lang.Long], classOf[java.lang.Float],
+            classOf[java.lang.Double], classOf[java.lang.Boolean], classOf[UUID], classOf[Array[Byte]],
+            classOf[java.util.List[String]],classOf[java.util.Map[String,Long]], classOf[LineString], classOf[MultiPoint],
+            classOf[Polygon], classOf[MultiLineString], classOf[MultiPolygon], classOf[Geometry], classOf[Point])
+
+        val res = WithClose(SimpleFeatureConverter(sft, config)) { converter =>
+          val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(path))
+          WithClose(converter.process(file.openStream(), ec))(_.toList)
+        }
+
+        // copied from GenerateParquetFiles, which we used to create the test data
+        val expected = Seq.tabulate(10) { i =>
+          val sf = new ScalaSimpleFeature(sft, i.toString)
+          sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
+          sf.setAttribute("name", s"name$i")
+          sf.setAttribute("age", s"$i")
+          sf.setAttribute("time", s"$i")
+          sf.setAttribute("height", s"$i")
+          sf.setAttribute("weight", s"$i")
+          sf.setAttribute("bool", Boolean.box(i < 5))
+          sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
+          sf.setAttribute("bytes", Array.tabulate[Byte](i)(i => i.toByte))
+          sf.setAttribute("list", Seq.tabulate[String](i)(i => i.toString))
+          sf.setAttribute("map", (0 until i).map(i => i.toString -> Long.box(i)).toMap)
+          sf.setAttribute("line", s"LINESTRING(0 $i, 2 $i, 8 ${10 - i})")
+          sf.setAttribute("multipt", s"MULTIPOINT(0 $i, 2 3)")
+          sf.setAttribute("poly",
+            if (i == 5) {
+              // polygon example with holes from wikipedia
+              "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))"
+            } else {
+              s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"
+            }
+          )
+          sf.setAttribute("multiline", s"MULTILINESTRING((0 2, 2 $i, 8 6),(0 $i, 2 $i, 8 ${10 - i}))")
+          sf.setAttribute("multipoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6), (-1 5, 2 5, 2 2, -1 2, -1 5)))")
+          sf.setAttribute("geom", sf.getAttribute(Seq("line", "multipt", "poly", "multiline", "multipoly").drop(i % 5).head))
+          sf.setAttribute("pt", s"POINT(4$i 5$i)")
+          sf
+        }
+
+        res must haveLength(10)
+
+        def comparableBytes(f: SimpleFeature): String = ByteArrays.toHex(f.getAttribute("bytes").asInstanceOf[Array[Byte]])
+
+        foreach(attributes) {
+          case "bytes" => res.map(comparableBytes) mustEqual expected.map(comparableBytes)
+          case a => res.map(_.getAttribute(a)) mustEqual expected.map(_.getAttribute(a))
+        }
+      }
+    }
+
     "infer a converter from a non-geomesa parquet file" >> {
       // corresponds to our example.json file, converted to parquet through spark sql
       val file = getClass.getClassLoader.getResource("infer.parquet")
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
       inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
@@ -128,7 +198,7 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
       inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get
@@ -157,7 +227,7 @@ class ParquetConverterTest extends Specification {
       val path = new File(file.toURI).getAbsolutePath
 
       val factory = new ParquetConverterFactory()
-      val inferred = factory.infer(file.openStream(), None, EvaluationContext.inputFileParam(path))
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
       inferred must beASuccessfulTry
 
       val (sft, config) = inferred.get

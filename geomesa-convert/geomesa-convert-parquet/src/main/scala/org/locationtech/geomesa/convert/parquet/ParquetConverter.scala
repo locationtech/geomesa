@@ -76,7 +76,7 @@ object ParquetConverter {
 
     import org.apache.avro.generic.GenericRecord
 
-    private val reader = ParquetReader.builder[GenericRecord](new AvroReadSupport, path).withConf(conf).build()
+    private val reader = ParquetReader.builder[GenericRecord](new AvroReadSupport(), path).withConf(conf).build()
 
     private var staged: GenericRecord = _
 

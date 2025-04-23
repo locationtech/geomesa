@@ -269,6 +269,7 @@ class FileSystemDataStoreTest extends Specification {
       val formats = encodings.map(createFormat(_))
       foreach(formats) { case (format, sft, features) =>
         val dir = Files.createTempDirectory(s"fsds-test-append-without-fid-$format").toFile
+        dirs.put(dir.getName, dir)
         val dsParams = Map(
           "fs.path" -> dir.getPath,
           "fs.encoding" -> format,
