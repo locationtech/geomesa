@@ -14,6 +14,7 @@ import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSe
 import org.locationtech.geomesa.redis.data.util.RedisGeoMesaStats.RedisStat
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.Stat
+import redis.clients.jedis.{Jedis, UnifiedJedis}
 
 import java.security.SecureRandom
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
@@ -58,21 +59,37 @@ class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
         val stat = queue.poll(1000L, TimeUnit.MILLISECONDS)
         if (stat != null) {
           // use a redis watch to ensure that we aren't overwriting some other change
-          val success = WithClose(ds.connection.getResource) { jedis =>
-            jedis.watch(metadata.key)
-            val write = if (stat.merge) {
-              val existing = jedis.hget(metadata.key, stat.keyBytes)
-              if (existing == null) { stat.statBytes } else {
-                metadata.serializer.serialize(stat.typeName,
-                  metadata.serializer.deserialize(stat.typeName, existing) + stat.stat)
+          val success = WithClose(ds.connection.getResource) {
+            case jedis: Jedis =>
+              jedis.watch(metadata.key)
+              val write = if (stat.merge) {
+                val existing = jedis.hget(metadata.key, stat.keyBytes)
+                if (existing == null) { stat.statBytes } else {
+                  metadata.serializer.serialize(stat.typeName,
+                    metadata.serializer.deserialize(stat.typeName, existing) + stat.stat)
+                }
+              } else {
+                stat.statBytes
               }
-            } else {
-              stat.statBytes
-            }
-            // with a watch, we have to use a transaction to ensure the value hasn't changed
-            val tx = jedis.multi()
-            tx.hset(metadata.key, stat.keyBytes, write)
-            tx.exec() != null // null means invalid
+              // with a watch, we have to use a transaction to ensure the value hasn't changed
+              val tx = jedis.multi()
+              tx.hset(metadata.key, stat.keyBytes, write)
+              tx.exec() != null // null means invalid
+            case jedis: UnifiedJedis =>
+              // with a watch, we have to use a transaction to ensure the value hasn't changed
+              val tx = jedis.multi()
+              tx.watch(metadata.key)
+              val write = if (stat.merge) {
+                val existing = jedis.hget(metadata.key, stat.keyBytes)
+                if (existing == null) { stat.statBytes } else {
+                  metadata.serializer.serialize(stat.typeName,
+                    metadata.serializer.deserialize(stat.typeName, existing) + stat.stat)
+                }
+              } else {
+                stat.statBytes
+              }
+              tx.hset(metadata.key, stat.keyBytes, write)
+              tx.exec() != null // null means invalid
           }
           if (success) {
             // since we didn't write through the metadata instance, we have to invalidate the cache

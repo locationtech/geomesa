@@ -15,11 +15,12 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringS
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.redis.data.RedisDataStoreFactory.RedisDataStoreConfig
+import org.locationtech.geomesa.redis.data.CloseableJedisCommands
 import org.locationtech.geomesa.redis.data.index.{RedisAgeOff, RedisIndexAdapter, RedisQueryPlan}
 import org.locationtech.geomesa.redis.data.util.{RedisBackedMetadata, RedisGeoMesaStats, RedisLocking}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.util.Pool
 
 /**
   * Data store backed by Redis. Uses Redis SortedSets for range scanning
@@ -27,7 +28,7 @@ import redis.clients.jedis.JedisPool
   * @param connection connection pool
   * @param config datastore configuration
   */
-class RedisDataStore(val connection: JedisPool, override val config: RedisDataStoreConfig)
+class RedisDataStore(val connection: Pool[_ <: CloseableJedisCommands], override val config: RedisDataStoreConfig)
     extends GeoMesaDataStore[RedisDataStore](config) with RedisLocking {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
