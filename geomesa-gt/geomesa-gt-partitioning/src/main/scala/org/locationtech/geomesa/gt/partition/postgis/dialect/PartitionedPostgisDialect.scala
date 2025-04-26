@@ -24,6 +24,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom._
@@ -174,6 +175,32 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     }
   }
 
+  private def querySftAttributesWithIndices(sft: SimpleFeatureType, cx: Connection): List[String] = {
+    val attributesWithIndicesSql =
+      s"""
+         |select distinct(att.attname) as indexed_attribute_name
+         |from pg_class obj
+         |join pg_index idx on idx.indrelid = obj.oid
+         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
+         |join pg_views v on v.viewname = ?
+         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
+         |order by att.attname
+         |""".stripMargin
+    val sftTypeName = sft.getTypeName
+    Try(
+      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
+        statement.setString(1, sftTypeName)
+        statement.setString(2, sftTypeName)
+        WithClose(statement.executeQuery()) { rs =>
+          Iterator.continually(rs.next(), rs)
+            .takeWhile(_._1)
+            .map(_._2.getString(1))
+            .toList
+        }
+      }
+    ).getOrElse(List.empty)
+  }
+
   override def postCreateFeatureType(
       sft: SimpleFeatureType,
       metadata: DatabaseMetaData,
@@ -215,6 +242,14 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
           }
         }
       }
+    }
+
+    // populate indices data
+    querySftAttributesWithIndices(sft, cx).foreach { idxAttribute =>
+      for {
+        attDesc <- Option(sft.getDescriptor(idxAttribute))
+        userData <- Option(attDesc.getUserData)
+      } yield userData.put(AttributeOptions.OptIndex, "true")
     }
   }
 
