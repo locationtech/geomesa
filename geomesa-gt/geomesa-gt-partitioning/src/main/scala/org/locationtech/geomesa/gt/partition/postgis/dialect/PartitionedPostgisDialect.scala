@@ -198,7 +198,13 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
             .toList
         }
       }
-    ).getOrElse(List.empty)
+    ).fold(
+      exception => {
+        logger.error(s"${getClass.getSimpleName}: Error loading attributes with indices for SFT: $sftTypeName due to: ${exception.getMessage}", exception)
+        List.empty
+      },
+      (indexedAttributeNames: List[String]) => indexedAttributeNames
+    )
   }
 
   override def postCreateFeatureType(
@@ -249,7 +255,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       for {
         attDesc <- Option(sft.getDescriptor(idxAttribute))
         userData <- Option(attDesc.getUserData)
-      } yield userData.put(AttributeOptions.OptIndex, "true")
+      } userData.put(AttributeOptions.OptIndex, "true")
     }
   }
 
