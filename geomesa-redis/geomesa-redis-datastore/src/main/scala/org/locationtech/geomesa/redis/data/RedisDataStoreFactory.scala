@@ -6,14 +6,6 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-/** *********************************************************************
- * Copyright (c) 2013-2025 General Atomics Integrated Intelligence, Inc.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Apache License, Version 2.0
- * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
- * ********************************************************************* */
-
 package org.locationtech.geomesa.redis.data
 
 import com.typesafe.scalalogging.LazyLogging
@@ -29,12 +21,12 @@ import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.util.{JedisURIHelper, Pool}
-import redis.clients.jedis.{Connection, DefaultJedisClientConfig, HostAndPort, Jedis, JedisClientConfig, JedisCluster, JedisPool, UnifiedJedis}
+import redis.clients.jedis.{Connection, DefaultJedisClientConfig, HostAndPort, Jedis, JedisClientConfig, JedisCluster, JedisPool}
 
 import java.awt.RenderingHints
 import java.net.URI
-import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
@@ -94,11 +86,11 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     RedisCatalogParam.exists(params)
 
   /**
-   * Builds a redis connection from the data store parameters
-   *
-   * @param params params
-   * @return
-   */
+    * Builds a redis connection from the data store parameters
+    *
+    * @param params params
+    * @return
+    */
   def buildConnection(params: java.util.Map[String, _]): Pool[_ <: CloseableJedisCommands] = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
       RedisClusterBoolParam.lookup(params).booleanValue() match {
@@ -161,19 +153,17 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   }
 
   /**
-   * Builds configuration from data store parameters
-   *
-   * @param params params
-   * @return
-   */
+    * Builds configuration from data store parameters
+    *
+    * @param params params
+    * @return
+    */
   def buildConfig(params: java.util.Map[String, _]): RedisDataStoreConfig = {
     val catalog = RedisCatalogParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val pipeline = PipelineParam.lookup(params)
 
-    val audit = if (!AuditQueriesParam.lookup(params)) {
-      None
-    } else {
+    val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(new AuditLogger("redis", AuditProvider.Loader.loadOrNone(params)))
     }
     // get the auth params passed in as a comma-delimited string
@@ -195,20 +185,20 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private def parse(url: String): Try[URI] = Try(new URI(url)).filter(JedisURIHelper.isValid)
 
   case class RedisDataStoreConfig(
-                                   catalog: String,
-                                   generateStats: Boolean,
-                                   audit: Option[AuditWriter],
-                                   authProvider: AuthorizationsProvider,
-                                   queries: RedisQueryConfig,
-                                   pipeline: Boolean,
-                                   namespace: Option[String]
-                                 ) extends GeoMesaDataStoreConfig
+      catalog: String,
+      generateStats: Boolean,
+      audit: Option[AuditWriter],
+      authProvider: AuthorizationsProvider,
+      queries: RedisQueryConfig,
+      pipeline: Boolean,
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
 
   case class RedisQueryConfig(
-                               threads: Int,
-                               timeout: Option[Long],
-                               looseBBox: Boolean,
-                               parallelPartitionScans: Boolean
-                             ) extends DataStoreQueryConfig
+      threads: Int,
+      timeout: Option[Long],
+      looseBBox: Boolean,
+      parallelPartitionScans: Boolean
+    ) extends DataStoreQueryConfig
 }
 
