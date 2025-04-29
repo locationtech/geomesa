@@ -118,5 +118,21 @@ class QueryPlannerTest extends Specification {
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("age", true), ("name", false)))
     }
+
+    "account for requested index hints when generating plans" >> {
+      val filter = ECQL.toFilter("name = 'bob' AND dtg DURING 2025-04-29T00:00:00.000Z/2025-04-30T00:00:00.000Z")
+      val query = new Query(sft.getTypeName, filter)
+
+      val plans = ds.getQueryPlan(query)
+      plans must haveLength(1)
+      plans.head.filter.index.name mustEqual AttributeIndex.name
+      plans.head.filter.primary must beSome
+
+      query.getHints.put(QueryHints.QUERY_INDEX, Z3Index.name)
+      val hintPlans = ds.getQueryPlan(query)
+      hintPlans must haveLength(1)
+      hintPlans.head.filter.index.name mustEqual Z3Index.name
+      hintPlans.head.filter.primary must beSome
+    }
   }
 }
