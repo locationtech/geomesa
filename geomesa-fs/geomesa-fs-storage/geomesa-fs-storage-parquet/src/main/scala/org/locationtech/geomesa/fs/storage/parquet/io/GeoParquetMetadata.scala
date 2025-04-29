@@ -117,7 +117,7 @@ object GeoParquetMetadata {
           val expected = alphaNumericSafeString(schema.sft.getGeometryDescriptor.getLocalName)
           columns.find(_.name == expected).getOrElse(columns.head).name
         }
-        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns))
+        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns.toSeq))
       }
     }
 

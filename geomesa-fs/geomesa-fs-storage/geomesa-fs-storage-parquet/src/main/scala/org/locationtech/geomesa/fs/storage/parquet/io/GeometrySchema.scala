@@ -71,7 +71,7 @@ object GeometrySchema {
      * @return
      */
     def apply(sft: SimpleFeatureType, encoding: GeometryEncoding): Seq[BoundingBoxField] = {
-      sft.getAttributeDescriptors.asScala.flatMap { d =>
+      sft.getAttributeDescriptors.asScala.toSeq.flatMap { d =>
         val binding = d.getType.getBinding
         if (classOf[Geometry].isAssignableFrom(binding) &&
             (encoding == GeometryEncoding.GeoParquetWkb || binding != classOf[Point])) {

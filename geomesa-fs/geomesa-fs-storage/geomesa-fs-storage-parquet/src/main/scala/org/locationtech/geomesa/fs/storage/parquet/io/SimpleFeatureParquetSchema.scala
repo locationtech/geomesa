@@ -152,7 +152,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
         if (metadata.get(SchemaVersionKey) == "1") { GeometryEncoding.GeoMesaV1 } else { GeometryEncoding.GeoMesaV0 }
       }
       val encodings = Encodings(geometries)
-      val bboxes = fileSchema.getFields.asScala.map(_.getName).flatMap(BoundingBoxField.fromBoundingBox)
+      val bboxes = fileSchema.getFields.asScala.map(_.getName).flatMap(BoundingBoxField.fromBoundingBox).toSeq
       val visibilities = fileSchema.containsField(VisibilitiesField)
       SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
     }
