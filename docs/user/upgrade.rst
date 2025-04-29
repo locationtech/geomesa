@@ -110,11 +110,17 @@ NiFi 2 Support
 
 GeoMesa NiFi now supports NiFi 2.3.0. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
 
-Parquet Version
----------------
+Parquet Encoding Changes
+------------------------
 
-The bundled version of Parquet has been updated to ``1.15.1``. Any files written with the newer version may not be
-readable with older versions of Parquet.
+The default format used for writing Parquet files in the FileSystem data store has been updated to conform to the
+`GeoParquet <https://geoparquet.org/releases/v1.1.0/>`__ specification, which makes the files compatible with the
+broader ecosystem, including GeoPandas, Apache Sedona, DuckDB, and Apache Iceberg. However, older versions of
+GeoMesa will not be able to read the files. For back-compatibility, the file format may be configured to write
+the old format; see :ref:`fsds_parquet_geometries_prop` for details.
+
+As part of this change, the bundled version of Parquet has been updated to ``1.15.1``. Any files written with the
+newer version may not be readable with older versions of Parquet.
 
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++

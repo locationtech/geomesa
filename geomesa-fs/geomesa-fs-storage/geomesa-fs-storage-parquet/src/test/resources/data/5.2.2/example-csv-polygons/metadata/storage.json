@@ -1,0 +1,35 @@
+{
+    "config" : {
+        "encoding" : "parquet",
+        "leaf-storage" : "true"
+    },
+    "feature-type" : {
+        "attributes" : [
+            {
+                "index" : "true",
+                "name" : "name",
+                "type" : "String"
+            },
+            {
+                "default" : "true",
+                "index" : "false",
+                "name" : "dtg",
+                "type" : "Date"
+            },
+            {
+                "default" : "true",
+                "name" : "geom",
+                "srid" : "4326",
+                "type" : "Polygon"
+            }
+        ],
+        "type-name" : "example-csv-polygons",
+        "user-data" : {
+            "geomesa.index.dtg" : "dtg"
+        }
+    },
+    "partition-scheme" : {
+        "options" : {},
+        "scheme" : "daily"
+    }
+}

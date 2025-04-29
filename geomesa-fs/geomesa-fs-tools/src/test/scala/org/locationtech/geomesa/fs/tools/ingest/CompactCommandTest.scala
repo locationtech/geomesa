@@ -60,7 +60,10 @@ class CompactCommandTest extends Specification {
   lazy val ds = {
     val dsParams = Map(
       "fs.path" -> path,
-      "fs.config.xml" -> HadoopSharedCluster.ContainerConfig
+      "fs.config.xml" ->
+        HadoopSharedCluster.ContainerConfig
+          .replaceFirst("<configuration>",
+            "<configuration><property><name>geomesa.parquet.bounding-boxes</name><value>false</value></property>")
     )
     DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[FileSystemDataStore]
   }

@@ -71,19 +71,7 @@ class ParquetConverterFactory
             val fields = parquet.sft.getAttributeDescriptors.asScala.map { descriptor =>
               val name = parquet.field(parquet.sft.indexOf(descriptor.getLocalName))
               // note: parquet converter stores the generic record under index 0
-              val path = s"avroPath($$0, '/$name')"
-              // some types need a function applied to the underlying avro value
-              val expression = ObjectType.selectType(descriptor) match {
-                case Seq(ObjectType.GEOMETRY, ObjectType.POINT)           => s"parquetPoint($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOINT)      => s"parquetMultiPoint($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.LINESTRING)      => s"parquetLineString($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTILINESTRING) => s"parquetMultiLineString($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.POLYGON)         => s"parquetPolygon($$0, '/$name')"
-                case Seq(ObjectType.GEOMETRY, ObjectType.MULTIPOLYGON)    => s"parquetMultiPolygon($$0, '/$name')"
-                case Seq(ObjectType.UUID)                                 => s"avroBinaryUuid($path)"
-                case _                                                    => path
-              }
-              BasicField(descriptor.getLocalName, Some(Expression(expression)))
+              BasicField(descriptor.getLocalName, Some(Expression(s"avroPath($$0, '/$name')")))
             }
             val id = Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.FeatureIdField}')")
             val userData =
