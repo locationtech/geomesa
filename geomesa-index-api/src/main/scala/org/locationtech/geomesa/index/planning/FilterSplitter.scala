@@ -197,7 +197,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
         } else if (acceptableScans.nonEmpty) {
           acceptableScans.toSeq
         } else {
-          fullTableScans.take(1)
+          fullTableScans.take(1).toSeq
         }
       }
     }
