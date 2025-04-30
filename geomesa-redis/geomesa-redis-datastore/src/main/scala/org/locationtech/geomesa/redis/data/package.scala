@@ -47,7 +47,7 @@ package object data extends LazyLogging {
 
     val RedisClusterBoolParam =
       new GeoMesaParam[java.lang.Boolean](
-        "redis.clusterMode",
+        "redis.cluster",
         "Boolean flag to indicate if the Redis connection is a cluster. ",
         optional = true,
         default = false,

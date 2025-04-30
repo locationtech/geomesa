@@ -126,6 +126,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
           new JedisPool(config, uri, timeout)
         case true =>
           val urls = RedisUrlParam.lookup(params).split(",")
+          val uri = URI.create(urls.head)
           if (urls.isEmpty) {
             throw new IllegalArgumentException("No Redis URLs provided. Please set 'redis.url'")
           }
@@ -142,12 +143,15 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
               JedisURIHelper.getHostAndPort(parsed)
             }.toSet.asJava
           val jedisClientConfig: JedisClientConfig =
-            DefaultJedisClientConfig.builder()
-              .timeoutMillis(timeout)
-              .build()
-          val connectionPoolConfig: GenericObjectPoolConfig[Connection] = new GenericObjectPoolConfig[Connection]()
-          val clusterFactory = new JedisClusterFactory(clusterNodes, jedisClientConfig, connectionPoolConfig)
-          new Pool[JedisCluster](config, clusterFactory)
+            DefaultJedisClientConfig.builder.connectionTimeoutMillis(timeout)
+              .socketTimeoutMillis(timeout)
+              .blockingSocketTimeoutMillis(0)
+              .user(JedisURIHelper.getUser(uri))
+              .password(JedisURIHelper.getPassword(uri))
+              .database(JedisURIHelper.getDBIndex(uri))
+              .clientName(null)
+              .build
+          new SingletonJedisClusterPool(clusterNodes, jedisClientConfig)
       }
     }
   }
