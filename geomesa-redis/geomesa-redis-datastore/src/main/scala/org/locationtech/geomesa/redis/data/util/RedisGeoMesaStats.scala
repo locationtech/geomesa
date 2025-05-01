@@ -19,6 +19,7 @@ import redis.clients.jedis.{Jedis, UnifiedJedis}
 import java.security.SecureRandom
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
+import java.nio.charset.StandardCharsets
 
 /**
   * Redis stats implementation
@@ -58,36 +59,76 @@ class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
       try {
         val stat = queue.poll(1000L, TimeUnit.MILLISECONDS)
         if (stat != null) {
-          // use a redis watch to ensure that we aren't overwriting some other change
-          val success = WithClose(ds.connection.getResource) {
-            case jedis: Jedis =>
-              jedis.watch(metadata.key)
-              val write = if (stat.merge) {
-                val existing = jedis.hget(metadata.key, stat.keyBytes)
-                if (existing == null) { stat.statBytes } else {
-                  metadata.serializer.serialize(stat.typeName,
-                    metadata.serializer.deserialize(stat.typeName, existing) + stat.stat)
+          val success = WithClose(ds.connection.getResource) { jedis =>
+            // Use Lua script to atomically check, merge if needed, and write the stat
+            val script = """
+              local existing = redis.call('hget', KEYS[1], ARGV[1])
+              local write
+              if ARGV[3] == '1' then
+                if existing then
+                  return { existing, 0 } -- need to merge on client side
+                else
+                  write = ARGV[2]
+                end
+              else
+                write = ARGV[2]
+              end
+              if write then
+                redis.call('hset', KEYS[1], ARGV[1], write)
+              end
+              return { existing or false, write and 1 or 0 }
+            """
+            val merge = if (stat.merge) "1" else "0"
+            val result = jedis.eval(
+              script.getBytes(StandardCharsets.UTF_8),
+              1,
+              metadata.key,
+              stat.keyBytes, stat.statBytes, merge.getBytes(StandardCharsets.UTF_8)
+            )
+
+            result match {
+              case list: java.util.List[_] if !list.isEmpty =>
+                val existing = Option(list.get(0)).map {
+                  case bytes: Array[Byte] => bytes
+                  case _ => null
                 }
-              } else {
-                stat.statBytes
-              }
-              // with a watch, we have to use a transaction to ensure the value hasn't changed
-              val tx = jedis.multi()
-              tx.hset(metadata.key, stat.keyBytes, write)
-              tx.exec() != null // null means invalid
-            case jedis: UnifiedJedis =>
-              val write = if (stat.merge) {
-                val existing = jedis.hget(metadata.key, stat.keyBytes)
-                if (existing == null) { stat.statBytes } else {
-                  metadata.serializer.serialize(stat.typeName,
-                    metadata.serializer.deserialize(stat.typeName, existing) + stat.stat)
+                val success = list.get(1) match {
+                  case i: java.lang.Long => i == 1L
+                  case i: java.lang.Integer => i == 1
+                  case s: String => s.toInt == 1
+                  case _ => false
                 }
-              } else {
-                stat.statBytes
-              }
-              jedis.hset(metadata.key, stat.keyBytes, write)
-              true
+
+                if (success) {
+                  true // write was successful
+                } else if (existing.isDefined && stat.merge) {
+                  // need to merge and retry
+                  val merged = metadata.serializer.serialize(stat.typeName,
+                    metadata.serializer.deserialize(stat.typeName, existing.get) + stat.stat)
+                  val retryScript = """
+                    redis.call('hset', KEYS[1], ARGV[1], ARGV[2])
+                    return 1
+                  """
+                  val retryResult = jedis.eval(
+                    retryScript.getBytes(StandardCharsets.UTF_8),
+                    1,
+                    metadata.key,
+                    stat.keyBytes, merged
+                  )
+                  retryResult match {
+                    case i: java.lang.Long => i == 1L
+                    case i: java.lang.Integer => i == 1
+                    case s: String => s.toInt == 1
+                    case _ => false
+                  }
+                } else {
+                  false
+                }
+
+              case _ => false
+            }
           }
+
           if (success) {
             // since we didn't write through the metadata instance, we have to invalidate the cache
             metadata.invalidateCache(stat.typeName, stat.key)

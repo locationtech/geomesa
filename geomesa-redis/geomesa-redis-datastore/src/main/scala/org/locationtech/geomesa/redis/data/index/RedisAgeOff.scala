@@ -252,21 +252,34 @@ object RedisAgeOff extends StrictLogging {
       */
     private def removeExpiredIds(timestamp: Long): java.util.List[JedisTuple] = {
       def exec: java.util.List[JedisTuple] = {
-        WithClose(ds.connection.getResource) {
-          case jedis: Jedis =>
-            // run the select and remove in an atomic transaction
-            val tx = jedis.multi()
-            val scores = tx.zrangeByScoreWithScores(table, 0, timestamp)
-            tx.zremrangeByScore(table, 0, timestamp)
-            tx.exec()
-            scores.get
-          case jedis: UnifiedJedis =>
-            // run the select and remove in an atomic transaction
-            val tx = jedis.multi()
-            val scores = tx.zrangeByScoreWithScores(table, 0, timestamp)
-            tx.zremrangeByScore(table, 0, timestamp)
-            tx.exec()
-            scores.get
+        WithClose(ds.connection.getResource) { jedis =>
+          // Use Lua script to atomically get and remove expired entries
+          val script = """
+            local scores = redis.call('zrangebyscore', KEYS[1], 0, ARGV[1], 'WITHSCORES')
+            if #scores > 0 then
+              redis.call('zremrangebyscore', KEYS[1], 0, ARGV[1])
+            end
+            return scores
+          """
+          val result = jedis.eval(script.getBytes(StandardCharsets.UTF_8), 1, table, timestamp.toString.getBytes(StandardCharsets.UTF_8))
+          // Convert the result to a List[JedisTuple]
+          result match {
+            case list: java.util.List[_] if list.size() > 0 =>
+              val tuples = new java.util.ArrayList[JedisTuple](list.size() / 2)
+              var i = 0
+              while (i < list.size()) {
+                val member = list.get(i).asInstanceOf[Array[Byte]]
+                val score = list.get(i + 1) match {
+                  case s: String => s.toDouble
+                  case b: Array[Byte] => new String(b, StandardCharsets.UTF_8).toDouble
+                  case _ => throw new IllegalStateException(s"Unexpected score type: ${list.get(i + 1).getClass}")
+                }
+                tuples.add(new JedisTuple(member, score))
+                i += 2
+              }
+              tuples
+            case _ => Collections.emptyList[JedisTuple]()
+          }
         }
       }
 
@@ -278,7 +291,7 @@ object RedisAgeOff extends StrictLogging {
       // acquire a lock so that we're not repeating work in multiple data store instances
       val ids = try { withLock(lockPath, timeout, exec, noLock) } catch {
         case NonFatal(e) =>
-          logger.error("Error executing ttl transaction:", e)
+          logger.error("Error executing ttl script:", e)
           Collections.emptyList[JedisTuple]()
       }
 
