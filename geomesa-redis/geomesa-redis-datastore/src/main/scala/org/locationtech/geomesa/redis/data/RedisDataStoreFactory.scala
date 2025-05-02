@@ -126,10 +126,10 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
           new JedisPool(config, uri, timeout)
         case true =>
           val urls = RedisUrlParam.lookup(params).split(",")
-          val uri = URI.create(urls.head)
           if (urls.isEmpty) {
             throw new IllegalArgumentException("No Redis URLs provided. Please set 'redis.url'")
           }
+          val uri = URI.create(urls.head)
           val config = new GenericObjectPoolConfig[JedisCluster]()
           PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
           config.setTestOnBorrow(TestConnectionParam.lookup(params))
