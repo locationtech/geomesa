@@ -53,19 +53,31 @@ fi
 # pull out the scala version from the main artifactId
 FROM_VERSION="$(sed -n '/geomesa_/ s| *<artifactId>geomesa_\([0-9]\.[0-9][0-9]*\)</artifactId>|\1|p' "$BASEDIR"/pom.xml)"
 
-find "$BASEDIR" -name 'pom.xml' -not -path '*target*' -print \
-  -exec sed -i "s/\(artifactId.*\)_$FROM_VERSION/\1_$TO_VERSION/g" {} \;
+# Determine the correct sed command arguments based on the operating system
+case "$OSTYPE" in
+  darwin*|bsd*)
+    sed_no_backup=( -i '' )
+    ;;
+  *)
+    sed_no_backup=( -i )
+    ;;
+esac
+
+# Process all pom.xml files, handling both macOS and Linux find behavior
+find "$BASEDIR" -name 'pom.xml' -not -path '*target*' | while read -r file; do
+  sed "${sed_no_backup[@]}" "s/\(artifactId.*\)_$FROM_VERSION/\1_$TO_VERSION/g" "$file"
+done
 
 # update <scala.binary.version> in parent POM
 # match any scala binary version to ensure idempotency
-sed -i "1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>$TO_VERSION</" \
+sed "${sed_no_backup[@]}" "1,/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</s/<scala\.binary\.version>[0-9]\.[0-9][0-9]*</<scala.binary.version>$TO_VERSION</" \
   "$BASEDIR/pom.xml"
 
 # update <scala.version> in parent POM
-sed -i "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>$FULL_VERSION</" \
+sed "${sed_no_backup[@]}" "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</<scala.version>$FULL_VERSION</" \
   "$BASEDIR/pom.xml"
 
 # Update enforcer rules
-sed -i "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
-sed -i "s|<regex>$FROM_VERSION\.\*</regex>|<regex>$TO_VERSION.*</regex>|" "$BASEDIR/pom.xml"
-sed -i "s|<regex>$FROM_VERSION</regex>|<regex>$TO_VERSION</regex>|" "$BASEDIR/pom.xml"
+sed "${sed_no_backup[@]}" "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
+sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION\.\*</regex>|<regex>$TO_VERSION.*</regex>|" "$BASEDIR/pom.xml"
+sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION</regex>|<regex>$TO_VERSION</regex>|" "$BASEDIR/pom.xml"
