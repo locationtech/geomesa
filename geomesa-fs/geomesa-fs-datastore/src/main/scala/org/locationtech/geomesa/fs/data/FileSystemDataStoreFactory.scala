@@ -191,7 +191,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       * @param properties props
       * @return
       */
-    private [fs] def convertPropsToXml(properties: String): String = {
+    private def convertPropsToXml(properties: String): String = {
       val conf = new Configuration(false)
 
       val props = new Properties()
