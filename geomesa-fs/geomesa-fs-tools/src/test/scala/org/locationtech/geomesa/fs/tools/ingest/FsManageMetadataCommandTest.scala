@@ -20,7 +20,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
@@ -70,7 +69,8 @@ class FsManageMetadataCommandTest extends Specification {
         val command = new FsManageMetadataCommand.CheckConsistencyCommand()
         command.params.path = dir
         command.params.featureName = sft.getTypeName
-        command.params.configuration = Collections.singletonList(s"fs.config.xml=${HadoopSharedCluster.ContainerConfig}")
+        command.params.configuration = new java.util.ArrayList[(String, String)]()
+        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
         command.params.repair = true
         command.execute()
 
@@ -111,7 +111,8 @@ class FsManageMetadataCommandTest extends Specification {
         val command = new FsManageMetadataCommand.CheckConsistencyCommand()
         command.params.path = dir
         command.params.featureName = sft.getTypeName
-        command.params.configuration = Collections.singletonList(s"fs.config.xml=${HadoopSharedCluster.ContainerConfig}")
+        command.params.configuration = new java.util.ArrayList[(String, String)]()
+        HadoopSharedCluster.ContainerConfiguration.asScala.foreach(e => command.params.configuration.add(e.getKey -> e.getValue))
         command.params.rebuild = true
         command.execute()
 

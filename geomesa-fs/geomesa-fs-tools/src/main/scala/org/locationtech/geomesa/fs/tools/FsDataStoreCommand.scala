@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.tools
 
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
+import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
@@ -19,9 +20,9 @@ import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
 
-import java.io.File
+import java.io.{File, StringWriter}
 import java.util
-import java.util.ServiceLoader
+import java.util.{Collections, ServiceLoader}
 
 /**
  * Abstract class for FSDS commands
@@ -37,7 +38,13 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
     if (params.configuration != null && !params.configuration.isEmpty) {
-      val xml = FileSystemDataStoreParams.convertPropsToXml(params.configuration.asScala.mkString("\n"))
+      val xml = {
+        val conf = new Configuration(false)
+        params.configuration.asScala.foreach { case (k, v) => conf.set(k, v) }
+        val out = new StringWriter()
+        conf.writeXml(out)
+        out.toString
+      }
       builder += (FileSystemDataStoreParams.ConfigsParam.getName -> xml)
     }
     builder.result()
@@ -68,7 +75,7 @@ object FsDataStoreCommand {
       description = "Configuration properties, in the form k=v",
       converter = classOf[KeyValueConverter],
       splitter = classOf[NoopParameterSplitter])
-    var configuration: java.util.List[String] = _
+    var configuration: java.util.List[(String, String)] = _
   }
 
   trait PartitionParam {
