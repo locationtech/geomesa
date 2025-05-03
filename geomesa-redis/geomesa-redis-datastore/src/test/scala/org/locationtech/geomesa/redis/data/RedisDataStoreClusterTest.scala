@@ -16,7 +16,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -24,15 +23,14 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, Sim
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.testcontainers.containers.{FixedHostPortGenericContainer, GenericContainer, Network}
 import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.containers.{FixedHostPortGenericContainer, GenericContainer}
 import org.testcontainers.utility.DockerImageName
+import redis.clients.jedis.UnifiedJedis
 
-import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 import java.util.{Collections, Date}
 import scala.concurrent.duration.DurationInt
-import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class RedisDataStoreClusterTest extends Specification with LazyLogging {
@@ -336,6 +334,18 @@ class RedisDataStoreClusterTest extends Specification with LazyLogging {
       } finally {
         ds.dispose()
       }
+    }
+
+    "should dispose of connections" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[RedisDataStore]
+      ds must not(beNull)
+
+      // show that the cluster connection works prior to disposal
+      ds.connection.getResource.asInstanceOf[UnifiedJedis].ping() mustEqual "PONG"
+      ds.dispose()
+      // show that the cluster connection is closed after
+      ds.connection.getResource.asInstanceOf[UnifiedJedis].ping() must beNull
+      ds.connection.isClosed must beTrue
     }
   }
 

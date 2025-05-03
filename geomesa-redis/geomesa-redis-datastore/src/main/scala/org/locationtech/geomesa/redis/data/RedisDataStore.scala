@@ -15,7 +15,6 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringS
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.redis.data.RedisDataStoreFactory.RedisDataStoreConfig
-import org.locationtech.geomesa.redis.data.CloseableJedisCommands
 import org.locationtech.geomesa.redis.data.index.{RedisAgeOff, RedisIndexAdapter, RedisQueryPlan}
 import org.locationtech.geomesa.redis.data.util.{RedisBackedMetadata, RedisGeoMesaStats, RedisLocking}
 import org.locationtech.geomesa.utils.index.VisibilityLevel

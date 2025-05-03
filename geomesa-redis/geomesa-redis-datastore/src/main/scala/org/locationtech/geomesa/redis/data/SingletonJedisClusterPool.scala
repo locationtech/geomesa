@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.redis.data
 
 import org.apache.commons.pool2.{PooledObject, PooledObjectFactory}
+import redis.clients.jedis.executors.CommandExecutor
 import redis.clients.jedis.util.Pool
 import redis.clients.jedis.{HostAndPort, JedisClientConfig, JedisCluster, UnifiedJedis}
 
@@ -55,6 +56,13 @@ class SingletonJedisClusterPool(nodes: java.util.Set[HostAndPort], clientConfig:
   }
 
   override def close(): Unit = {
-    // do nothing - we're always returning the same instance, calling close on the cluster is handled by JedisCluster's internal pool
+    // `JedisClusterUncloseable` has disabled `close` but we can obtain a reference to the `executor` field
+    // and call `close` on it, which is what UnifiedJedis' close method does
+    // we need to do this when the pool itself is closed
+    val executorField = classOf[UnifiedJedis].getDeclaredField("executor")
+    executorField.setAccessible(true)
+    executorField.get(cluster).asInstanceOf[CommandExecutor].close()
+    // close the pool itself
+    super.close()
   }
 }
