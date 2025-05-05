@@ -179,18 +179,121 @@ class ParquetConverterTest extends Specification {
       val (sft, config) = inferred.get
 
       SimpleFeatureTypes.encodeType(sft) mustEqual
-          "color:String,id_0:Long,lat:Double,lon:Double,number:Long,height:String,weight:Double,*geom:Point:srid=4326"
+          "color:String,id_0:Long,lat:Double,lon:Double,number:Long,physical_height:String,physical_weight:Double,*geom:Point:srid=4326"
 
       val converter = factory.apply(sft, config)
       converter must beSome
 
       val ec = converter.get.createEvaluationContext(EvaluationContext.inputFileParam(path))
-      val features = converter.get.process(file.openStream(), ec).toList
+      val features = WithClose(converter.get.process(file.openStream(), ec))(_.toList)
       converter.get.close()
       features must haveLength(3)
       features(0).getAttributes.asScala mustEqual Seq("red", 1L, 0d, 0d, 123L, "5'11", 127.5d, WKTUtils.read("POINT (0 0)"))
       features(1).getAttributes.asScala mustEqual Seq("blue", 2L, 1d, 1d, 456L, "5'11", 150d, WKTUtils.read("POINT (1 1)"))
       features(2).getAttributes.asScala mustEqual Seq("green", 3L, 4.4d, 3.3d, 789L, "6'2", 200.4d, WKTUtils.read("POINT (3.3 4.4)"))
+    }
+
+    "infer a converter from a non-geomesa GeoParquet file" >> {
+      // this file was downloaded from https://emotional.byteroad.net/catalogue and
+      // then trimmed using org.locationtech.geomesa.convert.parquet.TrimParquetFile
+      val file = getClass.getClassLoader.getResource("hex350_grid_cardio_1920-10.parquet")
+      val path = new File(file.toURI).getAbsolutePath
+
+      val factory = new ParquetConverterFactory()
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
+      inferred must beASuccessfulTry
+
+      val (sft, config) = inferred.get
+
+      SimpleFeatureTypes.encodeType(sft) mustEqual
+        "fid:Integer,Col_ID:Integer,Row_ID:Integer,Hex_ID:Integer,Centroid_X:Double,Centroid_Y:Double,area:Double," +
+          "wprev_mean:Double,wprev_majority:Double,*geometry:MultiPolygon:srid=4326"
+
+      val converter = factory.apply(sft, config)
+      converter must beSome
+
+      val ec = converter.get.createEvaluationContext(EvaluationContext.inputFileParam(path))
+      val features = WithClose(converter.get.process(file.openStream(), ec))(_.toList)
+      converter.get.close()
+      features must haveLength(10)
+      foreach(features)(_.getAttribute("geometry") must beAnInstanceOf[MultiPolygon])
+      features.head.getAttributes.asScala mustEqual Seq(
+        1,
+        1120,
+        1202,
+        11201202,
+        521148.5154,
+        174050.7975,
+        106088.115,
+        0.8044027913184393,
+        0.8047540783882141,
+        WKTUtils.read("MULTIPOLYGON (((-0.260765354541958 51.45253141333989, -0.259371809771638 51.450937050803674, " +
+          "-0.256465188455566 51.45089385920242, -0.254951912350778 51.452445025302715, -0.256345346487153 51.45403943897036, " +
+          "-0.259252167374285 51.45408263540652, -0.260765354541958 51.45253141333989)))"),
+      )
+    }
+
+    "infer a converter from a non-geomesa GeoParquet file" >> {
+      // this file was downloaded from s3://overturemaps-us-west-2/release/2025-04-23.0/theme=base/type=infrastructure/
+      // (see https://docs.overturemaps.org/release/latest/) and then trimmed using org.locationtech.geomesa.convert.parquet.TrimParquetFile
+      val file = getClass.getClassLoader.getResource("part-00000-189f03e5-dde4-4576-bc83-4f1956a98011-c000-10.zstd.parquet")
+      val path = new File(file.toURI).getAbsolutePath
+
+      val factory = new ParquetConverterFactory()
+      val inferred = WithClose(file.openStream())(factory.infer(_, None, EvaluationContext.inputFileParam(path)))
+      inferred must beASuccessfulTry
+
+      val (sft, config) = inferred.get
+
+      SimpleFeatureTypes.encodeType(sft) mustEqual
+        "id_0:String,*geometry:Geometry:srid=4326,version:Integer,sources:String:json=true,level:Integer,subtype:String," +
+          "class:String,height:Double,surface:String,names_primary:String,names_common:Map[String,String]," +
+          "names_rules:String:json=true,source_tags:Map[String,String],wikidata:String"
+
+      val converter = factory.apply(sft, config)
+      converter must beSome
+
+      val ec = converter.get.createEvaluationContext(EvaluationContext.inputFileParam(path))
+      val features = WithClose(converter.get.process(file.openStream(), ec))(_.toList)
+      converter.get.close()
+      features must haveLength(10)
+
+      features.head.getAttributes.asScala mustEqual Seq(
+        "08bbb364e428dfff0001bf556bd767b7",
+        WKTUtils.read("LINESTRING (-176.6378811 -44.0466765, -176.6378513 -44.0466907)"),
+        0,
+        """[{"property":"","dataset":"OpenStreetMap","record_id":"w58443657@5","update_time":"2022-07-05T05:35:04.000Z"}]""",
+        1,
+        "bridge",
+        "bridge",
+        null,
+        "concrete",
+        null,
+        null,
+        null,
+        java.util.Map.of("surface", "concrete", "highway", "tertiary", "bridge", "yes"),
+        null,
+      )
+      features(5).getAttributes.asScala mustEqual Seq(
+        "08bce9e59e212fff0001c31e8c83b392",
+        WKTUtils.read("POLYGON ((-68.692393 -38.581357, -68.6930275 -38.5816525, -68.6932579 -38.5817623, -68.6934995 -38.5818808, " +
+          "-68.6942836 -38.5822612, -68.6943095 -38.5822864, -68.6943127 -38.5823167, -68.6942933 -38.5823394, -68.6942611 -38.5823495, " +
+          "-68.6942223 -38.582347, -68.6934104 -38.582004, -68.6932513 -38.5819403, -68.6930727 -38.5818583, -68.6875213 -38.5792975, " +
+          "-68.6873743 -38.579228, -68.6872329 -38.5791518, -68.6865382 -38.5787749, -68.686909 -38.5788495, -68.6871056 -38.5789066, " +
+          "-68.6872629 -38.5789681, -68.6904368 -38.5804461, -68.692393 -38.581357))"),
+        0,
+        """[{"property":"","dataset":"OpenStreetMap","record_id":"r13636394@2","update_time":"2022-01-12T08:25:42.000Z"}]""",
+        null,
+        "water",
+        "dam",
+        16.0,
+        null,
+        "Dique Marí Menuco",
+        java.util.Map.of("en", "Dique Marí Menuco"),
+        """[{"variant":"alternate","value":"Complejo hidroeléctrico Cerros Colorados"}]""",
+        java.util.Map.of("operator", "Orazul Energy Cerros Colorados", "waterway", "dam"),
+        "Q1056184",
+      )
     }
 
     "read visibilities with an inferred geomesa parquet file" >> {

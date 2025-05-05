@@ -195,6 +195,7 @@ org.apache.httpcomponents:httpcore	4.4.16	compile
 org.apache.orc:orc-core	nohive:1.9.5	compile
 org.apache.orc:orc-mapreduce	nohive:1.9.5	compile
 org.apache.orc:orc-shims	1.9.5	compile
+org.apache.parquet:parquet-avro	1.15.1	compile
 org.apache.parquet:parquet-column	1.15.1	compile
 org.apache.parquet:parquet-common	1.15.1	compile
 org.apache.parquet:parquet-encoding	1.15.1	compile
@@ -340,6 +341,7 @@ org.apache.logging.log4j:log4j-core	2.22.1	test
 org.apache.sedona:sedona-common	1.5.0	test
 org.cassandraunit:cassandra-unit	3.7.1.0	test
 org.codehaus.groovy:groovy-jsr223	3.0.20	test
+org.duckdb:duckdb_jdbc	1.2.2.0	test
 org.geomesa.testcontainers:testcontainers-accumulo	1.4.1	test
 org.geotools:gt-epsg-hsql	33.0	test
 org.jruby:jruby	9.4.5.0	test

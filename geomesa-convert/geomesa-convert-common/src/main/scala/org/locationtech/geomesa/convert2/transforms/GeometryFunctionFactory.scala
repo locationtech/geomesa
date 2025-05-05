@@ -79,7 +79,7 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
   private val multiLineStringParserFn = TransformerFunction.pure("multilinestring") {
     case Array(g: MultiLineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiLineString]
-    case Array(g: Array[Byte]) => WKBUtils.read(g)
+    case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiLineString]
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid multilinestring conversion argument: ${args.mkString(",")}")
   }
@@ -101,9 +101,9 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
   }
 
   private val geometryCollectionParserFn = TransformerFunction.pure("geometrycollection") {
-    case Array(g: GeometryCollection) => g.asInstanceOf[GeometryCollection]
+    case Array(g: GeometryCollection) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[GeometryCollection]
-    case Array(g: Array[Byte]) => WKBUtils.read(g)
+    case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[GeometryCollection]
     case Array(null) => null
     case args => throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.mkString(",")}")
   }
