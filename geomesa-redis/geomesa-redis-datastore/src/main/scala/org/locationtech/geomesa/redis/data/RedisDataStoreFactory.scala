@@ -68,6 +68,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     Array(
       RedisUrlParam,
       RedisCatalogParam,
+      RedisClusterBoolParam,
       PoolSizeParam,
       SocketTimeoutParam,
       QueryThreadsParam,
