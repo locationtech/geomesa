@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.redis.data
 
+import redis.clients.jedis.executors.CommandExecutor
 import redis.clients.jedis.{HostAndPort, JedisClientConfig, UnifiedJedis}
 
 import java.time.Duration
@@ -30,5 +31,9 @@ class JedisClusterUncloseable(
   override def close(): Unit = {
     // Do not call the superclass close method
     // super.close()
+  }
+
+  private[data] def closePool(): Unit = {
+    super.close()
   }
 }
