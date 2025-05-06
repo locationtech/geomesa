@@ -131,9 +131,9 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
             throw new IllegalArgumentException("No Redis URLs provided. Please set 'redis.url'")
           }
           val uri = URI.create(urls.head)
-          val config = new GenericObjectPoolConfig[JedisCluster]()
-          PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
-          config.setTestOnBorrow(TestConnectionParam.lookup(params))
+          val objectPoolConfig = new GenericObjectPoolConfig[Connection]()
+          PoolSizeParam.lookupOpt(params).foreach(s => objectPoolConfig.setMaxTotal(s.intValue()))
+          objectPoolConfig.setTestOnBorrow(TestConnectionParam.lookup(params))
           val timeout = SocketTimeoutParam.lookup(params).toMillis.toInt
 
           val clusterNodes: java.util.Set[HostAndPort] =
@@ -152,7 +152,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
               .database(JedisURIHelper.getDBIndex(uri))
               .clientName(null)
               .build
-          new SingletonJedisClusterPool(clusterNodes, jedisClientConfig)
+          new SingletonJedisClusterPool(clusterNodes, jedisClientConfig, objectPoolConfig)
       }
     }
   }

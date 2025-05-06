@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.redis.data
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.apache.commons.pool2.{PooledObject, PooledObjectFactory}
 import redis.clients.jedis.util.Pool
-import redis.clients.jedis.{HostAndPort, JedisClientConfig, JedisCluster, UnifiedJedis}
+import redis.clients.jedis.{Connection, HostAndPort, JedisClientConfig, JedisCluster, UnifiedJedis}
 
 import java.time.Duration;
 
@@ -34,12 +35,13 @@ class NoopClusterFactory extends PooledObjectFactory[UnifiedJedis] {
  * @param nodes
  * @param clientConfig
  */
-class SingletonJedisClusterPool(nodes: java.util.Set[HostAndPort], clientConfig: JedisClientConfig)
+class SingletonJedisClusterPool(nodes: java.util.Set[HostAndPort], clientConfig: JedisClientConfig, objectPoolConfig: GenericObjectPoolConfig[Connection])
     extends Pool[UnifiedJedis](new NoopClusterFactory) {
 
   private val cluster = new JedisClusterUncloseable(
     nodes,
     clientConfig,
+    objectPoolConfig,
     JedisCluster.DEFAULT_MAX_ATTEMPTS,
     Duration.ofMillis(clientConfig.getSocketTimeoutMillis * JedisCluster.DEFAULT_MAX_ATTEMPTS)
   )

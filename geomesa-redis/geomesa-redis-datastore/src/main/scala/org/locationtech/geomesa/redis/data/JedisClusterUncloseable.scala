@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.redis.data
 
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import redis.clients.jedis.executors.CommandExecutor
-import redis.clients.jedis.{HostAndPort, JedisClientConfig, UnifiedJedis}
+import redis.clients.jedis.{Connection, HostAndPort, JedisClientConfig, UnifiedJedis}
 
 import java.time.Duration
 import scala.collection.JavaConverters._
@@ -20,9 +21,10 @@ import scala.collection.JavaConverters._
 class JedisClusterUncloseable(
     clusterNodes: java.util.Set[HostAndPort],
     clientConfig: JedisClientConfig,
+    objectPoolConfig: GenericObjectPoolConfig[Connection],
     maxAttempts: Int,
     maxTotalRetriesDuration: Duration
-  ) extends UnifiedJedis(clusterNodes, clientConfig, maxAttempts, maxTotalRetriesDuration) {
+  ) extends UnifiedJedis(clusterNodes, clientConfig, objectPoolConfig, maxAttempts, maxTotalRetriesDuration) {
 
   /**
    * Override the close method to prevent closing the JedisCluster instance.
