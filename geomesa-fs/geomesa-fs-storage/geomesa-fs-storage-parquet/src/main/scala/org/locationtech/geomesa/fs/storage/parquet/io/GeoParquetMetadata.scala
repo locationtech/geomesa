@@ -155,7 +155,7 @@ object GeoParquetMetadata {
         bounds.expandToInclude(bbox.get(2).getAsDouble, bbox.get(3).getAsDouble)
       }
       // TODO crs, orientation, edges, epoch
-      ColumnMetadata(name, encoding, types, covering, bounds)
+      ColumnMetadata(name, encoding, types.toSeq, covering, bounds)
     }
     GeoParquetMetadata(primary, cols.toSeq)
   }
