@@ -171,7 +171,7 @@ object ParquetConverterFactory extends LazyLogging {
     val geos: Option[GeoParquetMetadata] =
       Option(fileMetaData.getKeyValueMetaData.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(GeoParquetMetadata.fromJson)
 
-    val types = fileMetaData.getSchema.getFields.asScala.flatMap(mapField(_, namer, geos))
+    val types = fileMetaData.getSchema.getFields.asScala.flatMap(mapField(_, namer, geos)).toSeq
     // check if we can derive a geometry field
     val geom = TypeInference.deriveGeometry(types, namer)
     types ++ geom
@@ -255,7 +255,7 @@ object ParquetConverterFactory extends LazyLogging {
           }
 
         case _ =>
-          group.getFields.asScala.flatMap(mapNormalField(_, namer, fieldPath))
+          group.getFields.asScala.flatMap(mapNormalField(_, namer, fieldPath)).toSeq
       }
     }
   }
