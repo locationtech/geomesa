@@ -334,10 +334,14 @@ object SimpleFeatureReadSupport {
 
     private var list: java.util.List[AnyRef] = _
 
-    private val elements = new GroupConverter {
-      override def getConverter(fieldIndex: Int): Converter = items
-      override def start(): Unit = {}
-      override def end(): Unit = {}
+    private val elements = items match {
+      case g: GroupConverter => g
+      case _ =>
+        new GroupConverter {
+          override def getConverter(fieldIndex: Int): Converter = items
+          override def start(): Unit = {}
+          override def end(): Unit = {}
+        }
     }
 
     private val group: GroupConverter = new GroupConverter {

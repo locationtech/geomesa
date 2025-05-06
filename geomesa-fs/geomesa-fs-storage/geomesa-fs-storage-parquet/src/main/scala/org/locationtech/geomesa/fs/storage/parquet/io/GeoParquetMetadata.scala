@@ -12,11 +12,24 @@ import com.google.gson.{GsonBuilder, JsonArray, JsonObject}
 import org.geotools.api.feature.`type`.GeometryDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.ColumnMetadata
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.locationtech.jts.geom.{Envelope, Geometry, GeometryCollection, Point}
 
 import java.util.{Collections, Locale}
+
+/**
+ * Model for GeoParquet file metadata
+ *
+ * @param primaryGeometry name of the primary geometry in the file
+ * @param geometries information about each geometry column in the file
+ */
+case class GeoParquetMetadata(primaryGeometry: String, geometries: Seq[ColumnMetadata]) {
+  def toJson(): String = GeoParquetMetadata.toJson(this)
+}
 
 /**
  * Class for generating geoparquet metadata
@@ -25,37 +38,80 @@ object GeoParquetMetadata {
 
   import StringSerialization.{alphaNumericSafeString, decodeAlphaNumericSafeString}
 
+  import scala.collection.JavaConverters._
+
   val GeoParquetMetadataKey = "geo"
 
   private val gson = new GsonBuilder().disableHtmlEscaping().create()
 
-  private case class ColumnMetadata(
+  case class ColumnMetadata(
     name: String,
-    encoding: String,
-    types: Option[String],
+    encoding: GeoParquetColumnEncoding.Value,
+    types: Seq[GeoParquetColumnType.Value],
     covering: Option[String],
     bounds: Envelope = new Envelope(),
   )
 
+  object GeoParquetColumnEncoding extends Enumeration {
+
+    type GeoParquetColumnEncoding = Value
+    val WKB, point, linestring, polygon, multipoint, multilinestring, multipolygon = Value
+
+    /**
+     * Gets the geometry object type associated with the column encoding
+     *
+     * @param encoding encoding
+     * @return
+     */
+    def toObjectType(encoding: GeoParquetColumnEncoding): ObjectType = {
+      encoding match {
+        case WKB => ObjectType.GEOMETRY
+        case _ => ObjectType.withName(encoding.toString.toUpperCase(Locale.US))
+      }
+    }
+  }
+
+  object GeoParquetColumnType extends Enumeration {
+
+    type GeoParquetColumnType = Value
+    val Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection = Value
+    val `Point Z`, `LineString Z`, `Polygon Z`, `MultiPoint Z`, `MultiLineString Z`, `MultiPolygon Z`, `GeometryCollection Z` = Value
+
+    /**
+     * Gets the geometry object type based on the GeoParquet column types
+     *
+     * @param colTypes column types from GeoParquet metadata
+     * @return
+     */
+    def toObjectType(colTypes: Seq[GeoParquetColumnType]): ObjectType = {
+      if (colTypes.lengthCompare(1) != 0) {
+        ObjectType.GEOMETRY // more than 1 geometry type
+      } else if (colTypes.head == GeometryCollection || colTypes.head == `GeometryCollection Z` ) {
+        ObjectType.GEOMETRY_COLLECTION // this is the one objectType whose name doesn't align with the columnType
+      } else {
+        ObjectType.withName(colTypes.head.toString.replace(" Z", "").toUpperCase(Locale.US))
+      }
+    }
+  }
+
   /**
    * Generate json describing the GeoParquet file, conforming to the 1.1.0 GeoParquet schema
    *
-   * @param primaryGeometry name of the primary geometry in the file
-   * @param geometries pairs of geometries and optional bounds
+   * @param metadata metadata
    * @return
    */
-  private def apply(primaryGeometry: String, geometries: Seq[ColumnMetadata]): String = {
+  def toJson(metadata: GeoParquetMetadata): String = {
     val model = new JsonObject()
     model.addProperty("version", "1.1.0")
-    model.addProperty("primary_column", primaryGeometry)
+    model.addProperty("primary_column", metadata.primaryGeometry)
     val cols = model.addObject("columns")
-    geometries.foreach { column =>
+    metadata.geometries.foreach { column =>
       val metadata = cols.addObject(column.name)
-      metadata.addProperty("encoding", column.encoding)
-      val types = metadata.addArray("geometry_types", 1) // TODO add ' Z' for 3d points
-      column.types.foreach(types.add)
+      metadata.addProperty("encoding", column.encoding.toString)
+      val types = metadata.addArray("geometry_types", 1)
+      column.types.foreach(t => types.add(t.toString))
       if (!column.bounds.isNull) {
-        val bbox = metadata.addArray("bbox", 4) // TODO add z for 3d points
+        val bbox = metadata.addArray("bbox", 4)
         bbox.add(column.bounds.getMinX)
         bbox.add(column.bounds.getMinY)
         bbox.add(column.bounds.getMaxX)
@@ -72,6 +128,36 @@ object GeoParquetMetadata {
     }
 
     gson.toJson(model)
+  }
+
+  /**
+   * Parse a GeoParquet json into a model object
+   *
+   * @param json json string
+   * @return
+   */
+  def fromJson(json: String): GeoParquetMetadata = {
+    val obj = gson.fromJson(json, classOf[JsonObject])
+    val primary = obj.get("primary_column").getAsString
+    val cols = obj.getAsJsonObject("columns").entrySet().asScala.map { entry =>
+      val name = entry.getKey
+      val obj = entry.getValue.getAsJsonObject
+      // required entries
+      val encoding = GeoParquetColumnEncoding.withName(obj.get("encoding").getAsString)
+      val types = obj.getAsJsonArray("geometry_types").asList().asScala.map(t => GeoParquetColumnType.withName(t.getAsString))
+      // optional entries
+      // note: all covering fields *must* refer to the same column, so we only pull out one
+      val covering =
+        Option(obj.getAsJsonObject("covering")).map(_.getAsJsonObject("bbox").getAsJsonArray("xmin").get(0).getAsString)
+      val bounds = new Envelope()
+      Option(obj.getAsJsonArray("bbox")).foreach { bbox =>
+        bounds.expandToInclude(bbox.get(0).getAsDouble, bbox.get(1).getAsDouble)
+        bounds.expandToInclude(bbox.get(2).getAsDouble, bbox.get(3).getAsDouble)
+      }
+      // TODO crs, orientation, edges, epoch
+      ColumnMetadata(name, encoding, types.toSeq, covering, bounds)
+    }
+    GeoParquetMetadata(primary, cols.toSeq)
   }
 
   /**
@@ -117,7 +203,7 @@ object GeoParquetMetadata {
           val expected = alphaNumericSafeString(schema.sft.getGeometryDescriptor.getLocalName)
           columns.find(_.name == expected).getOrElse(columns.head).name
         }
-        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns.toSeq))
+        Collections.singletonMap(GeoParquetMetadataKey, GeoParquetMetadata(primary, columns.toSeq).toJson())
       }
     }
 
@@ -156,12 +242,13 @@ object GeoParquetMetadata {
         // for non-wkb encoding schemes, we still use WKB for mixed-type geometries
         if (schema.encodings.geometry == GeometryEncoding.GeoParquetWkb ||
             binding == classOf[Geometry] || binding == classOf[GeometryCollection]) {
-          "WKB"
+          GeoParquetColumnEncoding.WKB
         } else {
-          binding.getSimpleName.toLowerCase(Locale.US)
+          GeoParquetColumnEncoding.withName(binding.getSimpleName.toLowerCase(Locale.US))
         }
       }
-      val types = if (binding == classOf[Geometry]) { None } else { Some(binding.getSimpleName) }
+      // TODO add z for 3d points
+      val types = if (binding == classOf[Geometry]) { Seq.empty } else { Seq(GeoParquetColumnType.withName(binding.getSimpleName)) }
       val covering = schema.boundingBoxes.collectFirst { case b if b.geometry == name => b.bbox }
       ColumnMetadata(name, encoding, types, covering)
     }

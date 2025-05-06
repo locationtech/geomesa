@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.convert.parquet
 
-import org.apache.avro.Schema
-import org.apache.avro.generic.GenericRecord
+import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.apache.hadoop.conf.Configuration
+import org.apache.parquet.avro.AvroSchemaConverter
 import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
@@ -35,8 +35,6 @@ import java.util.{Collections, Date}
   */
 class AvroReadSupport extends ReadSupport[GenericRecord] {
 
-  import scala.collection.JavaConverters._
-
   private var schema: Option[SimpleFeatureParquetSchema] = None
 
   override def init(context: InitContext): ReadContext = {
@@ -49,68 +47,38 @@ class AvroReadSupport extends ReadSupport[GenericRecord] {
       keyValueMetaData: java.util.Map[String, String],
       fileSchema: MessageType,
       readContext: ReadContext): RecordMaterializer[GenericRecord] =
-    new AvroRecordMaterializer(fileSchema.getFields.asScala.toSeq, schema)
+    new AvroRecordMaterializer(fileSchema, schema)
 
   override def prepareForRead(
     configuration: ParquetConfiguration,
     keyValueMetaData: java.util.Map[String, String],
     fileSchema: MessageType,
     readContext: ReadContext): RecordMaterializer[GenericRecord] =
-    new AvroRecordMaterializer(fileSchema.getFields.asScala.toSeq, schema)
+    new AvroRecordMaterializer(fileSchema, schema)
 }
 
 object AvroReadSupport {
 
   import scala.collection.JavaConverters._
 
-  class AvroRecordMaterializer(fields: Seq[Type], schema: Option[SimpleFeatureParquetSchema])
+  class AvroRecordMaterializer(fileSchema: MessageType, schema: Option[SimpleFeatureParquetSchema])
       extends RecordMaterializer[GenericRecord] {
-    private val root = new GenericGroupConverter(fields, schema)
+    private val root = new GenericGroupConverter(fileSchema, schema)
     override def getCurrentRecord: GenericRecord = root.materialize()
     override def getRootConverter: GroupConverter = root
   }
 
   /**
-    * Schema-less implementation of GenericRecord
-    *
-    * @param fields field names
-    */
-  private class AvroRecord(fields: IndexedSeq[String]) extends GenericRecord {
-
-    private val values = Array.ofDim[AnyRef](fields.length)
-
-    override def put(key: String, v: AnyRef): Unit = values(fields.indexOf(key)) = v
-    override def get(key: String): AnyRef = values(fields.indexOf(key))
-    override def put(i: Int, v: AnyRef): Unit = values(i) = v
-    override def get(i: Int): AnyRef = values(i)
-
-    override def getSchema: Schema = null
-
-    override def toString: String = {
-      val builder = new StringBuilder("AvroRecord[")
-      var i = 0
-      while (i < fields.length) {
-        if (i != 0) {
-          builder.append(',')
-        }
-        builder.append(fields(i)).append(':').append(values(i))
-        i += 1
-      }
-      builder.append(']')
-      builder.toString
-    }
-  }
-
-  /**
    * Group converter for a record
    *
-   * @param fields fields
+   * @param fileSchema parquet schema
    * @param schema geomesa schema encodings, if it's a geomesa file
    */
-  private class GenericGroupConverter(fields: Seq[Type], schema: Option[SimpleFeatureParquetSchema])
+  private class GenericGroupConverter(fileSchema: MessageType, schema: Option[SimpleFeatureParquetSchema])
       extends GroupConverter with ValueMaterializer[GenericRecord] {
 
-    private val names = fields.map(_.getName).toIndexedSeq
+    private val avroSchema = new AvroSchemaConverter().convert(fileSchema)
+    private val fields = fileSchema.getFields.asScala.toSeq
     private val converters = schema match {
       case None => Array.tabulate(fields.length)(i => converter(fields(i)))
       case Some(s) =>
@@ -123,11 +91,11 @@ object AvroReadSupport {
         attributes.toArray ++ remaining
     }
 
-    private var rec: AvroRecord = _
+    private var rec: GenericRecord = _
 
     override def getConverter(fieldIndex: Int): Converter = converters(fieldIndex)
     override def start(): Unit = {
-      rec = new AvroRecord(names)
+      rec = new GenericData.Record(avroSchema)
       converters.foreach(_.reset())
     }
     override def end(): Unit = {
@@ -176,25 +144,23 @@ object AvroReadSupport {
       }
     } else {
       val group = field.asGroupType()
+      def genericGroupConverter(): GenericGroupConverter =
+        new GenericGroupConverter(new MessageType(group.getName, group.getFields), None)
       logical match {
         case _: ListLogicalTypeAnnotation =>
-          require(group.getFieldCount == 1 && !group.getType(0).isPrimitive, s"Invalid list type: $group")
-          val list = group.getType(0).asGroupType()
-          require(list.getFieldCount == 1 && list.isRepetition(Repetition.REPEATED), s"Invalid list type: $group")
-          val elements = list.getType(0)
-          require(!elements.isPrimitive, s"Invalid list type: $group")
-          val elementGroup = elements.asGroupType()
-          require(elementGroup.getFieldCount == 1 && elementGroup.getType(0).isPrimitive, s"Invalid list type: $group")
-          new ListConverter(converter(list.getType(0)))
+          ParquetConverterFactory.getListElementType(group) match {
+            case Some(items) => new ListConverter(converter(items))
+            case _ => genericGroupConverter()
+          }
 
         case _: MapLogicalTypeAnnotation =>
-          require(group.getFieldCount == 1 && !group.getType(0).isPrimitive, s"Invalid map type: $group")
-          val map = group.getType(0).asGroupType()
-          require(map.getFieldCount == 2 && map.isRepetition(Repetition.REPEATED), s"Invalid map type: $group")
-          new MapConverter(converter(map.getType(0)), converter(map.getType(1)))
+          ParquetConverterFactory.getMapKeyValueTypes(group) match {
+            case Some((k, v)) => new MapConverter(converter(k), converter(v))
+            case _ => genericGroupConverter()
+          }
 
         case _ =>
-          new GenericGroupConverter(group.getFields.asScala.toSeq, None)
+          genericGroupConverter()
       }
     }
   }
