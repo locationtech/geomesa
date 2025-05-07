@@ -14,12 +14,15 @@ import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.JedisPool
+import redis.clients.jedis.commands.{JedisBinaryCommands, JedisCommands}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 package object data extends LazyLogging {
+
+  type CloseableJedisCommands = JedisCommands with JedisBinaryCommands with AutoCloseable
 
   // keep lazy to allow for runtime setting of the underlying sys prop
   lazy val TransactionBackoffs: IndexedSeq[Int] = try { backoffs(RedisSystemProperties.TransactionBackoff.get) } catch {
@@ -36,8 +39,18 @@ package object data extends LazyLogging {
       new GeoMesaParam[String](
         "redis.url",
         "Redis connection URL. The URL can be used to specify the Redis database and credentials, if required - " +
-            "for example, 'redis://user:password@localhost:6379/1'",
+        "for example, 'redis://user:password@localhost:6379/1'. Multiple URLs can be specified in a comma delimited list" +
+        " if using a Redis cluster.",
         optional = false,
+        supportsNiFiExpressions = true
+      )
+
+    val RedisClusterBoolParam =
+      new GeoMesaParam[java.lang.Boolean](
+        "redis.cluster",
+        "Boolean flag to indicate if the Redis connection is a cluster. ",
+        optional = true,
+        default = false,
         supportsNiFiExpressions = true
       )
 

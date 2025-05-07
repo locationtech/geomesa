@@ -9,9 +9,10 @@
 package org.locationtech.geomesa.redis.data.util
 
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
+import org.locationtech.geomesa.redis.data.CloseableJedisCommands
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.util.Pool
 
 import java.nio.charset.StandardCharsets
 
@@ -23,7 +24,7 @@ import java.nio.charset.StandardCharsets
   * @param serializer serializer
   * @tparam T type param
   */
-class RedisBackedMetadata[T](connection: JedisPool, table: String, val serializer: MetadataSerializer[T])
+class RedisBackedMetadata[T](connection: Pool[_ <: CloseableJedisCommands], table: String, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
   import scala.collection.JavaConverters._

@@ -15,11 +15,12 @@ import org.geotools.api.filter.identity.Identifier
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.{AgeOffExecutor, AgeOffWriter}
 import org.locationtech.geomesa.redis.data.util.RedisLocking
-import org.locationtech.geomesa.redis.data.{RedisDataStore, RedisSystemProperties}
+import org.locationtech.geomesa.redis.data.{CloseableJedisCommands, RedisDataStore, RedisSystemProperties}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.{Jedis, UnifiedJedis}
 import redis.clients.jedis.params.ZAddParams
+import redis.clients.jedis.util.Pool
 
 import java.io.{Closeable, Flushable}
 import java.nio.charset.StandardCharsets
@@ -141,7 +142,7 @@ object RedisAgeOff extends StrictLogging {
     * @param connection jedis connection
     * @param table ttl table for the feature type
     */
-  class AgeOffWriter(connection: JedisPool, table: Array[Byte]) extends Closeable with Flushable {
+  class AgeOffWriter(connection: Pool[_ <: CloseableJedisCommands], table: Array[Byte]) extends Closeable with Flushable {
 
     private val writes = new java.util.HashMap[Array[Byte], java.lang.Double]
     private val deletes = ArrayBuffer.empty[Array[Byte]]
@@ -231,7 +232,7 @@ object RedisAgeOff extends StrictLogging {
       throw new IllegalStateException("Invalid age-off lock timeout")
     }
 
-    override def connection: JedisPool = ds.connection
+    override def connection: Pool[_ <: CloseableJedisCommands] = ds.connection
 
     override def run(): Unit = {
       val timestamp = System.currentTimeMillis()
@@ -252,12 +253,33 @@ object RedisAgeOff extends StrictLogging {
     private def removeExpiredIds(timestamp: Long): java.util.List[JedisTuple] = {
       def exec: java.util.List[JedisTuple] = {
         WithClose(ds.connection.getResource) { jedis =>
-          // run the select and remove in an atomic transaction
-          val tx = jedis.multi()
-          val scores = tx.zrangeByScoreWithScores(table, 0, timestamp)
-          tx.zremrangeByScore(table, 0, timestamp)
-          tx.exec()
-          scores.get
+          // Use Lua script to atomically get and remove expired entries
+          val script = """
+            local scores = redis.call('zrangebyscore', KEYS[1], 0, ARGV[1], 'WITHSCORES')
+            if #scores > 0 then
+              redis.call('zremrangebyscore', KEYS[1], 0, ARGV[1])
+            end
+            return scores
+          """
+          val result = jedis.eval(script.getBytes(StandardCharsets.UTF_8), 1, table, timestamp.toString.getBytes(StandardCharsets.UTF_8))
+          // Convert the result to a List[JedisTuple]
+          result match {
+            case list: java.util.List[_] if list.size() > 0 =>
+              val tuples = new java.util.ArrayList[JedisTuple](list.size() / 2)
+              var i = 0
+              while (i < list.size()) {
+                val member = list.get(i).asInstanceOf[Array[Byte]]
+                val score = list.get(i + 1) match {
+                  case s: String => s.toDouble
+                  case b: Array[Byte] => new String(b, StandardCharsets.UTF_8).toDouble
+                  case _ => throw new IllegalStateException(s"Unexpected score type: ${list.get(i + 1).getClass}")
+                }
+                tuples.add(new JedisTuple(member, score))
+                i += 2
+              }
+              tuples
+            case _ => Collections.emptyList[JedisTuple]()
+          }
         }
       }
 
@@ -269,7 +291,7 @@ object RedisAgeOff extends StrictLogging {
       // acquire a lock so that we're not repeating work in multiple data store instances
       val ids = try { withLock(lockPath, timeout, exec, noLock) } catch {
         case NonFatal(e) =>
-          logger.error("Error executing ttl transaction:", e)
+          logger.error("Error executing ttl script:", e)
           Collections.emptyList[JedisTuple]()
       }
 

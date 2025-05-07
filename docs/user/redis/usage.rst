@@ -9,9 +9,11 @@ Use the following parameters for a Redis data store (required parameters are mar
 Parameter                              Type    Description
 ====================================== ======= ====================================================================================
 ``redis.url *``                        String  Redis connection URL. The URL can be used to specify the Redis database and
-                                               credentials, if required - for example, 'redis://user:pass@host:port/db'
+                                               credentials, if required - for example, 'redis://user:pass@host:port/db'.
+                                               If using a Redis cluster, this may be a comma-separated list of redis URLs.
 ``redis.catalog *``                    String  The name of the GeoMesa catalog table. In Redis, this is the base key used for
                                                inserts
+``redis.cluster``                      Boolean Set to true if using a redis cluster.
 ``redis.connection.pool.size``         Integer Max number of simultaneous connections to use
 ``redis.connection.pool.validate``     Boolean Test connections when borrowed from the pool. Connections may be closed due to
                                                inactivity, which would cause a transient error if validation is disabled

@@ -20,11 +20,12 @@ import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import redis.clients.jedis.util.JedisURIHelper
-import redis.clients.jedis.{Jedis, JedisPool}
+import redis.clients.jedis.util.{JedisURIHelper, Pool}
+import redis.clients.jedis.{Connection, DefaultJedisClientConfig, HostAndPort, Jedis, JedisClientConfig, JedisCluster, JedisPool}
 
 import java.awt.RenderingHints
 import java.net.URI
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
@@ -67,6 +68,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     Array(
       RedisUrlParam,
       RedisCatalogParam,
+      RedisClusterBoolParam,
       PoolSizeParam,
       SocketTimeoutParam,
       QueryThreadsParam,
@@ -90,31 +92,68 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConnection(params: java.util.Map[String, _]): JedisPool = {
+  def buildConnection(params: java.util.Map[String, _]): Pool[_ <: CloseableJedisCommands] = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
-      val uri = {
-        val url = RedisUrlParam.lookup(params)
-        // if there is no protocol/port, or the url is a valid redis url, use as is
-        // else use the redis:// protocol to support databases, etc
-        val parsed =
-          if (url.indexOf(":") == -1) {
-            Try(new URI(url))
-          } else {
-            parse(url).orElse(parse(s"redis://$url"))
+      RedisClusterBoolParam.lookup(params).booleanValue() match {
+        case false =>
+          val uri = {
+            val urls = RedisUrlParam.lookup(params).split(",")
+            if (urls.length > 1) {
+              throw new IllegalArgumentException(
+                "Multiple Redis URLs can only be used in cluster mode. Set 'redis.clusterMode' to true.")
+            }
+            val url = urls.headOption.getOrElse {
+              throw new IllegalArgumentException("No Redis URL provided. Please set 'redis.url'")
+            }
+            // if there is no protocol/port, or the url is a valid redis url, use as is
+            // else use the redis:// protocol to support databases, etc
+            val parsed =
+              if (url.indexOf(":") == -1) {
+                Try(new URI(url))
+              } else {
+                parse(url).orElse(parse(s"redis://$url"))
+              }
+            parsed match {
+              case Success(uri) => uri
+              case Failure(e) =>
+                throw new IllegalArgumentException(s"Could not create valid Redis connection URI from: $url", e)
+            }
           }
-        parsed match {
-          case Success(uri) => uri
-          case Failure(e) =>
-            throw new IllegalArgumentException(s"Could not create valid Redis connection URI from: $url", e)
-        }
+          val config = new GenericObjectPoolConfig[Jedis]()
+          PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
+          config.setTestOnBorrow(TestConnectionParam.lookup(params))
+          val timeout = SocketTimeoutParam.lookup(params).toMillis.toInt
+
+          new JedisPool(config, uri, timeout)
+        case true =>
+          val urls = RedisUrlParam.lookup(params).split(",")
+          if (urls.isEmpty) {
+            throw new IllegalArgumentException("No Redis URLs provided. Please set 'redis.url'")
+          }
+          val uri = URI.create(urls.head)
+          val objectPoolConfig = new GenericObjectPoolConfig[Connection]()
+          PoolSizeParam.lookupOpt(params).foreach(s => objectPoolConfig.setMaxTotal(s.intValue()))
+          objectPoolConfig.setTestOnBorrow(TestConnectionParam.lookup(params))
+          val timeout = SocketTimeoutParam.lookup(params).toMillis.toInt
+
+          val clusterNodes: java.util.Set[HostAndPort] =
+            urls.map { url =>
+              val parsed = parse(url).getOrElse {
+                throw new IllegalArgumentException(s"Could not create valid Redis connection URI from: $url")
+              }
+              JedisURIHelper.getHostAndPort(parsed)
+            }.toSet.asJava
+          val jedisClientConfig: JedisClientConfig =
+            DefaultJedisClientConfig.builder.connectionTimeoutMillis(timeout)
+              .socketTimeoutMillis(timeout)
+              .blockingSocketTimeoutMillis(0)
+              .user(JedisURIHelper.getUser(uri))
+              .password(JedisURIHelper.getPassword(uri))
+              .database(JedisURIHelper.getDBIndex(uri))
+              .clientName(null)
+              .build
+          new SingletonJedisClusterPool(clusterNodes, jedisClientConfig, objectPoolConfig)
       }
-
-      val config = new GenericObjectPoolConfig[Jedis]()
-      PoolSizeParam.lookupOpt(params).foreach(s => config.setMaxTotal(s.intValue()))
-      config.setTestOnBorrow(TestConnectionParam.lookup(params))
-      val timeout = SocketTimeoutParam.lookup(params).toMillis.toInt
-
-      new JedisPool(config, uri, timeout)
     }
   }
 
