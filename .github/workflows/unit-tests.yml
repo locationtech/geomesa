@@ -51,10 +51,12 @@ jobs:
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: debugme
         run: |
+          echo "/etc/hosts::"
           cat /etc/hosts
-          echo $HOST
-          echo $HOSTNAME
-          echo $MAVEN_CLI_OPTS
+          sed -i s'/^-e //' /etc/hosts
+          echo "/etc/hosts::"
+          cat /etc/hosts
+          echo "ifconfig"
           ifconfig
       - name: Unit tests
         id: test
