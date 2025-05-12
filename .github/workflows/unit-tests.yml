@@ -49,6 +49,15 @@ jobs:
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: env
+        run: |
+          set -x
+          cat /etc/hosts
+          echo $HOST
+          echo $HOSTNAME
+          echo $MAVEN_CLI_OPTS
+          ifconfig
+          set +x
       - name: Unit tests
         id: test
         continue-on-error: true
