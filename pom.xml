@@ -3176,7 +3176,6 @@
                         </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                         <systemPropertyVariables>
-                            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
                             <java.awt.headless>true</java.awt.headless>
                             <user.timezone>UTC</user.timezone>
                             <user.language>en</user.language>
