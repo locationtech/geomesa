@@ -53,7 +53,10 @@ jobs:
         run: |
           echo "/etc/hosts::"
           cat /etc/hosts
-          sed -i s'/^-e //' /etc/hosts
+          sed s'/^-e //' /etc/hosts > /tmp/etc-hosts
+          echo "/tmp/hosts::"
+          cat /tmp/etc-hosts
+          mv /tmp/etc-hosts /etc/hosts
           echo "/etc/hosts::"
           cat /etc/hosts
           echo "ifconfig"
