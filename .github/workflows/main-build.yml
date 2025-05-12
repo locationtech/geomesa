@@ -12,6 +12,9 @@ on:
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
+env:
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
+
 jobs:
   build-scala:
     strategy:

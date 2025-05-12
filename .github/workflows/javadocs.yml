@@ -12,13 +12,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  MAVEN_CLI_OPTS: >
-    -Dhttp.keepAlive=false
-    -Dmaven.wagon.http.pool=false
-    -Dlicense.skip=true
-    -Dtest.fork.count=1
-    --batch-mode
-    -Djava.net.preferIPv4Stack=true
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dlicense.skip=true --batch-mode
 
 jobs:
   build-javadocs:
