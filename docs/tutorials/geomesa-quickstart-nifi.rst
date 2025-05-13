@@ -78,7 +78,7 @@ Next, we will run NiFi through Docker, mounting in our NARs and a directory for 
       -v "$(pwd)/extensions:/opt/nifi/nifi-current/nar_extensions:ro" \
       -v "$(pwd)/fs:/fs:rw" \
       -v "$(pwd)/gdelt:/gdelt:ro" \
-      apache/nifi:2.3.0
+      apache/nifi:2.4.0
 
 Once NiFi has finished starting up, it will be available at ``https://localhost:8443/nifi``. You will likely have to
 click through a certificate warning due to the default self-signed cert being used. Once in the NiFi UI, you can log
@@ -161,5 +161,5 @@ accessible:
     docker run --rm \
       -v "$(pwd)/fs:/fs:rw" \
       --entrypoint bash \
-      apache/nifi:2.3.0 \
+      apache/nifi:2.4.0 \
       -c "chmod -R 777 /fs"
