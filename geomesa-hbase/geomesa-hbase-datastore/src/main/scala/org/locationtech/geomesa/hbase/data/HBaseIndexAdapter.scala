@@ -21,14 +21,14 @@ import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.io.{IsCloseable, IsFlushableImplicits}
+import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import java.util.{Collections, Locale, UUID}
 import scala.util.Try
-// noinspection ScalaDeprecation
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+// noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
@@ -713,7 +713,7 @@ object HBaseIndexAdapter extends LazyLogging {
 
     override def close(): Unit = {
       try { CloseWithLogging.raise(mutators) } finally {
-        pools.foreach(CloseWithLogging(_)(IsCloseable.executorServiceIsCloseable))
+        CloseWithLogging(pools)
       }
       if (!pools.foldLeft(true) { case (terminated, pool) => terminated && pool.awaitTermination(60, TimeUnit.SECONDS) }) {
         logger.warn("Failed to terminate thread pool after 60 seconds")
@@ -724,5 +724,4 @@ object HBaseIndexAdapter extends LazyLogging {
   object BufferedMutatorIsFlushable extends IsFlushableImplicits[BufferedMutator] {
     override protected def flush(f: BufferedMutator): Try[Unit] = Try(f.flush())
   }
-
 }
