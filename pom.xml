@@ -110,6 +110,7 @@
         <fasterxml.jackson.version>2.17.2</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
+        <jetty.version>9.4.57.v20241219</jetty.version>
         <jna.version>5.14.0</jna.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
         <netty.version>4.1.118.Final</netty.version>
@@ -2315,6 +2316,14 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- transitive hadoop dependency -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!-- transitive dependency of hadoop 2.x -->
             <dependency>
                 <groupId>xerces</groupId>
@@ -2753,36 +2762,6 @@
                 <artifactId>junit-jupiter-api</artifactId>
                 <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-test</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <!-- exclude hadoop 3 artifacts -->
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-minicluster</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-runtime</artifactId>
-                    </exclusion>
-                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
-                    <exclusion>
-                        <groupId>org.openjfx</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
