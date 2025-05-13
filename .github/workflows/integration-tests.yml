@@ -42,7 +42,7 @@ jobs:
         run: |
           echo "/etc/hosts ::"
           cat /etc/hosts
-          if [[ grep -q '^-' /etc/hosts ]]; then
+          if grep -q '^-' /etc/hosts; then
             echo "Found corrupted /etc/hosts - attempting fix"
             sudo sed -i s'/^-[^ ] //' /etc/hosts
             echo "/etc/hosts ::"
