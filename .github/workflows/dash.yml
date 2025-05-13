@@ -40,7 +40,7 @@ jobs:
             done
           fi
           echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         if: steps.pom_changes.outputs.pom_changed == 'true'
         with:
           distribution: 'temurin'
@@ -55,7 +55,7 @@ jobs:
         run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
       - name: Download artifacts
         if: steps.pom_changes.outputs.pom_changed == 'true'
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: classes-and-jars-${{ inputs.scala-version }}
       - name: Install artifacts
