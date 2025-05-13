@@ -112,8 +112,12 @@ jobs:
             selector: -f geomesa-features
           - name: fs
             selector: -f geomesa-fs
-          - name: gt
-            selector: -f geomesa-gt
+          - name: gt-pg15
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=15-3.4
+          - name: gt-pg16
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=16-3.5
+          - name: gt-pg17
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
           - name: hbase
             selector: -f geomesa-hbase
           - name: kafka
