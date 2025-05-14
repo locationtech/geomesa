@@ -98,7 +98,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
-* arrow ``18.1.0`` -> ``18.2.0``
+* arrow ``18.1.0`` -> ``18.3.0``
 * json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
 * netty ``4.1.114.Final`` -> ``4.1.118.Final``
