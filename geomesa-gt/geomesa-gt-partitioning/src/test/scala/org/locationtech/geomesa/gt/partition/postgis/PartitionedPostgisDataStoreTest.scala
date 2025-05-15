@@ -26,6 +26,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAge
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -47,6 +48,7 @@ import scala.util.control.NonFatal
 @RunWith(classOf[JUnitRunner])
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import scala.collection.JavaConverters._
 
   val hours = 1
@@ -318,6 +320,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
         schema must not(beNull)
         schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        schema.getDescriptor("name").getUserData.get(AttributeConfigs.UserDataListType) mustEqual "java.lang.String"
+        schema.getDescriptor("name").getListType mustEqual classOf[String]
         logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
 
         // write some data
