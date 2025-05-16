@@ -49,16 +49,6 @@ jobs:
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
-      - name: Check /etc/hosts
-        run: |
-          echo "/etc/hosts ::"
-          cat /etc/hosts
-          if grep -q '^-' /etc/hosts; then
-            echo "Found corrupted /etc/hosts - attempting fix"
-            sudo sed -i s'/^-[^ ] //' /etc/hosts
-            echo "/etc/hosts ::"
-            cat /etc/hosts
-          fi
       - name: Unit tests
         id: test
         continue-on-error: true

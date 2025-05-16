@@ -98,7 +98,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
-* arrow ``18.1.0`` -> ``18.2.0``
+* arrow ``18.1.0`` -> ``18.3.0``
 * geotools ``32.1`` -> ``33.1``
 * geoserver ``2.26.1`` -> ``2.27.1``
 * json4s ``3.6.12`` -> ``4.0.7``

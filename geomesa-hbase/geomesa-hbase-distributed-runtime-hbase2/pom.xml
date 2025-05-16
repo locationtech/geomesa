@@ -21,9 +21,26 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
             <exclusions>
+                <!-- exclude things already in hbase/lib -->
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
                     <artifactId>protobuf-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.datatype</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -52,24 +69,62 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>com.google.guava:*</exclude>
-                                </excludes>
-                            </artifactSet>
                             <relocations>
+                                <!-- relocate various dependencies that are already in hbase (versions as per hbase 2.6) -->
                                 <relocation>
-                                    <pattern>javax.measure</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.javax.measure</shadedPattern>
-                                </relocation>
-                                <!-- fix conflict with hadoop 2.8+ json-smart 1.3.1 -->
-                                <relocation>
-                                    <pattern>net.minidev.json</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.net.minidev.json</shadedPattern>
+                                    <!-- caffeine-3.1.8 vs 2.8.1 -->
+                                    <pattern>com.github.benmanes.caffeine.cache</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.com.github.benmanes.caffeine.cache</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.io.netty</shadedPattern>
+                                    <!-- commons-codec-1.17.1 vs 1.15 -->
+                                    <pattern>org.apache.commons.codec</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.codec</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- commons-compress-1.26.0 vs 1.21 -->
+                                    <pattern>org.apache.commons.compress</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.compress</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- commons-csv-1.10.0 vs 1.9.0 -->
+                                    <pattern>org.apache.commons.csv</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.csv</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- commons-io-2.16.1 vs 2.11.0 -->
+                                    <pattern>org.apache.commons.io</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.io</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- commons-lang3-3.15.0 vs 3.9 -->
+                                    <pattern>org.apache.commons.lang3</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.lang3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- commons-text-1.12.0 vs 1.10.0 -->
+                                    <pattern>org.apache.commons.text</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.text</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- curator-client, framework, recipes 5.6.0 vs 4.2.0 -->
+                                    <pattern>org.apache.curator</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.curator</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- gson-2.10.1 vs 2.9.0 -->
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.com.google.gson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- objenesis-2.5.1 vs 3.3 -->
+                                    <pattern>org.objenesis</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.objenesis</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <!-- re2j-1.8 vs 1.1 -->
+                                    <pattern>com.google.re2j</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.com.google.re2j</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
