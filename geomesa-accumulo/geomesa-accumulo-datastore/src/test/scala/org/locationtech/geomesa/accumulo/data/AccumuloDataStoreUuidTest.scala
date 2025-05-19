@@ -115,7 +115,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      val ids = WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+      val ids = WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         WithClose(reader.features())(_.map(_.getID.toInt).toList)
       }
       val proxy = new ProxyIdFunction()
@@ -138,7 +138,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      val ids = WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+      val ids = WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         WithClose(reader.features())(_.map(_.getID.toInt).toList)
       }
       val proxy = new ProxyIdFunction()

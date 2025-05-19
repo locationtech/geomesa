@@ -88,7 +88,7 @@ class AttributeIndexValuesTest extends TestWithFeatureType {
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-          WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+          WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
             SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
                 containTheSameElementsAs(expectation.map(i => transform.toSeq.map(features(i).getAttribute)))
           }

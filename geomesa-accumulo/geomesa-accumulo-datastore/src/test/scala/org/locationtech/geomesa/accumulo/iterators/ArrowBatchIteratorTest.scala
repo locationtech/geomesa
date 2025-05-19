@@ -153,7 +153,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features)
             }
           }
@@ -171,7 +171,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features)
             }
           }
@@ -190,7 +190,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-          WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+          WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
             compare(reader.features(), features.filter(filter.evaluate))
             // verify only exact values were used for the dictionary
             reader.dictionaries.map { case (k, v) => (k, v.iterator.toSeq) } mustEqual Map("name" -> Seq("name0"))
@@ -216,7 +216,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           compare(reader.features(), pointFeatures.filter(filter.evaluate))
         }
       }
@@ -233,7 +233,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
               val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
               val out = new ByteArrayOutputStream
               results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-              WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+              WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
                 compare(reader.features(), features, transform.toSeq)
               }
             }
@@ -254,7 +254,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features, ordered = true)
             }
           }
@@ -273,7 +273,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features, ordered = true)
             }
           }
@@ -314,7 +314,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features, transform.toSeq)
               reader.dictionaries.keySet mustEqual Set("team", "weight")
               reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
@@ -336,7 +336,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-          WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+          WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
             compare(reader.features(), listFeatures, transform.toSeq)
             reader.dictionaries.keySet mustEqual Set("names")
             reader.dictionaries.apply("names").iterator.toSeq must
@@ -365,7 +365,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features, transform.toSeq)
               reader.dictionaries.keySet mustEqual dictionaries.map(_.toSet).getOrElse(Set.empty)
             }
@@ -387,7 +387,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features, transform.toSeq)
               reader.dictionaries.keySet mustEqual Set("team", "weight", "dtg")
               reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
@@ -410,7 +410,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               compare(reader.features(), features)
             }
           }

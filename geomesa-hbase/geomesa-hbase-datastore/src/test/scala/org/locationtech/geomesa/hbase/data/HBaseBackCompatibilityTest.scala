@@ -199,7 +199,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
     val out = new ByteArrayOutputStream
     val results = SelfClosingIterator(fs.getFeatures(query).features)
     results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-    WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+    WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
       WithClose(reader.features())(_.map(_.getID.toInt).toList)
     }
   }

@@ -79,7 +79,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           // sft name gets dropped, so we can't compare directly
           SelfClosingIterator(reader.features()).map(f => (f.getID, f.getAttributes)).toSeq must
               containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
@@ -97,7 +97,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
               containTheSameElementsAs(features)
         }
@@ -112,7 +112,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
               containTheSameElementsAs(features)
         }
@@ -126,7 +126,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
               containTheSameElementsAs(features.map(f => List(f.getAttribute("dtg"), f.getAttribute("geom"))))
         }
@@ -152,7 +152,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+            WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
               if (transform == null) {
                 SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual expected
               } else {
@@ -173,7 +173,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
           results.length must beLessThan(10)
           foreach(results)(features must contain(_))
@@ -204,7 +204,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
               containTheSameElementsAs(features.filter(filter.evaluate))
         }
@@ -234,7 +234,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
           SelfClosingIterator(reader.features()).map(f => f.getID -> f.getAttributes.asScala).toList mustEqual
               features.map(f => f.getID -> query.getPropertyNames.map(f.getAttribute).toSeq)
           // ensure the reduce step worked correctly and there is only 1 logical file

@@ -57,7 +57,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      val result = WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+      val result = WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
       }
       logger.debug(result.map(_.getAttributes.asScala).toString)
@@ -78,7 +78,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      val result = WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+      val result = WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
       }
       result.map(_.getID) mustEqual features.map(_.getID)

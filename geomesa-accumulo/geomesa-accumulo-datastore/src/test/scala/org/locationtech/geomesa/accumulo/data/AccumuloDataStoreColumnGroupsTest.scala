@@ -252,7 +252,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
       val arrows = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       arrows.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         val results = SelfClosingIterator(reader.features()).map { f =>
           // round the points, as precision is lost due to the arrow encoding
           val attributes = f.getAttributes.asScala.collect {

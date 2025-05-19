@@ -103,7 +103,7 @@ object SimpleFeatureArrowFileReader {
    * @param bytes arrow file, in bytes
    * @return
    */
-  def fromBytes(bytes: Array[Byte]): SimpleFeatureArrowFileReader = streaming(() => new ByteArrayInputStream(bytes))
+  def streaming(bytes: Array[Byte]): SimpleFeatureArrowFileReader = streaming(() => new ByteArrayInputStream(bytes))
 
   /**
     *

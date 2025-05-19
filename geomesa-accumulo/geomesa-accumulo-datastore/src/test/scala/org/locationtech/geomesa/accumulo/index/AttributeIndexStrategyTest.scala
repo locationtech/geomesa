@@ -243,7 +243,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(arrows)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
           val results = decodeArrow(reader)
           results must haveSize(3)
           results.map(_.getAttributeCount).distinct mustEqual Seq(sft.getAttributeCount)
@@ -264,7 +264,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(arrows)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
           val results = decodeArrow(reader)
           results must haveSize(3)
           results.map(_.getAttribute("dtg")) must containAllOf(Seq(billDate, bobDate, charlesDate))
@@ -287,7 +287,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(arrows)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
           val results = decodeArrow(reader)
           results must haveSize(3)
           results.map(_.getAttribute("dtg")) must containAllOf(Seq(billDate, bobDate, charlesDate))
@@ -306,7 +306,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features()).map(_.getAttribute(0)).toList
         forall(results)(_ must beAnInstanceOf[Array[Byte]])
         val arrows = results.foldLeft(Array.empty[Byte]) { case (res, bytes) => res ++ bytes.asInstanceOf[Array[Byte]] }
-        WithClose(SimpleFeatureArrowFileReader.fromBytes(arrows)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(arrows)) { reader =>
           val results = decodeArrow(reader)
           results must haveSize(3)
           results.map(_.getAttribute("count")) must containAllOf(Seq(2, 3, 4))
