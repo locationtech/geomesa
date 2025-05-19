@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.filter.ArrowFilterOptimizer
-import org.locationtech.geomesa.arrow.io.reader.{CachingSimpleFeatureArrowFileReader, StreamingSimpleFeatureArrowFileReader}
+import org.locationtech.geomesa.arrow.io.reader.{CachingSimpleFeatureArrowFileReader, MultiStreamSimpleFeatureArrowFileReader, StreamingSimpleFeatureArrowFileReader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{DescriptorKey, SimpleFeatureEncoding}
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.filter.Bounds.Bound
@@ -79,13 +79,22 @@ object SimpleFeatureArrowFileReader {
   def caching(is: InputStream): SimpleFeatureArrowFileReader = new CachingSimpleFeatureArrowFileReader(is)
 
   /**
-    * A reader that streams results. Repeated calls to `features()` will re-read the input stream. Returned
+    * A reader that streams results. Repeated calls to `features()` will read a new instance of the input stream. Returned
     * features may not be valid after a call to `next()`, as the underlying data may be reclaimed.
     *
     * @param is creates a new input stream for reading
     * @return
     */
-  def streaming(is: () => InputStream): SimpleFeatureArrowFileReader = new StreamingSimpleFeatureArrowFileReader(is)
+  def streaming(is: () => InputStream): SimpleFeatureArrowFileReader = new MultiStreamSimpleFeatureArrowFileReader(is)
+
+  /**
+   * A reader that streams results. Note that `features()` can only be called one time, as the input stream will be exhausted.
+   * Returned features may not be valid after a call to `next()`, as the underlying data may be reclaimed.
+   *
+   * @param is input stream
+   * @return
+   */
+  def streaming(is: InputStream): SimpleFeatureArrowFileReader = new StreamingSimpleFeatureArrowFileReader(is)
 
   /**
     *
