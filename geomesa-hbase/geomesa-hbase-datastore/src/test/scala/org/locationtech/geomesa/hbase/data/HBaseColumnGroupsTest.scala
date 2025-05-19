@@ -249,8 +249,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         val arrows = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         arrows.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
           val results = SelfClosingIterator(reader.features()).map { f =>
             // round the points, as precision is lost due to the arrow encoding
             val attributes = f.getAttributes.asScala.collect {

@@ -78,7 +78,7 @@ class LambdaDataStoreTest extends LambdaContainerTest {
     // note: need to copy the features as the same object is re-used in the iterator
     val iter = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
     val bytes = iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
-    WithClose(SimpleFeatureArrowFileReader.streaming(new ByteArrayInputStream(bytes))) { reader =>
+    WithClose(SimpleFeatureArrowFileReader.fromBytes(bytes)) { reader =>
       SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
           containTheSameElementsAs(features)
     }

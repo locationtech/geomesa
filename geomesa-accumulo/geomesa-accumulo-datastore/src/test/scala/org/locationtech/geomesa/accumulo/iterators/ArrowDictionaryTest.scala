@@ -69,8 +69,7 @@ class ArrowDictionaryTest extends TestWithFeatureType with Mockito with LazyLogg
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            def in() = new ByteArrayInputStream(out.toByteArray)
-            val result = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            val result = WithClose(SimpleFeatureArrowFileReader.fromBytes(out.toByteArray)) { reader =>
               WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
             }
             result.map(_.getID) mustEqual features.map(_.getID)

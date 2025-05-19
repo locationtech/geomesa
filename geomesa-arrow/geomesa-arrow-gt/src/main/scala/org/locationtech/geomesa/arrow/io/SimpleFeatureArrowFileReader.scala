@@ -22,7 +22,7 @@ import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 
-import java.io.{Closeable, InputStream}
+import java.io.{ByteArrayInputStream, Closeable, InputStream}
 
 /**
   * For reading simple features from an arrow file written by SimpleFeatureArrowFileWriter.
@@ -95,6 +95,15 @@ object SimpleFeatureArrowFileReader {
    * @return
    */
   def streaming(is: InputStream): SimpleFeatureArrowFileReader = new StreamingSimpleFeatureArrowFileReader(is)
+
+  /**
+   * Create a reader from a byte array. Returned features may not be valid after a call to `next()`, as the
+   * underlying data may be reclaimed.
+   *
+   * @param bytes arrow file, in bytes
+   * @return
+   */
+  def fromBytes(bytes: Array[Byte]): SimpleFeatureArrowFileReader = streaming(() => new ByteArrayInputStream(bytes))
 
   /**
     *
