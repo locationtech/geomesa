@@ -229,6 +229,10 @@ object ArrowConversionProcess {
       flattenStruct: Boolean
     ) extends ArrowManualVisitor {
 
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+    import scala.collection.JavaConverters._
+
     private val features = ArrayBuffer.empty[SimpleFeature]
 
     override def visit(feature: SimpleFeature): Unit = {
@@ -237,35 +241,35 @@ object ArrowConversionProcess {
     }
 
     override def results: Iterator[Array[Byte]] = {
-      val dictionaries = if (dictionaryFields.isEmpty) { Map.empty[String, ArrowDictionary] } else {
-        val indicesAndValues = dictionaryFields.map { field =>
-          (field, sft.indexOf(field), scala.collection.mutable.HashSet.empty[AnyRef])
-        }
+      val dictionaries = dictionaryFields.map { field =>
+        val i = sft.indexOf(field)
+        val descriptor = sft.getDescriptor(i)
+        val isList = descriptor.isList
+        val values = scala.collection.mutable.HashSet.empty[AnyRef]
         features.foreach { f =>
-          indicesAndValues.foreach { case (_, i, v) => v.add(f.getAttribute(i)) }
+          val value = f.getAttribute(i)
+          if (value != null) {
+            if (isList) {
+              // for list types encode the list elements instead of the list itself
+              value.asInstanceOf[java.util.List[AnyRef]].asScala.foreach(values.add)
+            } else {
+              values.add(value)
+            }
+          }
         }
-        indicesAndValues.map { case (n, i, v) =>
-          n -> ArrowDictionary.create(sft.getTypeName, i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
-        }.toMap
+        val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+        field -> ArrowDictionary.create(sft.getTypeName, i, values.toArray)(ClassTag[AnyRef](binding))
       }
 
-      val ordering = if (preSorted) { None } else {
-        sort.map { case (field, reverse) => SimpleFeatureOrdering(sft, field, reverse) }
-      }
-      val sorted = ordering match {
-        case None    => features.iterator
-        case Some(o) => features.sorted(o).iterator
+      val sorted = sort match {
+        case Some((field, reverse)) if !preSorted => features.sorted(SimpleFeatureOrdering(sft, field, reverse)).iterator
+        case _ => features.iterator
       }
 
-      buildResult(dictionaries, sorted)
-    }
-
-    private def buildResult(dictionaries: Map[String, ArrowDictionary],
-                            sorted: Iterator[SimpleFeature]): Iterator[Array[Byte]] = {
       val out = new ByteArrayOutputStream()
       val bytes = ListBuffer.empty[Array[Byte]]
 
-      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort, flattenStruct)) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries.toMap, encoding, ipcOpts, sort, flattenStruct)) { writer =>
         while (sorted.hasNext) { // send batches
           var i = 0
           while (i < batchSize && sorted.hasNext) {

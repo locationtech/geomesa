@@ -17,7 +17,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.bin.AxisOrder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -107,6 +106,27 @@ class ArrowConversionProcessTest extends Specification {
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
             containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
+      }
+    }
+
+    "encode a generic feature collection with list-type dictionary values" in {
+
+      val sft = SimpleFeatureTypes.createImmutableType("ArrowConversionProcessTest", "name:List[String],dtg:Date,*geom:Point:srid=4326")
+
+      val features = (0 until 10).map { i =>
+        val names = Seq.tabulate(i)(j => s"name${j % 5}").asJava
+        ScalaSimpleFeature.create(sft, s"0$i", names, s"2017-02-20T00:00:0$i.000Z", s"POINT(40 ${50 + i})")
+      }
+
+      val collection = new ListFeatureCollection(sft, new Random(-1L).shuffle(features.asInstanceOf[Seq[SimpleFeature]]).asJava)
+
+      val bytes =
+        process.execute(collection, null, null, null, Collections.singletonList("name"), null, null, null, null).asScala.reduce(_ ++ _)
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        reader.sft mustEqual sft
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must containTheSameElementsAs(features)
+        reader.dictionaries.get("name") must beSome
+        reader.dictionaries("name").iterator.toList must containTheSameElementsAs(Seq.tabulate(5)(j => s"name$j"))
       }
     }
 
