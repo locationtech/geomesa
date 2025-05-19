@@ -37,7 +37,7 @@ class ArrowDataStoreTest extends Specification {
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
-  val ipcOpts = FormatVersion.options(FormatVersion.LatestVersion)
+  val ipcOpts = FormatVersion.options(FormatVersion.DefaultVersion)
 
   val sft = SimpleFeatureTypes.createImmutableType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
 
