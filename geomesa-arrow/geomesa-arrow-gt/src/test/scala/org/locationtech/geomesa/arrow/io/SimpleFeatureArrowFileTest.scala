@@ -72,7 +72,7 @@ class SimpleFeatureArrowFileTest extends Specification {
     "write and read just a schema" >> {
       withTestFile("empty") { file =>
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None))(_.flush())
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           reader.sft mustEqual sft
           reader.features().toSeq must beEmpty
         }
@@ -89,10 +89,10 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features(ECQL.toFilter("foo = 'foo1'"))) { f =>
             f.map(ScalaSimpleFeature.copy).toSeq mustEqual
                 Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
@@ -140,7 +140,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features(ECQL.toFilter("dtg > '2017-03-15T00:12:01.000Z'"))) { f =>
             f.map(ScalaSimpleFeature.copy).toSeq mustEqual features1.drop(3)
           }
@@ -164,10 +164,10 @@ class SimpleFeatureArrowFileTest extends Specification {
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file, true), sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None)) { writer =>
           features1.foreach(writer.add)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features(ECQL.toFilter("foo = 'foo1'"))) { f =>
             f.map(ScalaSimpleFeature.copy).toSeq mustEqual
                 Seq(features0(1), features0(3), features0(5), features0(7), features0(9), features1(0), features1(3), features1(6), features1(9))
@@ -189,7 +189,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
@@ -234,7 +234,7 @@ class SimpleFeatureArrowFileTest extends Specification {
           writer.flush()
           features1.foreach(writer.add)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features0 ++ features1)
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
@@ -257,7 +257,7 @@ class SimpleFeatureArrowFileTest extends Specification {
             attributes.update(1, "[other]")
             ScalaSimpleFeature.create(sft, f.getID, attributes: _*)
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
           WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual expected)
         }
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file))) { reader =>
@@ -287,7 +287,7 @@ class SimpleFeatureArrowFileTest extends Specification {
               }
           }
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file)))(testReader)
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file)))(testReader)
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file)))(testReader)
       }
     }
@@ -320,7 +320,7 @@ class SimpleFeatureArrowFileTest extends Specification {
               ko
           }
         }
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file)))(testReader)
+        WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file)))(testReader)
         WithClose(SimpleFeatureArrowFileReader.caching(new FileInputStream(file)))(testReader)
       }
     }

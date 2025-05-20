@@ -291,8 +291,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val results = SelfClosingIterator(mergedDs.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         val expected = features.slice(2, 6)
         reader.dictionaries.keySet mustEqual Set("name")
         reader.dictionaries.apply("name").iterator.toSeq must containAllOf(expected.map(_.getAttribute("name")))

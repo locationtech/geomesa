@@ -417,9 +417,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         ds.getFeatureSource(sft.getTypeName).getFeatures.accepts(arrowVisitor, null)
 
-        def is: InputStream =
-          new SequenceInputStream(arrowVisitor.getResult().results.asScala.map(new ByteArrayInputStream(_)).asJavaEnumeration)
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => is)) { reader =>
+        val is = new SequenceInputStream(arrowVisitor.getResult().results.asScala.map(new ByteArrayInputStream(_)).asJavaEnumeration)
+        WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
           WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
         }
       } finally {

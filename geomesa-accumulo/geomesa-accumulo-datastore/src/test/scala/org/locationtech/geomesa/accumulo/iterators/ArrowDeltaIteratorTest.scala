@@ -19,12 +19,11 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
 class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyLogging {
@@ -57,10 +56,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      val result = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
-      }
+      val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
       logger.debug(result.map(_.getAttributes.asScala).toString)
       result.map(_.getID) mustEqual features.map(_.getID)
       result.map(_.getAttributes.asScala) mustEqual features.map { f =>
@@ -79,10 +75,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyL
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      val result = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
-      }
+      val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
       result.map(_.getID) mustEqual features.map(_.getID)
       result.map(_.getAttributes.asScala) mustEqual features.map { f =>
         val color = if (f.getAttribute("props").toString.contains("red")) { "red" } else { "blue" }
