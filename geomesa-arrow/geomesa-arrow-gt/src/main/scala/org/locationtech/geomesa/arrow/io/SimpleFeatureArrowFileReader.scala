@@ -10,17 +10,19 @@ package org.locationtech.geomesa.arrow.io
 
 import org.apache.arrow.vector.dictionary.DictionaryProvider
 import org.apache.arrow.vector.types.pojo.Field
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.filter.ArrowFilterOptimizer
 import org.locationtech.geomesa.arrow.io.reader.{CachingSimpleFeatureArrowFileReader, MultiStreamSimpleFeatureArrowFileReader, StreamingSimpleFeatureArrowFileReader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{DescriptorKey, SimpleFeatureEncoding}
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{ByteArrayInputStream, Closeable, InputStream}
 
@@ -100,10 +102,28 @@ object SimpleFeatureArrowFileReader {
    * Create a reader from a byte array. Returned features may not be valid after a call to `next()`, as the
    * underlying data may be reclaimed.
    *
-   * @param bytes arrow file, in bytes
+   * @param bytes file bytes
    * @return
    */
   def streaming(bytes: Array[Byte]): SimpleFeatureArrowFileReader = streaming(() => new ByteArrayInputStream(bytes))
+
+  /**
+   * Reads an arrow file into memory. Note that if the file is large, it may be better to access it with one of the streaming
+   * methods instead.
+   *
+   * @param is input stream
+   * @return
+   */
+  def read(is: InputStream): List[SimpleFeature] =
+    WithClose(streaming(is))(reader => WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList))
+
+  /**
+   * Reads an arrow file into memory
+   *
+   * @param bytes file bytes
+   * @return
+   */
+  def read(bytes: Array[Byte]): List[SimpleFeature] = read(new ByteArrayInputStream(bytes))
 
   /**
     *

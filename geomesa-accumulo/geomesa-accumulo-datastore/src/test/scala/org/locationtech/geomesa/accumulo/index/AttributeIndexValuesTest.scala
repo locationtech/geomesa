@@ -19,11 +19,10 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.EnumerationStat
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
 class AttributeIndexValuesTest extends TestWithFeatureType {
@@ -88,10 +87,8 @@ class AttributeIndexValuesTest extends TestWithFeatureType {
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
           val out = new ByteArrayOutputStream
           results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-          WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
-            SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-                containTheSameElementsAs(expectation.map(i => transform.toSeq.map(features(i).getAttribute)))
-          }
+          SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getAttributes.asScala) must
+            containTheSameElementsAs(expectation.map(i => transform.toSeq.map(features(i).getAttribute)))
         }
       }
     }
