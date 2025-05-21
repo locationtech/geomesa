@@ -103,7 +103,7 @@ The following dependencies have been upgraded:
 * geoserver ``2.26.1`` -> ``2.27.1``
 * json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
-* netty ``4.1.114.Final`` -> ``4.1.118.Final``
+* netty ``4.1.114.Final`` -> ``4.1.121.Final``
 * orc ``1.9.5`` -> ``1.9.6``
 * parquet ``1.13.1`` -> ``1.15.2``
 * spark ``3.5.0`` -> ``3.5.5``
