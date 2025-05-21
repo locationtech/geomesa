@@ -72,7 +72,7 @@ class DeltaWriterTest extends Specification {
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.dictionaries must haveSize(2)
         reader.dictionaries.get("name") must beSome
         reader.dictionaries("name").iterator.toSeq must containTheSameElementsAs(Seq("name00", "name01"))
@@ -102,7 +102,7 @@ class DeltaWriterTest extends Specification {
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.dictionaries must haveSize(2)
         reader.dictionaries.get("name") must beSome
         reader.dictionaries("name").iterator.toSeq must containTheSameElementsAs(Seq("name00", "name01"))
@@ -134,7 +134,7 @@ class DeltaWriterTest extends Specification {
 
       val header = bytes.slice(4, ByteArrays.readInt(bytes) + 4)
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(header))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(header)) { reader =>
         reader.dictionaries must haveSize(2)
         reader.dictionaries.get("name") must beSome
         reader.dictionaries("name").length mustEqual 0
@@ -175,7 +175,7 @@ class DeltaWriterTest extends Specification {
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.dictionaries must haveSize(1)
         reader.dictionaries.get("names") must beSome
         reader.dictionaries("names").iterator.toSeq must containTheSameElementsAs(Seq.tabulate(6)(i => s"name0$i"))
@@ -197,7 +197,7 @@ class DeltaWriterTest extends Specification {
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.dictionaries must beEmpty
         testLineReader(reader)
       }
@@ -217,7 +217,7 @@ class DeltaWriterTest extends Specification {
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(bytes)) { reader =>
         reader.dictionaries must beEmpty
         testLineReader(reader)
       }

@@ -20,12 +20,17 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.Config.WalLogEnabled
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -36,6 +41,7 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.DockerImageName
 
+import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -46,6 +52,8 @@ import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
@@ -369,6 +377,49 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             val result = SelfClosingIterator(reader).toList
             result must beEmpty
           }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "run arrow queries with dictionary encoded list attributes" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "list-arrow")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+        schema.getDescriptor("name").getUserData.get(AttributeConfigs.UserDataListType) mustEqual "java.lang.String"
+        schema.getDescriptor("name").getListType mustEqual classOf[String]
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        val arrowVisitor =
+          new ArrowVisitor(schema, SimpleFeatureEncoding.min(includeFids = true).copy(date = Encoding.Max), "18.3.0",
+            Seq("name"), Some("dtg"), Some(true), preSorted = false, 100, flattenStruct = false)
+
+        ds.getFeatureSource(sft.getTypeName).getFeatures.accepts(arrowVisitor, null)
+
+        val is = new SequenceInputStream(arrowVisitor.getResult().results.asScala.map(new ByteArrayInputStream(_)).asJavaEnumeration)
+        WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
+          WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
         }
       } finally {
         ds.dispose()

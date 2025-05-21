@@ -84,10 +84,7 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
     val out = new ByteArrayOutputStream
     val results = SelfClosingIterator(fs.getFeatures(query).features)
     results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-    def in() = new ByteArrayInputStream(out.toByteArray)
-    WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-      WithClose(reader.features())(_.map(_.getID.toInt).toList)
-    }
+    SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
   }
 
   def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {

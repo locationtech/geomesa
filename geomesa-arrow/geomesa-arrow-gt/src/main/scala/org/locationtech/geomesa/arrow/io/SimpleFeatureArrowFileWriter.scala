@@ -42,7 +42,6 @@ class SimpleFeatureArrowFileWriter private (
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
   private val root = {
     val potentialRoot = createRoot(vector.underlying, metadata)
-
     if (flattenStruct) {
       new VectorSchemaRoot(potentialRoot.getVector(sft.getTypeName))
     } else {

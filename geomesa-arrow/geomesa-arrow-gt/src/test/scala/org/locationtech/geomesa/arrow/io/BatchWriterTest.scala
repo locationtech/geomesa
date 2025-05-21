@@ -20,7 +20,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayInputStream
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
@@ -47,9 +46,7 @@ class BatchWriterTest extends Specification {
 
       val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, new IpcOption(), Some("dtg" -> false), sorted = false, 10, batches.iterator))(_.reduceLeft(_ ++ _))
 
-      val features = WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
-        WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
-      }
+      val features = SimpleFeatureArrowFileReader.read(bytes)
 
       features must haveLength(30)
       // note: didn't encode feature id

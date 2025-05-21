@@ -169,7 +169,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
   }
 
   def readArrow(file: String): Seq[SimpleFeature] = {
-    WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+    WithClose(SimpleFeatureArrowFileReader.streaming(new FileInputStream(file))) { reader =>
       SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
     }
   }
