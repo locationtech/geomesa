@@ -13,6 +13,12 @@
     <artifactId>geomesa-hbase-gs-plugin_2.12</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${hbase.guava.version}</guava.version>
+        <hadoop.version>${hbase.hadoop.version}</hadoop.version>
+        <protobuf.version>${hbase.protobuf.version}</protobuf.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
