@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.security.SecurityCapability
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
+import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -31,106 +32,96 @@ import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.BeforeAfterAll
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.security.PrivilegedExceptionAction
 
 @RunWith(classOf[JUnitRunner])
-class HBaseVisibilityTest extends Specification with LazyLogging {
+class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   sequential
 
-  var adminUser: User = _
-  var user1:     User = _
-  var user2:     User = _
-  var privUser:  User = _
-  var dynUser:   User = _
+  private var adminUser: UserConnection = _
+  private var user1:     UserConnection = _
+  private var user2:     UserConnection = _
+  private var privUser:  UserConnection = _
+  private var dynUser:   UserConnection = _
 
-  var adminConn: Connection = _
-  var user1Conn: Connection = _
-  var user2Conn: Connection = _
-  var privConn:  Connection = _
-  var dynConn:   Connection = _
-
-  def setAuths(user: String, auths: Array[String]): Unit = {
-    adminUser.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        VisibilityClient.setAuths(adminConn, auths, user)
-      }
-    })
+  private lazy val conf = {
+    val conf = new Configuration(HBaseConfiguration.create())
+    conf.addResource(new ByteArrayInputStream(HBaseCluster.hbaseSiteXml.getBytes(StandardCharsets.UTF_8)))
+    conf
   }
 
-  def getAuths(user: String): Seq[String] = {
-    adminUser.runAs(new PrivilegedExceptionAction[Seq[String]]() {
-      override def run(): Seq[String] = {
-        VisibilityClient.getAuths(adminConn, user).getAuthList.asScala.map(_.toStringUtf8).toSeq
-      }
-    })
+  private case class UserConnection(user: User, connection: Connection) {
+    def exec[T](fn: => T): T = {
+      user.runAs(new PrivilegedExceptionAction[T]() {
+        override def run(): T = fn
+      })
+    }
   }
 
-  def clearAllAuths(user: String): Unit = {
-    adminUser.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        VisibilityClient.clearAuths(adminConn, getAuths(user).toArray, user)
-      }
-    })
+  private object UserConnection {
+    def apply(name: String, groups: Array[String] = Array.empty): UserConnection = {
+      val user = User.createUserForTesting(conf, name, groups)
+      val connection = user.runAs(new PrivilegedExceptionAction[Connection]() {
+        override def run(): Connection = ConnectionFactory.createConnection(conf)
+      })
+      UserConnection(user, connection)
+    }
   }
 
-  step {
+  def setAuths(user: String, auths: Array[String]): Unit =
+    adminUser.exec(VisibilityClient.setAuths(adminUser.connection, auths, user))
+
+  def getAuths(user: String): Seq[String] =
+    adminUser.exec(VisibilityClient.getAuths(adminUser.connection, user).getAuthList.asScala.map(_.toStringUtf8).toSeq)
+
+  def clearAllAuths(user: String): Unit =
+    adminUser.exec(VisibilityClient.clearAuths(adminUser.connection, getAuths(user).toArray, user))
+
+  override def beforeAll(): Unit = {
     logger.info("Starting Visibility Test")
-    adminUser = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "admin",    Array[String]("supergroup"))
-    user1     = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "user1",    Array.empty[String])
-    user2     = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "user2",    Array.empty[String])
-    privUser  = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "privUser", Array.empty[String])
-    dynUser   = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "dynUser",  Array.empty[String])
 
-    adminUser.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        MiniCluster.cluster.waitTableAvailable(TableName.valueOf("hbase:labels"), 50000)
-        val labels = Array[String]("extra", "admin", "vis1", "vis2", "vis3", "super")
-        adminConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
-        VisibilityClient.addLabels(adminConn, labels)
-        MiniCluster.cluster.waitLabelAvailable(10000, labels: _*)
-        setAuths("user1", Array[String]("vis1"))
-        setAuths("user2", Array[String]("vis2"))
-        setAuths("privUser", Array[String]("super", "vis3"))
-      }
-    })
+    adminUser = UserConnection("admin")
+    user1     = UserConnection("user1")
+    user2     = UserConnection("user2")
+    privUser  = UserConnection("privUser")
+    dynUser   = UserConnection("dynUser")
 
-    user1.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        user1Conn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
+    adminUser.exec({
+      val labels = Array[String]("extra", "admin", "vis1", "vis2", "vis3", "super")
+      HBaseIndexAdapter.waitForTable(adminUser.connection.getAdmin, TableName.valueOf("hbase:labels"))
+      VisibilityClient.addLabels(adminUser.connection, labels)
+      val start = System.currentTimeMillis()
+      while (labels.diff(VisibilityClient.listLabels(adminUser.connection, null).getLabelList.asScala.map(_.toStringUtf8)).nonEmpty) {
+        if (System.currentTimeMillis() - start > 10000) {
+          throw new RuntimeException("Timed out waiting for labels to be created")
+        }
+        Thread.sleep(100)
       }
-    })
-
-    user2.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        user2Conn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
-      }
-    })
-
-    privUser.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        privConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
-      }
-    })
-
-    dynUser.runAs(new PrivilegedExceptionAction[Unit]() {
-      override def run(): Unit = {
-        dynConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
-      }
+      setAuths("user1", Array("vis1"))
+      setAuths("user2", Array("vis2"))
+      setAuths("privUser", Array("super", "vis3"))
     })
 
     logger.info("Successfully created authorizations")
   }
 
+  override def afterAll(): Unit =
+    CloseWithLogging(Seq(adminUser, user1, user2, privUser, dynUser).map(_.connection))
+
   "HBase cluster" should {
     "have vis enabled" >> {
-      MiniCluster.cluster.getHBaseAdmin.getSecurityCapabilities.asScala must contain(SecurityCapability.CELL_VISIBILITY)
+      adminUser.connection.getAdmin.getSecurityCapabilities.asScala must contain(SecurityCapability.CELL_VISIBILITY)
     }
   }
 
@@ -157,7 +148,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val typeName = "vistest1"
       val tableName = "vistest1"
       val params = Map(
-        ConnectionParam.getName -> adminConn,
+        ConnectionParam.getName -> adminUser.connection,
         HBaseCatalogParam.getName -> tableName)
       val writeDS = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
@@ -190,9 +181,9 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
 
       fs.addFeatures(new ListFeatureCollection(sft, toAdd.asJava))
       val expect = Seq(
-        (user1Conn, Seq("1", "1-2", "1-2-3")),
-        (user2Conn, Seq("2", "1-2", "1-2-3")),
-        (privConn,  Seq("1-2-3", "super"))
+        (user1.connection, Seq("1", "1-2", "1-2-3")),
+        (user2.connection, Seq("2", "1-2", "1-2-3")),
+        (privUser.connection,  Seq("1-2-3", "super"))
       )
 
       forall(expect) { vals =>
@@ -210,7 +201,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val typeName = "vistest1"
       val tableName = "vistest1"
       val params = Map(
-        ConnectionParam.getName -> dynConn,
+        ConnectionParam.getName -> dynUser.connection,
         HBaseCatalogParam.getName -> tableName,
         org.locationtech.geomesa.security.AuthProviderParam.getName -> authsProvider,
         EnableSecurityParam.getName -> "true")
@@ -262,7 +253,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       val typeName = "vis_testpoints"
 
       val params = Map(
-        ConnectionParam.getName -> user1Conn,
+        ConnectionParam.getName -> user1.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
 
@@ -291,7 +282,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
       val adminParams = Map(
-        ConnectionParam.getName -> adminConn,
+        ConnectionParam.getName -> adminUser.connection,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
 
       def getDensity(typeName: String, query: String, fs: SimpleFeatureStore): Double = {
@@ -329,7 +320,6 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
 
       foreach(Seq(true, false)) { loose =>
         val ds = DataStoreFinder.getDataStore((params ++ Map(LooseBBoxParam.getName -> loose)).asJava).asInstanceOf[HBaseDataStore]
-        val transforms = null
         foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd.take(5))
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))

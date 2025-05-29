@@ -49,7 +49,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
       val spec = "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]

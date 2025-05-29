@@ -35,7 +35,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{File, StringWriter}
+import java.io.File
 import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
@@ -50,7 +50,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val typeName = "testpoints"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
@@ -172,11 +172,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         testExactCount(ds)
 
         def testMergedView(): MatchResult[_] = {
-          val hbaseConf = {
-            val sw = new StringWriter()
-            MiniCluster.cluster.getConfiguration.writeXml(sw)
-            sw.toString
-          }
+          val hbaseConf = HBaseCluster.hbaseSiteXml
 
           val conf =
             s"""{
@@ -231,7 +227,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val typeName = "testpolys"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
@@ -283,7 +279,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val typeName = "test-updates"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
@@ -328,7 +324,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val typeName = "testsplits"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
@@ -366,7 +362,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       val typeName = "testnamespace"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> s"ns:${getClass.getSimpleName}"
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
@@ -402,7 +398,7 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       SchemaProperties.CheckDistributedVersion.set("true")
       try {
         val params = Map(
-          ConnectionParam.getName -> MiniCluster.connection,
+          ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
           HBaseCatalogParam.getName -> "HBaseDistributedVersionTest"
         )
         val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]

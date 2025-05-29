@@ -35,7 +35,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
 
   val typeName = "test_data"
   val params = Map(
-    ConnectionParam.getName -> MiniCluster.connection,
+    ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseCatalogParam.getName -> getClass.getSimpleName)
 
   val durationStr = "4 seconds"

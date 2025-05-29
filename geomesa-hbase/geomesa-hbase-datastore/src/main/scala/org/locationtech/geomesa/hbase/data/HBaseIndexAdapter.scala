@@ -18,6 +18,7 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.api.IndexAdapter.RequiredVisibilityWriter
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -27,7 +28,6 @@ import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import java.util.{Collections, Locale, UUID}
 import scala.util.Try
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -67,6 +67,21 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
   import scala.collection.JavaConverters._
 
+  lazy private val dynamicJarPath: Option[Path] = try {
+    val conf = ds.connection.getConfiguration
+    // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
+    val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
+    WithClose(dir.getFileSystem(conf)) { fs =>
+      if (!fs.isDirectory(dir)) { None } else {
+        fs.listStatus(dir).collectFirst {
+          case s if distributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+        }
+      }
+    }
+  } catch {
+    case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
+  }
+
   override def createTable(
       index: GeoMesaFeatureIndex[_, _],
       partition: Option[String],
@@ -90,30 +105,16 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val bloom = Some(BloomType.NONE)
         val encoding = if (index.name == IdIndex.name) { None } else { Some(DataBlockEncoding.FAST_DIFF) }
 
-        // noinspection ScalaDeprecation
         val coprocessor = if (!ds.config.remoteFilter) { None } else {
-          def urlFromSysProp: Option[Path] = CoprocessorUrl.option.orElse(CoprocessorPath.option).map(new Path(_))
-          lazy val coprocessorUrl = ds.config.coprocessors.url.orElse(urlFromSysProp).orElse {
-            try {
-              // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
-              val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
-              WithClose(dir.getFileSystem(conf)) { fs =>
-                if (!fs.isDirectory(dir)) { None } else {
-                  fs.listStatus(dir).collectFirst {
-                    case s if distributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
-                  }
-                }
-              }
-            } catch {
-              case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
-            }
-          }
           // if the coprocessors are installed site-wide don't register them in the table descriptor.
           // this key is CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY - but don't want to pull in
           // a dependency on hbase-server just for this constant
           val installed = Option(conf.get("hbase.coprocessor.user.region.classes"))
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
           if (names.contains(CoprocessorClass)) { None } else {
+            // noinspection ScalaDeprecation
+            def urlFromSysProp: Option[Path] = CoprocessorUrl.option.orElse(CoprocessorPath.option).map(new Path(_))
+            val coprocessorUrl = ds.config.coprocessors.url.orElse(urlFromSysProp).orElse(dynamicJarPath)
             logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")
             // TODO: Warn if the path given is different from paths registered in other coprocessors
             // if so, other tables would need updating

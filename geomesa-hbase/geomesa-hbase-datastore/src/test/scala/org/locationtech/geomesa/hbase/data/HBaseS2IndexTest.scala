@@ -14,7 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
@@ -38,7 +38,7 @@ class HBaseS2IndexTest extends Specification with LazyLogging {
       val typeName = "testS2"
 
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
