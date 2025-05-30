@@ -1799,7 +1799,7 @@
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
-                <version>1.9.4</version>
+                <version>1.11.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-configuration</groupId>
@@ -2316,7 +2316,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- transitive hadoop dependency -->
+            <!-- transitive hadoop dependencies -->
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
@@ -2324,13 +2324,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- transitive dependency of hadoop 2.x -->
             <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.12.2</version>
                 <scope>provided</scope>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_${scala.binary.version}</artifactId>
