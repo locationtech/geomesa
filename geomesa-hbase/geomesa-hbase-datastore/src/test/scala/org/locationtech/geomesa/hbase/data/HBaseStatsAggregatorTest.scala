@@ -43,7 +43,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.key       -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.key          -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.key     -> getClass.getSimpleName,
     HBaseDataStoreParams.StatsCoprocessorParam.key -> true
   )

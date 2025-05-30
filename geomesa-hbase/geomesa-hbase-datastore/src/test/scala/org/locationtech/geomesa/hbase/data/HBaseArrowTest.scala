@@ -41,7 +41,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName   -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName
   )
 

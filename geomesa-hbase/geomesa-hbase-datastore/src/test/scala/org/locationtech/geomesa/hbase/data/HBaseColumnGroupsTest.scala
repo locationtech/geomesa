@@ -48,7 +48,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
   // note: using Seq.foreach, ok instead of foreach(Seq) shaves several seconds off the time to run this test
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName     -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName
   )
 

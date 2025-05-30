@@ -19,16 +19,12 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-hbase-server-hbase2_${scala.binary.version}</artifactId>
             <exclusions>
-                <!-- exclude things already in hbase/lib -->
+                <!-- exclude dependencies already in hbase -->
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
                     <artifactId>protobuf-java</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -39,18 +35,12 @@
                     <artifactId>*</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-server-hbase2_${scala.binary.version}</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -105,11 +95,6 @@
                                     <!-- commons-text-1.12.0 vs 1.10.0 -->
                                     <pattern>org.apache.commons.text</pattern>
                                     <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.commons.text</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <!-- curator-client, framework, recipes 5.6.0 vs 4.2.0 -->
-                                    <pattern>org.apache.curator</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shade.org.apache.curator</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <!-- gson-2.10.1 vs 2.9.0 -->

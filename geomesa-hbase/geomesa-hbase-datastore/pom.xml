@@ -75,6 +75,10 @@
             <version>${hbase.htrace.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+        </dependency>
 
         <!-- test deps -->
         <dependency>
@@ -86,46 +90,12 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-testing-util</artifactId>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-hbase</artifactId>
         </dependency>
-        <!-- pull in the coprocessor implementation for tests -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-server-hbase2_2.12</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-            <version>${snappy.java.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- hard coded by hbase minicluster -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.22.1</version><!-- latest version as of 2023/01 -->
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.22.1</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- used by hadoop minicluster -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${hadoop.minicluster.mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.2.3</version>
+            <artifactId>geomesa-hbase-distributed-runtime-hbase2_2.12</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

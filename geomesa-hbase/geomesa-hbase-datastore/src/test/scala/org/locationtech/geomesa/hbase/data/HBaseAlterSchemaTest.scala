@@ -13,7 +13,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -27,7 +27,7 @@ class HBaseAlterSchemaTest extends Specification {
   "HBaseDataStore" should {
     "update schemas" in {
       val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       WithStore[HBaseDataStore](params) { ds =>

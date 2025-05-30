@@ -40,7 +40,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
   var sft = SimpleFeatureTypes.createType(sftName, spec)
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName   -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName -> getClass.getSimpleName,
     HBaseDataStoreParams.BinCoprocessorParam.key   -> true
   )
