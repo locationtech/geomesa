@@ -26,7 +26,8 @@ trait RedisDataStoreCommand extends DataStoreCommand[RedisDataStore] {
   override def connection: Map[String, String] = {
     Map(
       RedisDataStoreParams.RedisUrlParam.key     -> params.url,
-      RedisDataStoreParams.RedisCatalogParam.key -> params.catalog
+      RedisDataStoreParams.RedisCatalogParam.key -> params.catalog,
+      RedisDataStoreParams.RedisClusterBoolParam.key -> params.cluster.toString
     )
   }
 }
@@ -47,5 +48,8 @@ object RedisDataStoreCommand {
   trait RedisDataStoreParams extends CatalogParam {
     @Parameter(names = Array("--url", "-u"), description = "Redis connection URL", required = true)
     var url: String = _
+
+    @Parameter(names = Array("--cluster", "-l"), description = "Redis cluster enabled?", required = false)
+    var cluster: Boolean = false
   }
 }
