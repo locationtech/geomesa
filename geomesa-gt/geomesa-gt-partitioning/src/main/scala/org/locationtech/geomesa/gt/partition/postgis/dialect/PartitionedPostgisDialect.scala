@@ -79,7 +79,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 
   // filter out the partition tables from exposed feature types
   override def includeTable(schemaName: String, tableName: String, cx: Connection): Boolean = {
-    super.includeTable(schemaName, tableName, cx) && {
+    super.includeTable(schemaName, tableName, cx) && !PartitionedPostgisDialect.IgnoredTables.contains(tableName) && {
       val metadata = cx.getMetaData
       val schemaPattern = store.escapeNamePattern(metadata, schemaName)
       val tablePattern = store.escapeNamePattern(metadata, tableName)
@@ -396,6 +396,8 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
 }
 
 object PartitionedPostgisDialect {
+
+  private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
 
   private val GeometryMappings = Map[Class[_], String](
     classOf[Geometry]           -> "GEOMETRY",
