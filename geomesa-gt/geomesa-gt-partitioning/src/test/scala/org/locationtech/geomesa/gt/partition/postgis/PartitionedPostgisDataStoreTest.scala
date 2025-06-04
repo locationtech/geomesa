@@ -37,11 +37,8 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.utility.DockerImageName
 
-import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
+import java.io.{ByteArrayInputStream, SequenceInputStream}
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -118,7 +115,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       |
       |""".stripMargin
 
-  var container: GenericContainer[_] = _
+  var container: PostgisContainer = _
 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
@@ -126,17 +123,11 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   lazy val fif = CommonFactoryFinder.getFilterFactory
 
   override def beforeAll(): Unit = {
-    val image =
-      DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
-          .withTag(sys.props.getOrElse("postgis.docker.tag", "15-3.4"))
-    container = new GenericContainer(image)
-    container.addEnv("POSTGRES_HOST_AUTH_METHOD", "trust")
-    container.addExposedPort(5432)
+    container = new PostgisContainer("postgres")
     if (logger.underlying.isTraceEnabled()) {
-      container.setCommand("postgres", "-c", "log_statement=all")
+      container.withLogAllStatements()
     }
     container.start()
-    container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
 
   override def afterAll(): Unit = {
@@ -189,7 +180,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
-                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
                 rs.getString("table_type") mustEqual "permanent"
               }
             }
