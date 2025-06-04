@@ -55,7 +55,7 @@ class PostgisContainer(password: String, port: Option[Int] = None)
   def withPgConf(key: String, value: String): PostgisContainer = {
     command += "-c"
     command += s"$key=$value"
-    setCommand(command: _*)
+    setCommand(command.toSeq: _*)
     this
   }
 }
