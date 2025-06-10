@@ -89,7 +89,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "port" -> port,
     "database" -> "postgres",
     "user" -> "postgres",
-    "passwd" -> "postgres",
+    "passwd" -> Option(container).fold("postgres")(_.password),
     "Batch insert size" -> "10",
     "preparedStatements" -> "true"
   )
@@ -123,7 +123,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   lazy val fif = CommonFactoryFinder.getFilterFactory
 
   override def beforeAll(): Unit = {
-    container = new PostgisContainer("postgres")
+    container = new PostgisContainer()
     if (logger.underlying.isTraceEnabled()) {
       container.withLogAllStatements()
     }
@@ -132,7 +132,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   override def afterAll(): Unit = {
     if (container != null) {
-      container.stop()
+      container.close()
     }
   }
 
@@ -217,7 +217,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
-                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
                 rs.getString("table_type") mustEqual "unlogged"
               }
             }
