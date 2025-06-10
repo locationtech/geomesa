@@ -10,7 +10,12 @@ package org.locationtech.geomesa.gt.partition.postgis
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -24,13 +29,18 @@ class PostgisResiliencyTest extends Specification with LazyLogging {
 
   sequential
 
+  private val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  private val features = Seq.tabulate(2) { i =>
+    ScalaSimpleFeature.create(sft, s"${sft.getTypeName}.$i", s"name$i", i, s"2025-06-01T0$i:00:00.000Z", s"POINT (0 $i)")
+  }
+
   lazy val params = Map(
     "dbtype" -> PartitionedPostgisDataStoreParams.DbType.sample,
-    "host" -> container.getHost,
+    "host" -> postgis.getHost,
     "port" -> port.toString,
     "database" -> "postgres",
     "user" -> "postgres",
-    "passwd" -> "postgres",
+    "passwd" -> postgis.password,
     "Batch insert size" -> "10",
   )
 
@@ -41,11 +51,24 @@ class PostgisResiliencyTest extends Specification with LazyLogging {
     }
   }
 
-  private val container = new PostgisContainer("postgres", Some(port))
+  private val postgis = new PostgisContainer(Some(port))
 
   if (logger.underlying.isTraceEnabled()) {
-    container.withLogAllStatements()
+    postgis.withLogAllStatements()
   }
+
+  def write(ds: DataStore, features: Seq[SimpleFeature]): Unit = {
+    WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+      features.foreach { f =>
+        val toWrite = FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+        toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(toWrite.getID.substring(sft.getTypeName.length + 1))
+        writer.write()
+      }
+    }
+  }
+
+  def query(ds: DataStore): List[SimpleFeature] =
+    WithClose(CloseableIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)))(_.toList)
 
   "PartitionedPostgisDataStore" should {
 
@@ -54,18 +77,23 @@ class PostgisResiliencyTest extends Specification with LazyLogging {
     }
 
     "recover from a temporary database failure" in {
-      container.start()
+      postgis.start()
       try {
         WithClose(DataStoreFinder.getDataStore(params.asJava)) { ds =>
           ds must not(beNull)
           ds.getTypeNames must beEmpty
-          container.stop()
+          ds.createSchema(sft)
+          write(ds, features.take(1))
+          postgis.stop()
           ds.getTypeNames must throwAn[Exception]
-          container.start()
-          ds.getTypeNames must beEmpty
+          postgis.start()
+          ds.getTypeNames mustEqual Array(sft.getTypeName)
+          features.take(1) mustEqual query(ds) // note: have to compare backwards for equality checks to work
+          write(ds, features.drop(1))
+          features mustEqual query(ds) // note: have to compare backwards for equality checks to work
         }
       } finally {
-        container.close()
+        postgis.close()
       }
     }
   }
