@@ -16,6 +16,7 @@ import org.geotools.api.filter.identity.FeatureId
 import org.geotools.feature._
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -37,8 +38,9 @@ class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
     val errors = ArrayBuffer.empty[Throwable]
 
     WithClose(collection.features, writer(None)) { case (features, writer) =>
+      val helper = FeatureWriterHelper(writer)
       while (features.hasNext) {
-        try { fids.add(FeatureUtils.write(writer, features.next()).getIdentifier) } catch {
+        try { fids.add(helper.write(features.next()).getIdentifier) } catch {
           // validation errors in indexing will throw an IllegalArgumentException
           // make the caller handle other errors, which are likely related to the underlying database,
           // as we wouldn't know which features were actually written or not due to write buffering
@@ -59,8 +61,9 @@ class GeoMesaFeatureStore(ds: GeoMeasBaseStore, sft: SimpleFeatureType)
     removeFeatures(Filter.INCLUDE)
     try {
       WithClose(writer(None)) { writer =>
+        val helper = FeatureWriterHelper(writer)
         while (reader.hasNext) {
-          FeatureUtils.write(writer, reader.next())
+          helper.write(reader.next())
         }
       }
     } finally {

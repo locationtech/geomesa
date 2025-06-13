@@ -15,6 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.tools.Command
@@ -169,9 +170,10 @@ class LocalConverterIngest(
                     count = new AtomicInteger(0)
                     batches.put(writer, count)
                   }
+                  val helper = FeatureWriterHelper(writer)
                   features.foreach { sf =>
                     try {
-                      FeatureUtils.write(writer, sf)
+                      helper.write(sf)
                       written.incrementAndGet()
                       count.incrementAndGet()
                     } catch {

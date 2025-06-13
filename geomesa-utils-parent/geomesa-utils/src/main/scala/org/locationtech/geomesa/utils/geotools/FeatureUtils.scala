@@ -109,12 +109,21 @@ object FeatureUtils {
     builder
   }
 
+  @deprecated("use `write` or `copyToFeature` instead")
   def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
                    sf: SimpleFeature,
                    useProvidedFid: Boolean = false): SimpleFeature = {
     copyToFeature(writer.next(), sf, useProvidedFid)
   }
 
+  /**
+   * Copy a feature to the feature returned by a feature writer
+   *
+   * @param toWrite feature writer feature
+   * @param sf feature containing the data we want to write
+   * @param useProvidedFid use the feature id from the feature, or generate a new one
+   * @return
+   */
   def copyToFeature(toWrite: SimpleFeature, sf: SimpleFeature, useProvidedFid: Boolean = false): SimpleFeature = {
     var i = 0
     while (i < sf.getAttributeCount) {

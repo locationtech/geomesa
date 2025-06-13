@@ -17,13 +17,14 @@ import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.GeoMesaRecordWriter
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.io.IOException
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Output format that writes simple features using GeoMesaDataStore's FeatureWriterAppend. Can write only
@@ -104,7 +105,8 @@ object GeoMesaOutputFormat {
 
     private val ds = DataStoreFinder.getDataStore(params.asJava)
 
-    private val writers = scala.collection.mutable.Map.empty[String, FeatureWriter[SimpleFeatureType, SimpleFeature]]
+    private val writers = ArrayBuffer.empty[FeatureWriter[SimpleFeatureType, SimpleFeature]]
+    private val helpers = scala.collection.mutable.Map.empty[String, FeatureWriterHelper]
 
     private val written = context.getCounter(OutputCounters.Group, OutputCounters.Written)
     private val failed = context.getCounter(OutputCounters.Group, OutputCounters.Failed)
@@ -112,8 +114,8 @@ object GeoMesaOutputFormat {
     override def write(key: Text, value: SimpleFeature): Unit = {
       try {
         val sftName = value.getFeatureType.getTypeName
-        val writer = writers.getOrElseUpdate(sftName, createWriter(sftName))
-        FeatureUtils.write(writer, value)
+        val helper = helpers.getOrElseUpdate(sftName, createWriter(sftName))
+        helper.write(value)
         written.increment(1)
       } catch {
         case e: Exception =>
@@ -122,8 +124,8 @@ object GeoMesaOutputFormat {
       }
     }
 
-    private def createWriter(typeName: String): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
-      ds match {
+    private def createWriter(typeName: String): FeatureWriterHelper = {
+      val writer = ds match {
         case gm: GeoMesaDataStore[_] =>
           val sft = gm.getSchema(typeName)
           val i = indices match {
@@ -138,10 +140,12 @@ object GeoMesaOutputFormat {
           }
           ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
       }
+      writers += writer
+      FeatureWriterHelper(writer)
     }
 
     override def close(context: TaskAttemptContext): Unit = {
-      writers.values.foreach(v => CloseQuietly(v))
+      CloseQuietly(writers)
       ds.dispose()
     }
   }

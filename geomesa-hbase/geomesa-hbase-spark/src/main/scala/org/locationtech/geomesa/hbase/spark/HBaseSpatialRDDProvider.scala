@@ -18,6 +18,7 @@ import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.jobs.{GeoMesaHBaseInputFormat, HBaseJobUtils, Security}
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
@@ -107,7 +108,8 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       Security.doAuthorized(conf) {
         val ds = DataStoreConnector[HBaseDataStore](writeDataStoreParams)
         WithClose(ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          val helper = FeatureWriterHelper(writer, useProvidedFids = true)
+          iter.foreach(helper.write)
         }
       }
     }
