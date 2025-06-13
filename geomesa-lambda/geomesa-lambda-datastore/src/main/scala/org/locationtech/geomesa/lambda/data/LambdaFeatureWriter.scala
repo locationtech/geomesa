@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.lambda.data
 
-import org.geotools.api.data.SimpleFeatureWriter
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.{FastSettableFeature, ScalaSimpleFeature}
+import org.locationtech.geomesa.index.geotools.FastSettableFeatureWriter
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.security.VisibilityChecker
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -21,15 +21,15 @@ object LambdaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
 
-  class AppendLambdaFeatureWriter(transient: TransientStore) extends SimpleFeatureWriter {
+  class AppendLambdaFeatureWriter(transient: TransientStore) extends FastSettableFeatureWriter {
 
-    protected var feature: SimpleFeature = _
+    protected var feature: ScalaSimpleFeature = _
 
     override def getFeatureType: SimpleFeatureType = transient.sft
 
     override def hasNext: Boolean = false
 
-    override def next(): SimpleFeature = {
+    override def next(): FastSettableFeature = {
       feature = new ScalaSimpleFeature(transient.sft, featureIds.getAndIncrement().toString)
       feature
     }
@@ -49,7 +49,7 @@ object LambdaFeatureWriter {
 
     override def hasNext: Boolean = features.hasNext
 
-    override def next(): SimpleFeature = {
+    override def next(): FastSettableFeature = {
       feature = ScalaSimpleFeature.copy(features.next())
       feature
     }

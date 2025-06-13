@@ -12,12 +12,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.apache.kafka.common.TopicPartition
-import org.geotools.api.data.{SimpleFeatureWriter, Transaction}
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.data.Transaction
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.{Filter, Id}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.features.{FastSettableFeature, ScalaSimpleFeature}
+import org.locationtech.geomesa.index.geotools.{FastSettableFeatureWriter, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.locationtech.geomesa.kafka.versions.RecordVersions
 import org.locationtech.geomesa.security.VisibilityChecker
@@ -25,7 +25,7 @@ import org.locationtech.geomesa.security.VisibilityChecker
 import java.io.Flushable
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
-trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
+trait KafkaFeatureWriter extends FastSettableFeatureWriter with Flushable {
 
   /**
     * Sends a 'clear' message that will delete any features written so far
@@ -52,7 +52,7 @@ object KafkaFeatureWriter {
 
     override def hasNext: Boolean = false
 
-    override def next(): SimpleFeature = {
+    override def next(): FastSettableFeature = {
       reset(featureIds.getAndIncrement().toString)
       feature
     }
@@ -109,7 +109,7 @@ object KafkaFeatureWriter {
 
     override def hasNext: Boolean = ids.hasNext
 
-    override def next(): SimpleFeature = {
+    override def next(): FastSettableFeature = {
       import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
       reset(ids.headOption.getOrElse(featureIds.getAndIncrement().toString))
       // default to using the provided fid

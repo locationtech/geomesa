@@ -22,8 +22,8 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataSt
 import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
@@ -98,7 +98,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     rdd.foreachPartition { iter =>
       WithStore[AccumuloDataStore](params) { ds =>
         WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          val helper = FeatureWriterHelper(writer, useProvidedFids = true)
+          iter.foreach(helper.write)
         }
       }
     }

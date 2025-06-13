@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.{Query, SimpleFeatureWriter, Transaction}
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.{FastSettableFeature, ScalaSimpleFeature}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
-trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWriter with Flushable with LazyLogging {
+trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends FastSettableFeatureWriter with Flushable with LazyLogging {
 
   def ds: DS
   def sft: SimpleFeatureType
@@ -44,7 +44,7 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   protected def getWriter(feature: SimpleFeature): IndexWriter
 
-  protected def updateFeature(update: SimpleFeature, previous: SimpleFeature): Unit = {
+  protected def updateFeature(update: FastSettableFeature, previous: SimpleFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val writable = GeoMesaFeatureWriter.featureWithFid(update)
     try {
@@ -63,7 +63,7 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
     statUpdater.add(writable)
   }
 
-  protected def appendFeature(feature: SimpleFeature): Unit = {
+  protected def appendFeature(feature: FastSettableFeature): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val writable = GeoMesaFeatureWriter.featureWithFid(feature)
     // `append` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
@@ -161,24 +161,31 @@ object GeoMesaFeatureWriter extends LazyLogging {
    * otherwise one will be generated. If possible, the original feature will be modified and returned.
    */
   def featureWithFid(feature: SimpleFeature): SimpleFeature = {
-    if (feature.getUserData.containsKey(Hints.PROVIDED_FID)) {
-      withFid(feature, feature.getUserData.get(Hints.PROVIDED_FID).toString)
-    } else if (feature.getUserData.containsKey(Hints.USE_PROVIDED_FID) &&
-        feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[Boolean]) {
-      feature
-    } else {
+    val provided = feature.getUserData.get(Hints.PROVIDED_FID)
+    if (provided != null) {
+      withFid(feature, provided.toString)
+    } else if (feature.getUserData.get(Hints.USE_PROVIDED_FID) != java.lang.Boolean.TRUE) {
       withFid(feature, idGenerator.createId(feature.getFeatureType, feature))
+    } else {
+      feature
     }
   }
 
   /**
-   * Marker class to allow specific exceptions to bubble up
+   * Sets the feature ID on the feature. If the user has requested a specific ID, that will be used,
+   * otherwise one will be generated. The original feature will be modified and returned.
    *
-   * @param msg error message
-   * @param cause cause (may be null)
+   * @param feature feature
+   * @return
    */
-  class WriteException(msg: String, cause: Throwable) extends RuntimeException(msg, cause) {
-    def this(msg: String) = this(msg, null)
+  def featureWithFid(feature: FastSettableFeature): FastSettableFeature = {
+    val provided = feature.getUserData.get(Hints.PROVIDED_FID)
+    if (provided != null) {
+      feature.setId(provided.toString)
+    } else if (feature.getUserData.get(Hints.USE_PROVIDED_FID) != java.lang.Boolean.TRUE) {
+      feature.setId(idGenerator.createId(feature.getFeatureType, feature))
+    }
+    feature
   }
 
   private def withFid(feature: SimpleFeature, fid: String): SimpleFeature = {
@@ -194,7 +201,16 @@ object GeoMesaFeatureWriter extends LazyLogging {
             copy
         }
     }
+  }
 
+  /**
+   * Marker class to allow specific exceptions to bubble up
+   *
+   * @param msg error message
+   * @param cause cause (may be null)
+   */
+  class WriteException(msg: String, cause: Throwable) extends RuntimeException(msg, cause) {
+    def this(msg: String) = this(msg, null)
   }
 
   /**
@@ -277,11 +293,11 @@ object GeoMesaFeatureWriter extends LazyLogging {
     */
   private trait GeoMesaAppendFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
-    private var currentFeature: SimpleFeature = _
+    private var currentFeature: ScalaSimpleFeature = _
 
     override def hasNext: Boolean = false // per geotools spec, always return false
 
-    override def next(): SimpleFeature = {
+    override def next(): FastSettableFeature = {
       currentFeature = new ScalaSimpleFeature(sft, nextFeatureId)
       currentFeature
     }
@@ -313,11 +329,11 @@ object GeoMesaFeatureWriter extends LazyLogging {
     private var original: SimpleFeature = _
 
     // feature that caller will modify
-    private var live: SimpleFeature = _
+    private var live: FastSettableFeature = _
 
     override def hasNext: Boolean = reader.hasNext
 
-    override def next: SimpleFeature = {
+    override def next(): FastSettableFeature = {
       original = reader.next()
       // set the use provided FID hint - allows user to update fid if desired,
       // but if not we'll use the existing one
