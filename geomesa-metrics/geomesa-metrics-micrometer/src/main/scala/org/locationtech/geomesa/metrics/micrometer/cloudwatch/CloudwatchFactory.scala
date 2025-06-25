@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.metrics.micrometer
 package cloudwatch
+
 import com.typesafe.config.Config
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry
 import io.micrometer.core.instrument.{Clock, MeterRegistry}
@@ -20,7 +21,8 @@ object CloudwatchFactory extends RegistryFactory {
   override def apply(conf: Config): MeterRegistry = {
     implicit val reader: ConfigReader[CloudwatchConfig] = deriveReader[CloudwatchConfig]
     val config = ConfigSource.fromConfig(conf).loadOrThrow[CloudwatchConfig]
-    new CloudWatchMeterRegistry(k => config.properties.getOrElse(k, null), Clock.SYSTEM, CloudWatchAsyncClient.create())
+    val props = Map("namespace" -> config.namespace) ++ config.properties
+    new CloudWatchMeterRegistry(k => props.getOrElse(k, null), Clock.SYSTEM, CloudWatchAsyncClient.create())
   }
 
   private case class CloudwatchConfig(
