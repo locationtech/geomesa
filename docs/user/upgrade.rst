@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.4.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* orc ``1.9.6`` -> ``1.9.7``
+
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
