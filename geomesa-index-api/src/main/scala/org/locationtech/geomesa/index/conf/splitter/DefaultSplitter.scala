@@ -24,6 +24,7 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.{DateParsing, KVPairParser}
 
 import java.nio.charset.StandardCharsets
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import scala.util.Try
 
@@ -32,6 +33,7 @@ import scala.util.Try
   */
 class DefaultSplitter extends TableSplitter with LazyLogging {
 
+  import AttributeIndex.JoinIndexName
   import DefaultSplitter._
 
   override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] =
@@ -44,11 +46,10 @@ class DefaultSplitter extends TableSplitter with LazyLogging {
     val splits = Try(IndexId.id(index)).toOption.flatMap { id =>
       val opts = Option(options).map(KVPairParser.parse).getOrElse(Map.empty)
       id.name match {
-        case IdIndex.name                 => Some(idBytes(opts))
-        case Z3Index.name | XZ3Index.name => Some(z3Bytes(sft, Option(partition), opts))
-        case Z2Index.name | XZ2Index.name => Some(z2Bytes(opts))
-        case AttributeIndex.name          => Some(attributeBytes(sft, id.attributes.head, opts))
-        case AttributeIndex.JoinIndexName => Some(attributeBytes(sft, id.attributes.head, opts))
+        case IdIndex.name                        => Some(idBytes(opts))
+        case Z3Index.name | XZ3Index.name        => Some(z3Bytes(sft, Option(partition), opts))
+        case Z2Index.name | XZ2Index.name        => Some(z2Bytes(opts))
+        case AttributeIndex.name | JoinIndexName => Some(attributeBytes(sft, id.attributes.head, Option(partition), opts))
         case _ => None
       }
     }
@@ -212,14 +213,30 @@ object DefaultSplitter {
   private def idBytes(options: Map[String, String]): Array[Array[Byte]] =
     Parser.idSplits(options).map(_.getBytes(StandardCharsets.UTF_8)).toArray
 
-  private def attributeBytes(sft: SimpleFeatureType,
-                             attribute: String,
-                             options: Map[String, String]): Array[Array[Byte]] = {
+  private def attributeBytes(
+      sft: SimpleFeatureType,
+      attribute: String,
+      partition: Option[String],
+      options: Map[String, String]): Array[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val descriptor = sft.getDescriptor(attribute)
     val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
-    Parser.attributeSplits(attribute, binding, options).map(_.getBytes(StandardCharsets.UTF_8)).toArray
+    // if this is a time partition, update the options to include the min/max dates
+    val opts = partition.flatMap(p => Try(p.toShort).toOption).fold(options) { p =>
+      val patterns = DefaultSplitter.patterns(s"${AttributeIndex.name}.$attribute.partition-date-splits", options)
+      if (patterns.isEmpty) { options } else {
+        val period = sft.getZ3Interval
+        val toDate = BinnedTime.binnedTimeToDate(period)
+        val min = DateParsing.format(toDate(BinnedTime(p, 1L)), DateTimeFormatter.ISO_LOCAL_DATE)
+        val max = DateParsing.format(toDate(BinnedTime(p, BinnedTime.maxOffset(period))), DateTimeFormatter.ISO_LOCAL_DATE)
+        val dates =
+          optionsIterator(s"${AttributeIndex.name}.$attribute.date-range").zip(patterns.iterator.map(s => s"$min/$max/$s")).toMap
+        options ++ dates
+      }
+    }
+    Parser.attributeSplits(attribute, binding, opts).map(_.getBytes(StandardCharsets.UTF_8)).toArray
   }
 
   private def z3Bytes(sft: SimpleFeatureType,
@@ -244,27 +261,18 @@ object DefaultSplitter {
   private def z2Bytes(options: Map[String, String]): Array[Array[Byte]] =
     Parser.z2Splits(options).map(ByteArrays.toBytes).toArray
 
-  private def patterns(base: String, options: Map[String, String]): Seq[String] = {
-    val keys = Iterator.single(base) ++ Iterator.range(2, Int.MaxValue).map(i => s"$base$i")
-    keys.map(options.get(_).orNull).takeWhile(_ != null).toSeq
-  }
+  private def patterns(base: String, options: Map[String, String]): Seq[String] =
+    optionsIterator(base).map(options.get(_).orNull).takeWhile(_ != null).toSeq
 
   private def patternPairs(
       prefix: String,
       primary: String,
       secondary: String,
       options: Map[String, String]): Seq[(String, Option[String])] = {
-    val firstKey = s"$prefix$primary"
-    val secondKey = s"$prefix$secondary"
-    val transforms: Iterator[String => String] =
-      Iterator.single[String => String](b => b) ++ Iterator.range(2, Int.MaxValue).map(i => b => s"$b$i")
-    val patterns = transforms.map { transform =>
-      options.get(transform(firstKey)) match {
-        case None => null
-        case Some(pattern) => (pattern, options.get(transform(secondKey)))
-      }
+    val patterns = optionsIterator(s"$prefix$primary").zip(optionsIterator(s"$prefix$secondary")).map {
+      case (p, s) => (options.get(p).orNull, options.get(s))
     }
-    patterns.takeWhile(_ != null).toSeq
+    patterns.takeWhile(_._1 != null).toSeq
   }
 
   @throws(classOf[NumberFormatException])
@@ -307,4 +315,13 @@ object DefaultSplitter {
         add(Seq.empty, Seq.empty, bits).map(toLong)
     }
   }
+
+  /**
+   * Gets an iterator that returns numbered option keys, i.e. `base`, `base2`, `base3` etc
+   *
+   * @param base base option key
+   * @return
+   */
+  private def optionsIterator(base: String): Iterator[String] =
+    Iterator.single(base) ++ Iterator.range(2, Int.MaxValue).map(i => s"$base$i")
 }

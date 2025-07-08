@@ -111,6 +111,27 @@ class DefaultSplitterTest extends Specification {
       splits.toSeq must containAllOf(dates)
     }
 
+    "produce correct string tiered date splits with partitioning" in {
+      val opts =
+        "attr.myString.pattern:[A][B][C],attr.myString.pattern2:[B-Z]," +
+          "attr.myString.partition-date-splits:2,attr.myString.partition-date-splits2:4"
+      val splits = splitter.getSplits(sft, attrString, "2898", opts).toSeq
+      splits must haveLength(102)
+      val abcDates = Seq("2025-07-17T00:00:00Z", "2025-07-20T12:00:00Z").map { d =>
+        "ABC".getBytes(StandardCharsets.UTF_8) ++
+          ByteArrays.ZeroByteArray ++
+          AttributeIndexKey.encodeForQuery(DateParsing.parseDate(d), classOf[Date]).getBytes(StandardCharsets.UTF_8)
+      }
+      splits must containAllOf(abcDates)
+      val bzDates = Seq("2025-07-17T00:00:00Z", "2025-07-18T18:00:00Z", "2025-07-20T12:00:00Z", "2025-07-22T06:00:00Z").flatMap { d =>
+        val suffix =
+          ByteArrays.ZeroByteArray ++
+            AttributeIndexKey.encodeForQuery(DateParsing.parseDate(d), classOf[Date]).getBytes(StandardCharsets.UTF_8)
+        Seq.tabulate(25) { i => Array(('B' + i).toChar.toByte) ++ suffix }
+      }
+      splits must containAllOf(bzDates)
+    }
+
     "produce correct string tiered date splits for all dates" in {
       foreach(Seq("2023-01-01", "2023-10-04", "2023-11-11", "2023-12-31")) { date =>
         val opts =
