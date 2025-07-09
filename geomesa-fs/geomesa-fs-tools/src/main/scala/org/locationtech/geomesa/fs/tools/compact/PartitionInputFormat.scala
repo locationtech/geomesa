@@ -169,11 +169,11 @@ object PartitionInputFormat {
       if (partition.name == name) { Some(partition) } else { None }
     override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] =
       if (prefix.forall(partition.name.startsWith)) { Seq(partition) } else { Seq.empty }
-    override def addPartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
-    override def removePartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
-    override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = throw new NotImplementedError()
+    override def addPartition(partition: PartitionMetadata): Unit = throw new UnsupportedOperationException()
+    override def removePartition(partition: PartitionMetadata): Unit = throw new UnsupportedOperationException()
+    override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = throw new UnsupportedOperationException()
     override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
-      throw new NotImplementedError()
+      throw new UnsupportedOperationException()
     override def invalidate(): Unit = {}
     override def close(): Unit = {}
   }

@@ -41,9 +41,9 @@ package object convert2 {
         res = attempt
       } else {
         val e = attempt.failed.get
-        // filter out NotImplementedErrors, so we don't clutter up the logs with failed conversion attempts from
+        // filter out UnsupportedOperationException, so we don't clutter up the logs with failed conversion attempts from
         // converter factories that haven't implemented schema inference
-        if (!e.isInstanceOf[NotImplementedError] && !Option(e.getCause).exists(_.isInstanceOf[NotImplementedError])) {
+        if (!e.isInstanceOf[UnsupportedOperationException] && !Option(e.getCause).exists(_.isInstanceOf[UnsupportedOperationException])) {
           failure.addSuppressed(e)
         }
       }

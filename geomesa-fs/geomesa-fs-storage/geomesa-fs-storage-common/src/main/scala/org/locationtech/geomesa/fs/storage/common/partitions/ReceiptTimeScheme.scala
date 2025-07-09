@@ -51,7 +51,7 @@ case class ReceiptTimeScheme(delegate: DateTimeScheme, buffer: Duration) extends
     delegate.getIntersectingPartitions(buffered(filter))
 
   override def getCoveringFilter(partition: String): Filter =
-    throw new NotImplementedError("Dates may overlap in multiple partitions")
+    throw new UnsupportedOperationException("Dates may overlap in multiple partitions")
 
   private def buffered(filter: Filter): Filter =
     filter.accept(new BufferingFilterVisitor(buffer, delegate.dtg), null).asInstanceOf[Filter]

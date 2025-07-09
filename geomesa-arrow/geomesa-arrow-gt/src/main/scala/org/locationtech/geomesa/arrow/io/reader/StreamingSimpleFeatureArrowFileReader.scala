@@ -45,7 +45,7 @@ class StreamingSimpleFeatureArrowFileReader(is: InputStream) extends SimpleFeatu
   override def sft: SimpleFeatureType = reader.get.sft
   override def dictionaries: Map[String, ArrowDictionary] = reader.get.dictionaries
 
-  override def vectors: Seq[SimpleFeatureVector] = throw new NotImplementedError()
+  override def vectors: Seq[SimpleFeatureVector] = throw new UnsupportedOperationException()
 
   override def features(filter: Filter): CloseableIterator[ArrowSimpleFeature] = {
     // if the read failed, throw an exception up front

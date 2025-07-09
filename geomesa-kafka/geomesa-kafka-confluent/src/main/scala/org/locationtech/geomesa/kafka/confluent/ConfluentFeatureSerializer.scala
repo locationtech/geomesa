@@ -91,10 +91,10 @@ class ConfluentFeatureSerializer(
 
   // implement the following if we need them
 
-  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError()
+  override def deserialize(in: InputStream): SimpleFeature = throw new UnsupportedOperationException()
 
   override def deserialize(id: String, in: InputStream): SimpleFeature =
-    throw new NotImplementedError()
+    throw new UnsupportedOperationException()
 }
 
 object ConfluentFeatureSerializer {

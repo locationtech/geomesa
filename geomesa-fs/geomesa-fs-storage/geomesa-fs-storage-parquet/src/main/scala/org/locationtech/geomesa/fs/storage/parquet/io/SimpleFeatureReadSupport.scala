@@ -199,7 +199,7 @@ object SimpleFeatureReadSupport {
     encoding match {
       case DateEncoding.Millis => new DateMillisConverter()
       case DateEncoding.Micros => new DateMicrosConverter()
-      case encoding => throw new NotImplementedError(encoding.toString)
+      case encoding => throw new UnsupportedOperationException(encoding.toString)
     }
   }
 
@@ -207,7 +207,7 @@ object SimpleFeatureReadSupport {
     encoding match {
       case ListEncoding.ThreeLevel => new ListConverter(elements)
       case ListEncoding.TwoLevel   => new TwoLevelListConverter(elements)
-      case encoding => throw new NotImplementedError(encoding.toString)
+      case encoding => throw new UnsupportedOperationException(encoding.toString)
     }
   }
 

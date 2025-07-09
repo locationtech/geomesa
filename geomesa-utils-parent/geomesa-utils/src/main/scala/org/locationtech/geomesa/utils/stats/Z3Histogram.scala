@@ -144,7 +144,7 @@ class Z3Histogram(
     */
   override def +=(other: Z3Histogram): Unit = {
     if (length != other.length) {
-      throw new NotImplementedError("Can only add z3 histograms with the same length")
+      throw new UnsupportedOperationException("Can only add z3 histograms with the same length")
     }
     other.binMap.foreach { case (w, bins) =>
       binMap.get(w) match {

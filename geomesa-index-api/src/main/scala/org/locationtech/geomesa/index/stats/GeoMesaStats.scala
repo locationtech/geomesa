@@ -258,7 +258,7 @@ object GeoMesaStats {
       case b if b == classOf[java.lang.Double]        => 0d
       case b if classOf[Date].isAssignableFrom(b)     => new Date()
       case b if classOf[Geometry].isAssignableFrom(b) => GeometryUtils.zeroPoint
-      case _ => throw new NotImplementedError(s"Can't handle binding of type $binding")
+      case _ => throw new UnsupportedOperationException(s"Can't handle binding of type $binding")
     }
     Histogram.buffer(default.asInstanceOf[T])
   }
@@ -277,7 +277,7 @@ object GeoMesaStats {
       case c if c == classOf[java.lang.Float]     => 1000 // 10 ^ decimal places we'll keep
       case c if c == classOf[java.lang.Double]    => 1000 // 10 ^ decimal places we'll keep
       case c if classOf[Date].isAssignableFrom(c) => 1000 * 60 * 60 // size of a 'bin' - one hour
-      case c => throw new NotImplementedError(s"Can't handle binding of type $c")
+      case c => throw new UnsupportedOperationException(s"Can't handle binding of type $c")
     }
   }
 

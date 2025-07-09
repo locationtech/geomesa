@@ -95,7 +95,7 @@ object AvroConverter {
         Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 
       case _ =>
-        throw new NotImplementedError(
+        throw new UnsupportedOperationException(
           s"Raw Avro bytes (i.e. $$0) is not implemented for schema type ${schema.getType}")
     }
   }

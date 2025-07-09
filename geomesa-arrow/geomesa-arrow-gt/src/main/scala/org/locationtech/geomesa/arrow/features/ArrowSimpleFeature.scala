@@ -88,27 +88,27 @@ class ArrowSimpleFeature(sft: SimpleFeatureType,
     attributes
   }
 
-  override def getDefaultGeometryProperty: GeometryAttribute = throw new NotImplementedError
-  override def getProperties: jCollection[Property] = throw new NotImplementedError
-  override def getProperties(name: Name): jCollection[Property] = throw new NotImplementedError
-  override def getProperties(name: String): jCollection[Property] = throw new NotImplementedError
-  override def getProperty(name: Name): Property = throw new NotImplementedError
-  override def getProperty(name: String): Property = throw new NotImplementedError
-  override def getValue: jCollection[Property] = throw new NotImplementedError
-  override def getDescriptor: AttributeDescriptor = throw new NotImplementedError
+  override def getDefaultGeometryProperty: GeometryAttribute = throw new UnsupportedOperationException()
+  override def getProperties: jCollection[Property] = throw new UnsupportedOperationException()
+  override def getProperties(name: Name): jCollection[Property] = throw new UnsupportedOperationException()
+  override def getProperties(name: String): jCollection[Property] = throw new UnsupportedOperationException()
+  override def getProperty(name: Name): Property = throw new UnsupportedOperationException()
+  override def getProperty(name: String): Property = throw new UnsupportedOperationException()
+  override def getValue: jCollection[Property] = throw new UnsupportedOperationException()
+  override def getDescriptor: AttributeDescriptor = throw new UnsupportedOperationException()
 
-  override def setAttribute(name: Name, value: Object): Unit = throw new NotImplementedError
-  override def setAttribute(name: String, value: Object): Unit = throw new NotImplementedError
-  override def setAttribute(index: Int, value: Object): Unit = throw new NotImplementedError
-  override def setAttributes(vals: jList[Object]): Unit = throw new NotImplementedError
-  override def setAttributes(vals: Array[Object]): Unit = throw new NotImplementedError
-  override def setDefaultGeometry(geo: Object): Unit = throw new NotImplementedError
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new NotImplementedError
-  override def setValue(newValue: Object): Unit = throw new NotImplementedError
-  override def setValue(values: jCollection[Property]): Unit = throw new NotImplementedError
+  override def setAttribute(name: Name, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttribute(name: String, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttribute(index: Int, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttributes(vals: jList[Object]): Unit = throw new UnsupportedOperationException()
+  override def setAttributes(vals: Array[Object]): Unit = throw new UnsupportedOperationException()
+  override def setDefaultGeometry(geo: Object): Unit = throw new UnsupportedOperationException()
+  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new UnsupportedOperationException()
+  override def setValue(newValue: Object): Unit = throw new UnsupportedOperationException()
+  override def setValue(values: jCollection[Property]): Unit = throw new UnsupportedOperationException()
 
   override def isNillable: Boolean = true
-  override def validate(): Unit = throw new NotImplementedError
+  override def validate(): Unit = throw new UnsupportedOperationException()
 
   override def toString: String = s"ArrowSimpleFeature:$getID:${getAttributes.asScala.mkString("|")}"
 

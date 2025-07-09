@@ -48,7 +48,7 @@ object EmptyIndex extends NamedIndex {
         feature: WritableFeature,
         tier: Array[Byte],
         id: Array[Byte],
-        lenient: Boolean): RowKeyValue[String] = throw new NotImplementedError()
+        lenient: Boolean): RowKeyValue[String] = throw new UnsupportedOperationException()
 
     override def getIndexValues(filter: Filter, explain: Explainer): String = null
     override def getRanges(values: String, multiplier: Int): Iterator[ScanRange[String]] = Iterator.empty

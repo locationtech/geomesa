@@ -45,7 +45,7 @@ class RedisWritableFeature(
 
   override lazy val id: Array[Byte] = idSerializer(feature.getID)
 
-  override def reducedValues: Seq[KeyValue] = throw new NotImplementedError()
+  override def reducedValues: Seq[KeyValue] = throw new UnsupportedOperationException()
 }
 
 object RedisWritableFeature {

@@ -477,7 +477,7 @@ object JdbcMetadata extends LazyLogging {
             case StorageFileAction.Append => "a"
             case StorageFileAction.Modify => "m"
             case StorageFileAction.Delete => "d"
-            case _ => throw new NotImplementedError(s"Unexpected action: $action")
+            case _ => throw new UnsupportedOperationException(s"Unexpected action: $action")
           }
           statement.setString(5, char)
           statement.setLong(6, timestamp)

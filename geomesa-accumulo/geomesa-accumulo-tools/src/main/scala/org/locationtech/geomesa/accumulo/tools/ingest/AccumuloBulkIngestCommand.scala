@@ -103,7 +103,7 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
           index, partitions, libjarsFiles, libjarsPaths)
 
       case _ =>
-        throw new NotImplementedError(s"Missing implementation for mode $mode")
+        throw new UnsupportedOperationException(s"Missing implementation for mode $mode")
     }
   }
 

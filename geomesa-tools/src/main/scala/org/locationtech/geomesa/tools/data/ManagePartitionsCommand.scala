@@ -95,7 +95,7 @@ object ManagePartitionsCommand {
 
     override protected def execute(ds: DS, sft: SimpleFeatureType, partition: TablePartition): Unit = {
       val time = Option(partition).collect { case p: TimePartition => p }.getOrElse {
-        throw new NotImplementedError(s"Unsupported partition implementation: ${partition.getClass.getName}")
+        throw new UnsupportedOperationException(s"Unsupported partition implementation: ${partition.getClass.getName}")
       }
       val (start, end) = {
         val (s, e) = new IntervalConverter("value").convert(params.value)
@@ -185,7 +185,7 @@ object ManagePartitionsCommand {
           Command.output.info(s"$value -> ${partition.partition(sf)}")
         }
       } else {
-        throw new NotImplementedError(s"Unsupported partition implementation: ${partition.getClass.getName}")
+        throw new UnsupportedOperationException(s"Unsupported partition implementation: ${partition.getClass.getName}")
       }
     }
   }

@@ -68,7 +68,7 @@ object KafkaFeatureWriter {
       producer.send(record)
     }
 
-    override def remove(): Unit = throw new NotImplementedError()
+    override def remove(): Unit = throw new UnsupportedOperationException()
 
     override def flush(): Unit = producer.flush()
 
@@ -104,7 +104,7 @@ object KafkaFeatureWriter {
 
     private val ids: Iterator[String] = filter match {
       case ids: Id => ids.getIDs.iterator.asScala.map(_.toString)
-      case _ => throw new NotImplementedError("Only modify by ID is supported")
+      case _ => throw new UnsupportedOperationException("Only modify by ID is supported")
     }
 
     override def hasNext: Boolean = ids.hasNext

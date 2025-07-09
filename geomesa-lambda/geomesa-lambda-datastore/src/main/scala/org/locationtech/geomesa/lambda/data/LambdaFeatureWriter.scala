@@ -39,7 +39,7 @@ object LambdaFeatureWriter {
       feature = null
     }
 
-    override def remove(): Unit = throw new NotImplementedError()
+    override def remove(): Unit = throw new UnsupportedOperationException()
 
     override def close(): Unit = {}
   }

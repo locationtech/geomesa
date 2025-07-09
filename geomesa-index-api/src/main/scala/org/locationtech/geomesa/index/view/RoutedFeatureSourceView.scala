@@ -71,7 +71,7 @@ class RoutedFeatureSourceView(ds: RoutedDataStoreView, sft: SimpleFeatureType)
 
   override def getInfo: ResourceInfo = new DelegatingResourceInfo(this)
 
-  override def addFeatureListener(listener: FeatureListener): Unit = throw new NotImplementedError()
+  override def addFeatureListener(listener: FeatureListener): Unit = throw new UnsupportedOperationException()
 
-  override def removeFeatureListener(listener: FeatureListener): Unit = throw new NotImplementedError()
+  override def removeFeatureListener(listener: FeatureListener): Unit = throw new UnsupportedOperationException()
 }

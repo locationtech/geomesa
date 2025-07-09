@@ -65,7 +65,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           ParquetSimpleFeatureInputFormat.configure(conf, sft, query)
           (classOf[ParquetSimpleFeatureInputFormat], classOf[ParquetSimpleFeatureActionInputFormat])
         } else {
-          throw new NotImplementedError(s"Not implemented for encoding '${storage.metadata.encoding}'")
+          throw new UnsupportedOperationException(s"Not implemented for encoding '${storage.metadata.encoding}'")
         }
 
         if (modifications) {

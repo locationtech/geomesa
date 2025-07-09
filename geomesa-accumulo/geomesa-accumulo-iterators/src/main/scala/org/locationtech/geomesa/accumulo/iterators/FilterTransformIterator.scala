@@ -184,7 +184,7 @@ object FilterTransformIterator {
           is.addOption(IndexOpt, s"${index.name}:${index.version}")
 
         case Some(c) =>
-          throw new NotImplementedError(s"Unknown compatibility flag: '$c'")
+          throw new UnsupportedOperationException(s"Unknown compatibility flag: '$c'")
       }
       Some(is)
     }

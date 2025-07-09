@@ -160,7 +160,7 @@ object FileSystemThreadedReader extends StrictLogging {
       case StorageFileAction.Append => new AppendingReaderIterator(reader, file.path, mods)
       case StorageFileAction.Modify => new ModifyingReaderIterator(reader, file.path, mods)
       case StorageFileAction.Delete => new DeletingReaderIterator(reader, file.path, mods)
-      case _ => throw new NotImplementedError(s"Unexpected storage action: ${file.file.action}")
+      case _ => throw new UnsupportedOperationException(s"Unexpected storage action: ${file.file.action}")
     }
   }
 

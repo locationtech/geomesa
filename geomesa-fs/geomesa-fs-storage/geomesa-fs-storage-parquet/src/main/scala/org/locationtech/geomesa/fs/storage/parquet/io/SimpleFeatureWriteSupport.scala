@@ -162,7 +162,7 @@ object SimpleFeatureWriteSupport {
       schema.encodings.list match {
         case ListEncoding.ThreeLevel => new ListWriter(name, index, elements)
         case ListEncoding.TwoLevel   => new TwoLevelListWriter(name, index, elements)
-        case encoding => throw new NotImplementedError(encoding.toString)
+        case encoding => throw new UnsupportedOperationException(encoding.toString)
       }
     }
 
@@ -170,7 +170,7 @@ object SimpleFeatureWriteSupport {
       schema.encodings.date match {
         case DateEncoding.Millis => new DateMillisWriter(name, index)
         case DateEncoding.Micros => new DateMicrosWriter(name, index)
-        case encoding => throw new NotImplementedError(encoding.toString)
+        case encoding => throw new UnsupportedOperationException(encoding.toString)
       }
     }
   }

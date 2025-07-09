@@ -167,7 +167,7 @@ object KryoFeatureSerialization extends LazyLogging {
       case ObjectType.LIST     => KryoListWriter(writer(bindings.drop(1), ad))
       case ObjectType.MAP      => KryoMapWriter(writer(bindings.slice(1, 2), ad), writer(bindings.drop(2), ad))
 
-      case b => throw new NotImplementedError(s"Unexpected attribute type binding: $b")
+      case b => throw new UnsupportedOperationException(s"Unexpected attribute type binding: $b")
     }
   }
 

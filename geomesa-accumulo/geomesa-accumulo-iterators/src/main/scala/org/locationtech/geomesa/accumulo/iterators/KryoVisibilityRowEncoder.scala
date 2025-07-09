@@ -221,7 +221,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
   }
 
   override def rowDecoder(rowKey: Key, rowValue: Value): java.util.SortedMap[Key, Value] =
-    throw new NotImplementedError("")
+    throw new UnsupportedOperationException("")
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     val iterator = new KryoVisibilityRowEncoder

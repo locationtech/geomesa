@@ -69,7 +69,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         val expanded = qps.flatMap {
           case qp: BatchScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
           case qp: EmptyPlan => Seq(qp)
-          case qp => throw new NotImplementedError(s"Unexpected query plan type: $qp")
+          case qp => throw new UnsupportedOperationException(s"Unexpected query plan type: $qp")
         }
         sc.union(expanded.map(queryPlanToRDD(sft, _)))
       }

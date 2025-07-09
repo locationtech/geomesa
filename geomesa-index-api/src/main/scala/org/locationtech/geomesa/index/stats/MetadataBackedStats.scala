@@ -189,7 +189,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
         // split up the z3 histogram and store by week
         s.splitByTime.map { case (b, z) => WritableStat(histogramKey(s.geom, s.dtg, b), z, merge) }
 
-      case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
+      case _ => throw new UnsupportedOperationException("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }
   }
 
@@ -438,7 +438,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
             }
 
           case s =>
-            throw new NotImplementedError(s"Unexpected stat: $s")
+            throw new UnsupportedOperationException(s"Unexpected stat: $s")
         }
         copy.foreach(_ += stat)
         copy
