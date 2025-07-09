@@ -24,18 +24,19 @@ import org.specs2.runner.JUnitRunner
 import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
-class ArrowMultiPointTest extends TestWithFeatureType with LazyLogging {
+class ArrowGeometryCollectionTest extends TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  override val spec = "team:String,name:String,dtg:Date,*geom:MultiPoint:srid=4326"
+  override val spec = "team:String,name:String,dtg:Date,*geom:GeometryCollection:srid=4326"
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   val features = Seq.tabulate(10) { i =>
     val name = s"name$i"
     val team = s"team${i % 2}"
-    ScalaSimpleFeature.create(sft, s"$i", team, name, s"2017-02-03T00:0$i:01.000Z", s"MULTIPOINT((40 6$i),(4$i 60),(2 2))")
+    val geom = s"GEOMETRYCOLLECTION(POINT(40 6$i),MULTIPOINT((40 6$i),(4$i 60),(2 2)))"
+    ScalaSimpleFeature.create(sft, s"$i", team, name, s"2017-02-03T00:0$i:01.000Z", geom)
   }
 
   step {
@@ -43,7 +44,7 @@ class ArrowMultiPointTest extends TestWithFeatureType with LazyLogging {
   }
 
   "Arrow delta scans" should {
-    "query multipoints" in {
+    "query geometry collections" in {
       val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
       query.getHints.put(QueryHints.ARROW_ENCODE, true)
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
