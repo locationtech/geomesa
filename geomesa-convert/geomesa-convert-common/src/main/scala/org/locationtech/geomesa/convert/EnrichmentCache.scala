@@ -77,8 +77,8 @@ class ResourceLoadingCache(path: String, idField: String, headers: Seq[String]) 
   }
 
   override def get(args: Array[String]): Any = data.get(args(0)).map(_.get(args(1))).orNull
-  override def put(args: Array[String], value: Any): Unit = ???
-  override def clear(): Unit = ???
+  override def put(args: Array[String], value: Any): Unit = throw new UnsupportedOperationException()
+  override def clear(): Unit = throw new UnsupportedOperationException()
   override def close(): Unit = {}
 }
 
