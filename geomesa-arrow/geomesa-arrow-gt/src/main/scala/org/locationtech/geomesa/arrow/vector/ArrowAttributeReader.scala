@@ -431,7 +431,7 @@ object ArrowAttributeReader {
         } else if (binding == ObjectType.GEOMETRY) {
           new WKBGeometryVector(vector.asInstanceOf[VarBinaryVector])
         } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
-          throw new NotImplementedError(s"Geometry type $binding is not supported")
+          throw new UnsupportedOperationException(s"Geometry type $binding is not supported")
         } else {
           throw new IllegalArgumentException(s"Expected geometry type, got $binding")
         }

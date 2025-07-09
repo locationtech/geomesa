@@ -111,7 +111,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @param sft simple feature type
     */
   protected def transitionIndices(sft: SimpleFeatureType): Unit =
-    throw new NotImplementedError("This data store does not support legacy index formats - please create a new schema")
+    throw new UnsupportedOperationException("This data store does not support legacy index formats - please create a new schema")
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {

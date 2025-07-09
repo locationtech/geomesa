@@ -193,9 +193,9 @@ object KafkaFeatureCache extends LazyLogging {
   }
 
   class EmptyFeatureCache(val views: Seq[KafkaFeatureCacheView]) extends KafkaFeatureCache {
-    override def put(feature: SimpleFeature): Unit = throw new NotImplementedError("Empty feature cache")
-    override def remove(id: String): Unit = throw new NotImplementedError("Empty feature cache")
-    override def clear(): Unit = throw new NotImplementedError("Empty feature cache")
+    override def put(feature: SimpleFeature): Unit = throw new UnsupportedOperationException("Empty feature cache")
+    override def remove(id: String): Unit = throw new UnsupportedOperationException("Empty feature cache")
+    override def clear(): Unit = throw new UnsupportedOperationException("Empty feature cache")
     override def size(): Int = 0
     override def size(filter: Filter): Int = 0
     override def query(id: String): Option[SimpleFeature] = None

@@ -138,14 +138,14 @@ object SimpleFeatureSerializer {
     */
   trait LimitedSerialization extends SimpleFeatureSerializer {
     override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-      throw new NotImplementedError
+      throw new UnsupportedOperationException()
     override def deserialize(in: InputStream): SimpleFeature =
-      throw new NotImplementedError
+      throw new UnsupportedOperationException()
     override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-      throw new NotImplementedError
+      throw new UnsupportedOperationException()
     override def deserialize(id: String, in: InputStream): SimpleFeature =
-      throw new NotImplementedError
+      throw new UnsupportedOperationException()
     override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
-      throw new NotImplementedError
+      throw new UnsupportedOperationException()
   }
 }

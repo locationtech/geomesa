@@ -158,7 +158,7 @@ object LocalQueryRunner extends LazyLogging {
 
     override def state: Map[String, String] = {
       if (visibility.isDefined) {
-        throw new NotImplementedError("Visibility filtering is not serializable")
+        throw new UnsupportedOperationException("Visibility filtering is not serializable")
       }
       Map(
         "name" -> sft.getTypeName,

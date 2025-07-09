@@ -114,7 +114,7 @@ object GeoMesaTimestampExtractor {
           record.timestamp()
 
         case _: GeoMesaMessage =>
-          throw new NotImplementedError() // if we forget to handle a message action
+          throw new UnsupportedOperationException() // if we forget to handle a message action
 
         case v =>
           throw new IllegalArgumentException(s"Expected a GeoMesaMessage but got: ${v.getClass.getName} $v")

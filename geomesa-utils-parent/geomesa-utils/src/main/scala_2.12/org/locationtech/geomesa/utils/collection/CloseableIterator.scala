@@ -174,7 +174,7 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   // in scala 2.13 this method is final, and can cause resource leaks due to not returning a closeable iterator
   override def ++[B >: A](that: => GenTraversableOnce[B]): CloseableIterator[B] =
-    throw new NotImplementedError("Not safe for cross-scala usage")
+    throw new UnsupportedOperationException("Not safe for cross-scala usage")
 
   override def flatMap[B](f: A => GenTraversableOnce[B]): CloseableIterator[B] =
     new FlatMapCloseableIterator(this, f)

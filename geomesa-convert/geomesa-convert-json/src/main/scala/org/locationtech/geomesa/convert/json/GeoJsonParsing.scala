@@ -173,7 +173,7 @@ trait GeoJsonParsing {
         Try(factory.createGeometryCollection(obj.get(GeometriesKey).getAsJsonArray.asScala.map(parseGeometry).toArray))
 
       case unknown =>
-        Failure(new NotImplementedError(s"Can't parse geometry type of $unknown"))
+        Failure(new UnsupportedOperationException(s"Can't parse geometry type of $unknown"))
     }
   }
 

@@ -182,7 +182,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
           Some(JobSuccess(s"Feature export complete to $output", Map(CountKey -> ExportJob.Counters.count(job))))
         }
 
-      case _ => throw new NotImplementedError() // someone added a run mode and didn't implement it here...
+      case _ => throw new UnsupportedOperationException() // someone added a run mode and didn't implement it here...
     }
   }
 
@@ -469,7 +469,7 @@ object ExportCommand extends LazyLogging {
       case ExportFormat.Shp        => new ShapefileExporter(new File(name))
       case ExportFormat.Tsv        => DelimitedExporter.tsv(stream, options.headers, fids)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
-      case _ => throw new NotImplementedError(s"Export for '${options.format}' is not implemented")
+      case _ => throw new UnsupportedOperationException(s"Export for '${options.format}' is not implemented")
     }
 
     override def start(sft: SimpleFeatureType): Unit = exporter.start(sft)

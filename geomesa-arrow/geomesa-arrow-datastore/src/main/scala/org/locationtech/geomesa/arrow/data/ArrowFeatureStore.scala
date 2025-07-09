@@ -90,7 +90,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
         }
       }
 
-      override def remove(): Unit = throw new NotImplementedError()
+      override def remove(): Unit = throw new UnsupportedOperationException()
 
       override def close(): Unit = CloseWithLogging(writer)
     }

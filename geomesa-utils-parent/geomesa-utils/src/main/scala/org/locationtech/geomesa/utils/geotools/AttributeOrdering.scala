@@ -48,8 +48,8 @@ object AttributeOrdering {
       case ObjectType.GEOMETRY => GeometryOrdering
       case ObjectType.BYTES    => BytesOrdering
       case ObjectType.LIST     => list(bindings.last)
-      case ObjectType.MAP      => throw new NotImplementedError("Ordering for Map-type attributes is not supported")
-      case b                   => throw new NotImplementedError(s"Unexpected attribute type: $b")
+      case ObjectType.MAP      => throw new UnsupportedOperationException("Ordering for Map-type attributes is not supported")
+      case b                   => throw new UnsupportedOperationException(s"Unexpected attribute type: $b")
     }
     ordering.asInstanceOf[Ordering[AnyRef]]
   }
@@ -66,7 +66,7 @@ object AttributeOrdering {
       case ObjectType.UUID     => UuidListOrdering
       case ObjectType.GEOMETRY => GeometryListOrdering
       case ObjectType.BYTES    => BytesListOrdering
-      case b                   => throw new NotImplementedError(s"Unexpected attribute type: List[$b]")
+      case b                   => throw new UnsupportedOperationException(s"Unexpected attribute type: List[$b]")
     }
     ordering.asInstanceOf[Ordering[AnyRef]]
   }

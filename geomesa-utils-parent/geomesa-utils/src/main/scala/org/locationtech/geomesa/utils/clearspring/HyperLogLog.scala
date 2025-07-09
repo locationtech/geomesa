@@ -155,7 +155,7 @@ class HyperLogLog private (val log2m: Int, val registerSet: RegisterSet) extends
     merged
   }
 
-  override def getBytes: Array[Byte] = throw new NotImplementedError
+  override def getBytes: Array[Byte] = throw new UnsupportedOperationException()
 }
 
 object HyperLogLog {

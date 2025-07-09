@@ -92,12 +92,12 @@ object AbstractCompositeConverter {
 
   case class CompositeEvaluationContext(contexts: Seq[EvaluationContext], success: Counter, failure: Counter)
       extends EvaluationContext {
-    override def cache: Map[String, EnrichmentCache] = throw new NotImplementedError()
-    override def metrics: ConverterMetrics = throw new NotImplementedError()
-    override def accessor(name: String): FieldAccessor = throw new NotImplementedError()
+    override def cache: Map[String, EnrichmentCache] = throw new UnsupportedOperationException()
+    override def metrics: ConverterMetrics = throw new UnsupportedOperationException()
+    override def accessor(name: String): FieldAccessor = throw new UnsupportedOperationException()
     override def evaluate(args: Array[AnyRef]): Either[EvaluationError, Array[AnyRef]] =
-      throw new NotImplementedError()
-    override def errors: java.util.Queue[EvaluationError] = throw new NotImplementedError()
+      throw new UnsupportedOperationException()
+    override def errors: java.util.Queue[EvaluationError] = throw new UnsupportedOperationException()
   }
 
   object CompositeEvaluationContext {

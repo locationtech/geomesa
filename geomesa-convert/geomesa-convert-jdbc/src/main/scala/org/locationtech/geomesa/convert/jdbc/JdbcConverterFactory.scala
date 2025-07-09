@@ -28,7 +28,7 @@ class JdbcConverterFactory extends AbstractConverterFactory[JdbcConverter, JdbcC
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
-      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new NotImplementedError())
+      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new UnsupportedOperationException())
 }
 
 object JdbcConverterFactory {

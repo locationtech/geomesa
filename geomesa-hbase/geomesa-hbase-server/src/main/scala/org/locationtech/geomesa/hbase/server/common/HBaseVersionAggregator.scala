@@ -37,9 +37,9 @@ class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
-      options: Map[String, String]): VersionAggregator = throw new NotImplementedError()
+      options: Map[String, String]): VersionAggregator = throw new UnsupportedOperationException()
 
-  override protected def defaultBatchSize: Int = throw new NotImplementedError()
+  override protected def defaultBatchSize: Int = throw new UnsupportedOperationException()
 }
 
 object HBaseVersionAggregator {

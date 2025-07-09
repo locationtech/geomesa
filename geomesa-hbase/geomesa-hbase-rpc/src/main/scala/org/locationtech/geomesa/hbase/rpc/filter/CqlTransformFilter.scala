@@ -121,7 +121,7 @@ object CqlTransformFilter extends StrictLogging {
     hints.getFilterCompatibility match {
       case None => new CqlTransformFilter(delegate)
       case Some(FilterCompatibility.`2.3`) => new JSimpleFeatureFilter(delegate)
-      case Some(c) => throw new NotImplementedError(s"Filter compatibility $c is not implemented for this query")
+      case Some(c) => throw new UnsupportedOperationException(s"Filter compatibility $c is not implemented for this query")
     }
   }
 
@@ -563,12 +563,12 @@ object CqlTransformFilter extends StrictLogging {
   private[hbase] object NullFeatureIndex
       extends GeoMesaFeatureIndex[Any, Any](null, null, "", 0, Seq.empty, IndexMode.Read) {
 
-    override def keySpace: IndexKeySpace[Any, Any] = throw new NotImplementedError()
+    override def keySpace: IndexKeySpace[Any, Any] = throw new UnsupportedOperationException()
 
-    override def tieredKeySpace: Option[IndexKeySpace[_, _]] = throw new NotImplementedError()
+    override def tieredKeySpace: Option[IndexKeySpace[_, _]] = throw new UnsupportedOperationException()
 
     override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] =
-      throw new NotImplementedError()
+      throw new UnsupportedOperationException()
 
     override def getIdFromRow(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String = ""
   }

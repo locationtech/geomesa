@@ -63,5 +63,5 @@ class ConverterMetadataFactory extends StorageMetadataFactory with LazyLogging {
   }
 
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): StorageMetadata =
-    throw new NotImplementedError("Converter storage is read only")
+    throw new UnsupportedOperationException("Converter storage is read only")
 }

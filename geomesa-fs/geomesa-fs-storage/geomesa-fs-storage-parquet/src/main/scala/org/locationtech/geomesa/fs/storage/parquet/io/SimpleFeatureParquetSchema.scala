@@ -257,7 +257,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
         val unit = encodings.date match {
           case DateEncoding.Micros => TimeUnit.MICROS
           case DateEncoding.Millis => TimeUnit.MILLIS
-          case _ => throw new NotImplementedError(encodings.date.toString)
+          case _ => throw new UnsupportedOperationException(encodings.date.toString)
         }
         Types.primitive(PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, unit))
 
@@ -266,7 +266,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
           case UuidEncoding.FixedLength =>
             Types.primitive(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, repetition).length(16).as(LogicalTypeAnnotation.uuidType())
           case UuidEncoding.Bytes => Types.primitive(PrimitiveTypeName.BINARY, repetition)
-          case _ => throw new NotImplementedError(encodings.uuid.toString)
+          case _ => throw new UnsupportedOperationException(encodings.uuid.toString)
         }
 
       case ObjectType.LIST =>
@@ -274,7 +274,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
           case ListEncoding.ThreeLevel =>
             Types.optionalList().requiredGroupElement().addField(buildType("element", bindings.drop(1), encodings, Repetition.REQUIRED))
           case ListEncoding.TwoLevel => Types.optionalList().element(buildType("element", bindings.drop(1), encodings))
-          case _ => throw new NotImplementedError(encodings.list.toString)
+          case _ => throw new UnsupportedOperationException(encodings.list.toString)
         }
 
       case ObjectType.MAP =>
@@ -286,7 +286,7 @@ object SimpleFeatureParquetSchema extends LazyLogging {
         GeometrySchema(bindings(1), encodings.geometry)
 
       case binding =>
-        throw new NotImplementedError(s"No mapping defined for type $binding")
+        throw new UnsupportedOperationException(s"No mapping defined for type $binding")
     }
     builder.named(name)
   }

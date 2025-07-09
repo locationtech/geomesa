@@ -105,7 +105,7 @@ object GeoMessageSerializer {
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
       case SerializationType.AVRO => (avroSerializer, AvroVersion)
-      case _ => throw new NotImplementedError(s"Unhandled serialization type '$serialization'")
+      case _ => throw new UnsupportedOperationException(s"Unhandled serialization type '$serialization'")
     }
     new GeoMessageSerializer(sft, serializer, kryoSerializer, avroSerializer, version)
   }

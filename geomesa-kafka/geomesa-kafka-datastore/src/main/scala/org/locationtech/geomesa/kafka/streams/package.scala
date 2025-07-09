@@ -176,7 +176,7 @@ package object streams {
         case MessageAction.Upsert => internal.serialize(wrap(data))
         case MessageAction.Delete => null
         case null => throw new NullPointerException("action is null")
-        case _ => throw new NotImplementedError(s"No serialization implemented for action '${data.action}'")
+        case _ => throw new UnsupportedOperationException(s"No serialization implemented for action '${data.action}'")
       }
     }
 

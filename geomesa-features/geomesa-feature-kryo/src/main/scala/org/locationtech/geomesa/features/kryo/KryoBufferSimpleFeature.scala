@@ -210,27 +210,27 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
     userData
   }
 
-  override def getDefaultGeometryProperty: GeometryAttribute = throw new NotImplementedError
-  override def getProperties: java.util.Collection[Property] = throw new NotImplementedError
-  override def getProperties(name: Name): java.util.Collection[Property] = throw new NotImplementedError
-  override def getProperties(name: String): java.util.Collection[Property] = throw new NotImplementedError
-  override def getProperty(name: Name): Property = throw new NotImplementedError
-  override def getProperty(name: String): Property = throw new NotImplementedError
-  override def getValue: java.util.Collection[_ <: Property] = throw new NotImplementedError
-  override def getDescriptor: AttributeDescriptor = throw new NotImplementedError
+  override def getDefaultGeometryProperty: GeometryAttribute = throw new UnsupportedOperationException()
+  override def getProperties: java.util.Collection[Property] = throw new UnsupportedOperationException()
+  override def getProperties(name: Name): java.util.Collection[Property] = throw new UnsupportedOperationException()
+  override def getProperties(name: String): java.util.Collection[Property] = throw new UnsupportedOperationException()
+  override def getProperty(name: Name): Property = throw new UnsupportedOperationException()
+  override def getProperty(name: String): Property = throw new UnsupportedOperationException()
+  override def getValue: java.util.Collection[_ <: Property] = throw new UnsupportedOperationException()
+  override def getDescriptor: AttributeDescriptor = throw new UnsupportedOperationException()
 
-  override def setAttribute(name: Name, value: Object): Unit = throw new NotImplementedError
-  override def setAttribute(name: String, value: Object): Unit = throw new NotImplementedError
-  override def setAttribute(index: Int, value: Object): Unit = throw new NotImplementedError
-  override def setAttributes(vals: java.util.List[Object]): Unit = throw new NotImplementedError
-  override def setAttributes(vals: Array[Object]): Unit = throw new NotImplementedError
-  override def setDefaultGeometry(geo: Object): Unit = throw new NotImplementedError
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new NotImplementedError
-  override def setValue(newValue: Object): Unit = throw new NotImplementedError
-  override def setValue(values: java.util.Collection[Property]): Unit = throw new NotImplementedError
+  override def setAttribute(name: Name, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttribute(name: String, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttribute(index: Int, value: Object): Unit = throw new UnsupportedOperationException()
+  override def setAttributes(vals: java.util.List[Object]): Unit = throw new UnsupportedOperationException()
+  override def setAttributes(vals: Array[Object]): Unit = throw new UnsupportedOperationException()
+  override def setDefaultGeometry(geo: Object): Unit = throw new UnsupportedOperationException()
+  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit = throw new UnsupportedOperationException()
+  override def setValue(newValue: Object): Unit = throw new UnsupportedOperationException()
+  override def setValue(values: java.util.Collection[Property]): Unit = throw new UnsupportedOperationException()
 
   override def isNillable: Boolean = true
-  override def validate(): Unit = throw new NotImplementedError
+  override def validate(): Unit = throw new UnsupportedOperationException()
 
   override def toString: String = s"KryoBufferSimpleFeature:$getID"
 

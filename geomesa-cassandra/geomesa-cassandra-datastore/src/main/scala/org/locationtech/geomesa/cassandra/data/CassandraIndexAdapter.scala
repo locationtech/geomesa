@@ -58,7 +58,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   }
 
   override def renameTable(from: String, to: String): Unit =
-    throw new NotImplementedError("Cassandra does not support renaming tables")
+    throw new UnsupportedOperationException("Cassandra does not support renaming tables")
 
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.foreach { table =>

@@ -35,7 +35,7 @@ class ConverterStorage(context: FileSystemContext,
   // impact should be low
 
   override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
-    throw new NotImplementedError()
+    throw new UnsupportedOperationException()
 
   override protected def createReader(
       filter: Option[Filter],

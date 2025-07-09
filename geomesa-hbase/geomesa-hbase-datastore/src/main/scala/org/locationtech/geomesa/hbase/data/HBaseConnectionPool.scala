@@ -68,7 +68,7 @@ object HBaseConnectionPool extends LazyLogging {
       override def load(key: (Configuration, Boolean)): CachedConnection = {
         createConnection(key._1, key._2) match {
           case SingletonConnection(connection, kerberos) => CachedConnection(connection, kerberos)
-          case c => throw new NotImplementedError(s"Expected SingletonConnection but got $c")
+          case c => throw new UnsupportedOperationException(s"Expected SingletonConnection but got $c")
         }
       }
     }

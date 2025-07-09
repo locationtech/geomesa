@@ -257,7 +257,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
         }
         count += (1 - i)
 
-      case _ => throw new NotImplementedError(s"Unexpected geometry type: $geometry")
+      case _ => throw new UnsupportedOperationException(s"Unexpected geometry type: $geometry")
     }
   }
 

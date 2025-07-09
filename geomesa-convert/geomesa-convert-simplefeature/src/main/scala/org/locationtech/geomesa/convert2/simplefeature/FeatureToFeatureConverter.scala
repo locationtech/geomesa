@@ -37,7 +37,7 @@ class FeatureToFeatureConverter(
     sft, config, fields, options)  {
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] =
-    throw new NotImplementedError()
+    throw new UnsupportedOperationException()
 
   override protected def values(parsed: CloseableIterator[SimpleFeature],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {

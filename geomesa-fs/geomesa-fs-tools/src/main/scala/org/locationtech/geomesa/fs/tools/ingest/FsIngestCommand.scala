@@ -95,7 +95,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
         }
 
       case _ =>
-        throw new NotImplementedError(s"Missing implementation for mode $mode")
+        throw new UnsupportedOperationException(s"Missing implementation for mode $mode")
     }
   }
 }

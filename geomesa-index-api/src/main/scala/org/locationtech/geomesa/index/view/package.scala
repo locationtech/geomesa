@@ -79,7 +79,7 @@ package object view extends LazyLogging {
     */
   trait ReadOnlyDataStore extends DataStore {
 
-    private def error = throw new NotImplementedError("This data store is read-only")
+    private def error = throw new UnsupportedOperationException("This data store is read-only")
 
     override def createSchema(featureType: SimpleFeatureType): Unit = error
     override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit = error

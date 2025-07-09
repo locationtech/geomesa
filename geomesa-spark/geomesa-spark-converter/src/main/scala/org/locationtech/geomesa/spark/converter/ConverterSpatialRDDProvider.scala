@@ -83,7 +83,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     Option(loadSft(params, typeName))
 
   override def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit =
-    throw new NotImplementedError("Converter provider is read-only")
+    throw new UnsupportedOperationException("Converter provider is read-only")
 
   private def loadSft(params: Map[String, String], typeName: String): SimpleFeatureType = {
     params.get(IngestTypeKey) match {

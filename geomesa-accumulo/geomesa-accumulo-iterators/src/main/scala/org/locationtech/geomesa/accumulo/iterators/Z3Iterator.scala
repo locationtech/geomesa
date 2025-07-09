@@ -57,7 +57,7 @@ object Z3Iterator {
         )
 
       case Some(c) =>
-        throw new NotImplementedError(s"Unknown compatibility flag: '$c'")
+        throw new UnsupportedOperationException(s"Unknown compatibility flag: '$c'")
     }
 
     val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])

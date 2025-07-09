@@ -32,7 +32,7 @@ object GeometrySchema {
    */
   def apply(binding: ObjectType, encoding: GeometryEncoding): Types.Builder[_, _ <: Type] = {
     encoding.fn.lift(binding).getOrElse {
-      throw new NotImplementedError(s"No mapping defined for geometry type $binding with encoding $encoding")
+      throw new UnsupportedOperationException(s"No mapping defined for geometry type $binding with encoding $encoding")
     }
   }
 

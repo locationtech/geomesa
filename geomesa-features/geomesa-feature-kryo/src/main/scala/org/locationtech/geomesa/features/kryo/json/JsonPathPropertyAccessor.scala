@@ -99,7 +99,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
     }
   }
 
-  override def set[T](obj: Any, xpath: String, value: T, target: Class[T]): Unit = throw new NotImplementedError()
+  override def set[T](obj: Any, xpath: String, value: T, target: Class[T]): Unit = throw new UnsupportedOperationException()
 
   private def attribute(sft: SimpleFeatureType, head: PathElement): Int = {
     head match {
