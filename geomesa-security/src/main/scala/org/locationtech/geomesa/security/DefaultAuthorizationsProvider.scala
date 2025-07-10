@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.security
 
 /**
- * Default implementation of the AuthorizationsProvider that doesn't provide any authorizations
+ * Default implementation of AuthorizationsProvider that provides a static set of authorizations,
+ * generally loaded from config
  */
 class DefaultAuthorizationsProvider(authorizations: Seq[String]) extends AuthorizationsProvider {
 

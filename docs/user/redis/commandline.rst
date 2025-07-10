@@ -22,3 +22,6 @@ General Arguments
 
 Most commands require that you specify the Redis URL, using ``--url`` or ``-u``.
 Additionally, if using a redis cluster, most commands require the cluster flag ``--cluster`` or ``-l``.
+
+The ``--auths`` argument corresponds to the data store parameter ``geomesa.security.auths``. See
+:ref:`data_security` for more information.

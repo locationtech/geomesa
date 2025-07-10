@@ -42,6 +42,9 @@ trait KafkaDataStoreParams {
   @Parameter(names = Array("--config"), description = "Properties file used to configure the Kafka consumer/producer")
   var genericProperties: File = _
 
+  @Parameter(names = Array("--auths"), description = "Authorizations used to read data")
+  var auths: String = _
+
   def zookeepers: String
   def numConsumers: Int
   def replication: Int
