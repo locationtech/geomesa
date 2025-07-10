@@ -63,7 +63,7 @@ class RedisDataStoreClusterTest extends Specification with LazyLogging {
   lazy val params: Map[String, String] = Map(
     RedisDataStoreParams.RedisUrlParam.key ->
       s"redis://127.0.0.1:6379,redis://127.0.0.1:6380,redis://127.0.0.1:6381",
-    RedisDataStoreParams.RedisClusterBoolParam.key -> "true",
+    RedisDataStoreParams.RedisClusterParam.key -> "true",
     RedisDataStoreParams.RedisCatalogParam.key -> "gm-test",
     RedisDataStoreParams.PipelineParam.key -> "false"
   )

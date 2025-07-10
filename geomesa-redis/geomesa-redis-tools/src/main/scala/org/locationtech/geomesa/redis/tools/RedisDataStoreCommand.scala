@@ -27,8 +27,9 @@ trait RedisDataStoreCommand extends DataStoreCommand[RedisDataStore] {
     Map(
       RedisDataStoreParams.RedisUrlParam.key     -> params.url,
       RedisDataStoreParams.RedisCatalogParam.key -> params.catalog,
-      RedisDataStoreParams.RedisClusterBoolParam.key -> params.cluster.toString
-    )
+      RedisDataStoreParams.RedisClusterParam.key -> params.cluster.toString,
+      RedisDataStoreParams.AuthsParam.key        -> params.auths,
+    ).filter(_._2 != null)
   }
 }
 
@@ -51,5 +52,8 @@ object RedisDataStoreCommand {
 
     @Parameter(names = Array("--cluster", "-l"), description = "Redis cluster enabled?", required = false)
     var cluster: Boolean = false
+
+    @Parameter(names = Array("--auths"), description = "Authorizations used to read data")
+    var auths: String = _
   }
 }

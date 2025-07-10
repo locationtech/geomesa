@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.io.PathUtils
 
 import java.io.{File, StringWriter}
 import java.util
-import java.util.{Collections, ServiceLoader}
+import java.util.ServiceLoader
 
 /**
  * Abstract class for FSDS commands
@@ -46,6 +46,9 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
         out.toString
       }
       builder += (FileSystemDataStoreParams.ConfigsParam.getName -> xml)
+    }
+    if (params.auths != null) {
+      builder += (FileSystemDataStoreParams.AuthsParam.getName -> params.auths)
     }
     builder.result()
   }
@@ -76,6 +79,9 @@ object FsDataStoreCommand {
       converter = classOf[KeyValueConverter],
       splitter = classOf[NoopParameterSplitter])
     var configuration: java.util.List[(String, String)] = _
+
+    @Parameter(names = Array("--auths"), description = "Authorizations used to read data")
+    var auths: String = _
   }
 
   trait PartitionParam {

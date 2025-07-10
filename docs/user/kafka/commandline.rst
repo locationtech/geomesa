@@ -38,6 +38,9 @@ A catalog or path can be thought of as a namespace for feature types.
 To connect to :ref:`Confluent Schema Registry <confluent_kds>` topics, use ``--schema-registry``
 to provide the registry URL.
 
+The ``--auths`` argument corresponds to the data store parameter ``geomesa.security.auths``. See
+:ref:`data_security` for more information.
+
 Commands
 --------
 

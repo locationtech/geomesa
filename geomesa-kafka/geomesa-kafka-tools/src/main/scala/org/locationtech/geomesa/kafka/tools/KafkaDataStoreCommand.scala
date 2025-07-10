@@ -58,7 +58,8 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       KafkaDataStoreParams.ProducerConfig.getName    -> producerProps,
       KafkaDataStoreParams.CacheExpiry.getName       -> "0s",
       KafkaDataStoreParams.SerializationType.getName -> params.serialization,
-      "kafka.schema.registry.url"                    -> params.schemaRegistryUrl
+      KafkaDataStoreParams.Authorizations.getName    -> params.auths,
+      "kafka.schema.registry.url"                    -> params.schemaRegistryUrl,
     ).filter(_._2 != null)
   }
 }

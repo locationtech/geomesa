@@ -68,7 +68,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     Array(
       RedisUrlParam,
       RedisCatalogParam,
-      RedisClusterBoolParam,
+      RedisClusterParam,
       PoolSizeParam,
       SocketTimeoutParam,
       QueryThreadsParam,
@@ -94,7 +94,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     */
   def buildConnection(params: java.util.Map[String, _]): Pool[_ <: CloseableJedisCommands] = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
-      RedisClusterBoolParam.lookup(params).booleanValue() match {
+      RedisClusterParam.lookup(params).booleanValue() match {
         case false =>
           val uri = {
             val urls = RedisUrlParam.lookup(params).split(",")

@@ -18,6 +18,15 @@ Once installed, the tools should be available through the command ``geomesa-fs``
 Commands that are common to multiple back ends are described in :doc:`/user/cli/index`. The commands
 here are FileSystem-specific.
 
+General Arguments
+-----------------
+
+Most commands require the ``--path`` argument, to specify the root storage path. Hadoop configuration properties can
+be passed in using ``--config``, which can be used to specify e.g. s3a-related properties.
+
+The ``--auths`` argument corresponds to the data store parameter ``geomesa.security.auths``. See
+:ref:`data_security` for more information.
+
 Commands
 --------
 
