@@ -51,11 +51,6 @@
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-xml_${scala.binary.version}</artifactId>
         </dependency>
-        <!--<dependency>
-            &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>-->
 
         <dependency>
             <groupId>org.slf4j</groupId>

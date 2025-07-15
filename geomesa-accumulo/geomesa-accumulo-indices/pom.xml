@@ -101,12 +101,6 @@
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>

@@ -168,12 +168,6 @@
         </dependency>
         <dependency>
             <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
             <version>${snappy.java.version}</version>

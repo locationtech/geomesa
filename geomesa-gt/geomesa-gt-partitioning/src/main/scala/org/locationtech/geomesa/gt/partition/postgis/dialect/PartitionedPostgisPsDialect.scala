@@ -19,6 +19,7 @@ import org.geotools.jdbc.{JDBCDataStore, PreparedFilterToSQL}
 import org.geotools.util.Version
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisPsDialect.PartitionedPostgisPsFilterToSql
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 import java.sql.{Connection, DatabaseMetaData, PreparedStatement, Types}
 
@@ -82,6 +83,8 @@ class PartitionedPostgisPsDialect(store: JDBCDataStore, delegate: PartitionedPos
     }
     super.convertToArray(array, componentTypeName, componentType, connection)
   }
+
+  override protected def convert[T](value: AnyRef, binding: Class[T]): T = FastConverter.convert(value, binding)
 
   // fix bug with PostGISPSDialect dialect not delegating these methods
   override def encodeCreateTable(sql: StringBuffer): Unit = delegate.encodeCreateTable(sql)
