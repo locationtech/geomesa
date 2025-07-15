@@ -32,15 +32,16 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
 
   import org.locationtech.geomesa.convert.shp.ShapefileFunctionFactory.{InputSchemaKey, InputValuesKey}
 
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      success: Counter,
-      failure: Counter): EvaluationContext = {
-    // inject placeholders for shapefile attributes into the evaluation context
-    // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
+  // inject placeholders for shapefile attributes into the evaluation context
+  // used for accessing shapefile properties by name in ShapefileFunctionFactory
+  private def shpParams: Map[String, Any] =
+    Map(InputSchemaKey -> ArrayBuffer.empty[String], InputValuesKey -> ArrayBuffer.empty[AnyRef])
+
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+    super.createEvaluationContext(globalParams ++ shpParams)
+
+  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
     super.createEvaluationContext(globalParams ++ shpParams, success, failure)
-  }
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     CloseWithLogging(is) // we don't use the input stream, just close it

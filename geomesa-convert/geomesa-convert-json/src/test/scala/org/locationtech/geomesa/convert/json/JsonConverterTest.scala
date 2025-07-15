@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.convert.json
 
 import com.typesafe.config.{Config, ConfigFactory}
+import io.micrometer.core.instrument.{Counter, Metrics}
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -23,7 +25,6 @@ import org.specs2.runner.JUnitRunner
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
-import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 @RunWith(classOf[JUnitRunner])
@@ -67,6 +68,8 @@ class JsonConverterTest extends Specification {
     """.stripMargin)
 
   val sft = SimpleFeatureTypes.createType(sftConfPoint)
+
+  private val gf = new GeometryFactory()
 
   "Json Converter" should {
 
@@ -119,8 +122,8 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(0, 0))
+      val pt2 = gf.createPoint(new Coordinate(1, 1))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -185,8 +188,8 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(4, 5))
+      val pt2 = gf.createPoint(new Coordinate(4, 5))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -265,8 +268,8 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(0, 0))
+      val pt2 = gf.createPoint(new Coordinate(1, 1))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes)))(_.toList)
@@ -335,8 +338,8 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(0, 0))
+      val pt2 = gf.createPoint(new Coordinate(1, 1))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes)))(_.toList)
@@ -405,8 +408,8 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
-      val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(0, 0))
+      val pt2 = gf.createPoint(new Coordinate(1, 1))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -521,8 +524,8 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt1 = gf.createPoint(new Coordinate(55, 56))
+        val pt2 = gf.createPoint(new Coordinate(101, 89))
 
         WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
           val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -620,8 +623,8 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt1 = gf.createPoint(new Coordinate(55, 56))
+        val pt2 = gf.createPoint(new Coordinate(101, 89))
 
         WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
           val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -796,6 +799,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(0)
+        ec.stats.failure(0) mustEqual 1L
+        ec.stats.success(0) mustEqual 0L
         ec.success.getCount mustEqual 0
         ec.failure.getCount mustEqual 1
       }
@@ -904,6 +909,8 @@ class JsonConverterTest extends Specification {
           val ec = converter.createEvaluationContext()
           val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           features must haveLength(1)
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 1L
           ec.success.getCount mustEqual 1L
           ec.failure.getCount mustEqual 0L
 
@@ -976,6 +983,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(1)
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
         ec.success.getCount mustEqual 1L
         ec.failure.getCount mustEqual 0L
 
@@ -1052,6 +1061,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(1)
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
         ec.success.getCount mustEqual 1
         ec.failure.getCount mustEqual 0
 
@@ -1121,7 +1132,7 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
+      val pt1 = gf.createPoint(new Coordinate(0, 0))
 
       WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
@@ -1184,6 +1195,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(1)
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
         ec.success.getCount mustEqual 1
         ec.failure.getCount mustEqual 0
         val f = features.head
@@ -1251,6 +1264,8 @@ class JsonConverterTest extends Specification {
         val iter = converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec)
         val features = iter.toList
         features must haveLength(0)
+        ec.stats.failure(0) mustEqual 1L
+        ec.stats.success(0) mustEqual 0L
         ec.success.getCount mustEqual 0
         ec.failure.getCount mustEqual 1
       }
@@ -1428,6 +1443,47 @@ class JsonConverterTest extends Specification {
         e2.e.getCause must not(beNull)
         e2.e.getCause.getMessage must contain("Invalid point")
         ec.errors.size() mustEqual 0
+      }
+    }
+
+    "generate metrics" in {
+      val jsonStr =
+        """{ id: 1, number: 123, color: "red", lat: 1, lon: 1 }
+          |{ id: 2, number: 456, color: "blue", lat: 200, lon: 2 }
+          |{ id: 3, number: 789, color: "green", lat: 3 }
+          |{ id: 4, number: 321, color: "yellow", lat: 4, lon: 4 }
+        """.stripMargin
+
+      val sft = SimpleFeatureTypes.renameSft(this.sft, s"metrics-${UUID.randomUUID()}")
+
+      val registry = new SimpleMeterRegistry()
+      Metrics.addRegistry(registry)
+      try {
+        // conf is loaded by name to verify how metrics get tagged
+        WithClose(SimpleFeatureConverter(sft, "metrics-test")) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(2)
+        }
+
+        val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
+        meters must haveLength(7)
+        meters.map(_.getId.getName) must containTheSameElementsAs(
+          Seq("success", "failure", "parse.duration", "conversion.duration", "validator.id.null", "validator.geom.null",
+            "validator.geom.bounds.invalid").map(n => s"geomesa.convert.$n")
+        )
+        foreach(meters)(_.getId.getTag("converter.name") mustEqual "metrics-test")
+
+        def getCounter(name: String): Option[Double] = meters.collectFirst { case c: Counter if c.getId.getName == name => c.count() }
+
+        eventually {
+          getCounter("geomesa.convert.failure") must beSome(2d)
+          getCounter("geomesa.convert.success") must beSome(2d)
+          getCounter("geomesa.convert.validator.geom.null") must beSome(0d)
+          getCounter("geomesa.convert.validator.geom.bounds.invalid") must beSome(1d)
+        }
+      } finally {
+        Metrics.removeRegistry(registry)
+        registry.close()
       }
     }
 

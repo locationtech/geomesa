@@ -7,9 +7,16 @@
  ***********************************************************************/
 
 package org.locationtech.geomesa.metrics.micrometer
-package cloudwatch
 
-/**
- * Class for configuring cloudwatch metrics
- */
-object CloudwatchSetup extends RegistrySetup("cloudwatch")
+import io.micrometer.core.instrument.Tags
+
+object MetricsTags {
+
+  /**
+   * Gets a tag for identifying a feature type by name
+   *
+   * @param typeName type name
+   * @return
+   */
+  def typeNameTag(typeName: String): Tags = Tags.of("type.name", typeName)
+}

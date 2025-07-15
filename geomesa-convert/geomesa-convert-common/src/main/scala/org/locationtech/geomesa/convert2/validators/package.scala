@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.convert2
 
-import com.codahale.metrics.Counter
+import io.micrometer.core.instrument.{Counter, Metrics, Tags}
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
@@ -18,6 +19,15 @@ import java.time.Instant
 import java.util.Date
 
 package object validators {
+
+  /**
+   * Create a counter with the standard validator prefix
+   *
+   * @param name counter name
+   * @param tags tags
+   * @return
+   */
+  def counter(name: String, tags: Tags): Counter = Metrics.counter(ConverterMetrics.name(s"validator.$name"), tags)
 
   /**
     * Validates an attribute is not null
@@ -29,7 +39,7 @@ package object validators {
   class NullValidator(i: Int, error: String, counter: Counter) extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String = {
       if (sf.getAttribute(i) != null) { null } else {
-        counter.inc()
+        counter.increment()
         error
       }
     }
@@ -41,6 +51,7 @@ package object validators {
     override def close(): Unit = {}
   }
 
+  @deprecated("Replaced with IdValidatorFactory")
   case object IdValidator extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String =
       if (sf.getID == null || sf.getID.isEmpty) { "feature ID is null" } else { null }

@@ -61,15 +61,10 @@ must be registered through a special
         * Create a validator for the given feature typ
         *
         * @param sft simple feature type
-        * @param metrics metrics registry for reporting validation
         * @param config optional configuration string
         */
-      def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator
+      def apply(sft: SimpleFeatureType, config: Option[String]): SimpleFeatureValidator
     }
-
-
-Validators are provided with a `Dropwizard MetricRegistry <https://metrics.dropwizard.io/>`__, which can be used
-to register custom validation metrics. See :ref:`converter_metrics`, below.
 
 When specifying validators in a converter config, the ``name`` of the factory must match the ``validators`` string.
 Any additional arguments may be specified in parentheses, which will be passed to the ``validator`` method.
@@ -89,10 +84,15 @@ For example::
 
     override val name: String = "my-custom-validator"
 
+    // deprecated method for back compatibility
     override def apply(
         sft: SimpleFeatureType,
         metrics: ConverterMetrics,
         config: Option[String]): SimpleFeatureValidator = {
+      apply(sft, config, Tags.empty())
+    }
+
+    override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
       if (config.exists(_.contains("optionA"))) {
         // handle option a
       } else {
@@ -173,28 +173,9 @@ level, it will show the entire record, along with the stack trace.
 Metrics
 ~~~~~~~
 
-Converters use the `Dropwizard Metrics <https://metrics.dropwizard.io/>`__ library to register metrics on
-successful conversions, failed conversions, validation errors, and processing rates. Metrics can be accessed
-through the converter evaluation context, or can be exposed through reporters configured in the converter options:
-
-::
-
-    geomesa.converters.myconverter {
-      options {
-        reporters = [
-          {
-            type           = "slf4j"
-            logger         = "com.example.MyConverter"
-            level          = "INFO"
-            rate-units     = "SECONDS"
-            duration-units = "MILLISECONDS"
-            interval       = "10 seconds"
-          }
-        ]
-      }
-    }
-
-See :ref:`geomesa_metrics` for more details on configuring different reporters.
+Converters use the `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ library to register metrics on
+successful conversions, failed conversions, validation errors, and processing rates. See :ref:`geomesa_metrics` for details
+on exposing metrics through registries.
 
 Transactional Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -135,7 +135,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
     }
     val fieldConfig = idJsonField.toSeq ++ inferredTypes.types.map(createFieldConfig)
 
-    val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
+    val jsonConfig = JsonConfig(typeToProcess, None, featurePath, idField, Map.empty, Map.empty)
 
     val config = configConvert.to(jsonConfig)
         .withFallback(fieldConvert.to(fieldConfig))
@@ -189,7 +189,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           val idField = Some(Expression("md5(stringToBytes(toString($0)))"))
           val fieldConfig = inferredTypes.types.map(createFieldConfig)
 
-          val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
+          val jsonConfig = JsonConfig(typeToProcess, None, featurePath, idField, Map.empty, Map.empty)
 
           val config =
             configConvert.to(jsonConfig)
@@ -246,8 +246,11 @@ object JsonConverterFactory {
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, JsonConfig] = {
-      for { path <- optional(cur, "feature-path").right } yield {
-        JsonConfig(`type`, path, idField, caches, userData)
+      for {
+        name <- converterName(cur).right
+        path <- optional(cur, "feature-path").right
+      } yield {
+        JsonConfig(`type`, name, path, idField, caches, userData)
       }
     }
 

@@ -15,7 +15,7 @@ import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.jdbc.JdbcConverter.{JdbcConfig, ResultSetIterator, StatementIterator}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterName}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable}
 
@@ -48,11 +48,12 @@ object JdbcConverter {
 
   case class JdbcConfig(
       `type`: String,
+      converterName: Option[String],
       connection: String,
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   implicit object LineIteratorIsCloseable extends IsCloseable[LineIterator] {
     override def close(obj: LineIterator): Try[Unit] = Try(obj.close())

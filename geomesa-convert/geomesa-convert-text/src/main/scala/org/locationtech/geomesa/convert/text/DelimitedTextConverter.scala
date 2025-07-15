@@ -207,11 +207,12 @@ object DelimitedTextConverter {
 
   case class DelimitedTextConfig(
       `type`: String,
+      converterName: Option[String],
       format: String,
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   case class DelimitedTextOptions(
       skipLines: Option[Int],

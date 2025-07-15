@@ -100,6 +100,24 @@ The following dependencies have been upgraded:
 
 * orc ``1.9.6`` -> ``1.9.7``
 
+Switch to Micrometer Metrics
+----------------------------
+
+GeoMesa has transitioned from Dropwizard metrics to :ref:`geomesa_metrics`. As a result, the configuration for
+:ref:`kafka_index` metrics and converter :ref:`converter_metrics` has also changed. Existing Dropwizard configurations
+have been deprecated, but will continue to work until they are removed in the next major release. However, metric
+names and formats may change slightly due to the difference in Micrometer's implementation.
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated and will be removed in the next major release:
+
+* ``geomesa-metrics-core``
+* ``geomesa-metrics-cloudwatch``
+* ``geomesa-metrics-graphite``
+* ``geomesa-metrics-prometheus``
+
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

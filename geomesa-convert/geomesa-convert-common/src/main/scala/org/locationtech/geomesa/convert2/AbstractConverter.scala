@@ -8,26 +8,29 @@
 
 package org.locationtech.geomesa.convert2
 
-import com.codahale.metrics.{Counter, Histogram}
+import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.{Metrics, TimeGauge, Timer}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
+import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, addDependencies, topologicalOrder}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
+import org.locationtech.geomesa.convert2.validators.{IdValidatorFactory, SimpleFeatureValidator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
+import java.time.Duration
 import java.util.Date
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -128,27 +131,38 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     builder.result
   }
 
+  // deprecated converter metrics
   private val metrics = ConverterMetrics(sft, options.reporters)
 
-  private val validators = SimpleFeatureValidator(sft, options.validators, metrics, idIndex != -1)
+  private val tags = config match {
+    case ConverterName(name) => ConverterMetrics.typeNameTag(sft).and(ConverterMetrics.converterNameTag(name))
+    case _                   => ConverterMetrics.typeNameTag(sft)
+  }
+
+  private val validators =
+    SimpleFeatureValidator(sft, (if (idIndex != -1) { Seq(IdValidatorFactory.Name) } else { Seq.empty }) ++ options.validators, tags)
 
   private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
   override def targetSft: SimpleFeatureType = sft
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-    createEvaluationContext(globalParams, metrics.counter("success"), metrics.counter("failure"))
+    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, Stats(tags))
 
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      success: Counter,
-      failure: Counter): EvaluationContext = {
-    EvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, success, failure)
+  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext = {
+    val stats = Stats.wrap(success, failure, tags)
+    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, stats)
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val hist = ec.metrics.histogram("parse.nanos")
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, hist), ec)
+    val parseTimer =
+      Timer.builder(ConverterMetrics.name("parse.duration"))
+        .tags(tags)
+        .publishPercentileHistogram()
+        .minimumExpectedValue(Duration.ofNanos(1))
+        .maximumExpectedValue(Duration.ofMillis(10))
+        .register(Metrics.globalRegistry)
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, parseTimer), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator((new ListBuffer() ++= converted).iterator, converted.close())
@@ -156,17 +170,32 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val rate = ec.metrics.meter("rate")
-    val duration = ec.metrics.histogram("convert.nanos")
+    val duration =
+      Timer.builder(ConverterMetrics.name("conversion.duration"))
+        .tags(tags)
+        .publishPercentileHistogram()
+        .minimumExpectedValue(Duration.ofNanos(1))
+        .maximumExpectedValue(Duration.ofMillis(2))
+        .register(Metrics.globalRegistry)
     val dtgMetrics = sft.getDtgIndex.map { i =>
-      (i, ec.metrics.gauge[Date]("dtg.last"), ec.metrics.histogram("dtg.latency.millis"))
+      val date = new AtomicLong(0)
+      TimeGauge.builder(ConverterMetrics.name("dtg.last"), () => date.get, TimeUnit.MILLISECONDS)
+        .tags(tags)
+        .register(Metrics.globalRegistry)
+      val latency =
+        Timer.builder(ConverterMetrics.name("dtg.latency"))
+          .tags(tags)
+          .publishPercentileHistogram()
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofHours(24)) // latency may vary widely, but histograms require a min/max expected value
+          .register(Metrics.globalRegistry)
+      (i, date, latency)
     }
 
     this.values(values, ec).flatMap { raw =>
-      rate.mark()
       val start = System.nanoTime()
       try { convert(raw.asInstanceOf[Array[AnyRef]], ec, dtgMetrics) } finally {
-        duration.update(System.nanoTime() - start)
+        duration.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
       }
     }
   }
@@ -207,7 +236,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   private def convert(
       rawValues: Array[AnyRef],
       ec: EvaluationContext,
-      dtgMetrics: Option[(Int, SimpleGauge[Date], Histogram)]): CloseableIterator[SimpleFeature] = {
+      dtgMetrics: Option[(Int, AtomicLong, Timer)]): CloseableIterator[SimpleFeature] = {
 
     val result = ec.evaluate(rawValues).right.flatMap { values =>
       val sf = new ScalaSimpleFeature(sft, "")
@@ -242,18 +271,18 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
     result match {
       case Right(feature) =>
-        ec.success.inc()
+        ec.stats.success()
         dtgMetrics.foreach { case (index, dtg, latency) =>
           val date = feature.getAttribute(index).asInstanceOf[Date]
           if (date != null) {
-            dtg.set(date)
-            latency.update(System.currentTimeMillis() - date.getTime)
+            dtg.set(date.getTime)
+            latency.record(System.currentTimeMillis() - date.getTime, TimeUnit.MILLISECONDS)
           }
         }
         CloseableIterator.single(feature)
 
       case Left(error) =>
-        ec.failure.inc()
+        ec.stats.failure()
         def msg(verbose: Boolean): String = errorMessage(error, rawValues, verbose)
         options.errorMode match {
           case ErrorMode.LogErrors if logger.underlying.isDebugEnabled => logger.debug(msg(verbose = true), error.e)
@@ -300,19 +329,28 @@ object AbstractConverter {
   }
 
   /**
-    * Basic converter config implementation, useful if a converter doesn't have additional configuration
-    *
-    * @param `type` converter type
-    * @param idField id expression
-    * @param caches caches
-    * @param userData user data expressions
-    */
+   * Basic converter config implementation, useful if a converter doesn't have additional configuration
+   *
+   * @param `type` converter type
+   * @param converterName converter name, for metrics
+   * @param idField id expression
+   * @param caches caches
+   * @param userData user data expressions
+   */
   case class BasicConfig(
       `type`: String,
+      converterName: Option[String],
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
+
+  object BasicConfig {
+    // apply method for back-compatibility
+    @deprecated("Use method with `converterName`")
+    def apply(`type`: String, idField: Option[Expression], caches: Map[String, Config], userData: Map[String, Expression]): BasicConfig =
+      BasicConfig(`type`, None, idField, caches, userData)
+  }
 
   /**
     * Basic converter options implementation, useful if a converter doesn't have additional options
@@ -338,17 +376,6 @@ object AbstractConverter {
       BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
     }
   }
-
-  /**
-   * An exception used for control flow, to catch old implementations of the API with don't implement all methods.
-   * Stack traces and suppressed exceptions are disabled for performance.
-   *
-   * @param message message
-   */
-  class AbstractApiError(message: String) extends Exception(message, null, false, false)
-
-  object FieldApiError extends AbstractApiError("Field")
-  object TransformerFunctionApiError extends AbstractApiError("TransformerFunction")
 
   /**
     * Add the dependencies of a field to a graph

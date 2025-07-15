@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
@@ -39,6 +40,7 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePart
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
+import org.locationtech.geomesa.metrics.micrometer.{MetricsTags, RegistrySetup}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
@@ -68,6 +70,8 @@ class KafkaDataStore(
 
   override val stats: GeoMesaStats = new RunnableStats(this)
 
+  private val registry = config.registrySetup.map(_.register())
+
   // note: sharing a single producer is generally faster
   // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
 
@@ -91,7 +95,7 @@ class KafkaDataStore(
         val sft = KafkaDataStore.super.getSchema(key)
         val views = config.layerViewsConfig.getOrElse(key, Seq.empty).map(KafkaDataStore.createLayerView(sft, _))
         // if the expiry is zero, this will return a NoOpFeatureCache
-        val cache = KafkaFeatureCache(sft, config.indices, views, config.metrics)
+        val cache = KafkaFeatureCache(sft, config.indices, views)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
@@ -331,6 +335,7 @@ class KafkaDataStore(
     CloseWithLogging(defaultProducer)
     CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
+    CloseWithLogging(registry)
     CloseWithLogging(config.metrics)
     caches.invalidateAll()
     super.dispose()
@@ -396,6 +401,8 @@ object KafkaDataStore extends LazyLogging {
 
   val PartitioningDefault = "default"
 
+  val MetricsPrefix = "geomesa.kafka"
+
   val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
@@ -416,6 +423,14 @@ object KafkaDataStore extends LazyLogging {
 
   def usesDefaultPartitioning(sft: SimpleFeatureType): Boolean =
     sft.getUserData.get(PartitioningKey) == PartitioningDefault
+
+  /**
+   * Get tags for metrics
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  private[kafka] def tags(sft: SimpleFeatureType): Tags = MetricsTags.typeNameTag(sft.getTypeName)
 
   @deprecated("Uses a custom partitioner which creates issues with Kafka streams. Use `producer(String, Map[String, String]) instead")
   def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
@@ -514,7 +529,9 @@ object KafkaDataStore extends LazyLogging {
       layerViewsConfig: Map[String, Seq[LayerViewConfig]],
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
+      @deprecated("replaced with micrometer metrics")
       metrics: Option[GeoMesaMetrics],
+      registrySetup: Option[RegistrySetup],
       namespace: Option[String]) extends NamespaceConfig
 
   case class ConsumerConfig(

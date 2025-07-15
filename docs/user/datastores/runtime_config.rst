@@ -45,6 +45,12 @@ geomesa.convert.config.urls
 This property allows for adding GeoMesa converter configurations to the environment. It can be set to a
 comma-separated list of arbitrary URLs. For more information on converters, see :ref:`converters`.
 
+geomesa.convert.metrics.prefix
+++++++++++++++++++++++++++++++
+
+The property can customize the names used for converter :ref:`converter_metrics`. The default value is
+``geomesa.convert``.
+
 geomesa.convert.scripts.path
 ++++++++++++++++++++++++++++
 

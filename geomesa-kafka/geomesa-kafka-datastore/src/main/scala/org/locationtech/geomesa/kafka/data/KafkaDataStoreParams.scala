@@ -14,6 +14,8 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
+import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
@@ -173,7 +175,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     val Avro = "avro"
     val AvroNative = "avro-native"
 
-    val Types = Seq(Kryo, Avro, AvroNative)
+    val Types: Seq[String] = Seq(Kryo, Avro, AvroNative)
 
     def fromName(name: String): SerializationType = {
       name.toLowerCase(Locale.US) match {
@@ -201,6 +203,16 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Provide multiple views of a single layer via TypeSafe configuration",
       largeText = true,
       readWrite = ReadWriteFlag.ReadOnly
+    )
+
+  val MetricsRegistry =
+    new GeoMesaParam[String](
+      "kafka.metrics.registry",
+      "Specify the type of registry used to publish metrics. See " +
+        "https://www.geomesa.org/documentation/stable/user/appendix/metrics.html",
+      default = "none",
+      enumerations = Seq("none", PrometheusSetup.name, CloudwatchSetup.name),
+      readWrite = ReadWriteFlag.ReadOnly,
     )
 
   // TODO these should really be per-feature, not per datastore...
@@ -298,16 +310,6 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  val MetricsReporters =
-    new GeoMesaParam[String](
-      "kafka.metrics.reporters",
-      "Reporters used to publish Kafka metrics, as TypeSafe config. . To use multiple reporters, " +
-          "nest them under the key 'reporters'",
-      default = """{"type":"slf4j","logger":"org.locationtech.geomesa.kafka.metrics"}""",
-      largeText = true,
-      readWrite = ReadWriteFlag.ReadOnly
-    )
-
   val LooseBBox: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.LooseBBoxParam
   val AuditQueries: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.AuditQueriesParam
   val Authorizations: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
@@ -317,6 +319,18 @@ object KafkaDataStoreParams extends NamespaceParams {
       "kafka.cache.executor",
       "Executor service and ticker to use for expiring features",
       readWrite = ReadWriteFlag.ReadOnly
+    )
+
+  @deprecated
+  val MetricsReporters =
+    new GeoMesaParam[String](
+      "kafka.metrics.reporters",
+      "Reporters used to publish Kafka metrics, as TypeSafe config. . To use multiple reporters, " +
+        "nest them under the key 'reporters'",
+      default = """{"type":"slf4j","logger":"org.locationtech.geomesa.kafka.metrics"}""",
+      deprecatedKeys = Seq("kafka.metrics.reporters"),
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly,
     )
 
   @deprecated val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = Boolean.box(false), deprecatedKeys = Seq("useCQCache"))

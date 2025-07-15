@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
@@ -18,7 +18,9 @@ import scala.collection.JavaConverters._
 
 object ConverterConfigLoader extends LazyLogging {
 
-  val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.converter.config.path", "geomesa.converters")
+  val ConfigPathProperty: SystemProperty = SystemProperty("org.locationtech.geomesa.converter.config.path", "geomesa.converters")
+
+  val ConverterNameKey = "converter-name"
 
   private val configProviders = {
     val pList = ServiceLoader.load(classOf[ConverterConfigProvider]).asScala.toList
@@ -30,16 +32,21 @@ object ConverterConfigLoader extends LazyLogging {
   def path: String = ConfigPathProperty.get
 
   // this is intentionally a method to allow reloading by the providers
-  def confs: Map[String, Config] = configProviders.map(_.loadConfigs.asScala).reduce( _ ++ _).toMap
+  def confs: Map[String, Config] =
+    configProviders.map(_.loadConfigs.asScala).reduce( _ ++ _).toMap.map { case (k, v) =>
+      // add the key used to identify the converter (used for metrics)
+      k -> (if (v.hasPath(ConverterNameKey)) { v } else { v.withValue(ConverterNameKey, ConfigValueFactory.fromAnyRef(k)) })
+    }
 
   // Public API
   def listConverterNames: List[String] = confs.keys.toList
   def getAllConfigs: Map[String, Config] = confs
   def configForName(name: String): Option[Config] = confs.get(name)
 
-  // Rebase a config to to the converter root...allows standalone
+  // Rebase a config to the converter root...allows standalone
   // configurations to start with "converter", "input-converter"
   // or optional other prefix string
+  @deprecated("unused")
   def rebaseConfig(conf: Config, pathOverride: Option[String] = None): Config = {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
     (pathOverride.toSeq ++ Seq(path, "converter", "input-converter"))

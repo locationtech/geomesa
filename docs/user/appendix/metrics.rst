@@ -1,8 +1,17 @@
+.. _geomesa_metrics:
+
 Micrometer Metrics
 ==================
 
 GeoMesa has initial support for `Micrometer <https://docs.micrometer.io/micrometer/reference/>`__ metrics. Currently,
-metrics can integrate with either Prometheus or Cloudwatch.
+metrics can integrate with either Prometheus or Cloudwatch. Creating registries is idempotent, as long as the
+configuration does not change.
+
+When enabled, various GeoMesa components will publish metrics, including the :ref:`kafka_index` and :ref:`converters`.
+
+If the provided registries are not sufficient, any Micrometer registry can be
+`added to the global registry <https://docs.micrometer.io/micrometer/reference/concepts/registry.html#_global_registry>`__
+programmatically.
 
 Standard Usage
 --------------
@@ -207,10 +216,11 @@ Prometheus Registry
       # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
       rename = false
       common-tags = { "application" = "my-app" }
+      # port used to serve metrics - not used if push-gateway is defined
       port = 9090
       # additional config can also be done via sys props - see https://prometheus.github.io/client_java/config/config/
       properties = {}
-      # omit if not using pushgateway
+      # optional - enable pushgateway for short-lived jobs, instead of the standard metrics server for scraping
       push-gateway = {
         host = "localhost:9091"
         job = "my-job"
@@ -218,7 +228,6 @@ Prometheus Registry
         format = "PROMETHEUS_PROTOBUF" # or PROMETHEUS_TEXT
       }
     }
-
 
 Cloudwatch Registry
 ^^^^^^^^^^^^^^^^^^^

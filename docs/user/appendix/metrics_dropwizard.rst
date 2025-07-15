@@ -1,7 +1,10 @@
-.. _geomesa_metrics:
+Dropwizard Metrics
+==================
 
-GeoMesa Metrics
-===============
+.. warning::
+
+    Dropwizard metrics support in GeoMesa is deprecated, and will be removed in a future version. Instead,
+    use :ref:`geomesa_metrics` for metrics integration.
 
 GeoMesa provides integration with the `DropWizard Metrics <https://metrics.dropwizard.io/>`__ library for real-time
 reporting with the ``geomesa-metrics`` module.

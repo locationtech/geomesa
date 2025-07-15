@@ -66,7 +66,9 @@ public class JavaConvertersTest {
             }
             Assert.assertEquals(3, context.line());
             Assert.assertEquals(2, context.success().getCount());
+            Assert.assertEquals(2, context.stats().success(0));
             Assert.assertEquals(1, context.failure().getCount());
+            Assert.assertEquals(1, context.stats().failure(0));
         }
 
         Assert.assertEquals(2, features.size());

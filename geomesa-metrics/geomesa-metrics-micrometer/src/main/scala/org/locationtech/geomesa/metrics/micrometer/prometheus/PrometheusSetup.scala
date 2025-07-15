@@ -9,7 +9,30 @@
 package org.locationtech.geomesa.metrics.micrometer
 package prometheus
 
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
+
+import java.io.Closeable
+
 /**
  * Class for configuring prometheus metrics
  */
-object PrometheusSetup extends RegistrySetup("Prometheus")
+object PrometheusSetup extends RegistrySetup("prometheus") {
+
+  /**
+   * Register for a registry with the given settings
+   *
+   * @param application application tag used for metrics
+   * @param port port used to serve metrics
+   * @param rename rename metrics for prometheus
+   * @return
+   */
+  def register(application: String = "geomesa", port: Int = 9090, rename: Boolean = true): Closeable = {
+    val config =
+      ConfigFactory.empty()
+        .withValue("common-tags", ConfigValueFactory.fromMap(java.util.Map.of("application", application)))
+        .withValue("port", ConfigValueFactory.fromAnyRef(port))
+        .withValue("rename", ConfigValueFactory.fromAnyRef(rename))
+        .withFallback(registry)
+    register(config)
+  }
+}
