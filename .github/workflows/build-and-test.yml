@@ -148,7 +148,7 @@ jobs:
     with:
       scala-version: ${{ inputs.scala-version }}
   javadocs:
-    name: javadocs
+    name: javadocs (${{ matrix.docs.name }})
     strategy:
       fail-fast: false
       matrix:
