@@ -148,7 +148,7 @@ jobs:
     with:
       scala-version: ${{ inputs.scala-version }}
   javadocs:
-    name: javadocs-${{ matrix.tests.name }}
+    name: javadocs-${{ matrix.docs.name }}
     strategy:
       fail-fast: false
       matrix:
@@ -159,10 +159,10 @@ jobs:
                        geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,\
                        geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt"
           - name: 2
-            selector: "-pl !geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
+            selector: "-pl '!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
                        !geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
                        !geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,\
-                       !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt"
+                       !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt'"
     needs: compile
     uses: ./.github/workflows/javadocs.yml
     with:
