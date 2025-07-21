@@ -7,6 +7,10 @@ on:
         required: false
         type: string
         default: "2.12"
+      selector:
+        required: false
+        type: string
+        default: ""
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
@@ -39,7 +43,7 @@ jobs:
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Build scaladocs
-        run: mvn generate-sources scala:doc-jar -T2 $MAVEN_CLI_OPTS
+        run: mvn generate-sources scala:doc-jar -T2 ${{inputs.selector}} $MAVEN_CLI_OPTS
       - name: Build javadocs
         run: mvn generate-sources javadoc:jar $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
       - name: Remove geomesa artifacts
