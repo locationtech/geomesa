@@ -108,6 +108,8 @@ GeoMesa has transitioned from Dropwizard metrics to :ref:`geomesa_metrics`. As a
 have been deprecated, but will continue to work until they are removed in the next major release. However, metric
 names and formats may change slightly due to the difference in Micrometer's implementation.
 
+
+
 Deprecated Modules
 ------------------
 
