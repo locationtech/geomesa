@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.{Counter, Gauge, Metrics}
 import org.apache.commons.lang3.StringUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -49,7 +51,7 @@ import org.specs2.runner.JUnitRunner
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date, Properties}
+import java.util.{Collections, Date, Properties, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
@@ -262,6 +264,55 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "support metrics" >> {
+      val registry = new SimpleMeterRegistry()
+      Metrics.addRegistry(registry)
+      try {
+        val (producer, consumer, originalSft) = createStorePair()
+        try {
+          val sft = SimpleFeatureTypes.renameSft(originalSft, s"metrics-${UUID.randomUUID()}")
+          producer.createSchema(sft)
+          consumer.metadata.resetCache()
+          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+          // initial write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          // write a second time so that our "live" metrics get updated, vs we may have hit the initial loader in our first write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          // delete
+          producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
+
+          val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
+          meters must haveLength(10)
+          eventually {
+            meters.collectFirst { case g: Gauge if g.getId.getName.contains("index.size") => g.value() } must beSome(1d)
+            meters.collectFirst { case c: Counter if c.getId.getName.contains("index.expirations") => c.count() } must beSome(0d)
+            meters.collectFirst { case g: Gauge if g.getId.getName.contains("dtg.latest") => g.value() } must
+              beSome(f1.getAttribute("dtg").asInstanceOf[Date].getTime)
+            meters.collectFirst { case c: Counter if c.getId.getName.contains("read.updates") => c.count() } must
+              beSome(beGreaterThanOrEqualTo(2d)) // may have been between 2-4 reads, due to timing around initial loading
+            meters.collectFirst { case c: Counter if c.getId.getName.contains("read.deletes") => c.count() } must beSome(1d)
+          }
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      } finally {
+        Metrics.removeRegistry(registry)
+        registry.close()
       }
     }
 

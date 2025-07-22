@@ -67,7 +67,7 @@ class ShapefileConverterFactory
             }
         }
 
-        val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
+        val shpConfig = BasicConfig(TypeToProcess, None, Some(Column(0)), Map.empty, Map.empty)
 
         val config = BasicConfigConvert.to(shpConfig)
             .withFallback(BasicFieldConvert.to(fields.toSeq))

@@ -105,7 +105,7 @@ class ParquetConverterFactory
             (dataSft, fields, None, Map.empty[String, Expression])
         }
 
-        val converterConfig = BasicConfig(typeToProcess, id, Map.empty, userData)
+        val converterConfig = BasicConfig(typeToProcess, None, id, Map.empty, userData)
 
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields.toSeq))

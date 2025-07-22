@@ -41,8 +41,11 @@ object JdbcConverterFactory {
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, JdbcConfig] = {
-      for { conn <- cur.atKey("connection").right.flatMap(_.asString).right } yield {
-        JdbcConfig(`type`, conn, idField, caches, userData)
+      for {
+        name <- converterName(cur).right
+        conn <- cur.atKey("connection").right.flatMap(_.asString).right
+      } yield {
+        JdbcConfig(`type`, name, conn, idField, caches, userData)
       }
     }
 

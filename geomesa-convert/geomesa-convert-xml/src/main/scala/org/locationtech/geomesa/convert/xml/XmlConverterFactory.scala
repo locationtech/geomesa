@@ -139,7 +139,7 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
             val idField = Some(Expression("md5(stringToBytes(toString($0)))"))
 
             val xmlConfig =
-              XmlConfig(typeToProcess, xpathFactory, namespaces, None, featurePath, idField, Map.empty, Map.empty)
+              XmlConfig(typeToProcess, None, xpathFactory, namespaces, None, featurePath, idField, Map.empty, Map.empty)
 
             val config =
               configConvert.to(xmlConfig)
@@ -173,15 +173,16 @@ object XmlConverterFactory {
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, XmlConfig] = {
       for {
-        provider   <- cur.atKey("xpath-factory").right.flatMap(_.asString).right
-        namespace  <- cur.atKey("xml-namespaces").right.flatMap(_.asObjectCursor).right
-        path       <- optional(cur, "feature-path").right
-        xsd        <- optional(cur, "xsd").right
+        name      <- converterName(cur).right
+        provider  <- cur.atKey("xpath-factory").right.flatMap(_.asString).right
+        namespace <- cur.atKey("xml-namespaces").right.flatMap(_.asObjectCursor).right
+        path      <- optional(cur, "feature-path").right
+        xsd       <- optional(cur, "xsd").right
       } yield {
         val namespaces =
           namespace.valueOpt.map(_.unwrapped().asInstanceOf[java.util.Map[String, String]].asScala.toMap)
               .getOrElse(Map.empty)
-        XmlConfig(`type`, provider, namespaces, xsd, path, idField, caches, userData)
+        XmlConfig(`type`, name, provider, namespaces, xsd, path, idField, caches, userData)
       }
     }
 

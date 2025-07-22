@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa
 
-import com.codahale.metrics.Histogram
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Timer
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.EvaluationError
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
@@ -19,6 +19,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.io.IOException
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
@@ -58,6 +59,18 @@ package object convert2 {
     def userData: Map[String, Expression]
   }
 
+  /**
+   * This is an intermediate trait that allows configs to specify a name for metrics.
+   * It will be folded into ConverterConfig in the next major release
+   */
+  trait ConverterName extends ConverterConfig {
+    def converterName: Option[String]
+  }
+
+  object ConverterName {
+    def unapply(name: ConverterName): Option[String] = name.converterName
+  }
+
   trait Field {
 
     def name: String
@@ -74,6 +87,7 @@ package object convert2 {
 
   trait ConverterOptions {
     def validators: Seq[String]
+    @deprecated("Use micrometer global registry to manage reporters")
     def reporters: Seq[Config]
     def parseMode: ParseMode
     def errorMode: ErrorMode
@@ -86,13 +100,13 @@ package object convert2 {
     * @param underlying wrapped iterator
     * @param mode error mode
     * @param ec EvaluationContext for tracking errors
-    * @param times histogram for tracking convert times
+    * @param timer timer for tracking convert times
     */
   class ErrorHandlingIterator[T](
       underlying: CloseableIterator[T],
       mode: ErrorMode,
       ec: EvaluationContext,
-      times: Histogram
+      timer: Timer
     ) extends CloseableIterator[T] with LazyLogging {
 
     private var staged: T = _
@@ -112,7 +126,7 @@ package object convert2 {
           }
         } catch {
           case NonFatal(e) =>
-            ec.failure.inc()
+            ec.stats.failure()
             mode match {
               case ErrorMode.LogErrors => logger.warn("Failed parsing input: ", e)
               case ErrorMode.ReturnErrors => ec.errors.add(EvaluationError(null, ec.line, new IOException("Failed parsing input: ", e)))
@@ -121,7 +135,7 @@ package object convert2 {
             error = true
             false // usually parsing can't continue if there is an exception in the underlying read
         } finally {
-          times.update(System.nanoTime() - start)
+          timer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
         }
       }
     }

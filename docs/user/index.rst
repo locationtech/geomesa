@@ -38,6 +38,6 @@ Appendix
 
    appendix/utils
    appendix/memory
-   appendix/metrics_dropwizard
    appendix/metrics
+   appendix/metrics_dropwizard
    appendix/site

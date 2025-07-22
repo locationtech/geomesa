@@ -50,6 +50,8 @@ and output them as NiFi records for further processing.
 | kafka.consumer.config         | `Configuration options <https://kafka.apache.org/documentation.html#consumerconfigs>`_ |
 |                               | for the kafka consumer, in Java properties format                                      |
 +-------------------------------+----------------------------------------------------------------------------------------+
+| Metrics Registry              | Reference to :ref:`nifi_metrics` for publishing metrics                                |
++-------------------------------+----------------------------------------------------------------------------------------+
 
 Note that any processors with the same Kafka Group ID will split messages between the processors, as per standard
 Kafka consumer group behavior. Generally this is not desirable, and a unique group ID should be used for each

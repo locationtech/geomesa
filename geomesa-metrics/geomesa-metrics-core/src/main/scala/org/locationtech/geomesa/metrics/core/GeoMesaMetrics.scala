@@ -10,9 +10,13 @@ package org.locationtech.geomesa.metrics.core
 
 import com.codahale.metrics._
 import com.typesafe.config.Config
+import io.micrometer.core.instrument.dropwizard.{DropwizardConfig, DropwizardMeterRegistry}
+import io.micrometer.core.instrument.util.HierarchicalNameMapper
+import io.micrometer.core.instrument.{Clock, Metrics}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.io.Closeable
+import scala.util.Try
 
 /**
   * Provides namespaced access to reporting metrics
@@ -25,6 +29,21 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
     extends Closeable {
 
   private val pre = GeoMesaMetrics.safePrefix(prefix)
+
+  private val micrometerRegistry = if (reporters.isEmpty) { None } else {
+    // register a dropwizard meter registry so that our metrics get propagated here
+    // note: this doesn't expose any metrics created here to micrometer, however
+    val config = new DropwizardConfig() {
+      override def prefix(): String = pre
+      override def get(key: String): String = null
+    }
+    val dwRegistry = new DropwizardMeterRegistry(config, registry, HierarchicalNameMapper.DEFAULT, Clock.SYSTEM) {
+      override def nullGaugeValue(): java.lang.Double = null
+      override def close(): Unit = try { Metrics.removeRegistry(this) } finally { super.close() }
+    }
+    Metrics.addRegistry(dwRegistry)
+    Some(dwRegistry)
+  }
 
   protected def id(typeName: String, id: String): String = s"$pre${GeoMesaMetrics.safePrefix(typeName)}$id"
 
@@ -103,7 +122,10 @@ class GeoMesaMetrics(val registry: MetricRegistry, prefix: String, reporters: Se
   def register[T <: Metric](typeName: String, id: String, metric: T): T =
     registry.register(this.id(typeName, id), metric)
 
-  override def close(): Unit = CloseWithLogging(reporters)
+  override def close(): Unit = {
+    CloseWithLogging(reporters)
+    Try(micrometerRegistry.foreach(_.close()))
+  }
 }
 
 object GeoMesaMetrics {

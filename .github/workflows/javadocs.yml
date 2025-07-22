@@ -7,6 +7,14 @@ on:
         required: false
         type: string
         default: "2.12"
+      module-selector:
+        required: false
+        type: string
+        default: ""
+      build-id:
+        required: false
+        type: string
+        default: ""
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
@@ -16,6 +24,7 @@ env:
 
 jobs:
   build-javadocs:
+    name: build-javadocs${{ inputs.build-id }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -39,7 +48,7 @@ jobs:
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Build scaladocs
-        run: mvn generate-sources scala:doc-jar -T2 $MAVEN_CLI_OPTS
+        run: mvn generate-sources scala:doc-jar ${{ inputs.module-selector }} $MAVEN_CLI_OPTS
       - name: Build javadocs
         run: mvn generate-sources javadoc:jar $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
       - name: Remove geomesa artifacts

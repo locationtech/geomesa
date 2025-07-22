@@ -142,7 +142,7 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
           }
         }
 
-        val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
+        val converterConfig = AvroConfig(typeToProcess, None, SchemaEmbedded, Some(id), Map.empty, userData)
 
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields.toSeq))
@@ -239,11 +239,12 @@ object AvroConverterFactory {
       }
 
       for {
+        name       <- converterName(cur).right
         schema     <- optional(cur, "schema").right
         schemaFile <- optional(cur, "schema-file").right
         either     <- schemaOrFile(schema, schemaFile).right
       } yield {
-        AvroConfig(`type`, either, idField, caches, userData)
+        AvroConfig(`type`, name, either, idField, caches, userData)
       }
     }
 

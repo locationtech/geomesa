@@ -70,6 +70,8 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
           ec.failure.getCount mustEqual 0L
           ec.success.getCount mustEqual 1L
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 1L
           ec.line mustEqual 1L  // only 1 record passed in itr
         }
       }
@@ -106,6 +108,8 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
         ec.failure.getCount mustEqual 0L
         ec.success.getCount mustEqual 1L
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 1L
         ec.line mustEqual 1L  // only 1 record passed in itr
       }
     }
@@ -141,6 +145,8 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
         ec.failure.getCount mustEqual 0L
         ec.success.getCount mustEqual 2L
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 2L
         ec.line mustEqual 2L
       }
     }
@@ -183,6 +189,8 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
         ec.failure.getCount mustEqual 0L
         ec.success.getCount mustEqual 2L
+        ec.stats.failure(0) mustEqual 0L
+        ec.stats.success(0) mustEqual 2L
         ec.line mustEqual 2L
       }
     }

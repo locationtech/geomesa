@@ -63,6 +63,7 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
    * @param failure counter for tracking failed conversions
    * @return
    */
+  @deprecated("Custom counters are no longer supported, use a ContextListener instead")
   def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext
 
   /**

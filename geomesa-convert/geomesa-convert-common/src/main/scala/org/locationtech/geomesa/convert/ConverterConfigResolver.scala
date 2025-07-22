@@ -86,7 +86,6 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
           throw new RuntimeException(s"Could not read file: ${args.config}")
         }
       }
-
     } catch {
       case NonFatal(e) => Left((s"Unable to parse config from file: ${args.config}", e, PATH))
     }

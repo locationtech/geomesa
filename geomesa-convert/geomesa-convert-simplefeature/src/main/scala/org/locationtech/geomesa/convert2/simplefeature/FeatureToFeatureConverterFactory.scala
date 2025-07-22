@@ -17,7 +17,7 @@ import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression._
 import org.locationtech.geomesa.convert2.transforms.ExpressionVisitor.ExpressionTreeVisitor
-import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, SimpleFeatureConverter, SimpleFeatureConverterFactory}
+import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, ConverterName, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigSource}
@@ -103,11 +103,12 @@ object FeatureToFeatureConverterFactory {
 
   case class FeatureToFeatureConfig(
       `type`: String,
+      converterName: Option[String],
       inputSft: String,
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   object FeatureToFeatureConfigConvert extends ConverterConfigConvert[FeatureToFeatureConfig] with StrictLogging {
 
@@ -117,8 +118,11 @@ object FeatureToFeatureConverterFactory {
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, FeatureToFeatureConfig] = {
-      for { sftName <- cur.atKey(InputSftPath).right.flatMap(_.asString).right } yield {
-        FeatureToFeatureConfig(`type`, sftName, idField, caches, userData)
+      for {
+        converterName <- converterName(cur).right
+        sftName       <- cur.atKey(InputSftPath).right.flatMap(_.asString).right
+      } yield {
+        FeatureToFeatureConfig(`type`, converterName, sftName, idField, caches, userData)
       }
     }
 

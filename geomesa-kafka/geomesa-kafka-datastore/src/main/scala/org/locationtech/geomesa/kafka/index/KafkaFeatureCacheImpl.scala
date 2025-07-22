@@ -8,28 +8,33 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import io.micrometer.core.instrument.Metrics
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport, SpatialIndexSupport}
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView, MetricsPrefix}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
 
 import java.util.concurrent._
 
 /**
-  * Feature cache implementation
-  *
-  * @param sft simple feature type
-  * @param config index config
-  */
+ * Feature cache implementation
+ *
+ * @param sft simple feature type
+ * @param config index config
+ * @param layerViews layer views
+ */
 class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerViews: Seq[LayerView] = Seq.empty)
     extends KafkaFeatureCache with FeatureExpiration {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  private val tags = KafkaDataStore.tags(sft)
+
   // keeps location and expiry keyed by feature ID (we need a way to retrieve a feature based on ID for
   // update/delete operations). to reduce contention, we never iterate over this map
-  private val state = new ConcurrentHashMap[String, FeatureState]
+  private val state = Metrics.gaugeMapSize(s"$MetricsPrefix.index.size", tags, new ConcurrentHashMap[String, FeatureState]())
 
   private val support = createSupport(sft)
 
@@ -37,6 +42,8 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 
   override val views: Seq[KafkaFeatureCacheView] =
     layerViews.map(view => KafkaFeatureCacheView(view, createSupport(view.viewSft)))
+
+  private val expirations = Metrics.counter(s"$MetricsPrefix.index.expirations", tags)
 
   logger.debug(s"Initialized KafkaFeatureCache with factory $factory and support $support")
 
@@ -99,6 +106,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
     if (state.remove(featureState.id, featureState)) {
       featureState.removeFromIndex()
       views.foreach(_.remove(featureState.id))
+      expirations.increment()
     }
     logger.trace(s"Current index size: ${state.size()}/${support.index.size()}")
   }

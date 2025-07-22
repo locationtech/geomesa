@@ -178,7 +178,7 @@ class KafkaFeatureCache(
       logger.debug(s"Running persistence for [$topic]")
       // lock per-partition to allow for multiple write threads
       // randomly access the partitions to avoid contention if multiple data stores are all on the same schedule
-      Random.shuffle(Range(0, offsets.length).toList).flatMap { partition =>
+      Random.shuffle(offsets.indices.toList).flatMap { partition =>
         // if we don't get the lock just try again next run
         logger.trace(s"Acquiring lock for [$topic:$partition]")
         offsetManager.acquireLock(topic, partition, lockTimeout) match {

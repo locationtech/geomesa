@@ -19,7 +19,6 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 
 import java.io.Closeable
 import java.util.concurrent._
@@ -45,21 +44,13 @@ object KafkaFeatureCache extends LazyLogging {
    * @param sft simple feature type
    * @param config cache config
    * @param views layer view config
-   * @param metrics optional metrics hook
    * @return
    */
-  def apply(
-    sft: SimpleFeatureType,
-    config: IndexConfig,
-    views: Seq[LayerView] = Seq.empty,
-    metrics: Option[GeoMesaMetrics] = None): KafkaFeatureCache = {
+  def apply(sft: SimpleFeatureType, config: IndexConfig, views: Seq[LayerView] = Seq.empty): KafkaFeatureCache = {
     if (config.expiry == ImmediatelyExpireConfig) {
       new NoOpFeatureCache(views.map(v => KafkaFeatureCacheView.empty(v.viewSft)))
     } else {
-      metrics match {
-        case None => new KafkaFeatureCacheImpl(sft, config, views)
-        case Some(m) => new KafkaFeatureCacheWithMetrics(sft, config, views, m)
-      }
+      new KafkaFeatureCacheImpl(sft, config, views)
     }
   }
 
