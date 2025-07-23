@@ -33,7 +33,7 @@ import org.locationtech.jts.geom.Point
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 import java.nio.file.{Files, Path}
 import java.util.Date
 
@@ -366,22 +366,20 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
         null
       )
 
-      val coverage = process.execute(
-        mergedDs.getFeatureSource(sftName).getFeatures(query),
-        radiusPixels,
-        null,
-        null,
-        envelope,
-        width,
-        height,
-        null
-      )
-
+      // we run the decode logic from density process as we don't have coverage/jai on the classpath in order to run the whole thing
+      val points = scala.collection.mutable.Map.empty[(Double, Double), Double]
+      val decode = DensityScan.decodeResult(envelope, width, height)
+      WithClose(mergedDs.getFeatureSource(sftName).getFeatures(query).features()) { features =>
+        while (features.hasNext) {
+          val pts = decode(features.next())
+          while (pts.hasNext) {
+            val (x, y, weight) = pts.next()
+            points.put((x, y), points.getOrElse((x, y), 0d) + weight)
+          }
+        }
+      }
       // TODO way to test coverage?
-      coverage must not(beNull)
-
-      coverage.dispose(false)
-      ok
+      points must not(beEmpty)
     }
   }
 

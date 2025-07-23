@@ -69,7 +69,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   val schema = "public"
 
-  lazy val sft = SimpleFeatureTypes.createType(s"test", spec)
+  lazy val sft = SimpleFeatureTypes.createType("test", spec)
 
   lazy val now = System.currentTimeMillis()
 
@@ -412,6 +412,36 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
           WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
         }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "insert data without requiring JAI on the classpath" in {
+      val ds = DataStoreFinder.getDataStore((params ++ Map("Batch insert size" -> "1")).asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.createType("jai", "name:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            val next = writer.next()
+            next.setAttribute(0, "name")
+            next.setAttribute(1, "2025-07-01T00:00:00.000Z")
+            next.setAttribute(2, "")
+            next.setAttribute(3, WKTUtils.read("POINT(0 0)"))
+            writer.write() must not (throwA[NoClassDefFoundError])
+          }
+          tx.commit()
+        }
+        ok
+      } catch {
+        case NonFatal(e) => logger.error("", e); ko
       } finally {
         ds.dispose()
       }
