@@ -195,6 +195,9 @@
         <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
         <maven.project.info.reports.plugin.version>3.8.0</maven.project.info.reports.plugin.version>
 
+        <!-- maven properties -->
+        <maven.deploy.at.end>true</maven.deploy.at.end>
+
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
@@ -259,6 +262,11 @@
 
         <profile>
             <id>central</id>
+            <properties>
+                <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
+                     scala versions. we can discard the staging repo if there is an error in the build. -->
+                <maven.deploy.at.end>false</maven.deploy.at.end>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -285,15 +293,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <configuration>
-                            <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
-                            scala versions. we can discard the staging repo if there is an error in the build. -->
-                            <deployAtEnd>false</deployAtEnd>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.cyclonedx</groupId>
@@ -3172,7 +3171,7 @@
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>${maven.deploy.plugin.version}</version>
                     <configuration>
-                        <deployAtEnd>true</deployAtEnd>
+                        <deployAtEnd>${maven.deploy.at.end}</deployAtEnd>
                     </configuration>
                 </plugin>
                 <plugin>
