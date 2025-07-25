@@ -11,6 +11,8 @@ package functions
 
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{AnalyzePartitions, PartitionMaintenance, RollWriteAheadLog}
 
+import java.util.Locale
+
 /**
  * Deletes history older than 7 days
  */
@@ -27,7 +29,9 @@ class LogCleaner extends SqlFunction with CronSchedule {
   override protected def createStatements(info: TypeInfo): Seq[String] =
     Seq(function()) ++ super.createStatements(info)
 
-  override protected def dropStatements(info: TypeInfo): Seq[String] = Seq.empty // function is shared between types
+  // function is shared between types, but we want to unschedule the cron
+  override protected def dropStatements(info: TypeInfo): Seq[String] =
+    super.dropStatements(info).filterNot(_.toLowerCase(Locale.US).contains("drop function"))
 
   override protected def schedule(info: TypeInfo): SqlLiteral = SqlLiteral("30 1 * * *") // 01:30 every day
 

@@ -171,9 +171,9 @@ class PrometheusRegistryTest extends Specification {
         // note: post is protobuf by default
         val job1 = handler.requests("/metrics/job/job1")
         job1 must contain("foo_total")
-        job1 must not(contain("10"))
+        job1 must not(contain("10")) // kind of a hacky way to verify things are protobuf encoded
 
-        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "")
+        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "").replaceAll("10", "x") // so we don't match on the uuid, below
         val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2")
         try {
           Metrics.counter(id).increment(10)
@@ -184,7 +184,7 @@ class PrometheusRegistryTest extends Specification {
         // note: post is protobuf by default
         val job2 = handler.requests("/metrics/job/job2")
         job2 must contain(s"${id}_total")
-        job2 must not(contain("10"))
+        job2 must not(contain("10")) // kind of a hacky way to verify things are protobuf encoded
       } finally {
         jetty.stop()
       }
