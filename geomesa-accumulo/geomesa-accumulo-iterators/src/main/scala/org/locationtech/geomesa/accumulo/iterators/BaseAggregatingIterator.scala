@@ -79,7 +79,7 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
-    throw new NotImplementedError()
+    throw new UnsupportedOperationException()
 }
 
 object BaseAggregatingIterator {

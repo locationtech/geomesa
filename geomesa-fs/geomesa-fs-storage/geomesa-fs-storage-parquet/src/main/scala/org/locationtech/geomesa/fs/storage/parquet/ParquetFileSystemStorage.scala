@@ -13,6 +13,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.example.data.Group
 import org.apache.parquet.filter2.compat.FilterCompat
+import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.example.GroupReadSupport
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -60,7 +61,9 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
     val visFilter = VisibilityUtils.visible(Some(authProvider))
 
-    logger.debug(s"Parquet filter: $parquetFilter and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
+    logger.debug(
+      s"Parquet filter: ${parquetFilter match { case f: FilterPredicateCompat => f.getFilterPredicate; case f => f }} " +
+        s"and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
     // WARNING it is important to create a new conf per query
     // because we communicate the transform SFT set here

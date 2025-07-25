@@ -10,8 +10,9 @@ package org.locationtech.geomesa.hbase.data
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client.{Put, Scan}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.client.{ConnectionFactory, Put, Scan}
+import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureSource, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
@@ -19,7 +20,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -28,12 +29,13 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
+import org.specs2.specification.AfterAll
 
 import java.io._
 import java.nio.charset.StandardCharsets
 
 @RunWith(classOf[JUnitRunner])
-class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
+class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLogging  {
 
   import scala.collection.JavaConverters._
 
@@ -74,7 +76,15 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
 
   val path = "src/test/resources/data/" // note: if running through intellij, use an absolute path
 
-  lazy val params = Map(ConnectionParam.getName -> MiniCluster.connection, HBaseCatalogParam.getName -> name).asJava
+  lazy val params = Map(ConfigsParam.getName -> HBaseCluster.hbaseSiteXml, HBaseCatalogParam.getName -> name).asJava
+
+  val connection = {
+    val conf = new Configuration(HBaseConfiguration.create())
+    conf.addResource(new ByteArrayInputStream(HBaseCluster.hbaseSiteXml.getBytes(StandardCharsets.UTF_8)))
+    ConnectionFactory.createConnection(conf)
+  }
+
+  override def afterAll(): Unit = connection.close()
 
   "HBase data store" should {
 
@@ -199,10 +209,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
     val out = new ByteArrayOutputStream
     val results = SelfClosingIterator(fs.getFeatures(query).features)
     results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-    def in() = new ByteArrayInputStream(out.toByteArray)
-    WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-      WithClose(reader.features())(_.map(_.getID.toInt).toList)
-    }
+    SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
   }
 
   def writeVersion(file: File): Unit = {
@@ -214,10 +221,10 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
         output.write(value, offset, length)
       }
 
-      val tables = WithClose(MiniCluster.connection.getAdmin)(_.listTableNames(s"$name.*"))
+      val tables = WithClose(connection.getAdmin)(_.listTableNames(s"$name.*"))
       output.writeInt(tables.size)
       tables.foreach { name =>
-        val table = MiniCluster.connection.getTable(name)
+        val table = connection.getTable(name)
         val descriptor = table.getTableDescriptor
         writeBytes(descriptor.getTableName.getName)
         output.writeInt(descriptor.getColumnFamilies.length)
@@ -250,7 +257,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
       bytes
     }
     // reload the tables
-    WithClose(MiniCluster.connection.getAdmin) { admin =>
+    WithClose(connection.getAdmin) { admin =>
       val numTables = input.readInt
       var i = 0
       while (i < numTables) {
@@ -262,7 +269,8 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
         if (coprocessors.lengthCompare(1) > 0) {
           throw new IllegalStateException(s"Only expecting one coprocessor, got: ${coprocessors.mkString(", ")}")
         }
-        val coprocessor = coprocessors.headOption.map(s => s -> None)
+        // we don't have coprocessors configured globally, so add the per-table config if it's not present
+        val coprocessor = coprocessors.headOption.orElse(Some(HBaseIndexAdapter.CoprocessorClass)).map(s => s -> None)
         val numMutations = input.readInt
         val mutations = (0 until numMutations).map { _ =>
           val row = readBytes
@@ -280,14 +288,14 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
         }
         HBaseVersions.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty)
         HBaseIndexAdapter.waitForTable(admin, name)
-        WithClose(MiniCluster.connection.getBufferedMutator(name)) { mutator =>
+        WithClose(connection.getBufferedMutator(name)) { mutator =>
           mutations.foreach(mutator.mutate)
           mutator.flush()
         }
 
         if (logger.underlying.isTraceEnabled()) {
           logger.trace(s"restored $name ${admin.tableExists(name)}")
-          val scan = MiniCluster.connection.getTable(name).getScanner(new Scan())
+          val scan = connection.getTable(name).getScanner(new Scan())
           SelfClosingIterator(scan.iterator.asScala, scan.close()).foreach(r => logger.trace(r.toString))
         }
       }

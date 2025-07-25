@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.3.0-SNAPSHOT</version>
+        <version>5.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -126,12 +126,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-testing-util</artifactId>
-            <version>${hbase.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

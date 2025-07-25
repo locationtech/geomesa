@@ -421,7 +421,7 @@ object AccumuloDataStore extends LazyLogging {
   private def translateSchemaVersion(sft: SimpleFeatureType): Seq[IndexId] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     lazy val docs =
-      "http://www.geomesa.org/documentation/user/jobs.html#updating-existing-data-to-the-latest-index-format"
+      "https://www.geomesa.org/documentation/stable/user/accumulo/jobs.html#updating-existing-data-to-the-latest-index-format"
 
     val geom = Option(sft.getGeomField)
     val dtg = sft.getDtgField
@@ -464,7 +464,7 @@ object AccumuloDataStore extends LazyLogging {
       val z = if (version == 7) { z3.map(_.copy(version = 2)) } else { z3.map(_.copy(version = 1)) }
       z.toSeq ++ Seq(id.copy(version = 1)) ++ attributes.map(_.copy(version = 2))
     } else {
-      throw new NotImplementedError("This schema format is no longer supported. Please use " +
+      throw new UnsupportedOperationException("This schema format is no longer supported. Please use " +
           s"GeoMesa 1.2.6 to update you data to a newer format. For more information, see $docs")
     }
 

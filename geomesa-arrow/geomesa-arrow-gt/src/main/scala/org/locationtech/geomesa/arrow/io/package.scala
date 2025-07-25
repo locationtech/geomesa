@@ -37,18 +37,22 @@ package object io {
 
   object FormatVersion {
 
-    val LatestVersion = "10.0.1"
+    @deprecated("Replaced with DefaultVersion")
+    val LatestVersion = "18.3.0"
 
-    val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", LatestVersion)
+    // default format version, currently the only thing we care about here is whether it is before or after 0.15
+    val DefaultVersion = "1.0.0"
+
+    val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", DefaultVersion)
 
     def options(version: String): IpcOption = {
       lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
-      val legacy = version != LatestVersion && (version == "0.10" || (semver.major == 0 && semver.minor < 15))
+      val legacy = version.startsWith("0") && (version == "0.10" || (semver.major == 0 && semver.minor < 15))
       val meta = if (legacy) { MetadataVersion.V4 } else { MetadataVersion.DEFAULT }
       new IpcOption(legacy, meta)
     }
 
-    def version(opt: IpcOption): String = if (opt.write_legacy_ipc_format) { "0.10" } else { LatestVersion }
+    def version(opt: IpcOption): String = if (opt.write_legacy_ipc_format) { "0.10" } else { DefaultVersion }
   }
 
   /**

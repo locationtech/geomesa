@@ -16,6 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.rpc.filter.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -40,7 +41,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName   -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName
   )
 
@@ -78,12 +79,9 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          // sft name gets dropped, so we can't compare directly
-          SelfClosingIterator(reader.features()).map(f => (f.getID, f.getAttributes)).toSeq must
-              containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
-        }
+        // sft name gets dropped, so we can't compare directly
+        SimpleFeatureArrowFileReader.read(out.toByteArray).map(f => (f.getID, f.getAttributes)) must
+          containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
       }
     }
   }
@@ -97,11 +95,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
-        }
+        SimpleFeatureArrowFileReader.read(out.toByteArray) must containTheSameElementsAs(features)
       }
     }
     "return arrow dictionary encoded data" in {
@@ -113,11 +107,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features)
-        }
+        SimpleFeatureArrowFileReader.read(out.toByteArray) must containTheSameElementsAs(features)
       }
     }
     "return arrow encoded projections" in {
@@ -128,11 +118,8 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-              containTheSameElementsAs(features.map(f => List(f.getAttribute("dtg"), f.getAttribute("geom"))))
-        }
+        SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getAttributes.asScala) must
+          containTheSameElementsAs(features.map(f => List(f.getAttribute("dtg"), f.getAttribute("geom"))))
       }
     }
     "return sorted batches" in {
@@ -155,14 +142,12 @@ class HBaseArrowTest extends Specification with LazyLogging  {
             val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
             val out = new ByteArrayOutputStream
             results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-            def in() = new ByteArrayInputStream(out.toByteArray)
-            WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-              if (transform == null) {
-                SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual expected
-              } else {
-                SelfClosingIterator(reader.features()).map(f => f.getID -> f.getAttributes.asScala).toList mustEqual
-                    expected.map(f => f.getID -> transform.map(f.getAttribute).toSeq)
-              }
+            val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
+            if (transform == null) {
+              result mustEqual expected
+            } else {
+              result.map(f => f.getID -> f.getAttributes.asScala) mustEqual
+                expected.map(f => f.getID -> transform.map(f.getAttribute).toSeq)
             }
           }
         }
@@ -174,15 +159,12 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.SAMPLING, 0.2f)
         query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
-        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
-        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
-          results.length must beLessThan(10)
-          foreach(results)(features must contain(_))
-        }
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          .foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        val results = SimpleFeatureArrowFileReader.read(out.toByteArray)
+        results.length must beLessThan(10)
+        foreach(results)(features must contain(_))
       }
     }
     "return arrow dictionary encoded data without caching and with z-values" in {
@@ -209,11 +191,8 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-              containTheSameElementsAs(features.filter(filter.evaluate))
-        }
+        SimpleFeatureArrowFileReader.read(out.toByteArray) must
+          containTheSameElementsAs(features.filter(filter.evaluate))
       }
     }
     "work with partitioned tables and arrow coprocessor disabled" in {
@@ -230,7 +209,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
           writer.write()
         }
       }
-      HBaseDataStoreFactory.RemoteArrowProperty.threadLocalValue.set("false")
+      HBaseSystemProperties.RemoteArrowProperty.threadLocalValue.set("false")
       try {
         val query = new Query(sft.getTypeName, Filter.INCLUDE, "name", "dtg", "geom")
         query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
@@ -240,15 +219,14 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.caching(in())) { reader =>
+        WithClose(SimpleFeatureArrowFileReader.caching(new ByteArrayInputStream(out.toByteArray))) { reader =>
           SelfClosingIterator(reader.features()).map(f => f.getID -> f.getAttributes.asScala).toList mustEqual
-              features.map(f => f.getID -> query.getPropertyNames.map(f.getAttribute).toSeq)
+            features.map(f => f.getID -> query.getPropertyNames.map(f.getAttribute).toSeq)
           // ensure the reduce step worked correctly and there is only 1 logical file
           reader.vectors must haveLength(1)
         }
       } finally {
-        HBaseDataStoreFactory.RemoteArrowProperty.threadLocalValue.remove()
+        HBaseSystemProperties.RemoteArrowProperty.threadLocalValue.remove()
       }
     }
   }

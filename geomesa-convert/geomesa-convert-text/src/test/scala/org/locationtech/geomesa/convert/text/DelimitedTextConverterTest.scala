@@ -347,6 +347,8 @@ class DelimitedTextConverterTest extends Specification {
           ec.line mustEqual 3
           ec.success.getCount mustEqual 2
           ec.failure.getCount mustEqual 0
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 2L
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -369,6 +371,8 @@ class DelimitedTextConverterTest extends Specification {
           ec.line mustEqual 2
           ec.success.getCount mustEqual 2
           ec.failure.getCount mustEqual 0
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 2L
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -393,6 +397,8 @@ class DelimitedTextConverterTest extends Specification {
           ec.line mustEqual 5
           ec.success.getCount mustEqual 2
           ec.failure.getCount mustEqual 0
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 2L
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))

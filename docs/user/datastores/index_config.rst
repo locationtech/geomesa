@@ -545,6 +545,9 @@ After the dates, the Z value can be split based on a number of bits (note that d
 not be specified without dates). For example, specifying two bits would create splits 00, 01, 10 and 11. The total
 number of splits created will be ``<number of z shards> * <number of time periods> * 2 ^ <number of bits>``.
 
+When using partitioned indices (see :ref:`partitioned_indices`), dates do not need to be specified,
+as they will be automatically applied based on partition bounds.
+
 Z2/XZ2 Splits
 +++++++++++++
 
@@ -587,6 +590,11 @@ secondary indexing works, date suffixes are only useful after full keys. Continu
 ``attr.name.pattern:[a][l][i][c][e],attr.name.date-range:2020-01-01/2023-01-01/8`` would effectively partition an
 index where everyone is named Alice, but ``attr.name.pattern:[a-z],attr.name.date-range:2020-01-01/2023-01-01/8``
 would not be effective unless everyone had a single-letter name.
+
+When using partitioned indices (see :ref:`partitioned_indices`), ``date-range`` does not need to be specified,
+as it will be automatically determined based on partition bounds. Instead, specify the number of date splits using
+``partition-date-splits``, e.g. ``attr.name.pattern:[a][l][i][c][e],attr.name.partition-date-splits:8``. ``partition-date-splits``
+follows the same numbering suffix as the other keys, e.g. ``partition-date-splits``, ``partition-date-splits2``, etc.
 
 Full Example
 ++++++++++++

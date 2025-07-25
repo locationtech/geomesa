@@ -110,6 +110,8 @@ class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegis
           sf1.getAttribute("extra") must be equalTo "TEST"
 
           ec.failure.getCount mustEqual 0L
+          ec.stats.failure(0) mustEqual 0L
+          ec.stats.success(0) mustEqual 3L
           ec.success.getCount mustEqual 3L
           ec.line mustEqual 3L
         }

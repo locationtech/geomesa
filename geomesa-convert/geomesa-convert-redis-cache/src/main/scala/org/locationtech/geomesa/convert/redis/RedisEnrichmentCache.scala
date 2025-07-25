@@ -56,8 +56,8 @@ class RedisEnrichmentCache(jedisPool: RedisConnectionBuilder,
       })
 
   override def get(args: Array[String]): Any = cache.get(args(0)).get(args(1))
-  override def put(args: Array[String], value: Any): Unit = ???
-  override def clear(): Unit = ???
+  override def put(args: Array[String], value: Any): Unit = throw new UnsupportedOperationException()
+  override def clear(): Unit = throw new UnsupportedOperationException()
   override def close(): Unit = jedisPool.close()
 }
 

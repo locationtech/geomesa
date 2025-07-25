@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.metrics.micrometer
 package prometheus
+
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.{MeterRegistry, Tag}

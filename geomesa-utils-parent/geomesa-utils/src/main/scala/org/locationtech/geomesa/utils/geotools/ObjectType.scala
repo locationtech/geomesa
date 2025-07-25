@@ -13,7 +13,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfi
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.jts.geom._
 
-import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
+import java.util.{Collections, UUID, List => jList, Map => jMap}
 
 object ObjectType extends Enumeration {
 
@@ -25,18 +25,10 @@ object ObjectType extends Enumeration {
   val POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION = Value
 
   // string sub-types
-  val JSON = Value
+  val JSON: Value = Value
 
-  val GeometrySubtypes = Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION)
-
-  /**
-   * @see selectType(clazz: Class[_], metadata: java.util.Map[_, _])
-   *
-   * @param descriptor attribute descriptor
-   * @return
-   */
-  def selectType(descriptor: AttributeDescriptor): Seq[ObjectType] =
-    selectType(descriptor.getType.getBinding, descriptor.getUserData)
+  val GeometrySubtypes: Seq[Value] =
+    Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION, GEOMETRY)
 
   /**
    * Turns a SimpleFeatureType attribute class binding into an enumeration.
@@ -50,11 +42,31 @@ object ObjectType extends Enumeration {
    *
    * Note: geometries will always return GEOMETRY as the primary type to allow for generic matching.
    *
-   * @param clazz class, must be valid for a SimpleFeatureType attribute
-   * @param metadata attribute metadata (user data)
+   * @param descriptor attribute descriptor
    * @return binding
    */
-  def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): Seq[ObjectType] = {
+  def selectType(descriptor: AttributeDescriptor): Seq[ObjectType] =
+    selectType(descriptor.getType.getBinding, descriptor.getUserData, Option(descriptor.getLocalName))
+
+  /**
+   * Used if there is no descriptor available. Note that this will throw an error for list or map-type attributes.
+   *
+   * @see selectType(descriptor: AttributeDescriptor)
+   *
+   * @param clazz class, must be valid for a SimpleFeatureType attribute
+   * @return binding
+   */
+  def selectType(clazz: Class[_]): Seq[ObjectType] = selectType(clazz, Collections.emptyMap(), None)
+
+  /**
+   * Get the type enumeration
+   *
+   * @param clazz class, must be valid for a SimpleFeatureType attribute
+   * @param metadata attribute metadata (user data)
+   * @param fieldName name of the field
+   * @return binding
+   */
+  private def selectType(clazz: Class[_], metadata: jMap[_, _], fieldName: Option[String]): Seq[ObjectType] = {
     clazz match {
       case c if classOf[java.lang.String].isAssignableFrom(c) =>
         if (metadata.get(OptJson) == "true") { Seq(STRING, JSON) } else { Seq(STRING) }
@@ -67,10 +79,11 @@ object ObjectType extends Enumeration {
       case c if classOf[UUID].isAssignableFrom(c) => Seq(UUID)
       case c if classOf[Geometry].isAssignableFrom(c) => geometryType(c.asInstanceOf[Class[_ <: Geometry]])
       case c if classOf[Array[Byte]].isAssignableFrom(c) => Seq(BYTES)
-      case c if classOf[jList[_]].isAssignableFrom(c) => listType(metadata)
-      case c if classOf[jMap[_, _]].isAssignableFrom(c) => mapType(metadata)
+      case c if classOf[jList[_]].isAssignableFrom(c) => listType(metadata, fieldName)
+      case c if classOf[jMap[_, _]].isAssignableFrom(c) => mapType(metadata, fieldName)
 
-      case _ => throw new IllegalArgumentException(s"Class $clazz can't be serialized")
+      case _ =>
+        throw new IllegalArgumentException(s"${fieldName.fold("Type")(f => s"Field $f of type")} $clazz can't be serialized")
     }
   }
 
@@ -88,25 +101,29 @@ object ObjectType extends Enumeration {
     Seq(GEOMETRY, subtype)
   }
 
-  private def listType(metadata: jMap[_, _]): Seq[ObjectType] = {
-    val clazz = Class.forName(metadata.get(UserDataListType).asInstanceOf[String])
-    selectType(clazz) match {
-      case Seq(binding) => Seq(LIST, binding)
-      case _ => throw new IllegalArgumentException(s"Can't serialize list sub-type of ${clazz.getName}")
-    }
+  private def listType(metadata: jMap[_, _], fieldName: Option[String]): Seq[ObjectType] = {
+    val elementType = getSubType(metadata, UserDataListType, fieldName)
+    Seq(LIST, elementType)
   }
 
-  private def mapType(metadata: jMap[_, _]): Seq[ObjectType] = {
-    val keyClass = Class.forName(metadata.get(UserDataMapKeyType).asInstanceOf[String])
-    val keyType = selectType(keyClass) match {
-      case Seq(binding) => binding
-      case _ => throw new IllegalArgumentException(s"Can't serialize map key type of ${keyClass.getName}")
-    }
-    val valueClass = Class.forName(metadata.get(UserDataMapValueType).asInstanceOf[String])
-    val valueType = selectType(valueClass) match {
-      case Seq(binding) => binding
-      case _ => throw new IllegalArgumentException(s"Can't serialize map value type of ${valueClass.getName}")
-    }
+  private def mapType(metadata: jMap[_, _], fieldName: Option[String]): Seq[ObjectType] = {
+    val keyType = getSubType(metadata, UserDataMapKeyType, fieldName)
+    val valueType = getSubType(metadata, UserDataMapValueType, fieldName)
     Seq(MAP, keyType, valueType)
+  }
+
+  private def getSubType(metadata: jMap[_, _], typeKey: String, fieldName: Option[String]): ObjectType = {
+    def fieldError: String = s"for collection-type field${fieldName.fold("")(f => s" '$f'")}"
+    metadata.get(typeKey) match {
+      case s: String =>
+        val clazz = Class.forName(s)
+        selectType(clazz) match {
+          case Seq(binding) => binding
+          case _ => throw new IllegalArgumentException(s"Can't serialize sub-type of ${clazz.getName} $fieldError")
+        }
+
+      case null => throw new IllegalArgumentException(s"Missing user data key '$typeKey' $fieldError")
+      case t => throw new IllegalArgumentException(s"Unexpected user data '$typeKey' $fieldError: $t")
+    }
   }
 }

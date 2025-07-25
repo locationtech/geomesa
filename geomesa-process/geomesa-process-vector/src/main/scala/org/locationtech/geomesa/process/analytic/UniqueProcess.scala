@@ -17,9 +17,10 @@ import org.geotools.api.filter.Filter
 import org.geotools.api.util.ProgressListener
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 
+import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -90,15 +92,13 @@ object UniqueProcess {
     * @param sortByCount sort by count or by value
     * @return
     */
-  def createReturnCollection(uniqueValues: Map[Any, Long],
+  def createReturnCollection(uniqueValues: Map[AnyRef, Long],
                              binding: Class[_],
                              histogram: Boolean,
                              sort: Option[String],
                              sortByCount: Boolean): SimpleFeatureCollection = {
 
     val ft = createUniqueSft(binding, histogram)
-
-    val sfb = new SimpleFeatureBuilder(ft)
 
     val result = new ListFeatureCollection(ft)
 
@@ -114,16 +114,18 @@ object UniqueProcess {
     }.getOrElse(uniqueValues.iterator)
 
     // histogram includes extra 'count' attribute
-    val addFn = if (histogram) (key: Any, value: Long) => {
-      sfb.add(key)
-      sfb.add(value)
-      result.add(sfb.buildFeature(null))
-    } else (key: Any, _: Long) => {
-      sfb.add(key)
-      result.add(sfb.buildFeature(null))
+    val toSf = if (histogram) (key: AnyRef, value: Long) => {
+      val sf = new ScalaSimpleFeature(ft, UUID.randomUUID().toString)
+      sf.setAttributeNoConvert(0, key)
+      sf.setAttributeNoConvert(1, Long.box(value))
+      sf
+    } else (key: AnyRef, _: Long) => {
+      val sf = new ScalaSimpleFeature(ft, UUID.randomUUID().toString)
+      sf.setAttributeNoConvert(0, key)
+      sf
     }
 
-    sorted.foreach { case (key, value) => addFn(key, value) }
+    sorted.foreach { case (key, value) => result.add(toSf(key, value)) }
 
     result
   }
@@ -164,7 +166,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   import scala.collection.JavaConverters._
 
   private val attribute    = attributeDescriptor.getLocalName
-  private val uniqueValues = mutable.Map.empty[Any, Long].withDefaultValue(0)
+  private val uniqueValues = mutable.Map.empty[AnyRef, Long].withDefaultValue(0)
 
   private var attributeIdx: Int = -1
 
@@ -186,7 +188,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   }
 
   private def addMultiValue(f: SimpleFeature): Unit = {
-    val values = getAttribute[java.util.Collection[_]](f)
+    val values = getAttribute[java.util.Collection[AnyRef]](f)
     if (values != null) {
       values.asScala.foreach(uniqueValues(_) += 1)
     }
@@ -230,7 +232,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
       val enumeration = try {
         // stats should always return exactly one result, even if there are no features in the table
         val encoded = reader.next.getAttribute(0).asInstanceOf[String]
-        StatsScan.decodeStat(sft)(encoded).asInstanceOf[EnumerationStat[Any]]
+        StatsScan.decodeStat(sft)(encoded).asInstanceOf[EnumerationStat[AnyRef]]
       } finally {
         reader.close()
       }
@@ -242,7 +244,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     enumerated.foreach { case (k, v) => uniqueValues.put(k, v) }
   }
 
-  private def uniqueV5(source: SimpleFeatureSource, query: Query): Iterable[(Any, Long)] = {
+  private def uniqueV5(source: SimpleFeatureSource, query: Query): Iterable[(AnyRef, Long)] = {
     // only return the attribute we are interested in to reduce bandwidth
     query.setPropertyNames(Seq(attribute).asJava)
 
@@ -276,9 +278,9 @@ object AttributeVisitor {
  *
  * @param attributes result
  */
-class AttributeResult(val attributes: Map[Any, Long]) extends AbstractCalcResult {
+class AttributeResult(val attributes: Map[AnyRef, Long]) extends AbstractCalcResult {
 
-  override def getValue: java.util.Map[Any, Long] = attributes.asJava
+  override def getValue: java.util.Map[AnyRef, Long] = attributes.asJava
 
   override def isCompatible(targetResults: CalcResult): Boolean =
     targetResults.isInstanceOf[AttributeResult] || targetResults == CalcResult.NULL_RESULT
@@ -289,7 +291,7 @@ class AttributeResult(val attributes: Map[Any, Long]) extends AbstractCalcResult
     } else if (resultsToAdd == CalcResult.NULL_RESULT) {
       this
     } else if (resultsToAdd.isInstanceOf[AttributeResult]) {
-      val toAdd = resultsToAdd.getValue.asInstanceOf[Map[Any, Long]]
+      val toAdd = resultsToAdd.getValue.asInstanceOf[Map[AnyRef, Long]]
       // note ++ on maps will get all keys with second maps values if exists, if not first map values
       val merged = attributes ++ toAdd.map {
         case (attr, count) => attr -> (count + attributes.getOrElse(attr, 0L))

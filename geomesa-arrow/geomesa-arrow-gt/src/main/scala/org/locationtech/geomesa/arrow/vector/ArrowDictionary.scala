@@ -244,7 +244,7 @@ object ArrowDictionary {
     override def iterator: Iterator[AnyRef] = values.keys.iterator
 
     override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable =
-      throw new NotImplementedError()
+      throw new UnsupportedOperationException()
 
     override def close(): Unit = {}
 

@@ -67,7 +67,7 @@ trait StorageMetadata extends Compactable with Closeable {
    * @param key key
    * @param value value
    */
-  def set(key: String, value: String): Unit = throw new NotImplementedError()
+  def set(key: String, value: String): Unit = throw new UnsupportedOperationException()
 
   /**
     * Get a partition by name. Ensure that `reload` has been invoked at least once before calling this method

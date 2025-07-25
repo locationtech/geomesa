@@ -148,7 +148,7 @@ object QueryRunner {
         sft: SimpleFeatureType,
         query: Query,
         explain: Explainer): QueryResult = {
-      throw new NotImplementedError()
+      throw new UnsupportedOperationException()
     }
   }
 

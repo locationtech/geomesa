@@ -72,7 +72,7 @@ class AttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] with 
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
-    throw new NotImplementedError
+    throw new UnsupportedOperationException()
 }
 
 object AttributeKeyValueIterator {

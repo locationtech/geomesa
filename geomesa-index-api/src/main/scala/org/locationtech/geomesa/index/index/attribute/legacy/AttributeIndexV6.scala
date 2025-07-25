@@ -92,7 +92,7 @@ object AttributeIndexV6 {
         case LowerBoundedByteRange(lower, upper) => LowerBoundedByteRange(swap(lower), swap(upper))
         case UpperBoundedByteRange(lower, upper) => UpperBoundedByteRange(swap(lower), swap(upper))
         case UnboundedByteRange(lower, upper)    => UnboundedByteRange(swap(lower), swap(upper))
-        case r => throw new NotImplementedError(s"Unexpected byte range: $r")
+        case r => throw new UnsupportedOperationException(s"Unexpected byte range: $r")
       }
     }
 

@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: 'temurin'
           java-version: '11'
@@ -112,8 +112,12 @@ jobs:
             selector: -f geomesa-features
           - name: fs
             selector: -f geomesa-fs
-          - name: gt
-            selector: -f geomesa-gt
+          - name: gt-pg15
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=15-3.4
+          - name: gt-pg16
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=16-3.5
+          - name: gt-pg17
+            selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
           - name: hbase
             selector: -f geomesa-hbase
           - name: kafka
@@ -144,10 +148,37 @@ jobs:
     with:
       scala-version: ${{ inputs.scala-version }}
   javadocs:
+    name: javadocs (${{ matrix.docs.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        docs:
+          - name: 1
+            selector: "-pl geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,\
+                       geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,\
+                       geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,\
+                       geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,\
+                       geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,\
+                       geomesa-cassandra/geomesa-cassandra-datastore"
+          - name: 2
+            selector: "-pl '!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
+                       !geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       !geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,\
+                       !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,\
+                       !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       !geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,\
+                       !geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,\
+                       !geomesa-cassandra/geomesa-cassandra-datastore'"
     needs: compile
     uses: ./.github/workflows/javadocs.yml
     with:
+      build-id: -${{ matrix.docs.name }}
       scala-version: ${{ inputs.scala-version }}
+      module-selector: ${{ matrix.docs.selector }}
   dash:
     needs: compile
     uses: ./.github/workflows/dash.yml

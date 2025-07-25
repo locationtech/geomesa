@@ -19,14 +19,12 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
-class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogging {
+class ArrowMultiPointTest extends TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -40,7 +38,9 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
     ScalaSimpleFeature.create(sft, s"$i", team, name, s"2017-02-03T00:0$i:01.000Z", s"MULTIPOINT((40 6$i),(4$i 60),(2 2))")
   }
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   "Arrow delta scans" should {
     "query multipoints" in {
@@ -52,10 +52,7 @@ class ArrowMultiPointTest extends TestWithFeatureType with Mockito with LazyLogg
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      val result = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
-      }
+      val result = SimpleFeatureArrowFileReader.read(out.toByteArray)
       result.map(_.getID) mustEqual features.map(_.getID)
       result.map(_.getAttributes.asScala) mustEqual features.map(_.getAttributes.asScala.drop(1))
     }

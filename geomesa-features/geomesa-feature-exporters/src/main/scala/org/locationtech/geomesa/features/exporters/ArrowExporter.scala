@@ -41,7 +41,7 @@ class ArrowExporter(out: OutputStream, hints: Hints) extends FeatureExporter {
       new BatchDelegate(out, encoding, FormatVersion.options(ipc), sort, batchSize, Map.empty, flattenFields)
     } else {
       if (sort.isDefined) {
-        throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
+        throw new UnsupportedOperationException("Sorting and calculating dictionaries at the same time is not supported")
       }
       new DictionaryDelegate(out, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize, flattenFields)
     }

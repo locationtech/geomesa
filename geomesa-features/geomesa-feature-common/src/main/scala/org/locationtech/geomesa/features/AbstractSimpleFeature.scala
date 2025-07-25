@@ -56,12 +56,11 @@ object AbstractSimpleFeature {
     *
     * @param sft simple feature type
     */
-  abstract class AbstractMutableSimpleFeature(sft: SimpleFeatureType) extends AbstractSimpleFeature(sft) {
+  abstract class AbstractMutableSimpleFeature(sft: SimpleFeatureType) extends AbstractSimpleFeature(sft) with FastSettableFeature {
 
     protected var id: String = _
 
-    def setAttributeNoConvert(index: Int, value: AnyRef): Unit
-    def setId(id: String): Unit = this.id = id
+    override def setId(id: String): Unit = this.id = id
 
     override def getIdentifier: FeatureId = new MutableFeatureIdReference()
     override def getID: String = id

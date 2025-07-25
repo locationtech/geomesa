@@ -265,8 +265,9 @@ object ArrowAttributeWriter {
       case (ObjectType.MULTIPOINT, Encoding.Max, FromAllocator(c))      => new MultiPointVector(name, c, m)
       case (ObjectType.GEOMETRY, _, FromStruct(c))                      => new WKBGeometryVector(name, c, m)
       case (ObjectType.GEOMETRY, _, FromAllocator(c))                   => new WKBGeometryVector(name, c, m)
-      case (ObjectType.GEOMETRY_COLLECTION, _, _) => throw new NotImplementedError(s"Geometry type $binding is not supported")
-      case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
+      case (ObjectType.GEOMETRY_COLLECTION, _, FromStruct(c))           => new WKBGeometryVector(name, c, m)
+      case (ObjectType.GEOMETRY_COLLECTION, _, FromAllocator(c))        => new WKBGeometryVector(name, c, m)
+      case (_, _, FromList(_)) => throw new UnsupportedOperationException("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }
     val geometryVector = vector.asInstanceOf[GeometryVector[Geometry, FieldVector]]

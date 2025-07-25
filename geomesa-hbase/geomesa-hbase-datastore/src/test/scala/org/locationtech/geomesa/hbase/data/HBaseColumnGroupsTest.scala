@@ -37,7 +37,7 @@ import org.locationtech.jts.geom.{Envelope, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
@@ -48,7 +48,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
   // note: using Seq.foreach, ok instead of foreach(Seq) shaves several seconds off the time to run this test
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName     -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName
   )
 
@@ -249,18 +249,15 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         val arrows = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
         val out = new ByteArrayOutputStream
         arrows.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-        def in() = new ByteArrayInputStream(out.toByteArray)
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-          val results = SelfClosingIterator(reader.features()).map { f =>
-            // round the points, as precision is lost due to the arrow encoding
-            val attributes = f.getAttributes.asScala.collect {
-              case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
-              case a => a
-            }
-            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
-          }.toList
-          results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
+        val results = SimpleFeatureArrowFileReader.read(out.toByteArray).map { f =>
+          // round the points, as precision is lost due to the arrow encoding
+          val attributes = f.getAttributes.asScala.collect {
+            case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
+            case a => a
+          }
+          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes.toSeq: _*)
         }
+        results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
       }
     }
     "work with bin queries" in {

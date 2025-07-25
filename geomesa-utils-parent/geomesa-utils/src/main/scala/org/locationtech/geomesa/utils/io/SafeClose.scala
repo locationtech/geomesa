@@ -54,7 +54,14 @@ trait IsCloseableImplicits[C] {
   implicit val arrayIsCloseable: ArrayIsCloseable[C] = new ArrayIsCloseable()
 
   implicit val dataStoreIsCloseable: DataStoreIsCloseable = new DataStoreIsCloseable()
+  implicit val dataStoreIterableIsCloseable: IterableIsCloseable[DataStore] = new IterableIsCloseable()
+  implicit val dataStoreOptionIsCloseable: OptionIsCloseable[DataStore] = new OptionIsCloseable()
+  implicit val dataStoreArrayIsCloseable: ArrayIsCloseable[DataStore] = new ArrayIsCloseable()
+
   implicit val executorServiceIsCloseable: ExecutorServiceIsCloseable = new ExecutorServiceIsCloseable()
+  implicit val executorServiceIterableIsCloseable: IterableIsCloseable[ExecutorService] = new IterableIsCloseable()
+  implicit val executorServiceOptionIsCloseable: OptionIsCloseable[ExecutorService] = new OptionIsCloseable()
+  implicit val executorServiceArrayIsCloseable: ArrayIsCloseable[ExecutorService] = new ArrayIsCloseable()
 }
 
 object IsCloseableImplicits {

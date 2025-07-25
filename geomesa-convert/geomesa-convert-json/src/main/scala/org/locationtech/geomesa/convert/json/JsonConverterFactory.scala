@@ -135,7 +135,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
     }
     val fieldConfig = idJsonField.toSeq ++ inferredTypes.types.map(createFieldConfig)
 
-    val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
+    val jsonConfig = JsonConfig(typeToProcess, None, featurePath, idField, Map.empty, Map.empty)
 
     val config = configConvert.to(jsonConfig)
         .withFallback(fieldConvert.to(fieldConfig))
@@ -189,7 +189,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           val idField = Some(Expression("md5(stringToBytes(toString($0)))"))
           val fieldConfig = inferredTypes.types.map(createFieldConfig)
 
-          val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
+          val jsonConfig = JsonConfig(typeToProcess, None, featurePath, idField, Map.empty, Map.empty)
 
           val config =
             configConvert.to(jsonConfig)
@@ -220,7 +220,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           // if type is list, that means the transform is 'identity', but we need to replace it with jsonList.
           // this is due to GeoJsonParsing decoding the json array for us, above
           ArrayJsonField(inferredType.name, path, pathIsRoot = false, Some(Expression("try(jsonList('string',$0),null)")))
-        case t if transform.isEmpty && (t == ObjectType.GEOMETRY || ObjectType.GeometrySubtypes.contains(t)) =>
+        case t if transform.isEmpty && ObjectType.GeometrySubtypes.contains(t) =>
           GeometryJsonField(inferredType.name, path, pathIsRoot = false, None)
         case _ =>
           // all other types will be parsed as strings with appropriate transforms
@@ -246,8 +246,11 @@ object JsonConverterFactory {
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, JsonConfig] = {
-      for { path <- optional(cur, "feature-path").right } yield {
-        JsonConfig(`type`, path, idField, caches, userData)
+      for {
+        name <- converterName(cur).right
+        path <- optional(cur, "feature-path").right
+      } yield {
+        JsonConfig(`type`, name, path, idField, caches, userData)
       }
     }
 

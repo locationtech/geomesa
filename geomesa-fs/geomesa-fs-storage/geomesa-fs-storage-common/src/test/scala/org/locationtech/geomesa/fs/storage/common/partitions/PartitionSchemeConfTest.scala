@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.StorageSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -32,7 +34,7 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
           |   options = {
           |     datetime-format = "yyyy/DDD/HH"
           |     step-unit = HOURS
-          |     step = 1
+          |     step = 2
           |     dtg-attribute = dtg
           |     geom-attribute = geom
           |     z2-resolution = 10
@@ -44,6 +46,10 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       val scheme = PartitionSchemeFactory.load(sft, StorageSerialization.deserialize(conf))
       scheme must beAnInstanceOf[CompositeScheme]
+      scheme.asInstanceOf[CompositeScheme].schemes must haveLength(2)
+      scheme.asInstanceOf[CompositeScheme].schemes must
+        contain(beAnInstanceOf[DateTimeScheme], beAnInstanceOf[Z2Scheme]).copy(checkOrder = true)
+      scheme.asInstanceOf[CompositeScheme].schemes.collectFirst { case d: DateTimeScheme => d.step } must beSome(2)
     }
 
     "load, serialize, deserialize" >> {

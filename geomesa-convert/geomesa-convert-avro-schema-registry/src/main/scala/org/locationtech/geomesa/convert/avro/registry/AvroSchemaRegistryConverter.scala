@@ -20,7 +20,7 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.registry.AvroSchemaRegistryConverter.{AvroSchemaRegistryConfig, GenericRecordSchemaRegistryIterator}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterName}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.io.InputStream
@@ -73,11 +73,12 @@ object AvroSchemaRegistryConverter {
 
   case class AvroSchemaRegistryConfig(
       `type`: String,
+      converterName: Option[String],
       schemaRegistry: String,
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   sealed trait SchemaConfig
 

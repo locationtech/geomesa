@@ -256,8 +256,8 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
 
   // TODO read into a byte array so we can lazily evaluate it
   // user data is tricky here as we don't know the length...
-  override def deserialize(in: InputStream): SimpleFeature = throw new NotImplementedError
-  override def deserialize(id: String, in: InputStream): SimpleFeature = throw new NotImplementedError
+  override def deserialize(in: InputStream): SimpleFeature = throw new UnsupportedOperationException()
+  override def deserialize(id: String, in: InputStream): SimpleFeature = throw new UnsupportedOperationException()
 
   protected def createFeature(id: String, reader: LazyAttributeReader, userData: LazyUserDataReader): SimpleFeature
 

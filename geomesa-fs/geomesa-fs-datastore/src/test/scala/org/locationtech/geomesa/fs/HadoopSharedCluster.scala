@@ -29,12 +29,16 @@ object HadoopSharedCluster extends StrictLogging {
 
   lazy val Container: HadoopContainer = tryContainer.get
 
-  lazy val ContainerConfig: String = {
+  lazy val ContainerConfiguration: Configuration = {
     val conf = new Configuration(false)
     conf.addResource(new ByteArrayInputStream(Container.getConfigurationXml.getBytes(StandardCharsets.UTF_8)), "")
     conf.set("parquet.compression", "GZIP", "") // default is snappy which is not on our classpath
+    conf
+  }
+
+  lazy val ContainerConfig: String = {
     val writer = new StringWriter()
-    conf.writeXml(writer)
+    ContainerConfiguration.writeXml(writer)
     writer.toString
   }
 

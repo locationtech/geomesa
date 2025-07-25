@@ -133,6 +133,7 @@ object XmlConverter extends StrictLogging {
 
   case class XmlConfig(
       `type`: String,
+      converterName: Option[String],
       xpathFactory: String,
       xmlNamespaces: Map[String, String],
       xsd: Option[String],
@@ -140,7 +141,7 @@ object XmlConverter extends StrictLogging {
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   sealed trait XmlField extends Field {
     def compile(helper: ThreadLocal[XmlHelper]): Unit

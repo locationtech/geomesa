@@ -11,22 +11,16 @@ package org.locationtech.geomesa.kafka.tools.ingest
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.jobs.Awaitable
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.tools.KafkaDataStoreCommand.KafkaDistributedCommand
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, ProducerDataStoreParams}
-import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand.KafkaIngestParams
-import org.locationtech.geomesa.tools.{Command, ConverterConfigParam, OptionalFeatureSpecParam, OptionalForceParam, OptionalInputFormatParam, OptionalTypeNameParam}
+import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
-import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-
-import scala.concurrent.duration.Duration
 
 class KafkaPlaybackCommand extends IngestCommand[KafkaDataStore] with KafkaDataStoreCommand {
 

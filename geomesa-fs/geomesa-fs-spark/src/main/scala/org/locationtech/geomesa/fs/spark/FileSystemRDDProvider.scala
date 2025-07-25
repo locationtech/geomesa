@@ -26,8 +26,8 @@ import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.orc.jobs.{OrcSimpleFeatureActionInputFormat, OrcSimpleFeatureInputFormat}
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.fs.storage.parquet.jobs.{ParquetSimpleFeatureActionInputFormat, ParquetSimpleFeatureInputFormat}
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
 import java.io.Serializable
@@ -65,7 +65,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
           ParquetSimpleFeatureInputFormat.configure(conf, sft, query)
           (classOf[ParquetSimpleFeatureInputFormat], classOf[ParquetSimpleFeatureActionInputFormat])
         } else {
-          throw new NotImplementedError(s"Not implemented for encoding '${storage.metadata.encoding}'")
+          throw new UnsupportedOperationException(s"Not implemented for encoding '${storage.metadata.encoding}'")
         }
 
         if (modifications) {
@@ -129,7 +129,8 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
     rdd.foreachPartition { iter =>
       WithStore[FileSystemDataStore](params) { ds =>
         WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          val helper = FeatureWriterHelper(writer, useProvidedFids = true)
+          iter.foreach(helper.write)
         }
       }
     }

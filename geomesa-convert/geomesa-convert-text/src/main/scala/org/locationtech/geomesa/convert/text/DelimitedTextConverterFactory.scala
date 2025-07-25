@@ -103,7 +103,7 @@ class DelimitedTextConverterFactory
       val inferred =
         TypeInference.infer(pathsAndValues,
           sft.toRight(s"inferred-${if (format == Formats.Tabs) { "tsv" } else { "csv" }}"))
-      val converterConfig = DelimitedTextConfig(typeToProcess, formats.find(_._2 == format).get._1,
+      val converterConfig = DelimitedTextConfig(typeToProcess, None, formats.find(_._2 == format).get._1,
         Some(Expression("md5(string2bytes($0))")), Map.empty, Map.empty)
 
       val fields = {
@@ -134,8 +134,9 @@ class DelimitedTextConverterFactory
         }
         val schema = SimpleFeatureTypes.createType("", spec)
 
-        val converterConfig = DelimitedTextConfig(typeToProcess,
-          formats.find(_._2 == Formats.QuotedMinimal).get._1, Some(Expression("$1")), Map.empty, Map.empty)
+        val converterConfig =
+          DelimitedTextConfig(typeToProcess, None, formats.find(_._2 == Formats.QuotedMinimal).get._1,
+            Some(Expression("$1")), Map.empty, Map.empty)
 
         var i = 1 // 0 is the whole record, 1 is the id
         val fields = schema.getAttributeDescriptors.asScala.map { d =>
@@ -192,12 +193,15 @@ object DelimitedTextConverterFactory {
 
     override protected def decodeConfig(
         cur: ConfigObjectCursor,
-        typ: String,
+        `type`: String,
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, DelimitedTextConfig] = {
-      for { format <- cur.atKey("format").right.flatMap(_.asString).right } yield {
-        DelimitedTextConfig(typ, format, idField, caches, userData)
+      for {
+        name   <- converterName(cur).right
+        format <- cur.atKey("format").right.flatMap(_.asString).right
+      } yield {
+        DelimitedTextConfig(`type`, name, format, idField, caches, userData)
       }
     }
 

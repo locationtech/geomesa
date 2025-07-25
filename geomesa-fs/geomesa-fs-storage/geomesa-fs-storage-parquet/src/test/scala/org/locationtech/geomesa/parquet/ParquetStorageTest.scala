@@ -27,31 +27,36 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata
+import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthsParam, DefaultAuthorizationsProvider, SecurityUtils, VisibilityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
 import java.nio.file.Files
-import java.util.UUID
+import java.sql.DriverManager
+import java.util.{Locale, UUID}
 
 @RunWith(classOf[JUnitRunner])
 class ParquetStorageTest extends Specification with AllExpectations with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  sequential
-
-  val config = new Configuration()
+  lazy val config = new Configuration()
   config.set("parquet.compression", "gzip")
 
   // 8 bits resolution creates 3 partitions with our test data
-  val scheme = NamedOptions("z2-8bits")
+  lazy val scheme = NamedOptions("z2-8bits")
+
+  lazy val geoParquetSchema = WithClose(getClass.getClassLoader.getResourceAsStream("geoparquet-1.1.0-schema.json")) { is =>
+    SchemaLoader.load(new JSONObject(new JSONTokener(is)))
+  }
 
   "ParquetFileSystemStorage" should {
     "read and write features" in {
@@ -67,67 +72,80 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         sf
       }
 
-      withTestDir { dir =>
-        val context = FileSystemContext(dir, config)
-        val metadata =
-          new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+      foreach(Seq(GeometryEncoding.GeoMesaV1, GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb)) { encoding =>
+        withTestDir { dir =>
+          val config = new Configuration(this.config)
+          config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
+          val context = FileSystemContext(dir, config)
+          val metadata =
+            new FileBasedMetadataFactory()
+                .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+          WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
+            storage must not(beNull)
 
-        storage must not(beNull)
+            val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+            features.foreach { f =>
+              val partition = storage.metadata.scheme.getPartitionName(f)
+              val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+              writer.write(f)
+            }
 
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
+            writers.foreach(_._2.close())
 
-        writers.foreach(_._2.close())
+            logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+            val partitions = storage.getPartitions.map(_.name)
+            partitions must haveLength(writers.size)
 
-        val partitions = storage.getPartitions.map(_.name)
-        partitions must haveLength(writers.size)
+            val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
 
-        val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
+            val doTest = testQuery(storage, sft) _
 
-        val doTest = testQuery(storage, sft) _
+            foreach(transformsList) { transforms =>
+              doTest("INCLUDE", transforms, features)
+              doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
+              doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+              doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
+              doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
+              doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+              doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
+              doTest("name < 'name5'", transforms, features.take(5))
+              doTest("name = 'name5'", transforms, features.slice(5, 6))
+              doTest("age < 5", transforms, features.take(5))
+            }
 
-        foreach(transformsList) { transforms =>
-          doTest("INCLUDE", transforms, features)
-          doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
-          doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-          doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-          doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-          doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-          doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-          doTest("name < 'name5'", transforms, features.take(5))
-          doTest("name = 'name5'", transforms, features.slice(5, 6))
-          doTest("age < 5", transforms, features.take(5))
-        }
+            // verify we can load an existing storage
+            val loaded = new FileBasedMetadataFactory().load(context)
+            loaded must beSome
+            WithClose(new ParquetFileSystemStorageFactory().apply(context, loaded.get))(testQuery(_, sft)("INCLUDE", null, features))
 
-        // verify we can load an existing storage
-        val loaded = new FileBasedMetadataFactory().load(context)
-        loaded must beSome
-        testQuery(new ParquetFileSystemStorageFactory().apply(context, loaded.get), sft)("INCLUDE", null, features)
-
-        // verify GeoParquet metadata
-        val geoParquetSchema = WithClose(getClass.getClassLoader.getResourceAsStream("geoparquet-1.1.0-schema.json")) { is =>
-          SchemaLoader.load(new JSONObject(new JSONTokener(is)))
-        }
-        foreach(storage.getPartitions) { partition =>
-          foreach(partition.files) { file =>
-            val path = new Path(dir, file.name)
-            WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(path, context.conf))) { reader =>
-              val meta = reader.getFileMetaData.getKeyValueMetaData
-              val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
-              geo must not(beNull)
-              val col = geo.getJSONObject("columns").getJSONObject("geom")
-              col.getString("encoding") mustEqual "point"
-              col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq("Point")
-              geoParquetSchema.validate(geo) must not(throwAn[Exception])
+            // verify GeoParquet metadata
+            foreach(storage.getPartitions.headOption.flatMap(_.files.headOption)) { file =>
+              val path = new Path(dir, file.name)
+              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(path, context.conf))) { reader =>
+                val meta = reader.getFileMetaData.getKeyValueMetaData
+                val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
+                geo must not(beNull)
+                geoParquetSchema.validate(geo) must not(throwAn[Exception])
+                val col = geo.getJSONObject("columns").getJSONObject("geom")
+                val expectedEncoding = encoding match {
+                  case GeometryEncoding.GeoParquetWkb => "WKB"
+                  case _ => "point"
+                }
+                col.getString("encoding") mustEqual expectedEncoding
+                col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq("Point")
+                // first partition contains first 5 features
+                col.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(40d, 50d, 44d, 54d)
+                if (encoding == GeometryEncoding.GeoParquetWkb) {
+                  val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                  foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                    covering.getJSONArray(corner).toString mustEqual s"""["__geom_bbox__","$corner"]"""
+                  }
+                } else {
+                  col.has("covering") must beFalse
+                }
+              }
             }
           }
         }
@@ -158,7 +176,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         sf.setAttribute("mpt", s"MULTIPOINT(0 $i, 2 3)")
         sf.setAttribute("poly",
           if (i == 5) {
-            // multipolygon example from wikipedia
+            // polygon example with holes from wikipedia
             "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10),(20 30, 35 35, 30 20, 20 30))"
           } else {
             s"POLYGON((40 3$i, 42 3$i, 42 2$i, 40 2$i, 40 3$i))"
@@ -172,46 +190,125 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         sf
       }
 
-      withTestDir { dir =>
-        val context = FileSystemContext(dir, config)
-        val metadata =
-          new FileBasedMetadataFactory()
+      foreach(Seq(GeometryEncoding.GeoMesaV1, GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb)) { encoding =>
+        withTestDir { dir =>
+          val config = new Configuration(this.config)
+          config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
+          val context = FileSystemContext(dir, config)
+          val metadata =
+            new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+          WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
+            storage must not(beNull)
 
-        storage must not(beNull)
+            val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+            features.foreach { f =>
+              val partition = storage.metadata.scheme.getPartitionName(f)
+              val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+              writer.write(f)
+            }
 
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
+            writers.foreach(_._2.close())
 
-        writers.foreach(_._2.close())
+            logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+            val partitions = storage.getPartitions.map(_.name)
+            partitions must haveLength(writers.size)
 
-        val partitions = storage.getPartitions.map(_.name)
-        partitions must haveLength(writers.size)
+            val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
 
-        val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
+            val doTest = testQuery(storage, sft) _
 
-        val doTest = testQuery(storage, sft) _
+            foreach(transformsList) { transforms =>
+              doTest("INCLUDE", transforms, features)
+              doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
+              doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+              doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
+              doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
+              doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
+              doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
+              doTest("name < 'name5'", transforms, features.take(5))
+              doTest("name = 'name5'", transforms, features.slice(5, 6))
+              doTest("age < 5", transforms, features.take(5))
+              doTest("age > 5", transforms, features.drop(6))
+            }
 
-        foreach(transformsList) { transforms =>
-          doTest("INCLUDE", transforms, features)
-          doTest("IN('0', '2')", transforms, Seq(features(0), features(2)))
-          doTest("bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-          doTest("bbox(geom,42,48,52,62) and dtg DURING 2013-12-15T00:00:00.000Z/2014-01-15T00:00:00.000Z", transforms, features.drop(2))
-          doTest("bbox(geom,42,48,52,62)", transforms, features.drop(2))
-          doTest("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.dropRight(2))
-          doTest("name = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, features.slice(5, 6))
-          doTest("name < 'name5'", transforms, features.take(5))
-          doTest("name = 'name5'", transforms, features.slice(5, 6))
-          doTest("age < 5", transforms, features.take(5))
-          doTest("age > 5", transforms, features.drop(6))
+            foreach(storage.getPartitions.headOption.flatMap(_.files.headOption)) { file =>
+              val path = new Path(dir, file.name)
+              // verify 3rd party integration by reading with DuckDB
+              if (encoding == GeometryEncoding.GeoParquetWkb) {
+                val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
+                WithClose(DriverManager.getConnection("jdbc:duckdb:")) { conn =>
+                  WithClose(conn.createStatement())(_.execute("INSTALL spatial;LOAD spatial;"))
+                  WithClose(conn.prepareStatement(s"SELECT ${geoms.map(g => s"ST_AsText($g)").mkString(", ")} FROM '$path';")) { ps =>
+                    WithClose(ps.executeQuery()) { rs =>
+                      rs.next() must beTrue
+                      val data = Seq.tabulate(geoms.length)(i => rs.getObject(i + 1))
+                      // jts adds parens around multipoints, duckdb does not... apparently both are valid
+                      data mustEqual geoms.map(g => features.head.getAttribute(g).toString.replace("MULTIPOINT ((0 0), (2 3))", "MULTIPOINT (0 0, 2 3)"))
+                    }
+                  }
+                }
+              } else if (encoding == GeometryEncoding.GeoParquetNative) {
+                // TODO find a 3rd party java library we can verify native encoding with
+                // geopandas seems to be the only thing that currently reads GeoParquet native encoding
+              }
+              // verify GeoParquet metadata
+              WithClose(ParquetFileReader.open(HadoopInputFile.fromPath(path, context.conf))) { reader =>
+                val meta = reader.getFileMetaData.getKeyValueMetaData
+                val geo = Option(meta.get(GeoParquetMetadata.GeoParquetMetadataKey)).map(new JSONObject(_)).orNull
+                geo must not(beNull)
+                geoParquetSchema.validate(geo) must not(throwAn[Exception])
+                val cols = geo.getJSONObject("columns")
+                if (encoding == GeometryEncoding.GeoMesaV1) {
+                  cols.length() mustEqual 2
+                  val geom = cols.getJSONObject("geom")
+                  geom.getString("encoding") mustEqual "point"
+                  geom.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq("Point")
+                  geom.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(40d, 50d, 44d, 54d)
+                  geom.has("covering") must beFalse
+
+                  val wkb = cols.getJSONObject("g")
+                  wkb.getString("encoding") mustEqual "WKB"
+                  wkb.getJSONArray("geometry_types").asScala.toSeq must beEmpty
+                  wkb.getJSONArray("bbox").asScala.map(_.asInstanceOf[Number].doubleValue()) mustEqual Seq(-2d, -1d, 42d, 32d)
+                  val covering = wkb.getJSONObject("covering").getJSONObject("bbox")
+                  foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                    covering.getJSONArray(corner).toString mustEqual s"""["__g_bbox__","$corner"]"""
+                  }
+                } else {
+                  cols.length() mustEqual 7
+                  val geoms = Seq("line", "mpt", "poly", "mline", "mpoly", "g", "geom")
+                  foreach(geoms) { geom =>
+                    val binding = sft.getDescriptor(geom).getType.getBinding
+                    val col = cols.getJSONObject(geom)
+                    if (encoding == GeometryEncoding.GeoParquetWkb || binding == classOf[Geometry]) {
+                      col.getString("encoding") mustEqual "WKB"
+                    } else {
+                      col.getString("encoding") mustEqual binding.getSimpleName.toLowerCase(Locale.US)
+                    }
+                    if (binding == classOf[Geometry]) {
+                      col.getJSONArray("geometry_types").asScala.toSeq must beEmpty
+                    } else {
+                      col.getJSONArray("geometry_types").asScala.toSeq mustEqual Seq(binding.getSimpleName)
+                    }
+                    if (encoding == GeometryEncoding.GeoParquetNative && binding == classOf[Point]) {
+                      col.has("covering") must beFalse
+                    } else {
+                      val covering = col.getJSONObject("covering").getJSONObject("bbox")
+                      foreach(Seq("xmin", "ymin", "xmax", "ymax")) { corner =>
+                        covering.getJSONArray(corner).toString mustEqual s"""["__${geom}_bbox__","$corner"]"""
+                      }
+                    }
+                    val bbox = col.getJSONArray("bbox").asScala.toSeq
+                    bbox must haveLength(4)
+                    foreach(bbox)(_ must beAnInstanceOf[Number])
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -308,45 +405,45 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+        WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
+          storage must not(beNull)
 
-        storage must not(beNull)
+          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
-
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
-
-        writers.foreach(_._2.close())
-
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-
-        testQuery(storage, sft)("INCLUDE", null, features)
-
-        val updater = storage.getWriter(Filter.INCLUDE)
-
-        updater.hasNext must beTrue
-        while (updater.hasNext) {
-          val feature = updater.next
-          if (feature.getID == "0") {
-            updater.remove()
-          } else if (feature.getID == "1") {
-            feature.setAttribute(1, "name-updated")
-            updater.write()
+          features.foreach { f =>
+            val partition = storage.metadata.scheme.getPartitionName(f)
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
           }
-        }
-        updater.close()
 
-        val updates = features.drop(2) :+ {
-          val mod = ScalaSimpleFeature.copy(features.drop(1).head)
-          mod.setAttribute("name", "name-updated")
-          mod
-        }
+          writers.foreach(_._2.close())
 
-        testQuery(storage, sft)("INCLUDE", null, updates)
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          testQuery(storage, sft)("INCLUDE", null, features)
+
+          val updater = storage.getWriter(Filter.INCLUDE)
+
+          updater.hasNext must beTrue
+          while (updater.hasNext) {
+            val feature = updater.next
+            if (feature.getID == "0") {
+              updater.remove()
+            } else if (feature.getID == "1") {
+              feature.setAttribute(1, "name-updated")
+              updater.write()
+            }
+          }
+          updater.close()
+
+          val updates = features.drop(2) :+ {
+            val mod = ScalaSimpleFeature.copy(features.drop(1).head)
+            mod.setAttribute("name", "name-updated")
+            mod
+          }
+
+          testQuery(storage, sft)("INCLUDE", null, updates)
+        }
       }
     }
 
@@ -370,48 +467,48 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+        WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
+          storage must not(beNull)
 
-        storage must not(beNull)
+          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
-
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
-
-        TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
-        forall(TestObserverFactory.observers)(_.closed must beFalse)
-
-        writers.foreach(_._2.close())
-        forall(TestObserverFactory.observers)(_.closed must beTrue)
-        TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
-        TestObserverFactory.observers.clear()
-
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-
-        val updater = storage.getWriter(Filter.INCLUDE)
-
-        updater.hasNext must beTrue
-        while (updater.hasNext) {
-          val feature = updater.next
-          if (feature.getID == "0") {
-            updater.remove()
-          } else if (feature.getID == "1") {
-            feature.setAttribute(1, "name-updated")
-            updater.write()
+          features.foreach { f =>
+            val partition = storage.metadata.scheme.getPartitionName(f)
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
           }
+
+          TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
+          forall(TestObserverFactory.observers)(_.closed must beFalse)
+
+          writers.foreach(_._2.close())
+          forall(TestObserverFactory.observers)(_.closed must beTrue)
+          TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
+          TestObserverFactory.observers.clear()
+
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+          val updater = storage.getWriter(Filter.INCLUDE)
+
+          updater.hasNext must beTrue
+          while (updater.hasNext) {
+            val feature = updater.next
+            if (feature.getID == "0") {
+              updater.remove()
+            } else if (feature.getID == "1") {
+              feature.setAttribute(1, "name-updated")
+              updater.write()
+            }
+          }
+
+          TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+          forall(TestObserverFactory.observers)(_.closed must beFalse)
+
+          updater.close()
+
+          forall(TestObserverFactory.observers)(_.closed must beTrue)
+          TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
         }
-
-        TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
-        forall(TestObserverFactory.observers)(_.closed must beFalse)
-
-        updater.close()
-
-        forall(TestObserverFactory.observers)(_.closed must beTrue)
-        TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
       }
     }
 
@@ -429,53 +526,132 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
 
       // note: this is somewhat of a magic number, in that it works the first time through with no remainder
-      val targetSize = 2700L
+      val targetSize = 3600L
 
       withTestDir { dir =>
         val context = FileSystemContext(dir, config)
         val metadata =
           new FileBasedMetadataFactory()
               .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true, Some(targetSize)))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+        WithClose(new ParquetFileSystemStorageFactory().apply(context, metadata)) { storage =>
+          storage must not(beNull)
 
-        storage must not(beNull)
+          val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
 
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+          features.foreach { f =>
+            val partition = storage.metadata.scheme.getPartitionName(f)
+            val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+            writer.write(f)
+          }
 
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
+          writers.foreach(_._2.close())
 
-        writers.foreach(_._2.close())
+          logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-
-        val partitions = storage.getPartitions.map(_.name)
-        partitions must haveLength(writers.size)
-        foreach(partitions) { partition =>
-          val paths = storage.getFilePaths(partition)
-          paths.size must beGreaterThan(1)
-          foreach(paths)(p => context.fs.getFileStatus(p.path).getLen must beCloseTo(targetSize, targetSize / 10))
+          val partitions = storage.getPartitions.map(_.name)
+          partitions must haveLength(writers.size)
+          foreach(partitions) { partition =>
+            val paths = storage.getFilePaths(partition)
+            paths.size must beGreaterThan(1)
+            foreach(paths)(p => context.fs.getFileStatus(p.path).getLen must beCloseTo(targetSize, targetSize / 10))
+          }
         }
       }
     }
 
-    "read old files" in {
-      val url = getClass.getClassLoader.getResource("data/2.3.0/example-csv/")
-      url must not(beNull)
-      val path = new Path(url.toURI)
-      val context = FileSystemContext(path, config)
-      val metadata = StorageMetadataFactory.load(context).orNull
-      metadata must not(beNull)
-      val storage = FileSystemStorageFactory(context, metadata)
+    "read old point geometries" in {
+      foreach(Seq("2.3.0", "5.2.2")) { version =>
+        val url = getClass.getClassLoader.getResource(s"data/$version/example-csv/")
+        url must not(beNull)
+        val path = new Path(url.toURI)
+        val context = FileSystemContext(path, config)
+        val metadata = StorageMetadataFactory.load(context).orNull
+        metadata must not(beNull)
+        WithClose(FileSystemStorageFactory(context, metadata)) { storage =>
+          val features = SelfClosingIterator(storage.getReader(new Query("example-csv"))).toList.sortBy(_.getID)
+          features must haveLength(3)
+          features.map(_.getAttribute("name").asInstanceOf[String]) mustEqual Seq("Harry", "Hermione", "Severus")
+          features.map(_.getAttribute("geom").toString) mustEqual
+            Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)")
 
-      val features = SelfClosingIterator(storage.getReader(new Query("example-csv"))).toList.sortBy(_.getID)
-      features must haveLength(3)
-      features.map(_.getAttribute("name").asInstanceOf[String]) mustEqual Seq("Harry", "Hermione", "Severus")
-      features.map(_.getAttribute("geom").toString) mustEqual
-          Seq("POINT (-100.2365 23)", "POINT (40.232 -53.2356)", "POINT (3 -62.23)")
+          val testCases = Seq(null, Array("geom"), Array("geom", "lastseen"), Array("geom", "name")).flatMap { transforms =>
+            Seq(
+              ("INCLUDE", transforms, features),
+              ("IN('23623', '3233')", transforms, features.take(1) ++ features.takeRight(1)),
+              ("bbox(geom,-105,-65,45,25) and lastseen DURING 2015-01-01T00:00:00.000Z/2015-08-01T00:00:00.000Z", transforms, features.take(2)),
+              ("bbox(geom,-105,-65,0,25) and lastseen DURING 2015-01-01T00:00:00.000Z/2015-08-01T00:00:00.000Z", transforms, features.take(1)),
+              ("bbox(geom,-105,-65,0,25)", transforms, features.take(1)),
+              ("lastseen DURING 2015-01-01T00:00:00.000Z/2015-08-01T00:00:00.000Z", transforms, features.take(2)),
+              ("name like 'H%'", transforms, features.take(2)),
+              ("name = 'Harry'", transforms, features.take(1)),
+              ("age > 22", transforms, features.drop(1)),
+            )
+          }
+          foreach(testCases) { case (filter, transform, expected) =>
+            val query = new Query("example-csv", ECQL.toFilter(filter))
+            if (transform != null) {
+              query.setPropertyNames(transform: _*)
+            }
+            val result = SelfClosingIterator(storage.getReader(query)).toList.sortBy(_.getID)
+            if (transform == null) {
+              result mustEqual expected
+            } else {
+              result.map(_.getID) mustEqual expected.map(_.getID)
+              result.map(_.getAttributeCount).distinct mustEqual Seq(transform.length)
+              foreach(transform) { prop =>
+                result.map(_.getAttribute(prop)) mustEqual expected.map(_.getAttribute(prop))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    "read old non-point geometries" in {
+      foreach(Seq("lines", "polygons")) { geoms =>
+        val typeName = s"example-csv-$geoms"
+        val url = getClass.getClassLoader.getResource(s"data/5.2.2/$typeName/")
+        url must not(beNull)
+        val path = new Path(url.toURI)
+        val context = FileSystemContext(path, config)
+        val metadata = StorageMetadataFactory.load(context).orNull
+        metadata must not(beNull)
+        WithClose(FileSystemStorageFactory(context, metadata)) { storage =>
+          val features = SelfClosingIterator(storage.getReader(new Query(typeName))).toList.sortBy(_.getID)
+          features must haveLength(3)
+          features.map(_.getID) mustEqual Seq("1", "2", "3")
+          features.map(_.getAttribute("name").asInstanceOf[String]) mustEqual Seq("amy", "bob", "carl")
+
+          val testCases = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name")).flatMap { transforms =>
+            Seq(
+              ("INCLUDE", transforms, features),
+              ("IN('1', '3')", transforms, features.take(1) ++ features.drop(2)),
+              ("bbox(geom,5,5,50,50) and dtg DURING 2015-04-01T00:00:00.000Z/2015-06-01T00:00:00.000Z", transforms, features.take(1)),
+              ("bbox(geom,5,5,50,50) and dtg DURING 2015-04-01T00:00:00.000Z/2015-07-01T00:00:00.000Z", transforms, features),
+              ("bbox(geom,19,9,21,11)", transforms, features.slice(1, 2)),
+              ("dtg DURING 2015-06-01T00:00:00.000Z/2015-06-03T00:00:00.000Z", transforms, features.drop(1)),
+              ("name like '%a%'", transforms, features.take(1) ++ features.drop(2)),
+              ("name = 'bob'", transforms, features.slice(1, 2)),
+            )
+          }
+          foreach(testCases) { case (filter, transform, expected) =>
+            val query = new Query(typeName, ECQL.toFilter(filter))
+            if (transform != null) {
+              query.setPropertyNames(transform: _*)
+            }
+            val result = SelfClosingIterator(storage.getReader(query)).toList.sortBy(_.getID)
+            if (transform == null) {
+              result mustEqual expected
+            } else {
+              result.map(_.getID) mustEqual expected.map(_.getID)
+              result.map(_.getAttributeCount).distinct mustEqual Seq(transform.length)
+              foreach(transform) { prop =>
+                result.map(_.getAttribute(prop)) mustEqual expected.map(_.getAttribute(prop))
+              }
+            }
+          }
+        }
+      }
     }
   }
 

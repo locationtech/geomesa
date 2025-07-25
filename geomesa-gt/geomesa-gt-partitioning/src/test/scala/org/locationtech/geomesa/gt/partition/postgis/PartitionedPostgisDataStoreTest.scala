@@ -20,22 +20,25 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.Config.WalLogEnabled
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.utility.DockerImageName
 
+import java.io.{ByteArrayInputStream, SequenceInputStream}
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -46,6 +49,8 @@ import scala.util.control.NonFatal
 
 @RunWith(classOf[JUnitRunner])
 class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll with LazyLogging {
+
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
@@ -64,7 +69,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
   val schema = "public"
 
-  lazy val sft = SimpleFeatureTypes.createType(s"test", spec)
+  lazy val sft = SimpleFeatureTypes.createType("test", spec)
 
   lazy val now = System.currentTimeMillis()
 
@@ -84,7 +89,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "port" -> port,
     "database" -> "postgres",
     "user" -> "postgres",
-    "passwd" -> "postgres",
+    "passwd" -> Option(container).fold("postgres")(_.password),
     "Batch insert size" -> "10",
     "preparedStatements" -> "true"
   )
@@ -110,7 +115,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       |
       |""".stripMargin
 
-  var container: GenericContainer[_] = _
+  var container: PostgisContainer = _
 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
   lazy val port = Option(container).map(_.getFirstMappedPort).getOrElse(5432).toString
@@ -118,22 +123,16 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
   lazy val fif = CommonFactoryFinder.getFilterFactory
 
   override def beforeAll(): Unit = {
-    val image =
-      DockerImageName.parse("ghcr.io/geomesa/postgis-cron")
-          .withTag(sys.props.getOrElse("postgis.docker.tag", "15-3.4"))
-    container = new GenericContainer(image)
-    container.addEnv("POSTGRES_HOST_AUTH_METHOD", "trust")
-    container.addExposedPort(5432)
+    container = new PostgisContainer()
     if (logger.underlying.isTraceEnabled()) {
-      container.setCommand("postgres", "-c", "log_statement=all")
+      container.withLogAllStatements()
     }
     container.start()
-    container.followOutput(new Slf4jLogConsumer(logger.underlying))
   }
 
   override def afterAll(): Unit = {
     if (container != null) {
-      container.stop()
+      container.close()
     }
   }
 
@@ -181,7 +180,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
-                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
                 rs.getString("table_type") mustEqual "permanent"
               }
             }
@@ -218,7 +217,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             WithClose(cx.createStatement()) { st =>
               WithClose(st.executeQuery(sql)) { rs =>
                 rs.next() must beTrue
-                logger.info(s"Table ${rs.getString("table_name")} is ${rs.getString("table_name")}")
+                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
                 rs.getString("table_type") mustEqual "unlogged"
               }
             }
@@ -370,6 +369,79 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             result must beEmpty
           }
         }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "run arrow queries with dictionary encoded list attributes" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "list-arrow")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+        schema.getDescriptor("name").getUserData.get(AttributeConfigs.UserDataListType) mustEqual "java.lang.String"
+        schema.getDescriptor("name").getListType mustEqual classOf[String]
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        val arrowVisitor =
+          new ArrowVisitor(schema, SimpleFeatureEncoding.min(includeFids = true).copy(date = Encoding.Max), "18.3.0",
+            Seq("name"), Some("dtg"), Some(true), preSorted = false, 100, flattenStruct = false)
+
+        ds.getFeatureSource(sft.getTypeName).getFeatures.accepts(arrowVisitor, null)
+
+        val is = new SequenceInputStream(arrowVisitor.getResult().results.asScala.map(new ByteArrayInputStream(_)).asJavaEnumeration)
+        WithClose(SimpleFeatureArrowFileReader.streaming(is)) { reader =>
+          WithClose(reader.features())(_.map(compFromDb).toList) mustEqual features.map(compWithFid(_, sft))
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "insert data without requiring JAI on the classpath" in {
+      val ds = DataStoreFinder.getDataStore((params ++ Map("Batch insert size" -> "1")).asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.createType("jai", "name:String,dtg:Date,dtg2:Date,*geom:Point:srid=4326")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            val next = writer.next()
+            next.setAttribute(0, "name")
+            next.setAttribute(1, "2025-07-01T00:00:00.000Z")
+            next.setAttribute(2, "")
+            next.setAttribute(3, WKTUtils.read("POINT(0 0)"))
+            writer.write() must not (throwA[NoClassDefFoundError])
+          }
+          tx.commit()
+        }
+        ok
+      } catch {
+        case NonFatal(e) => logger.error("", e); ko
       } finally {
         ds.dispose()
       }
@@ -578,6 +650,21 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             fns.toSeq
           }
 
+          // get all the scheduled cron jobs associated with the schema
+          def getCrons: Seq[String] = {
+            val crons = ArrayBuffer.empty[String]
+            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              WithClose(cx.prepareStatement("SELECT command from cron.job where command like '%dropme%';")) { st =>
+                WithClose(st.executeQuery()) { rs =>
+                  while (rs.next()) {
+                    crons += rs.getString(1)
+                  }
+                }
+              }
+            }
+            crons.toSeq
+          }
+
           // get all the user data and other associated metadata
           def getMeta: Seq[String] = {
             val meta = ArrayBuffer.empty[String]
@@ -606,6 +693,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // delete/insert/update/wa triggers
           // analyze_partitions, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
           getFunctions must haveLength(11)
+          // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
+          getCrons must haveLength(4)
           // 3 tablespaces, 4 user data, 1 seq count, 1 primary key
           getMeta must haveLength(9)
 
@@ -613,6 +702,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           getTablesAndIndices must beEmpty
           getFunctions must beEmpty
+          getCrons must beEmpty
           getMeta must beEmpty
         }
       } finally {

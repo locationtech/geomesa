@@ -37,10 +37,9 @@ parquetPoint
 
 Description: Parses a nested Point structure from a Parquet record
 
-Usage: ``parquetPoint($ref, $pathString)``
+Usage: ``parquetPoint($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The point function can parse GeoMesa-encoded Point columns, which consist of a Parquet group of two double-type
 columns named ``x`` and ``y``.
@@ -50,10 +49,9 @@ parquetLineString
 
 Description: Parses a nested LineString structure from a Parquet record
 
-Usage: ``parquetLineString($ref, $pathString)``
+Usage: ``parquetLineString($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The linestring function can parse GeoMesa-encoded LineString columns, which consist of a Parquet group of two
 repeated double-type columns named ``x`` and ``y``.
@@ -63,10 +61,9 @@ parquetPolygon
 
 Description: Parses a nested Polygon structure from a Parquet record
 
-Usage: ``parquetPolygon($ref, $pathString)``
+Usage: ``parquetPolygon($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The polygon function can parse GeoMesa-encoded Polygon columns, which consist of a Parquet group of two list-type
 columns named ``x`` and ``y``. The list elements are repeated double-type columns.
@@ -76,10 +73,9 @@ parquetMultiPoint
 
 Description: Parses a nested MultiPoint structure from a Parquet record
 
-Usage: ``parquetMultiPoint($ref, $pathString)``
+Usage: ``parquetMultiPoint($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The multi-point function can parse GeoMesa-encoded MultiPoint columns, which consist of a Parquet group of two
 repeated double-type columns named ``x`` and ``y``.
@@ -89,10 +85,9 @@ parquetMultiLineString
 
 Description: Parses a nested MultiLineString structure from a Parquet record
 
-Usage: ``parquetMultiLineString($ref, $pathString)``
+Usage: ``parquetMultiLineString($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The multi-linestring function can parse GeoMesa-encoded MultiLineString columns, which consist of a Parquet group
 of two list-type columns named ``x`` and ``y``. The list elements are repeated double-type columns.
@@ -102,10 +97,9 @@ parquetMultiPolygon
 
 Description: Parses a nested MultiPolygon structure from a Parquet record
 
-Usage: ``parquetMultiPolygon($ref, $pathString)``
+Usage: ``parquetMultiPolygon($ref)``
 
 *  ``$ref`` - a reference object (Avro root record or extracted object)
-*  ``pathString`` - forward-slash delimited path string. See `Avro Paths`, above
 
 The multi-polygon function can parse GeoMesa-encoded MultiPolygon columns, which consist of a Parquet group
 of two list-type columns named ``x`` and ``y``. The list elements are also lists, and the nested list elements

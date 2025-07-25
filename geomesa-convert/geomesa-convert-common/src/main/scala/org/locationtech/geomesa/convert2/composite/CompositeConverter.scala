@@ -12,8 +12,10 @@ import com.codahale.metrics.Counter
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.Stats
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -26,14 +28,20 @@ import scala.util.Try
 class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predicate, SimpleFeatureConverter)])
     extends SimpleFeatureConverter {
 
-  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-    CompositeEvaluationContext(delegates.map(_._2), globalParams)
+  private val tags = ConverterMetrics.typeNameTag(targetSft)
 
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      success: Counter,
-      failure: Counter): EvaluationContext = {
-    CompositeEvaluationContext(delegates.map(_._2), globalParams, success, failure)
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+    createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams)), Stats(tags))
+
+  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
+    createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams, success, failure)), Stats.wrap(success, failure, tags))
+
+  private def createEvaluationContext(contexts: Seq[EvaluationContext], theseStats: Stats): EvaluationContext = {
+    val stats = new Stats() {
+      override def success(i: Int): Long = theseStats.success(i) + contexts.map(_.stats.success(0)).sum
+      override def failure(i: Int): Long = theseStats.failure(i) + contexts.map(_.stats.failure(0)).sum
+    }
+    CompositeEvaluationContext(contexts, stats)
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
@@ -75,7 +83,7 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
             }
           }
           if (delegate == null) {
-            ec.failure.inc()
+            ec.stats.failure()
             delegate = CloseableIterator.empty
           }
           hasNext

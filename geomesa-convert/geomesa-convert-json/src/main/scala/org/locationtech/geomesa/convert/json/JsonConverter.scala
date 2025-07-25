@@ -17,7 +17,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, Field}
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterName, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.io._
@@ -66,11 +66,12 @@ object JsonConverter extends GeoJsonParsing {
 
   case class JsonConfig(
       `type`: String,
+      converterName: Option[String],
       featurePath: Option[String],
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   sealed trait JsonField extends Field
 
@@ -153,13 +154,12 @@ object JsonConverter extends GeoJsonParsing {
   class JsonIterator private [json] (is: InputStream, encoding: Charset, ec: EvaluationContext)
       extends CloseableIterator[JsonElement] {
 
-    private val parser = new JsonParser()
     private val reader = new JsonReader(new InputStreamReader(is, encoding))
     reader.setLenient(true)
 
     override def hasNext: Boolean = reader.peek() != JsonToken.END_DOCUMENT
     override def next(): JsonElement = {
-      val res = parser.parse(reader)
+      val res = JsonParser.parseReader(reader)
       // extract the line number, only accessible from reader.toString
       LineRegex.findFirstMatchIn(reader.toString).foreach(m => ec.line = m.group(1).toLong)
       res

@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>5.3.0-SNAPSHOT</version>
+    <version>5.4.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -58,15 +58,15 @@
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <!-- geotools -->
-        <gt.version>33.0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.27.0</geoserver.version>
+        <gt.version>33.1</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.27.1</geoserver.version>
         <jts.version>1.20.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
 
         <!-- direct dependencies -->
         <accumulo.access.version>1.0.0-beta</accumulo.access.version>
-        <arrow.version>18.2.0</arrow.version>
+        <arrow.version>18.3.0</arrow.version>
         <avro.version>1.11.4</avro.version>
         <aws.sdk.version>1.12.735</aws.sdk.version> <!-- latest available as of 2024/06 -->
         <aws.sdk.v2.version>2.25.64</aws.sdk.v2.version> <!-- latest available as of 2024/06 -->
@@ -92,10 +92,10 @@
         <mango.version>3.0.0</mango.version>
         <metrics.version>3.2.6</metrics.version>
         <micrometer.version>1.13.4</micrometer.version>
-        <orc.version>1.9.5</orc.version>
+        <orc.version>1.9.7</orc.version>
         <parboiled.version>1.4.1</parboiled.version>
         <parboiled.scala.version>1.3.1</parboiled.scala.version>
-        <parquet.version>1.15.1</parquet.version>
+        <parquet.version>1.15.2</parquet.version>
         <postgres.version>42.7.2</postgres.version>
         <prometheus.version>1.3.1</prometheus.version>
         <pureconfig.version>0.17.4</pureconfig.version>
@@ -110,9 +110,10 @@
         <fasterxml.jackson.version>2.17.2</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
+        <jetty.version>9.4.57.v20241219</jetty.version>
         <jna.version>5.14.0</jna.version>
         <json.smart.version>2.5.2</json.smart.version> <!-- used by json-path and hadoop-auth -->
-        <netty.version>4.1.118.Final</netty.version>
+        <netty.version>4.1.121.Final</netty.version>
         <commons.cli.version>1.6.0</commons.cli.version>
         <commons.collections.version>3.2.2</commons.collections.version>
         <commons.collections4.version>4.4</commons.collections4.version>
@@ -122,10 +123,9 @@
         <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <testcontainers.version>1.20.3</testcontainers.version>
+        <testcontainers.version>1.21.0</testcontainers.version>
         <testcontainers.accumulo.version>1.4.1</testcontainers.accumulo.version>
-        <!-- needs to track hadoop: https://github.com/apache/hadoop/blob/release-3.3.6-RC1/hadoop-project/pom.xml#L1279C18-L1279C24 -->
-        <hadoop.minicluster.mockito.version>2.28.2</hadoop.minicluster.mockito.version>
+        <testcontainers.hbase.version>1.0.0</testcontainers.hbase.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.3</accumulo.version>
@@ -195,10 +195,13 @@
         <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
         <maven.project.info.reports.plugin.version>3.8.0</maven.project.info.reports.plugin.version>
 
+        <!-- maven properties -->
+        <maven.deploy.at.end>true</maven.deploy.at.end>
+
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
-        <maven.test.debug>-Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y</maven.test.debug>
+        <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
         <test.includes>**/*Test.java</test.includes>
@@ -206,6 +209,7 @@
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
         <test.accumulo.docker.tag>2.1.3</test.accumulo.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
+        <test.hbase.docker.tag>2.6.2</test.hbase.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
@@ -214,8 +218,8 @@
 
         <!-- documentation -->
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>5.2.2</geomesa.release.version>
-        <geomesa.devel.version>5.3.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>5.3.0</geomesa.release.version>
+        <geomesa.devel.version>5.4.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2025</copyright.year>
 
         <!-- recommended installation versions - update as necessary if our versions fall behind -->
@@ -258,6 +262,11 @@
 
         <profile>
             <id>central</id>
+            <properties>
+                <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
+                     scala versions. we can discard the staging repo if there is an error in the build. -->
+                <maven.deploy.at.end>false</maven.deploy.at.end>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -284,15 +293,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <configuration>
-                            <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
-                            scala versions. we can discard the staging repo if there is an error in the build. -->
-                            <deployAtEnd>false</deployAtEnd>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.cyclonedx</groupId>
@@ -1483,6 +1483,11 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.apache.parquet</groupId>
+                <artifactId>parquet-avro</artifactId>
+                <version>${parquet.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-core</artifactId>
                 <version>${orc.version}</version>
@@ -1793,7 +1798,7 @@
             <dependency>
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
-                <version>1.9.4</version>
+                <version>1.11.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-configuration</groupId>
@@ -2310,13 +2315,21 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- transitive dependency of hadoop 2.x -->
+            <!-- transitive hadoop dependencies -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>2.12.2</version>
                 <scope>provided</scope>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_${scala.binary.version}</artifactId>
@@ -2750,36 +2763,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>accumulo-test</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <!-- exclude hadoop 3 artifacts -->
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-minicluster</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.hadoop</groupId>
-                        <artifactId>hadoop-client-runtime</artifactId>
-                    </exclusion>
-                    <!-- exclude SNAPSHOT dependencies used by hibernate-validator -->
-                    <exclusion>
-                        <groupId>org.openjfx</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-common</artifactId>
                 <version>${hbase.version}</version>
@@ -2789,46 +2772,6 @@
                     <exclusion>
                         <groupId>log4j</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-testing-util</artifactId>
-                <version>${hbase.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-minicluster</artifactId>
-                <version>${hadoop.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2978,6 +2921,12 @@
                 <groupId>org.geomesa.testcontainers</groupId>
                 <artifactId>testcontainers-accumulo</artifactId>
                 <version>${testcontainers.accumulo.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.geomesa.testcontainers</groupId>
+                <artifactId>testcontainers-hbase</artifactId>
+                <version>${testcontainers.hbase.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -3171,25 +3120,22 @@
                         </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
                         <systemPropertyVariables>
-                            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
                             <java.awt.headless>true</java.awt.headless>
                             <user.timezone>UTC</user.timezone>
                             <user.language>en</user.language>
                             <user.region>US</user.region>
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
-                            <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
                         </systemPropertyVariables>
-                        <!-- these can interfere with the mini clusters we spin up for unit tests -->
-                        <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -3208,6 +3154,16 @@
                         <argLine>${maven.test.opens}</argLine>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
+                        <systemPropertyVariables>
+                            <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
+                            <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
+                            <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
+                            <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
+                            <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
+                            <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+                            <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -3215,7 +3171,7 @@
                     <artifactId>maven-deploy-plugin</artifactId>
                     <version>${maven.deploy.plugin.version}</version>
                     <configuration>
-                        <deployAtEnd>true</deployAtEnd>
+                        <deployAtEnd>${maven.deploy.at.end}</deployAtEnd>
                     </configuration>
                 </plugin>
                 <plugin>

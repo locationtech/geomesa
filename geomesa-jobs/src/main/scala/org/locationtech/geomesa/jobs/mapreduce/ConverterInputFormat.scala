@@ -10,8 +10,8 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.archivers.{ArchiveEntry, ArchiveInputStream, ArchiveStreamFactory}
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
@@ -25,6 +25,7 @@ import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.ContextListener
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterCounters, ConverterKey, RetypeKey}
@@ -102,9 +103,9 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
 
     def ec(path: String): EvaluationContext = {
       // global success/failure counters for the entire job
-      val success = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Converted))
-      val failure = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Failed))
-      converter.createEvaluationContext(EvaluationContext.inputFileParam(path), success, failure)
+      val success = context.getCounter(ConverterCounters.Group, ConverterCounters.Converted)
+      val failure = context.getCounter(ConverterCounters.Group, ConverterCounters.Failed)
+      converter.createEvaluationContext(EvaluationContext.inputFileParam(path)).withListener(new MapReduceListener(success, failure))
     }
 
     lazy val defaultEc = ec(filePath.toString)
@@ -120,7 +121,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
           // we have to read the bytes into memory to get random access reads
           // note: stream is closed in super class
           val bytes = new SeekableInMemoryByteChannel(IOUtils.toByteArray(stream))
-          new ZipFileIterator(new ZipFile(bytes), filePath.toString)
+          new ZipFileIterator(ZipFile.builder.setSeekableByteChannel(bytes).get(), filePath.toString)
 
         case _ =>
           CloseableIterator.single(None -> stream, stream.close())
@@ -156,11 +157,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     }
   }
 
-  class MapReduceCounter(counter: Counter) extends com.codahale.metrics.Counter {
-    override def inc(): Unit = counter.increment(1)
-    override def inc(n: Long): Unit = counter.increment(n)
-    override def dec(): Unit = counter.increment(-1)
-    override def dec(n: Long): Unit = counter.increment(-1 * n)
-    override def getCount: Long = counter.getValue
+  private class MapReduceListener(success: Counter, failure: Counter) extends ContextListener {
+    override def onSuccess(i: Int): Unit = success.increment(i)
+    override def onFailure(i: Int): Unit = failure.increment(i)
   }
 }

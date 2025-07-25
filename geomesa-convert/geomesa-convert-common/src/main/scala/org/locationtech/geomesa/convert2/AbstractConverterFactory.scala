@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert2
 import com.typesafe.config._
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
@@ -143,7 +144,9 @@ object AbstractConverterFactory extends LazyLogging {
         idField: Option[Expression],
         caches: Map[String, Config],
         userData: Map[String, Expression]): Either[ConfigReaderFailures, BasicConfig] = {
-      Right(BasicConfig(`type`, idField, caches, userData))
+      for { name <- converterName(cur).right } yield {
+        BasicConfig(`type`, name, idField, caches, userData)
+      }
     }
 
     override protected def encodeConfig(config: BasicConfig, base: java.util.Map[String, AnyRef]): Unit = {}
@@ -216,6 +219,9 @@ object AbstractConverterFactory extends LazyLogging {
 
     override def to(obj: C): ConfigObject = ConfigValueFactory.fromMap(configTo(obj))
 
+    protected def converterName(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Option[String]] =
+      optionalStringFrom(cur.atKeyOrUndefined(ConverterConfigLoader.ConverterNameKey))
+
     private def configTo(config: C): java.util.Map[String, AnyRef] = {
       val map = new java.util.HashMap[String, AnyRef]
       map.put("type", config.`type`)
@@ -229,6 +235,9 @@ object AbstractConverterFactory extends LazyLogging {
       encodeConfig(config, map)
       map
     }
+
+    private def optionalStringFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Option[String]] =
+      if (cur.isUndefined) { Right(None) } else { cur.asString.right.map(s => Option(s)) }
 
     private def idFieldFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Option[Expression]] = {
       if (cur.isUndefined) { Right(None) } else {

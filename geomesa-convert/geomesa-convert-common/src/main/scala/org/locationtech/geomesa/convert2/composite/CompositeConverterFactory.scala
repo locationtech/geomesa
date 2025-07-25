@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.convert2.composite
 
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigValueFactory}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{SimpleFeatureConverter, SimpleFeatureConverterFactory}
 
@@ -24,7 +25,14 @@ class CompositeConverterFactory extends SimpleFeatureConverterFactory {
           val pred = Predicate(c.getString("predicate"))
           val converterName = c.getString("converter")
           val converter = if (conf.hasPath(converterName)) {
-            SimpleFeatureConverter(sft, conf.getConfig(converterName)) // load from local conf (within composite converter)
+            val subconfig = conf.getConfig(converterName) // load from local conf (within composite converter)
+            val withName =
+              if (subconfig.hasPath(ConverterConfigLoader.ConverterNameKey)) {
+                subconfig
+              } else {
+                subconfig.withValue(ConverterConfigLoader.ConverterNameKey, ConfigValueFactory.fromAnyRef(converterName))
+              }
+            SimpleFeatureConverter(sft, withName)
           } else {
             SimpleFeatureConverter(sft, converterName) // load from a global named reference
           }

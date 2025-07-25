@@ -133,19 +133,18 @@ object FilterHelper {
   }
 
   /**
-    * Extracts intervals from a filter. Intervals will be merged where possible - the resulting sequence
-    * is considered to be a union (i.e. OR)
-    *
-    * @param filter filter to evaluate
-    * @param attribute attribute to consider
-    * @param intersect intersect extracted values together, or return them all
-    *                  note if not intersected, 'and/or' distinction will be lost
-    * @return a sequence of intervals, if any. disjoint intervals will result in Seq((null, null))
-    */
-  def extractIntervals(filter: Filter,
-                       attribute: String,
-                       intersect: Boolean = true,
-                       handleExclusiveBounds: Boolean = false): FilterValues[Bounds[ZonedDateTime]] = {
+   * Extracts intervals from a filter. Intervals will be merged where possible - the resulting sequence
+   * is considered to be a union (i.e. OR)
+   *
+   * @param filter filter to evaluate
+   * @param attribute attribute to consider
+   * @param handleExclusiveBounds will make all exclusive bounds inclusive instead, by rounding the value slightly
+   * @return a sequence of intervals, if any. disjoint intervals will result in Seq((null, null))
+   */
+  def extractIntervals(
+      filter: Filter,
+      attribute: String,
+      handleExclusiveBounds: Boolean = false): FilterValues[Bounds[ZonedDateTime]] = {
     extractAttributeBounds(filter, attribute, classOf[Date]).map { bounds =>
       var lower, upper: Bound[ZonedDateTime] = null
       // this if check determines if rounding will be used and if we need to account for narrow ranges

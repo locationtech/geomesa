@@ -20,6 +20,7 @@ import org.geotools.feature.FeatureTypes
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureReader, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.data.LambdaFeatureWriter.{AppendLambdaFeatureWriter, ModifyLambdaFeatureWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
@@ -27,7 +28,6 @@ import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import java.time.Clock
@@ -113,7 +113,8 @@ class LambdaDataStore(val persistence: DataStore, offsetManager: OffsetManager, 
         if (toPersist.nonEmpty) {
           logger.debug("Update schema: persisting transient features")
           WithClose(persistence.getFeatureWriter(typeName, Transaction.AUTO_COMMIT)) { writer =>
-            toPersist.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            val helper = FeatureWriterHelper(writer, useProvidedFids = true)
+            toPersist.foreach(helper.write)
           }
         }
       }

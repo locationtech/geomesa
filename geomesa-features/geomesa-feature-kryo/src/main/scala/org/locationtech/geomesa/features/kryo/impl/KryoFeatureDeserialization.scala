@@ -84,7 +84,7 @@ object KryoFeatureDeserialization extends LazyLogging {
       case ObjectType.LIST     => KryoListReader(reader(bindings.drop(1)))
       case ObjectType.MAP      => KryoMapReader(reader(bindings.slice(1, 2)), reader(bindings.drop(2)))
 
-      case b => throw new NotImplementedError(s"Unexpected attribute type binding: $b")
+      case b => throw new UnsupportedOperationException(s"Unexpected attribute type binding: $b")
     }
   }
 

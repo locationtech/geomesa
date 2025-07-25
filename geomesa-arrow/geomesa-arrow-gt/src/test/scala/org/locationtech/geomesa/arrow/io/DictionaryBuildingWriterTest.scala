@@ -36,7 +36,7 @@ class DictionaryBuildingWriterTest extends Specification {
         features.foreach(writer.add)
         writer.encode(out)
       }
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(out.toByteArray))) { reader =>
+      WithClose(SimpleFeatureArrowFileReader.streaming(out.toByteArray)) { reader =>
         reader.dictionaries must haveSize(1)
         reader.dictionaries.get("name") must beSome
         reader.dictionaries("name").iterator.toSeq must containTheSameElementsAs(Seq("name00", "name01"))

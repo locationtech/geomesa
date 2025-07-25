@@ -44,7 +44,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   val typeName = "HBaseDensityFilterTest"
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.getName     -> MiniCluster.connection,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName,
     HBaseDataStoreParams.DensityCoprocessorParam.key -> true
   )

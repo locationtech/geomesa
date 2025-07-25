@@ -59,7 +59,10 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
     * note: ORs will not be split if they operate on a single attribute
     *
     */
-  def getQueryOptions(filter: Filter, hints: Hints): Seq[FilterPlan] = {
+  def getQueryOptions(
+      filter: Filter,
+      hints: Hints = new Hints(),
+      requestedIndex: Option[String] = None): Seq[FilterPlan] = {
     // cnf gives us a top level AND with ORs as first children
     rewriteFilterInCNF(filter) match {
       case a: And =>
@@ -84,22 +87,22 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
 
         if (complex.isEmpty) {
           // no cross-attribute ORs
-          getSimpleQueryOptions(a, hints).map(fs => FilterPlan(Seq(fs)))
+          getSimpleQueryOptions(a, hints, requestedIndex).map(fs => FilterPlan(Seq(fs)))
         } else {
           // we don't generally consider all the permutations available, as that takes exponential time
           // instead, we consider the cross-attribute-ors and the rest of the query separately
 
           // the cross-attribute or plans
           // each option should just result in 1 filter plan since there are no ANDs
-          val complexOptions = complex.map(getQueryOptions(_, hints))
+          val complexOptions = complex.map(getQueryOptions(_, hints, requestedIndex))
 
           // the non-cross-attribute ors, with the ors tacked on as secondary filters at the end
           lazy val simpleOptions = if (simple.isEmpty) { Seq.empty } else {
-            getSimpleQueryOptions(andFilters(simple.toSeq), hints)
+            getSimpleQueryOptions(andFilters(simple.toSeq), hints, requestedIndex)
                 .map(s => FilterPlan(Seq(addSecondaryPredicates(s, complex.toSeq))))
           }
           lazy val expandReduceOptions =
-            expandReduceOrOptions(rewriteFilterInDNF(filter).asInstanceOf[Or], hints)
+            expandReduceOrOptions(rewriteFilterInDNF(filter).asInstanceOf[Or], hints, requestedIndex)
                 .map(fp => FilterPlan(makeDisjoint(fp.strategies)))
 
           if (complexOptions.forall(o => o.lengthCompare(1) == 0 && o.head.strategies.forall(_.isPreferredScan))) {
@@ -131,7 +134,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
         // group and then recombine the OR'd filters by the attribute they operate on
         val groups = o.getChildren.asScala.groupBy(getGroup).values.map(g => ff.or(g.asJava)).toSeq
         val perAttributeOptions = groups.flatMap { g =>
-          val options = getSimpleQueryOptions(g, hints)
+          val options = getSimpleQueryOptions(g, hints, requestedIndex)
           require(options.length < 2, s"Expected only a single option for ${filterToString(g)} but got $options")
           options.headOption
         }
@@ -143,42 +146,59 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
         }
 
       case f =>
-        getSimpleQueryOptions(f, hints).map(fs => FilterPlan(Seq(fs)))
+        getSimpleQueryOptions(f, hints, requestedIndex).map(fs => FilterPlan(Seq(fs)))
     }
   }
 
   /**
-    * Gets options for a 'simple' filter, where each OR is on a single attribute, e.g.
-    *   (bbox1 OR bbox2) AND dtg
-    *   bbox AND dtg AND (attr1 = foo OR attr = bar)
-    * not:
-    *   bbox OR dtg
-    *
-    * Because the inputs are simple, each one can be satisfied with a single query filter.
-    * The returned values will each satisfy the query, using a different strategy.
-    *
-    * @param filter input filter
-    * @return sequence of options, any of which can satisfy the query
-    */
-  private def getSimpleQueryOptions(filter: Filter, hints: Hints): Seq[FilterStrategy] = {
+   * Gets options for a 'simple' filter, where each OR is on a single attribute, e.g.
+   *   (bbox1 OR bbox2) AND dtg
+   *   bbox AND dtg AND (attr1 = foo OR attr = bar)
+   * not:
+   *   bbox OR dtg
+   *
+   * Because the inputs are simple, each one can be satisfied with a single query filter.
+   * The returned values will each satisfy the query, using a different strategy.
+   *
+   * @param filter input filter
+   * @param hints query hints
+   * @param requestedIndex user requested index, if nay
+   * @return sequence of options, any of which can satisfy the query
+   */
+  private def getSimpleQueryOptions(
+      filter: Filter,
+      hints: Hints,
+      requestedIndex: Option[String]): Seq[FilterStrategy] = {
     if (filter == Filter.EXCLUDE) { Seq.empty } else {
-      val fullTableScansBuilder  = Seq.newBuilder[FilterStrategy]
-      val preferredScansBuilder  = Seq.newBuilder[FilterStrategy]
-      val acceptableScansBuilder = Seq.newBuilder[FilterStrategy]
-
-      indices.foreach { i =>
-        i.getFilterStrategy(filter, hints).foreach {
-          case f if f.isFullTableScan => fullTableScansBuilder += f
-          case f if f.isPreferredScan => preferredScansBuilder += f
-          case f                      => acceptableScansBuilder += f
+      val requestedPlan = requestedIndex.flatMap { requested =>
+        // check by id and by name
+        val index = indices.find(i => i.identifier == requested || i.name.equalsIgnoreCase(requested)).orElse {
+          // back-compatibility for attr vs join index name
+          if (!AttributeIndex.name.equalsIgnoreCase(requested)) { None } else {
+            indices.find(_.name == AttributeIndex.JoinIndexName)
+          }
         }
+        index.flatMap(_.getFilterStrategy(filter, hints)).map(Seq(_))
       }
+      requestedPlan.getOrElse {
+        val preferredScans  = ArrayBuffer.empty[FilterStrategy]
+        val acceptableScans = ArrayBuffer.empty[FilterStrategy]
+        val fullTableScans  = ArrayBuffer.empty[FilterStrategy]
 
-      val preferredScans = preferredScansBuilder.result
-      if (preferredScans.nonEmpty) { preferredScans } else {
-        val acceptableScans = acceptableScansBuilder.result
-        if (acceptableScans.nonEmpty) { acceptableScans } else {
-          fullTableScansBuilder.result.take(1)
+        indices.foreach { i =>
+          i.getFilterStrategy(filter, hints).foreach {
+            case f if f.isFullTableScan => fullTableScans += f
+            case f if f.isPreferredScan => preferredScans += f
+            case f                      => acceptableScans += f
+          }
+        }
+
+        if (preferredScans.nonEmpty) {
+          preferredScans.toSeq
+        } else if (acceptableScans.nonEmpty) {
+          acceptableScans.toSeq
+        } else {
+          fullTableScans.take(1).toSeq
         }
       }
     }
@@ -188,12 +208,15 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
     * Calculates all possible options for each part of the filter, then determines all permutations of
     * the options. This can end up being expensive (O(2&#94;n)), so is only used as a fall-back.
     */
-  private def expandReduceOrOptions(filter: Or, hints: Hints): Seq[FilterPlan] = {
+  private def expandReduceOrOptions(
+      filter: Or,
+      hints: Hints,
+      requestedIndex: Option[String]): Seq[FilterPlan] = {
 
     // for each child of the or, get the query options
     // each filter plan should only have a single query filter
     def getChildOptions: Seq[Seq[FilterPlan]] =
-      filter.getChildren.asScala.map(getSimpleQueryOptions(_, hints).map(fs => FilterPlan(Seq(fs))).toSeq).toSeq
+      filter.getChildren.asScala.map(getSimpleQueryOptions(_, hints, requestedIndex).map(fs => FilterPlan(Seq(fs))).toSeq).toSeq
 
     // combine the filter plans so that each plan has multiple query filters
     // use the permutations of the different options for each child

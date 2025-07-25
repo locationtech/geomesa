@@ -116,7 +116,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
 
     // get the various options that we could potentially use
     val options = profile((o: Seq[FilterPlan], t: Long) => complete("Query processing", t, o.length)) {
-      new FilterSplitter(sft, indices).getQueryOptions(filter, hints)
+      new FilterSplitter(sft, indices).getQueryOptions(filter, hints, requested)
     }
 
     val selected = profile(t => complete("Strategy selection", t, options.length)) {

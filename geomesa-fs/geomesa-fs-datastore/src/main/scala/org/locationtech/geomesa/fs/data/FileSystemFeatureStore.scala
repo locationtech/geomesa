@@ -21,7 +21,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore._
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api.{CloseableFeatureIterator, FileSystemStorage}
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureWriter, FastSettableFeatureWriter}
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, FlushQuietly, FlushWithLogging}
 
@@ -150,7 +150,7 @@ object FileSystemFeatureStore {
     * @param timeout write timeout, for flushing partitions
     */
   class FileSystemFeatureWriterAppend(storage: FileSystemStorage, sft: SimpleFeatureType, timeout: Duration)
-      extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
+      extends FastSettableFeatureWriter with LazyLogging {
 
     private val removalListener = new RemovalListener[String, Closeable with Flushable]() {
       override def onRemoval(key: String, value: Closeable with Flushable, cause: RemovalCause): Unit = {
@@ -171,13 +171,13 @@ object FileSystemFeatureStore {
         })
 
     private val featureIds = new AtomicLong(0)
-    private var feature: SimpleFeature = _
+    private var feature: ScalaSimpleFeature = _
 
     override def getFeatureType: SimpleFeatureType = sft
 
     override def hasNext: Boolean = false
 
-    override def next(): SimpleFeature = {
+    override def next(): ScalaSimpleFeature = {
       feature = new ScalaSimpleFeature(sft, featureIds.getAndIncrement().toString)
       feature
     }
@@ -220,6 +220,7 @@ object FileSystemFeatureStore {
     override def getFeatureType: SimpleFeatureType = sft
 
     override def hasNext: Boolean = writer.hasNext
+    // TODO implement ScalaSimpleFeatureWriter and wire ScalaSimpleFeature all the way through
     override def next(): SimpleFeature = writer.next()
     override def write(): Unit = writer.write()
     override def remove(): Unit = writer.remove()

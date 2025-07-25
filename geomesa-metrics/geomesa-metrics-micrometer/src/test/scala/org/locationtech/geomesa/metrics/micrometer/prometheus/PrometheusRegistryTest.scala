@@ -10,8 +10,10 @@ package org.locationtech.geomesa.metrics.micrometer
 package prometheus
 
 import com.typesafe.config.ConfigFactory
+import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.util.IOUtils
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.prometheus.metrics.exporter.pushgateway.Format
 import org.junit.runner.RunWith
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
@@ -21,11 +23,12 @@ import org.specs2.runner.JUnitRunner
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.{ServerSocket, URL}
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable.ArrayBuffer
 
 @RunWith(classOf[JUnitRunner])
-class PrometheusReporterTest extends Specification {
+class PrometheusRegistryTest extends Specification {
 
   private def getFreePort: Int = {
     val socket = new ServerSocket(0)
@@ -34,7 +37,7 @@ class PrometheusReporterTest extends Specification {
     }
   }
 
-  "Prometheus reporter" should {
+  "Prometheus registry" should {
     "expose metrics over http" in {
       val port = getFreePort
       val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port }")
@@ -62,7 +65,33 @@ class PrometheusReporterTest extends Specification {
       }
     }
 
-    "expose metrics over http with custom suffix" in {
+    "expose global metrics over http" in {
+      val port = getFreePort
+      val registration = PrometheusSetup.register(port)
+      try {
+        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "")
+        Metrics.counter(id).increment(10)
+
+        val metrics = ArrayBuffer.empty[String]
+        val url = new URL(s"http://localhost:$port/metrics")
+        val reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))
+        try {
+          var line = reader.readLine()
+          while (line != null) {
+            metrics += line
+            line = reader.readLine()
+          }
+        } finally {
+          reader.close()
+        }
+
+        metrics must contain(s"""${id}_total{application="geomesa"} 10.0""")
+      } finally {
+        registration.close()
+      }
+    }
+
+    "expose metrics over http with custom tags" in {
       val port = getFreePort
       val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port, common-tags = { foo = bar }}")
       val registry = MicrometerSetup.createRegistry(conf)
@@ -105,8 +134,19 @@ class PrometheusReporterTest extends Specification {
           registry.close()
         }
         handler.requests.keys must contain("/metrics/job/job1")
-        val metrics = handler.requests("/metrics/job/job1")
-        metrics must contain("foo_total 10")
+        val job1 = handler.requests("/metrics/job/job1")
+        job1 must contain("foo_total 10")
+
+        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "")
+        val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2", format = Format.PROMETHEUS_TEXT)
+        try {
+          Metrics.counter(id).increment(10)
+        } finally {
+          registration.close()
+        }
+        handler.requests.keys must contain("/metrics/job/job2")
+        val job2 = handler.requests("/metrics/job/job2")
+        job2 must contain(s"""${id}_total{application="geomesa"} 10""")
       } finally {
         jetty.stop()
       }
@@ -129,15 +169,28 @@ class PrometheusReporterTest extends Specification {
         }
         handler.requests.keys must contain("/metrics/job/job1")
         // note: post is protobuf by default
-        val metrics = handler.requests("/metrics/job/job1")
-        metrics must contain("foo_total")
-        metrics must not(contain("10"))
+        val job1 = handler.requests("/metrics/job/job1")
+        job1 must contain("foo_total")
+        job1 must not(contain("10")) // kind of a hacky way to verify things are protobuf encoded
+
+        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "").replaceAll("10", "x") // so we don't match on the uuid, below
+        val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2")
+        try {
+          Metrics.counter(id).increment(10)
+        } finally {
+          registration.close()
+        }
+        handler.requests.keys must contain("/metrics/job/job2")
+        // note: post is protobuf by default
+        val job2 = handler.requests("/metrics/job/job2")
+        job2 must contain(s"${id}_total")
+        job2 must not(contain("10")) // kind of a hacky way to verify things are protobuf encoded
       } finally {
         jetty.stop()
       }
     }
 
-    "push metrics to a gateway with suffix" in {
+    "push metrics to a gateway with custom tags" in {
       val handler = new PgHandler()
       val jetty = new Server(0)
       jetty.setHandler(handler)

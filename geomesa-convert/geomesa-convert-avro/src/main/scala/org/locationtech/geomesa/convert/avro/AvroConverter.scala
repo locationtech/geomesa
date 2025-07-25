@@ -20,7 +20,7 @@ import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
-import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterName}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CopyingInputStream
 
@@ -95,18 +95,19 @@ object AvroConverter {
         Schema.createUnion(schema.getTypes.asScala.map(s => addBytes(s)).toSeq: _*)
 
       case _ =>
-        throw new NotImplementedError(
+        throw new UnsupportedOperationException(
           s"Raw Avro bytes (i.e. $$0) is not implemented for schema type ${schema.getType}")
     }
   }
 
   case class AvroConfig(
       `type`: String,
+      converterName: Option[String],
       schema: SchemaConfig,
       idField: Option[Expression],
       caches: Map[String, Config],
       userData: Map[String, Expression]
-    ) extends ConverterConfig
+    ) extends ConverterConfig with ConverterName
 
   sealed trait SchemaConfig
 

@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.Response
+import redis.clients.jedis.{Jedis, Response, UnifiedJedis}
 
 import java.nio.charset.StandardCharsets
 
@@ -125,12 +125,19 @@ object RedisQueryPlan {
       if (pipeline) {
         val result = Seq.newBuilder[Response[java.util.List[Array[Byte]]]]
         result.sizeHint(ranges.length)
-        WithClose(ds.connection.getResource) { jedis =>
-          WithClose(jedis.pipelined()) { pipe =>
-            // note: use a foreach here to ensure the calls are all executing inside our close block
-            ranges.foreach(range => result += pipe.zrangeByLex(table, range.lower, range.upper))
-            pipe.sync()
-          }
+        WithClose(ds.connection.getResource) {
+          case jedis: Jedis =>
+            WithClose(jedis.pipelined()) { pipe =>
+              // note: use a foreach here to ensure the calls are all executing inside our close block
+              ranges.foreach(range => result += pipe.zrangeByLex(table, range.lower, range.upper))
+              pipe.sync()
+            }
+          case jedis: UnifiedJedis =>
+            WithClose(jedis.pipelined()) { pipe =>
+              // note: use a foreach here to ensure the calls are all executing inside our close block
+              ranges.foreach(range => result += pipe.zrangeByLex(table, range.lower, range.upper))
+              pipe.sync()
+            }
         }
         result.result.iterator.flatMap(_.get.iterator().asScala)
       } else {

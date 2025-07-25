@@ -17,12 +17,11 @@ import org.apache.parquet.hadoop.metadata.FileMetaData
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.apache.parquet.schema.Type.Repetition
-import org.apache.parquet.schema.Types.BasePrimitiveBuilder
 import org.apache.parquet.schema._
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
+import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.{BoundingBoxField, GeometryEncoding}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -33,10 +32,22 @@ import java.util.Collections
  * A paired simple feature type and parquet schema
  *
  * @param sft simple feature type
- * @param schema parquet message schema
+ * @param encodings type encoding
+ * @param hasVisibilities whether the schema encodes visibilities, or not
+ * @param boundingBoxes names of any bounding box fields, along with the original field name
  * @param metadata file metadata
  */
-case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageType, metadata: java.util.Map[String, String]) {
+case class SimpleFeatureParquetSchema(
+    sft: SimpleFeatureType,
+    encodings: Encodings,
+    hasVisibilities: Boolean,
+    boundingBoxes: Seq[BoundingBoxField],
+    metadata: java.util.Map[String, String]) {
+
+  /**
+   * Parquet message schema
+   */
+  val schema: MessageType = SimpleFeatureParquetSchema.schema(sft, encodings, boundingBoxes.map(_.bbox), hasVisibilities)
 
   /**
     * Gets the name of the parquet field for the given simple feature type attribute
@@ -45,13 +56,6 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
     * @return
     */
   def field(i: Int): String = schema.getFields.get(i).getName
-
-  /**
-   * Whether the schema encodes visibilities, or not
-   *
-   * @return
-   */
-  def hasVisibilities: Boolean = schema.containsField(SimpleFeatureParquetSchema.VisibilitiesField)
 }
 
 object SimpleFeatureParquetSchema extends LazyLogging {
@@ -73,10 +77,13 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   val SchemaVersionKey = "geomesa.parquet.version"
 
   val GeometryEncodingKey   = "geomesa.parquet.geometries"
+  val BBoxEncodingKey       = "geomesa.parquet.bounding-boxes"
   val VisibilityEncodingKey = "geomesa.fs.visibilities"
 
-  val GeometryColumnX = "x"
-  val GeometryColumnY = "y"
+  @deprecated("Moved to org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema")
+  val GeometryColumnX: String = GeometrySchema.GeometryColumnX
+  @deprecated("Moved to org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema")
+  val GeometryColumnY: String = GeometrySchema.GeometryColumnY
 
   /**
     * Extract the simple feature type from a parquet read context. The read context
@@ -105,20 +112,15 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     */
   def read(footer: FileMetaData): Option[SimpleFeatureParquetSchema] = read(footer.getSchema, footer.getKeyValueMetaData)
 
-  private def read(fileSchema: MessageType, metadata: java.util.Map[String, String]): Option[SimpleFeatureParquetSchema] = {
-    for {
-      name <- Option(metadata.get(SftNameKey))
-      spec <- Option(metadata.get(SftSpecKey))
-    } yield {
-      val sft = SimpleFeatureTypes.createType(name, spec)
-      // noinspection ScalaDeprecation
-      lazy val schemaVersion = Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(0)
-      val geometryEncoding = Option(metadata.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse {
-        if (schemaVersion == 1) { GeometryEncoding.GeoMesaV1 } else { GeometryEncoding.GeoMesaV0 }
-      }
-      val visibilities = fileSchema.containsField(VisibilitiesField)
-      SimpleFeatureParquetSchema(sft, schema(sft, geometryEncoding, visibilities), Collections.unmodifiableMap(metadata))
-    }
+  /**
+   * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
+   *
+   * @param conf write configuration, including the sft spec
+   * @return
+   */
+  def write(conf: Configuration): Option[SimpleFeatureParquetSchema] = {
+    val vis = conf.get(VisibilityEncodingKey)
+    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis)
   }
 
   /**
@@ -127,17 +129,34 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param conf write configuration, including the sft spec
    * @return
    */
-  def write(conf: Configuration): Option[SimpleFeatureParquetSchema] =
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(VisibilityEncodingKey))
+  def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] = {
+    val vis = conf.get(VisibilityEncodingKey)
+    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(BBoxEncodingKey), vis)
+  }
 
   /**
-   * Get a schema for writing. Encoding can be configured through `geomesa.parquet.geometries` and `geomesa.fs.visibilities`
+   * Get the schema for a file being read
    *
-   * @param conf write configuration, including the sft spec
+   * @param fileSchema message type
+   * @param metadata file metadata
    * @return
    */
-  def write(conf: ParquetConfiguration): Option[SimpleFeatureParquetSchema] =
-    write(conf.get(SftNameKey), conf.get(SftSpecKey), conf.get(GeometryEncodingKey), conf.get(VisibilityEncodingKey))
+  private def read(fileSchema: MessageType, metadata: java.util.Map[String, String]): Option[SimpleFeatureParquetSchema] = {
+    for {
+      name <- Option(metadata.get(SftNameKey))
+      spec <- Option(metadata.get(SftSpecKey))
+    } yield {
+      val sft = SimpleFeatureTypes.createType(name, spec)
+      val geometries = Option(metadata.get(GeometryEncodingKey)).map(GeometryEncoding.apply).getOrElse {
+        // noinspection ScalaDeprecation
+        if (metadata.get(SchemaVersionKey) == "1") { GeometryEncoding.GeoMesaV1 } else { GeometryEncoding.GeoMesaV0 }
+      }
+      val encodings = Encodings(geometries)
+      val bboxes = fileSchema.getFields.asScala.map(_.getName).flatMap(BoundingBoxField.fromBoundingBox).toSeq
+      val visibilities = fileSchema.containsField(VisibilitiesField)
+      SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
+    }
+  }
 
   /**
    * Gets a schema for writing
@@ -145,26 +164,30 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * @param sftName sft name config
    * @param sftSpec sft spec config
    * @param geoms geometry encoding config
+   * @param bboxOpt bounding box encoding config
    * @param vis visibility config
    * @return
    */
-  private def write(sftName: String, sftSpec: String, geoms: String, vis: String): Option[SimpleFeatureParquetSchema] = {
+  private def write(sftName: String, sftSpec: String, geoms: String, bboxOpt: String, vis: String): Option[SimpleFeatureParquetSchema] = {
     for {
       name <- Option(sftName)
       spec <- Option(sftSpec)
     } yield {
       val sft = SimpleFeatureTypes.createType(name, spec)
-      val geometryEncoding = Option(geoms).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoMesaV1)
+      val geometries = Option(geoms).map(GeometryEncoding.apply).getOrElse(GeometryEncoding.GeoParquetWkb)
+      // only include bboxes if they help with push-down filters
+      val bboxes = if (bboxOpt != null && !bboxOpt.toBoolean) { Seq.empty } else { BoundingBoxField(sft, geometries) }
       val visibilities = Option(sft.getUserData.get(VisibilityEncodingKey)).orElse(Option(vis)).forall(_.toString.toBoolean)
       val metadata = new java.util.HashMap[String, String]()
       metadata.put(SftNameKey, name)
       metadata.put(SftSpecKey, spec)
-      metadata.put(GeometryEncodingKey, geometryEncoding.toString)
-      if (geometryEncoding == GeometryEncoding.GeoMesaV1) {
+      metadata.put(GeometryEncodingKey, geometries.toString)
+      if (geometries == GeometryEncoding.GeoMesaV1) {
         // noinspection ScalaDeprecation
         metadata.put(SchemaVersionKey, "1") // include schema version for back-compatibility when possible
       }
-      SimpleFeatureParquetSchema(sft, schema(sft, geometryEncoding, visibilities), Collections.unmodifiableMap(metadata))
+      val encodings = Encodings(geometries)
+      SimpleFeatureParquetSchema(sft, encodings, visibilities, bboxes, Collections.unmodifiableMap(metadata))
     }
   }
 
@@ -172,25 +195,24 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * Get the message type for a simple feature type
    *
    * @param sft simple feature type
-   * @param geometries geometry encoding
+   * @param encodings field type encoding
+   * @param bboxes include bounding boxes for each row
    * @param visibilities include visibilities
    * @return
    */
-  private def schema(sft: SimpleFeatureType, geometries: GeometryEncoding, visibilities: Boolean): MessageType = {
-    val isV0 = geometries == GeometryEncoding.GeoMesaV0
+  private def schema(sft: SimpleFeatureType, encodings: Encodings, bboxes: Seq[String], visibilities: Boolean): MessageType = {
+    val isV0 = encodings.geometry == GeometryEncoding.GeoMesaV0
     val id = {
       val primitive = PrimitiveTypeName.BINARY
       val builder = if (isV0) { Types.primitive(primitive, Repetition.REPEATED) } else { Types.required(primitive) }
       builder.as(LogicalTypeAnnotation.stringType()).named(FeatureIdField)
     }
-    val vis =
-      if (visibilities) {
-        Some(Types.optional(PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.stringType()).named(VisibilitiesField))
-      } else {
-        None
-      }
-    // note: id field goes at the end of the record, then vis
-    val fields = (sft.getAttributeDescriptors.asScala.map(schema(_, geometries)) :+ id) ++ vis
+    val vis = if (!visibilities) { None } else {
+      Some(Types.optional(PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.stringType()).named(VisibilitiesField))
+    }
+    val boundingBoxes = bboxes.map(BoundingBoxField.schema)
+    // note: id field goes at the end of the record, then vis, then any bounding boxes
+    val fields = (sft.getAttributeDescriptors.asScala.map(schema(_, encodings)) :+ id) ++ vis ++ boundingBoxes
     val name = if (isV0) { sft.getTypeName } else { alphaNumericSafeString(sft.getTypeName) }
     new MessageType(name, fields.asJava)
   }
@@ -199,66 +221,73 @@ object SimpleFeatureParquetSchema extends LazyLogging {
    * Create a parquet field type from an attribute descriptor
    *
    * @param descriptor descriptor
-   * @param geometries geometry encoding
+   * @param encodings field type encoding
    * @return
    */
-  private def schema(descriptor: AttributeDescriptor, geometries: GeometryEncoding): Type = {
-    val isV0 = geometries == GeometryEncoding.GeoMesaV0
-    val bindings = ObjectType.selectType(descriptor)
-    val builder = bindings.head match {
-      case ObjectType.GEOMETRY => GeometrySchema(bindings(1), geometries)
-      case ObjectType.LIST     => Binding(bindings(1), isV0).list()
-      case ObjectType.MAP      => Binding(bindings(1), isV0).map(Binding(bindings(2), isV0))
-      case p                   => Binding(p, isV0).primitive()
-    }
-    builder.named(if (isV0) { descriptor.getLocalName } else { alphaNumericSafeString(descriptor.getLocalName) })
+  private def schema(descriptor: AttributeDescriptor, encodings: Encodings): Type = {
+    val isV0 = encodings.geometry == GeometryEncoding.GeoMesaV0
+    val name = if (isV0) { descriptor.getLocalName } else { alphaNumericSafeString(descriptor.getLocalName) }
+    buildType(name, ObjectType.selectType(descriptor), encodings)
   }
 
   /**
-    * Defined parquet field, applicable as primitives, list elements, or map key/values
-    *
-    * @param name type
-    * @param as original type
-    * @param length fixed length
-    */
-  private class Binding(val name: PrimitiveTypeName, as: Option[LogicalTypeAnnotation] = None, length: Option[Int] = None) {
+   * Builds the schema type for an attribute
+   *
+   * @param name field name
+   * @param bindings object type
+   * @param encodings schema encodings
+   * @param repetition repetition
+   * @return
+   */
+  private def buildType(
+      name: String,
+      bindings: Seq[ObjectType],
+      encodings: Encodings,
+      repetition: Repetition = Repetition.OPTIONAL): Type = {
+    val builder = bindings.head match {
+      case ObjectType.STRING   => Types.primitive(PrimitiveTypeName.BINARY, repetition).as(LogicalTypeAnnotation.stringType())
+      case ObjectType.INT      => Types.primitive(PrimitiveTypeName.INT32, repetition)
+      case ObjectType.DOUBLE   => Types.primitive(PrimitiveTypeName.DOUBLE, repetition)
+      case ObjectType.LONG     => Types.primitive(PrimitiveTypeName.INT64, repetition)
+      case ObjectType.FLOAT    => Types.primitive(PrimitiveTypeName.FLOAT, repetition)
+      case ObjectType.BOOLEAN  => Types.primitive(PrimitiveTypeName.BOOLEAN, repetition)
+      case ObjectType.BYTES    => Types.primitive(PrimitiveTypeName.BINARY, repetition)
 
-    def primitive(): Types.Builder[_, _ <: Type] = opts(Types.primitive(name, Repetition.OPTIONAL))
+      case ObjectType.DATE =>
+        val unit = encodings.date match {
+          case DateEncoding.Micros => TimeUnit.MICROS
+          case DateEncoding.Millis => TimeUnit.MILLIS
+          case _ => throw new UnsupportedOperationException(encodings.date.toString)
+        }
+        Types.primitive(PrimitiveTypeName.INT64, repetition).as(LogicalTypeAnnotation.timestampType(true, unit))
 
-    def list(): Types.Builder[_, _ <: Type] = opts(Types.optionalList().optionalElement(name))
+      case ObjectType.UUID =>
+        encodings.uuid match {
+          case UuidEncoding.FixedLength =>
+            Types.primitive(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, repetition).length(16).as(LogicalTypeAnnotation.uuidType())
+          case UuidEncoding.Bytes => Types.primitive(PrimitiveTypeName.BINARY, repetition)
+          case _ => throw new UnsupportedOperationException(encodings.uuid.toString)
+        }
 
-    def map(value: Binding): Types.Builder[_, _ <: Type] = {
-      val key = opts(Types.optionalMap().key(name))
-      value.opts(key.optionalValue(value.name))
+      case ObjectType.LIST =>
+        encodings.list match {
+          case ListEncoding.ThreeLevel =>
+            Types.optionalList().requiredGroupElement().addField(buildType("element", bindings.drop(1), encodings, Repetition.REQUIRED))
+          case ListEncoding.TwoLevel => Types.optionalList().element(buildType("element", bindings.drop(1), encodings))
+          case _ => throw new UnsupportedOperationException(encodings.list.toString)
+        }
+
+      case ObjectType.MAP =>
+        Types.optionalMap()
+          .key(buildType("key", bindings.slice(1, 2), encodings, Repetition.REQUIRED))
+          .value(buildType("value", bindings.slice(2, 3), encodings))
+
+      case ObjectType.GEOMETRY =>
+        GeometrySchema(bindings(1), encodings.geometry)
+
+      case binding =>
+        throw new UnsupportedOperationException(s"No mapping defined for type $binding")
     }
-
-    private def opts[T <: BasePrimitiveBuilder[_ <: Type, _]](b: T): T = {
-      length.foreach(b.length)
-      as.foreach(b.as)
-      b
-    }
-  }
-
-  private object Binding {
-
-    private val bindings = Map(
-      ObjectType.DATE    -> new Binding(PrimitiveTypeName.INT64,  Some(LogicalTypeAnnotation.timestampType(true, TimeUnit.MILLIS))),
-      ObjectType.STRING  -> new Binding(PrimitiveTypeName.BINARY, Some(LogicalTypeAnnotation.stringType())),
-      ObjectType.INT     -> new Binding(PrimitiveTypeName.INT32),
-      ObjectType.DOUBLE  -> new Binding(PrimitiveTypeName.DOUBLE),
-      ObjectType.LONG    -> new Binding(PrimitiveTypeName.INT64),
-      ObjectType.FLOAT   -> new Binding(PrimitiveTypeName.FLOAT),
-      ObjectType.BOOLEAN -> new Binding(PrimitiveTypeName.BOOLEAN),
-      ObjectType.BYTES   -> new Binding(PrimitiveTypeName.BINARY),
-      ObjectType.UUID    -> new Binding(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, None, Some(16))
-    )
-
-    def apply(binding: ObjectType, isV0: Boolean): Binding = {
-      if (isV0 && binding == ObjectType.UUID) {
-        new Binding(PrimitiveTypeName.BINARY)
-      } else {
-        bindings.getOrElse(binding, throw new NotImplementedError(s"No mapping defined for type $binding"))
-      }
-    }
+    builder.named(name)
   }
 }

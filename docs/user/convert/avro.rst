@@ -47,6 +47,15 @@ Usage: ``avroPath($ref, $pathString)``
 *  ``$ref`` - a reference object (avro root or extracted object)
 *  ``pathString`` - forward-slash delimited path strings. See `Avro Paths`, above
 
+avroToJson
+^^^^^^^^^^
+
+Description: Converts Avro objects to JSON strings.
+
+Usage: ``avroToJson($ref)``
+
+*  ``$ref`` - a reference object (avro root or extracted object)
+
 avroBinaryList
 ^^^^^^^^^^^^^^
 

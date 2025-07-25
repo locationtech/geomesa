@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
@@ -115,10 +115,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      val ids = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        WithClose(reader.features())(_.map(_.getID.toInt).toList)
-      }
+      val ids = SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
       val proxy = new ProxyIdFunction()
       features.map(proxy.evaluate(_)) must containAllOf(ids)
 
@@ -139,10 +136,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
-      def in() = new ByteArrayInputStream(out.toByteArray)
-      val ids = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        WithClose(reader.features())(_.map(_.getID.toInt).toList)
-      }
+      val ids = SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
       val proxy = new ProxyIdFunction()
       features.map(proxy.evaluate(_)) must containAllOf(ids)
 

@@ -68,7 +68,7 @@ class NotSynchronized[T](value: T) extends MaybeSynchronized[T] {
   override def get: T = value
   override def set(ignored: T, expected: T, f: => Unit): Boolean =
     if (value == expected) {
-      throw new NotImplementedError("NotSynchronized is read-only")
+      throw new UnsupportedOperationException("NotSynchronized is read-only")
     } else {
       false
     }

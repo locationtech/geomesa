@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert2.validators
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
@@ -46,9 +47,39 @@ object SimpleFeatureValidator extends LazyLogging {
    *
    * @param sft simple feature type
    * @param names validator names and options
+   * @param tags tags used for metrics
+   * @return
+   */
+  def apply(sft: SimpleFeatureType, names: Seq[String], tags: Tags): SimpleFeatureValidator = {
+    val validators = names.filterNot(_.equalsIgnoreCase(NoneValidatorFactory.Name)).map { full =>
+      val i = full.indexOf('(')
+      val (name, options) = if (i == -1) { (full, None) } else {
+        require(full.last == ')', s"Invalid option parentheses: $full")
+        (full.substring(0, i), Some(full.substring(i + 1, full.length - 1)))
+      }
+      val factory = factories.find(_.name.equalsIgnoreCase(name)).getOrElse {
+        throw new IllegalArgumentException(s"No factory found for name '$name'. " +
+          s"Available factories: ${factories.map(_.name).mkString(", ")}")
+      }
+      factory.apply(sft, options, tags)
+    }
+
+    if (validators.lengthCompare(2) < 0) {
+      validators.headOption.getOrElse(NoValidator)
+    } else {
+      new CompositeValidator(validators)
+    }
+  }
+
+  /**
+   * Create validators for the given feature type
+   *
+   * @param sft simple feature type
+   * @param names validator names and options
    * @param metrics optional metrics registry for tracking validation results
    * @return
    */
+  @deprecated("Use micrometer global registry for metrics")
   def apply(sft: SimpleFeatureType, names: Seq[String], metrics: ConverterMetrics): SimpleFeatureValidator =
     apply(sft, names, metrics, includeId = false)
 
@@ -61,6 +92,7 @@ object SimpleFeatureValidator extends LazyLogging {
    * @param includeId add an id validator
    * @return
    */
+  @deprecated("Use micrometer global registry for metrics")
   def apply(
       sft: SimpleFeatureType,
       names: Seq[String],

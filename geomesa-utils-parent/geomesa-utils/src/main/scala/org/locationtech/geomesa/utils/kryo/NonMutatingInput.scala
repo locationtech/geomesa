@@ -133,7 +133,7 @@ class NonMutatingInput extends Input {
       charCount += 1
       p += 1
     }
-    throw new NotImplementedError() // can't ever reach here
+    throw new IllegalStateException() // can't ever reach here
   }
 
   private def readUtf8Chars(charCount: Int): Unit = {

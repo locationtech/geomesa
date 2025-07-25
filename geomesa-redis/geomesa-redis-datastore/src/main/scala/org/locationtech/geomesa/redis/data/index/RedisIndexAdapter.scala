@@ -26,7 +26,7 @@ import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLex
 import org.locationtech.geomesa.security.VisibilityUtils
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.util.Pool
 
 import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ArrayBuffer
@@ -221,7 +221,7 @@ object RedisIndexAdapter extends LazyLogging {
     * @param wrapper feature wrapper
     */
   class RedisIndexWriter(
-      jedis: JedisPool,
+      jedis: Pool[_ <: CloseableJedisCommands],
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       partition: Option[String],
       aging: Option[AgeOffWriter],

@@ -122,7 +122,7 @@ object StatSerializer {
         case s: SeqStat             => output.writeByte(SeqStatByte);         writeSeqStat(output, sft, s)
         case s: DescriptiveStats    => output.writeByte(DescriptiveStatByte); writeDescriptiveStats(output, sft, s)
         case s: GroupBy[_]          => output.writeByte(GroupByByte);         writeGroupBy(output, sft, s)
-        case _ => throw new NotImplementedError(s"Unhandled stat $stat")
+        case _ => throw new UnsupportedOperationException(s"Unhandled stat $stat")
       }
     }
 

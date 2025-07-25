@@ -17,9 +17,8 @@ import org.locationtech.geomesa.utils.text.DateParsing
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.{ChronoField, ChronoUnit, TemporalAdjusters, WeekFields}
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.{DayOfWeek, ZoneOffset, ZonedDateTime}
 import java.util.Date
-import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
@@ -37,29 +36,60 @@ case class DateTimeScheme(
 
   import ChronoUnit._
 
-  // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
-  private val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
-    case NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | DAYS =>
-      dt => dt.truncatedTo(stepUnit)
+  private val truncateToPartitionStart: ZonedDateTime => ZonedDateTime = {
+    // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
+    val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
+      case NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | DAYS =>
+        dt => dt.truncatedTo(stepUnit)
 
-    case MONTHS =>
-      val adjuster = TemporalAdjusters.firstDayOfMonth()
-      dt => dt.`with`(adjuster).truncatedTo(DAYS)
+      case WEEKS =>
+        val adjuster = TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY) // note: java day_of_week defines monday as the first day
+        dt => dt.`with`(adjuster).truncatedTo(DAYS)
 
-    case YEARS =>
-      val adjuster = TemporalAdjusters.firstDayOfYear()
-      dt => dt.`with`(adjuster).truncatedTo(DAYS)
+      case MONTHS =>
+        val adjuster = TemporalAdjusters.firstDayOfMonth()
+        dt => dt.`with`(adjuster).truncatedTo(DAYS)
 
-    case _ =>
-      dt => DateParsing.parse(formatter.format(dt), formatter) // fall back to format and re-parse
+      case YEARS =>
+        val adjuster = TemporalAdjusters.firstDayOfYear()
+        dt => dt.`with`(adjuster).truncatedTo(DAYS)
+
+      case _ =>
+        throw new IllegalArgumentException(s"${DateTimeScheme.Config.StepUnitOpt} $stepUnit is not supported")
+    }
+    if (step == 1) {
+      truncate
+    } else {
+      val chronoField = stepUnit match {
+        case NANOS   => ChronoField.NANO_OF_SECOND
+        case MICROS  => ChronoField.MICRO_OF_SECOND
+        case MILLIS  => ChronoField.MILLI_OF_SECOND
+        case SECONDS => ChronoField.SECOND_OF_MINUTE
+        case MINUTES => ChronoField.MINUTE_OF_HOUR
+        case HOURS   => ChronoField.HOUR_OF_DAY
+        case DAYS    => ChronoField.DAY_OF_YEAR
+        case WEEKS   => WeekFields.ISO.weekOfWeekBasedYear()
+        case MONTHS  => ChronoField.MONTH_OF_YEAR
+        case YEARS   => ChronoField.YEAR
+        case _ => throw new IllegalArgumentException(s"${DateTimeScheme.Config.StepUnitOpt} $stepUnit is not supported")
+      }
+      val min = math.max(chronoField.range().getMinimum, 0).toInt // account for 1-based fields like {month, week, day}_of_year
+      truncate.andThen { dt =>
+        val steps = dt.get(chronoField) - min
+        val remainder = steps % step
+        if (remainder == 0) { dt } else { dt.`with`(chronoField, steps + min - remainder ) }
+      }
+    }
   }
 
   // TODO This may not be the best way to calculate max depth...
   // especially if we are going to use other separators
   override val depth: Int = pattern.count(_ == '/') + 1
 
-  override def getPartitionName(feature: SimpleFeature): String =
-    formatter.format(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
+  override def getPartitionName(feature: SimpleFeature): String = {
+    val dt = ZonedDateTime.ofInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC)
+    formatter.format(truncateToPartitionStart(dt))
+  }
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
     getCoveringPartitions(filter).map { case (covered, intersecting) =>
@@ -71,7 +101,7 @@ case class DateTimeScheme(
         result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
       }
       if (intersecting.nonEmpty) {
-        result += SimplifiedFilter(filter, intersecting.distinct, partial = false)
+        result += SimplifiedFilter(filter, intersecting, partial = false)
       }
 
       partition match {
@@ -84,12 +114,12 @@ case class DateTimeScheme(
   }
 
   override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
-    getCoveringPartitions(filter).map { case (covered, intersecting) => covered ++ intersecting }
+    getCoveringPartitions(filter).map { case (covered, intersecting) => (covered ++ intersecting).sorted }
 
   override def getCoveringFilter(partition: String): Filter = {
     val zdt = DateParsing.parse(partition, formatter)
     val start = DateParsing.format(zdt)
-    val end = DateParsing.format(zdt.plus(1, stepUnit))
+    val end = DateParsing.format(zdt.plus(step, stepUnit))
     ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
   }
 
@@ -109,53 +139,35 @@ case class DateTimeScheme(
         // note: we verified both sides are bounded above
         val lower = bound.lower.value.get
         val upper = bound.upper.value.get
-        val start = truncate(lower)
-        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
-        // if exclusive end, subtract one milli so we don't search the whole next partition if it's on the endpoint
-        // note: we only support millisecond resolution
-        val end = truncate(if (bound.upper.inclusive) { upper } else { upper.minus(1, MILLIS) })
-        val steps = stepUnit.between(start, end).toInt
+        val start = truncateToPartitionStart(lower)
+        val end = truncateToPartitionStart(upper)
 
         // do our endpoints match the partition boundary, or do we need to apply a filter to the first/last partition?
-        val coveringFirst = bound.lower.inclusive && lower == start
-        val coveringLast =
-          (bound.upper.exclusive && upper == end.plus(1, stepUnit)) ||
-              (bound.upper.inclusive && !upper.isBefore(end.plus(1, stepUnit).minus(1, MILLIS)))
+        val lowerBoundCovered = bound.lower.inclusive && lower == start
 
-        if (steps == 0) {
-          if (coveringFirst && coveringLast) {
+        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
+        val steps = stepUnit.between(start, end).toInt
+        if (steps < step) {
+          if (lowerBoundCovered &&
+              ((bound.upper.exclusive && upper == end) || (bound.upper.inclusive && upper == end.plus(step, stepUnit).minus(1, MILLIS)))) {
             covered += formatter.format(start)
           } else {
             intersecting += formatter.format(start)
           }
         } else {
-          // add the first partition
-          if (coveringFirst) {
+          if (lowerBoundCovered) {
             covered += formatter.format(start)
           } else {
             intersecting += formatter.format(start)
           }
-
-          @tailrec
-          def addSteps(step: Int, current: ZonedDateTime): Unit = {
-            if (step == steps) {
-              // last partition
-              if (coveringLast) {
-                covered += formatter.format(current)
-              } else {
-                intersecting += formatter.format(current)
-              }
-            } else {
-              covered += formatter.format(current)
-              addSteps(step + 1, current.plus(1, stepUnit))
-            }
+          covered ++= Iterator.iterate(start)(_.plus(step, stepUnit)).drop(1).takeWhile(_.isBefore(end)).map(formatter.format)
+          if (bound.upper.inclusive || upper != end) {
+            intersecting += formatter.format(end)
           }
-
-          addSteps(1, start.plus(1, stepUnit))
         }
       }
 
-      Some((covered.toSeq, intersecting.toSeq))
+      Some((covered.toSeq, intersecting.distinct.toSeq))
     }
   }
 }

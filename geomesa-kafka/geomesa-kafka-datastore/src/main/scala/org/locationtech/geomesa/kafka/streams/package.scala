@@ -176,7 +176,7 @@ package object streams {
         case MessageAction.Upsert => internal.serialize(wrap(data))
         case MessageAction.Delete => null
         case null => throw new NullPointerException("action is null")
-        case _ => throw new NotImplementedError(s"No serialization implemented for action '${data.action}'")
+        case _ => throw new UnsupportedOperationException(s"No serialization implemented for action '${data.action}'")
       }
     }
 
@@ -230,35 +230,35 @@ package object streams {
     override def getUserData: java.util.Map[AnyRef, AnyRef] =
       userData.asJava.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
 
-    override def getID: String = ???
-    override def getType: SimpleFeatureType = ???
-    override def getFeatureType: SimpleFeatureType = ???
-    override def getAttributes: java.util.List[AnyRef] = ???
-    override def setAttributes(list:java.util.List[AnyRef]): Unit = ???
-    override def setAttributes(objects: Array[AnyRef]): Unit = ???
-    override def getAttribute(s: String): AnyRef = ???
-    override def setAttribute(s: String, o: Any): Unit = ???
-    override def getAttribute(name: Name): AnyRef = ???
-    override def setAttribute(name: Name, o: Any): Unit = ???
-    override def setAttribute(i: Int, o: Any): Unit = ???
-    override def getAttributeCount: Int = ???
-    override def getDefaultGeometry: AnyRef = ???
-    override def setDefaultGeometry(o: Any): Unit = ???
-    override def getIdentifier: FeatureId = ???
-    override def getBounds: BoundingBox = ???
-    override def getDefaultGeometryProperty: GeometryAttribute = ???
-    override def setDefaultGeometryProperty(geometryAttribute: GeometryAttribute): Unit = ???
-    override def setValue(collection:java.util.Collection[Property]): Unit = ???
-    override def getValue:java.util.Collection[_ <: Property] = ???
-    override def getProperties(name: Name):java.util.Collection[Property] = ???
-    override def getProperty(name: Name): Property = ???
-    override def getProperties(s: String):java.util.Collection[Property] = ???
-    override def getProperties:java.util.Collection[Property] = ???
-    override def getProperty(s: String): Property = ???
-    override def validate(): Unit = ???
-    override def getDescriptor: AttributeDescriptor = ???
-    override def setValue(o: Any): Unit = ???
-    override def getName: Name = ???
-    override def isNillable: Boolean = ???
+    override def getID: String = throw new UnsupportedOperationException()
+    override def getType: SimpleFeatureType = throw new UnsupportedOperationException()
+    override def getFeatureType: SimpleFeatureType = throw new UnsupportedOperationException()
+    override def getAttributes: java.util.List[AnyRef] = throw new UnsupportedOperationException()
+    override def setAttributes(list:java.util.List[AnyRef]): Unit = throw new UnsupportedOperationException()
+    override def setAttributes(objects: Array[AnyRef]): Unit = throw new UnsupportedOperationException()
+    override def getAttribute(s: String): AnyRef = throw new UnsupportedOperationException()
+    override def setAttribute(s: String, o: Any): Unit = throw new UnsupportedOperationException()
+    override def getAttribute(name: Name): AnyRef = throw new UnsupportedOperationException()
+    override def setAttribute(name: Name, o: Any): Unit = throw new UnsupportedOperationException()
+    override def setAttribute(i: Int, o: Any): Unit = throw new UnsupportedOperationException()
+    override def getAttributeCount: Int = throw new UnsupportedOperationException()
+    override def getDefaultGeometry: AnyRef = throw new UnsupportedOperationException()
+    override def setDefaultGeometry(o: Any): Unit = throw new UnsupportedOperationException()
+    override def getIdentifier: FeatureId = throw new UnsupportedOperationException()
+    override def getBounds: BoundingBox = throw new UnsupportedOperationException()
+    override def getDefaultGeometryProperty: GeometryAttribute = throw new UnsupportedOperationException()
+    override def setDefaultGeometryProperty(geometryAttribute: GeometryAttribute): Unit = throw new UnsupportedOperationException()
+    override def setValue(collection:java.util.Collection[Property]): Unit = throw new UnsupportedOperationException()
+    override def getValue:java.util.Collection[_ <: Property] = throw new UnsupportedOperationException()
+    override def getProperties(name: Name):java.util.Collection[Property] = throw new UnsupportedOperationException()
+    override def getProperty(name: Name): Property = throw new UnsupportedOperationException()
+    override def getProperties(s: String):java.util.Collection[Property] = throw new UnsupportedOperationException()
+    override def getProperties:java.util.Collection[Property] = throw new UnsupportedOperationException()
+    override def getProperty(s: String): Property = throw new UnsupportedOperationException()
+    override def validate(): Unit = throw new UnsupportedOperationException()
+    override def getDescriptor: AttributeDescriptor = throw new UnsupportedOperationException()
+    override def setValue(o: Any): Unit = throw new UnsupportedOperationException()
+    override def getName: Name = throw new UnsupportedOperationException()
+    override def isNillable: Boolean = throw new UnsupportedOperationException()
   }
 }

@@ -90,6 +90,36 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.4.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* orc ``1.9.6`` -> ``1.9.7``
+
+Switch to Micrometer Metrics
+----------------------------
+
+GeoMesa has transitioned from Dropwizard metrics to :ref:`geomesa_metrics`. As a result, the configuration for
+:ref:`kafka_index` metrics and converter :ref:`converter_metrics` has also changed. Existing Dropwizard configurations
+have been deprecated, but will continue to work until they are removed in the next major release. However, metric
+names and formats may change slightly due to the difference in Micrometer's implementation.
+
+
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated and will be removed in the next major release:
+
+* ``geomesa-metrics-core``
+* ``geomesa-metrics-cloudwatch``
+* ``geomesa-metrics-graphite``
+* ``geomesa-metrics-prometheus``
+
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -98,23 +128,32 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
-* arrow ``18.1.0`` -> ``18.2.0``
+* arrow ``18.1.0`` -> ``18.3.0``
+* geotools ``32.1`` -> ``33.1``
+* geoserver ``2.26.1`` -> ``2.27.1``
 * json4s ``3.6.12`` -> ``4.0.7``
 * json-smart ``2.5.1`` -> ``2.5.2``
-* netty ``4.1.114.Final`` -> ``4.1.118.Final``
-* parquet ``1.13.1`` -> ``1.15.1``
+* netty ``4.1.114.Final`` -> ``4.1.121.Final``
+* orc ``1.9.5`` -> ``1.9.6``
+* parquet ``1.13.1`` -> ``1.15.2``
 * spark ``3.5.0`` -> ``3.5.5``
 
 NiFi 2 Support
 --------------
 
-GeoMesa NiFi now supports NiFi 2.3.0. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
+GeoMesa NiFi now supports NiFi 2.x. NiFi 1.x is still supported, but note that it now requires running on Java 21+.
 
-Parquet Version
----------------
+Parquet Encoding Changes
+------------------------
 
-The bundled version of Parquet has been updated to ``1.15.1``. Any files written with the newer version may not be
-readable with older versions of Parquet.
+The default format used for writing Parquet files in the FileSystem data store has been updated to conform to the
+`GeoParquet <https://geoparquet.org/releases/v1.1.0/>`__ specification, which makes the files compatible with the
+broader ecosystem, including GeoPandas, Apache Sedona, DuckDB, and Apache Iceberg. However, older versions of
+GeoMesa will not be able to read the files. For back-compatibility, the file format may be configured to write
+the old format; see :ref:`fsds_parquet_geometries_prop` for details.
+
+As part of this change, the bundled version of Parquet has been updated to ``1.15.1``. Any files written with the
+newer version may not be readable with older versions of Parquet.
 
 Version 5.2.0 Upgrade Guide
 +++++++++++++++++++++++++++

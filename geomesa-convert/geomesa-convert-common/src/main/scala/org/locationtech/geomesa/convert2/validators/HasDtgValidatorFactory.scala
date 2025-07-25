@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert2.validators
 
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
@@ -17,12 +18,12 @@ class HasDtgValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override val name: String = HasDtgValidatorFactory.Name
 
-  override def apply(
-      sft: SimpleFeatureType,
-      metrics: ConverterMetrics,
-      config: Option[String]): SimpleFeatureValidator = {
+  override def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator =
+    apply(sft, config, Tags.empty())
+
+  override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
     val i = sft.getDtgIndex.getOrElse(-1)
-    if (i == -1) { NoValidator } else { new NullValidator(i, Errors.DateNull, metrics.counter("validators.dtg.null")) }
+    if (i == -1) { NoValidator } else { new NullValidator(i, Errors.DateNull, counter("dtg.null", tags)) }
   }
 }
 

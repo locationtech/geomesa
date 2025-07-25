@@ -21,11 +21,11 @@ specifying the input source:
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``log-errors`` or ``raise-errors``)                  |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterMetricReporters``  | Override the converter metrics reporters (see below)                                    |
-+-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter and SFT definitions        |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``ConverterMetricsRegistry``  | Reference to :ref:`nifi_metrics` for publishing metrics                                 |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 
 Additionally, the ``PutGeoMesa`` processor accepts additional configuration:
@@ -110,18 +110,5 @@ as the key and the definition of the type as the value, corresponding to ``Featu
 Converter Metrics
 ~~~~~~~~~~~~~~~~~
 
-GeoMesa supports publishing metrics on the ingest conversion process. See :ref:`converter_metrics` and
-:ref:`geomesa_metrics` for details. The GeoMesa NiFi converter processors allow the metrics reporters to be
-configured directly in NiFi with the ``ConverterMetricReporters`` property, instead of in the converter definition.
-The property expects a TypeSafe Config block defining the reporters or list of reporters, for example:
-
-
-::
-
-  {
-    type     = "slf4j"
-    units    = "milliseconds"
-    interval = "60 seconds"
-    logger   = "org.locationtech.geomesa.metrics"
-    level    = "debug"
-  }
+GeoMesa supports publishing :ref:`converter_metrics` on the ingest conversion process. See :ref:`nifi_metrics` for details
+on exposing metrics through a registry.

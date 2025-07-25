@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-accumulo_2.12</artifactId>
-        <version>5.3.0-SNAPSHOT</version>
+        <version>5.4.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-accumulo-indices_2.12</artifactId>
@@ -99,12 +99,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

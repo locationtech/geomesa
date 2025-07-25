@@ -25,9 +25,6 @@ object TypeInference {
 
   import scala.collection.JavaConverters._
 
-  private val geometries =
-    Seq(POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION, GEOMETRY)
-
   // fields to match for lat/lon - in priority order, from most to least specific
   private val latitudeNames = Seq("latitude", "lat")
   private val longitudeNames = Seq("longitude", "lon", "long")
@@ -88,7 +85,7 @@ object TypeInference {
     */
   def deriveGeometry(types: Seq[InferredType], namer: String => String): Option[InferredType] = {
     // if there is no geometry field, see if we can derive one
-    if (types.map(_.typed).exists(geometries.contains)) { None } else {
+    if (types.map(_.typed).exists(ObjectType.GeometrySubtypes.contains)) { None } else {
       val nums = types.filter(t => t.typed == ObjectType.DOUBLE || t.typed == ObjectType.FLOAT)
       if (nums.lengthCompare(2) < 0) { None } else {
         def findBestMatch(names: Seq[String]): Option[InferredType] = {
@@ -207,7 +204,7 @@ object TypeInference {
       Some(left)
     } else if (left.typed == null || right.typed == STRING) {
       Some(right)
-    } else if (geometries.contains(left.typed) && geometries.contains(right.typed)) {
+    } else if (ObjectType.GeometrySubtypes.contains(left.typed) && ObjectType.GeometrySubtypes.contains(right.typed)) {
       Some(InferredType("", GEOMETRY, IdentityTransform))
     } else {
       for {

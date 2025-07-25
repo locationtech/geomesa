@@ -15,6 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data._
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.tools.Command
@@ -22,7 +23,6 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, Inpu
 import org.locationtech.geomesa.tools.ingest.LocalConverterIngest.DataStoreWriter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging, CloseablePool, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
@@ -75,13 +75,10 @@ class LocalConverterIngest(
 
   private val batches = new ConcurrentHashMap[FeatureWriter[SimpleFeatureType, SimpleFeature], AtomicInteger](threads)
 
-  // keep track of failure at a global level, keep line counts and success local
-  private val globalFailures = new com.codahale.metrics.Counter {
-    override def inc(): Unit = failed.incrementAndGet()
-    override def inc(n: Long): Unit = failed.addAndGet(n)
-    override def dec(): Unit = failed.decrementAndGet()
-    override def dec(n: Long): Unit = failed.addAndGet(-1 * n)
-    override def getCount: Long = failed.get()
+  // keep track of failure at a global level, but we don't count successes until they're written to the store
+  private val listener = new EvaluationContext.ContextListener {
+    override def onSuccess(i: Int): Unit = {}
+    override def onFailure(i: Int): Unit = failed.addAndGet(i)
   }
 
   private val progress: () => Float =
@@ -160,8 +157,7 @@ class LocalConverterIngest(
           WithClose(file.open) { streams =>
             streams.foreach { case (name, is) =>
               val params = EvaluationContext.inputFileParam(name.getOrElse(file.path))
-              val success = converter.createEvaluationContext().success
-              val ec = converter.createEvaluationContext(params, success, globalFailures)
+              val ec = converter.createEvaluationContext(params).withListener(listener)
               WithClose(LocalConverterIngest.this.features(converter.process(is, ec))) { features =>
                 writers.borrow { writer =>
                   var count = batches.get(writer)
@@ -169,9 +165,10 @@ class LocalConverterIngest(
                     count = new AtomicInteger(0)
                     batches.put(writer, count)
                   }
+                  val helper = FeatureWriterHelper(writer)
                   features.foreach { sf =>
                     try {
-                      FeatureUtils.write(writer, sf)
+                      helper.write(sf)
                       written.incrementAndGet()
                       count.incrementAndGet()
                     } catch {

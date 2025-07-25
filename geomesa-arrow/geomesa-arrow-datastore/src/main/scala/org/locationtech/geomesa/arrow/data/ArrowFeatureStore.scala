@@ -15,7 +15,8 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.{FastSettableFeature, ScalaSimpleFeature}
+import org.locationtech.geomesa.index.geotools.FastSettableFeatureWriter
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.util.concurrent.atomic.AtomicLong
@@ -67,7 +68,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
     val writer = SimpleFeatureArrowFileWriter(os, sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None)
     val flushCount = ArrowProperties.BatchSize.get.toLong
 
-    new FeatureWriter[SimpleFeatureType, SimpleFeature] {
+    new FastSettableFeatureWriter {
       private var count = 0L
       private var feature: ScalaSimpleFeature = _
 
@@ -75,7 +76,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
 
       override def hasNext: Boolean = false
 
-      override def next(): SimpleFeature = {
+      override def next(): FastSettableFeature = {
         feature = new ScalaSimpleFeature(writer.sft, featureIds.getAndIncrement().toString)
         feature
       }
@@ -89,7 +90,7 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
         }
       }
 
-      override def remove(): Unit = throw new NotImplementedError()
+      override def remove(): Unit = throw new UnsupportedOperationException()
 
       override def close(): Unit = CloseWithLogging(writer)
     }

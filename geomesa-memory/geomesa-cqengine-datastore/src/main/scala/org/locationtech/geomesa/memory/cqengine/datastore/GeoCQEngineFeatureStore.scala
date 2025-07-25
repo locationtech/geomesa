@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.memory.cqengine.datastore
 
-import org.geotools.api.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
+import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -53,7 +53,7 @@ object GeoCQEngineFeatureStore {
     override def isUseProvidedFIDSupported = true
   }
 
-  class GeoCQEngineFeatureWriter(engine: GeoCQEngine) extends FeatureWriter[SimpleFeatureType, SimpleFeature] {
+  class GeoCQEngineFeatureWriter(engine: GeoCQEngine) extends SimpleFeatureWriter {
 
     private val tempFeatureIds = new AtomicLong(0)
     private val currentFeature: ScalaSimpleFeature = new ScalaSimpleFeature(engine.sft, "")
@@ -93,7 +93,7 @@ object GeoCQEngineFeatureStore {
       queued = false
     }
 
-    override def remove(): Unit = throw new NotImplementedError()
+    override def remove(): Unit = throw new UnsupportedOperationException()
 
     override def close(): Unit = {}
   }
