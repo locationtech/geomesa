@@ -650,6 +650,21 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
             fns.toSeq
           }
 
+          // get all the scheduled cron jobs associated with the schema
+          def getCrons: Seq[String] = {
+            val crons = ArrayBuffer.empty[String]
+            WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+              WithClose(cx.prepareStatement("SELECT command from cron.job where command like '%dropme%';")) { st =>
+                WithClose(st.executeQuery()) { rs =>
+                  while (rs.next()) {
+                    crons += rs.getString(1)
+                  }
+                }
+              }
+            }
+            crons.toSeq
+          }
+
           // get all the user data and other associated metadata
           def getMeta: Seq[String] = {
             val meta = ArrayBuffer.empty[String]
@@ -678,6 +693,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           // delete/insert/update/wa triggers
           // analyze_partitions, compact, drop_age_off, merge_wa, part_maintenance, part_wa, roll_wa,
           getFunctions must haveLength(11)
+          // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
+          getCrons must haveLength(4)
           // 3 tablespaces, 4 user data, 1 seq count, 1 primary key
           getMeta must haveLength(9)
 
@@ -685,6 +702,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           getTablesAndIndices must beEmpty
           getFunctions must beEmpty
+          getCrons must beEmpty
           getMeta must beEmpty
         }
       } finally {
