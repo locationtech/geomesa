@@ -173,7 +173,7 @@ class PrometheusRegistryTest extends Specification {
         job1 must contain("foo_total")
         job1 must not(contain("10")) // kind of a hacky way to verify things are protobuf encoded
 
-        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "").replaceAll("10", "") // so we don't match on the uuid, below
+        val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "").replaceAll("10", "x") // so we don't match on the uuid, below
         val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2")
         try {
           Metrics.counter(id).increment(10)
