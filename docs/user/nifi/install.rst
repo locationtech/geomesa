@@ -71,7 +71,7 @@ The common NAR files are required for all datastores. The datastore-specific NAR
 
 .. note::
 
-  There are two HBase and Accumulo NARs that correspond to different versions.
+  There are two Accumulo NARs that correspond to different versions.
   Be sure to choose the appropriate NAR for your database.
 
 If you downloaded the NARs from GitHub:

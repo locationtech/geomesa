@@ -98,6 +98,7 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
 
 Switch to Micrometer Metrics
