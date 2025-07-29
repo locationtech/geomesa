@@ -14,6 +14,7 @@ import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.ColumnSelect
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.{CassandraIndexWriter, CassandraResultsToFeatures}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
@@ -25,6 +26,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import java.nio.ByteBuffer
@@ -82,14 +84,16 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createQueryPlan(strategy: QueryStrategy): CassandraQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, ecql, hints, _) = strategy
+    val keyRanges = strategy.keyRanges
+    val ecql = strategy.ecql
+    val hints = strategy.hints
 
     val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints))
 
-    if (keyRanges.isEmpty) { EmptyPlan(filter, reducer) } else {
+    if (keyRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
-      val ranges = keyRanges.flatMap(mapper.select(_, tieredKeyRanges))
-      val tables = strategy.index.getTablesForQuery(filter.filter)
+      val ranges = keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
       val rowsToFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
@@ -97,7 +101,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      StatementPlan(filter, tables, statements, threads, ecql, rowsToFeatures, reducer, sort, max, project)
+      StatementPlan(strategy, tables, statements, threads, ecql, rowsToFeatures, reducer, sort, max, project)
     }
   }
 
@@ -114,6 +118,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       new CassandraIndexWriter(ds, indices, wrapper, partition)
     }
   }
+
+  override def getStrategyCost(strategy: FilterStrategy, explain: Explainer): Option[Long] =
+    ds.stats.getCount(strategy.index.sft, strategy.primary.getOrElse(Filter.INCLUDE))
 }
 
 object CassandraIndexAdapter extends LazyLogging {
