@@ -18,12 +18,14 @@ import org.geotools.geometry.jts._
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.Conversion
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
@@ -31,6 +33,7 @@ import org.locationtech.jts.geom._
 
 import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 import scala.util.Try
+import scala.util.control.NonFatal
 
 class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
 
@@ -175,87 +178,24 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     }
   }
 
-  private def querySftAttributesWithIndices(sft: SimpleFeatureType, cx: Connection): List[String] = {
-    val attributesWithIndicesSql =
-      s"""
-         |select distinct(att.attname) as indexed_attribute_name
-         |from pg_class obj
-         |join pg_index idx on idx.indrelid = obj.oid
-         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
-         |join pg_views v on v.viewname = ?
-         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
-         |order by att.attname
-         |""".stripMargin
-    val sftTypeName = sft.getTypeName
-    Try(
-      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
-        statement.setString(1, sftTypeName)
-        statement.setString(2, sftTypeName)
-        WithClose(statement.executeQuery()) { rs =>
-          Iterator.continually(rs.next(), rs)
-            .takeWhile(_._1)
-            .map(_._2.getString(1))
-            .toList
-        }
-      }
-    ).fold(
-      exception => {
-        logger.error(s"${getClass.getSimpleName}: Error loading attributes with indices for SFT: $sftTypeName due to: ${exception.getMessage}", exception)
-        List.empty
-      },
-      (indexedAttributeNames: List[String]) => indexedAttributeNames
-    )
-  }
-
   override def postCreateFeatureType(
       sft: SimpleFeatureType,
       metadata: DatabaseMetaData,
       schemaName: String,
       cx: Connection): Unit = {
 
-    import PartitionedPostgisDialect.Config._
-
     // normally views get set to read-only, override that here since we use triggers to delegate writes
     sft.getUserData.remove(JDBCDataStore.JDBC_READ_ONLY)
 
+    // populate tablespaces (deprecated)
+    PartitionTablespacesTable.read(cx, metadata, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
+
     // populate user data
-    val userDataSql = s"select key, value from ${escape(schemaName)}.${UserDataTable.Name.quoted} where type_name = ?"
-    WithClose(cx.prepareStatement(userDataSql)) { statement =>
-      statement.setString(1, sft.getTypeName)
-      WithClose(statement.executeQuery()) { rs =>
-        while (rs.next()) {
-          sft.getUserData.put(rs.getString(1), rs.getString(2))
-        }
-      }
-    }
+    UserDataTable.read(cx, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
 
-    // populate tablespaces
-    val tablespaceSql =
-      s"select table_space, table_type from " +
-          s"${escape(schemaName)}.${PartitionTablespacesTable.Name.quoted} where type_name = ?"
-    WithClose(cx.prepareStatement(tablespaceSql)) { statement =>
-      statement.setString(1, sft.getTypeName)
-      WithClose(statement.executeQuery()) { rs =>
-        while (rs.next()) {
-          val ts = rs.getString(1)
-          if (ts != null && ts.nonEmpty) {
-            rs.getString(2) match {
-              case WriteAheadTableSuffix.raw => sft.getUserData.put(WriteAheadTableSpace, ts)
-              case PartitionedWriteAheadTableSuffix.raw => sft.getUserData.put(WriteAheadPartitionsTableSpace, ts)
-              case PartitionedTableSuffix.raw => sft.getUserData.put(MainTableSpace, ts)
-              case s => logger.warn(s"Ignoring unexpected tablespace table: $s")
-            }
-          }
-        }
-      }
-    }
-
-    // populate indices data
-    querySftAttributesWithIndices(sft, cx).foreach { idxAttribute =>
-      for {
-        attDesc <- Option(sft.getDescriptor(idxAttribute))
-        userData <- Option(attDesc.getUserData)
-      } userData.put(AttributeOptions.OptIndex, "true")
+    // populate flags on indexed attributes
+    getIndexedColumns(cx, sft.getTypeName).foreach { attribute =>
+      Option(sft.getDescriptor(attribute)).foreach(_.getUserData.put(AttributeOptions.OptIndex, "true"))
     }
   }
 
@@ -288,8 +228,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def splitFilter(filter: Filter, schema: SimpleFeatureType): Array[Filter] = {
-    import PartitionedPostgisDialect.Config.ConfigConversions
-    val simplified = SplitFilterVisitor(filter, schema.isFilterWholeWorld)
+    val simplified = SplitFilterVisitor(filter, SftUserData.FilterWholeWorld.get(schema))
     val query = new Query(schema.getTypeName, simplified)
     interceptors(schema).foreach(_.rewrite(query))
     super.splitFilter(query.getFilter, schema)
@@ -311,7 +250,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
   }
 
   override def encodePostColumnCreateTable(att: AttributeDescriptor, sql: StringBuffer): Unit = {
-    import PartitionedPostgisDialect.Config.GeometryAttributeConversions
+    import PartitionedPostgisDialect.GeometryAttributeConversions
     att match {
       case gd: GeometryDescriptor =>
         val nullable = gd.getMinOccurs <= 0 || gd.isNillable
@@ -393,9 +332,40 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
       "text"
     }
   }
+
+  /**
+   * Gets a list of indexed columns for the given type
+   *
+   * @param cx connection
+   * @param typeName feature type name
+   * @return
+   */
+  private def getIndexedColumns(cx: Connection, typeName: String): Seq[String] = {
+    val attributesWithIndicesSql =
+      s"""select distinct(att.attname) as indexed_attribute_name
+         |from pg_class obj
+         |join pg_index idx on idx.indrelid = obj.oid
+         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
+         |join pg_views v on v.viewname = ?
+         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
+         |order by att.attname;""".stripMargin
+    try {
+      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
+        statement.setString(1, typeName)
+        statement.setString(2, typeName)
+        WithClose(statement.executeQuery()) { rs =>
+          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
+        }
+      }
+    } catch {
+      case NonFatal(e) =>
+        logger.warn(s"Error loading attributes with indices for schema $typeName:", e)
+        Seq.empty
+    }
+  }
 }
 
-object PartitionedPostgisDialect {
+object PartitionedPostgisDialect extends Conversions {
 
   private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
 
@@ -441,48 +411,60 @@ object PartitionedPostgisDialect {
     LogCleaner
   )
 
-  object Config extends Conversions {
+  /**
+   * Feature type user data fields
+   *
+   * @param key key used to store the data
+   * @param mutable whether the value can be changed after the schema has been created
+   * @param default default value, if any
+   * @param conversion conversion from user data (string) to typed value
+   * @tparam T typed value
+   */
+  case class SftUserData[T](key: String, mutable: Boolean, default: T)(implicit conversion: Conversion[T]) {
+    def get(sft: SimpleFeatureType): T = Option(sft.getUserData.get(key)).map(conversion.convert).getOrElse(default)
+    def get(userData: Map[String, String]): T = userData.get(key).map(conversion.convert).getOrElse(default)
+  }
 
+  object SftUserData {
+    // default date field
+    val DtgField: SftUserData[Option[String]] = SftUserData(SimpleFeatureTypes.Configs.DefaultDtgField, mutable = false, None)
     // size of each partition - can be updated after schema is created, but requires
     // running PartitionedPostgisDialect.upgrade in order to be applied
-    val IntervalHours = "pg.partitions.interval.hours"
+    val IntervalHours: SftUserData[Int] = SftUserData("pg.partitions.interval.hours", mutable = true, 6)
     // pages_per_range on the BRIN index - can't be updated after schema is created
-    val PagesPerRange = "pg.partitions.pages-per-range"
+    val PagesPerRange: SftUserData[Int] = SftUserData("pg.partitions.pages-per-range", mutable = false, 128)
     // max partitions to keep, i.e. age-off - can be updated freely after schema is created
-    val MaxPartitions = "pg.partitions.max"
-    // minute of each 10 minute block to execute the partition jobs - can be updated after schema is created,
+    val MaxPartitions: SftUserData[Option[Int]] = SftUserData("pg.partitions.max", mutable = true, None)
+    // minute of each 10 minute block to execute the partition jobs - TODO can be updated after schema is created,
     // but requires running PartitionedPostgisDialect.upgrade in order to be applied
-    val CronMinute = "pg.partitions.cron.minute"
+    val CronMinute: SftUserData[Option[Int]] = SftUserData("pg.partitions.cron.minute", mutable = false, None)
     // remove 'whole world' filters - can be updated freely after schema is created
-    val FilterWholeWorld = "pg.partitions.filter.world"
+    val FilterWholeWorld: SftUserData[Boolean] = SftUserData("pg.partitions.filter.world", mutable = true, default = true)
+    // query interceptors
+    val QueryInterceptors: SftUserData[Option[String]] = SftUserData(SimpleFeatureTypes.Configs.QueryInterceptors, mutable = true, None)
+    // set postgres table wal logging
+    val WalLogEnabled: SftUserData[Boolean] = SftUserData("pg.wal.enabled", mutable = false, default = true)
 
     // tablespace configurations - can be updated freely after the schema is created
-    val WriteAheadTableSpace = "pg.partitions.tablespace.wa"
-    val WriteAheadPartitionsTableSpace = "pg.partitions.tablespace.wa-partitions"
-    val MainTableSpace = "pg.partitions.tablespace.main"
+    val WriteAheadTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.wa", mutable = true, None)
+    val WriteAheadPartitionsTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.wa-partitions", mutable = true, None)
+    val MainTableSpace: SftUserData[Option[String]] = SftUserData("pg.partitions.tablespace.main", mutable = true, None)
+  }
 
-    // set postgres table wal logging
-    val WalLogEnabled = "pg.wal.enabled"
+  implicit private def optionConversion[T](implicit conversion: Conversion[T]): Conversion[Option[T]] =
+    new OptionConversion[T](conversion)
 
-    implicit class ConfigConversions(val sft: SimpleFeatureType) extends AnyVal {
-      def getIntervalHours: Int = Option(sft.getUserData.get(IntervalHours)).map(int).getOrElse(6)
-      def getMaxPartitions: Option[Int] = Option(sft.getUserData.get(MaxPartitions)).map(int)
-      def getWriteAheadTableSpace: Option[String] = Option(sft.getUserData.get(WriteAheadTableSpace).asInstanceOf[String])
-      def getWriteAheadPartitionsTableSpace: Option[String] = Option(sft.getUserData.get(WriteAheadPartitionsTableSpace).asInstanceOf[String])
-      def getMainTableSpace: Option[String] = Option(sft.getUserData.get(MainTableSpace).asInstanceOf[String])
-      def getCronMinute: Option[Int] = Option(sft.getUserData.get(CronMinute).asInstanceOf[String]).map(int)
-      def getPagesPerRange: Int = Option(sft.getUserData.get(PagesPerRange).asInstanceOf[String]).map(int).getOrElse(128)
-      def isFilterWholeWorld: Boolean = Option(sft.getUserData.get(FilterWholeWorld).asInstanceOf[String]).forall(_.toBoolean)
-    }
+  private class OptionConversion[T](delegate: Conversion[T]) extends Conversion[Option[T]] {
+    override def convert(value: AnyRef): Option[T] = Option(value).map(delegate.convert)
+  }
 
-    implicit class GeometryAttributeConversions(val d: GeometryDescriptor) extends AnyVal {
-      def getSrid: Option[Int] =
-        Option(d.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID)).map(int)
-            .orElse(
-              Option(d.getCoordinateReferenceSystem)
-                  .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
-      def getCoordinateDimensions: Option[Int] =
-        Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
-    }
+  implicit class GeometryAttributeConversions(val d: GeometryDescriptor) extends AnyVal {
+    def getSrid: Option[Int] =
+      Option(d.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID)).map(int)
+        .orElse(
+          Option(d.getCoordinateReferenceSystem)
+            .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
+    def getCoordinateDimensions: Option[Int] =
+      Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
   }
 }

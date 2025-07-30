@@ -109,7 +109,11 @@ GeoMesa has transitioned from Dropwizard metrics to :ref:`geomesa_metrics`. As a
 have been deprecated, but will continue to work until they are removed in the next major release. However, metric
 names and formats may change slightly due to the difference in Micrometer's implementation.
 
+Partitioned PostGIS Table Changes
+---------------------------------
 
+The ``partition_tablespaces`` table used to store tablespaces for the Partitioned PostGIS data store has been deprecated,
+and will be removed in a future version. Tablespace information is now stored in the ``geomesa_userdata`` table.
 
 Deprecated Modules
 ------------------

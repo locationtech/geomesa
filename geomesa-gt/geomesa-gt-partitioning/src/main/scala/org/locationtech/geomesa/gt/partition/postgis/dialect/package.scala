@@ -11,7 +11,7 @@ package org.locationtech.geomesa.gt.partition.postgis
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.Config
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.TemporalIndexCheck
@@ -158,13 +158,8 @@ package object dialect {
       tables: Tables,
       cols: Columns,
       partitions: PartitionInfo,
-      userData: Map[String, String] = Map.empty) {
-    val walLogSQL: String = if (userData.getOrElse(Config.WalLogEnabled, "true").toBoolean) {
-      ""
-    } else {
-      " UNLOGGED "
-    }
-  }
+      userData: Map[String, String] = Map.empty,
+    )
 
   object TypeInfo {
 
@@ -205,18 +200,16 @@ package object dialect {
       sortQueue: TableConfig)
 
   object Tables {
-
-    import Config.ConfigConversions
-
     def apply(sft: SimpleFeatureType, schema: String): Tables = {
+      val logged = SftUserData.WalLogEnabled.get(sft)
       val view = TableConfig(schema, sft.getTypeName, None)
       // we disable autovacuum for write ahead tables, as they are transient and get dropped fairly quickly
-      val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix.raw, sft.getWriteAheadTableSpace, vacuum = false)
-      val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix.raw, sft.getWriteAheadPartitionsTableSpace, vacuum = false)
-      val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix.raw, sft.getMainTableSpace)
-      val spillPartitions = TableConfig(schema, view.name.raw + SpillTableSuffix.raw, sft.getMainTableSpace)
-      val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix.raw, sft.getMainTableSpace)
-      val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix.raw, sft.getMainTableSpace)
+      val writeAhead = TableConfig(schema, view.name.raw + WriteAheadTableSuffix.raw, SftUserData.WriteAheadTableSpace.get(sft), vacuum = false, logged)
+      val writeAheadPartitions = TableConfig(schema, view.name.raw + PartitionedWriteAheadTableSuffix.raw, SftUserData.WriteAheadPartitionsTableSpace.get(sft), vacuum = false, logged)
+      val mainPartitions = TableConfig(schema, view.name.raw + PartitionedTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
+      val spillPartitions = TableConfig(schema, view.name.raw + SpillTableSuffix.raw, SftUserData.MainTableSpace.get(sft), logged = logged)
+      val analyzeQueue = TableConfig(schema, view.name.raw + AnalyzeTableSuffix.raw, None, logged = logged)
+      val sortQueue = TableConfig(schema, view.name.raw + SortTableSuffix.raw, None, logged = logged)
       Tables(view, writeAhead, writeAheadPartitions, mainPartitions, spillPartitions, analyzeQueue, sortQueue)
     }
   }
@@ -227,14 +220,15 @@ package object dialect {
    * @param name table name
    * @param tablespace table space
    * @param storage storage opts (auto vacuum)
+   * @param logged logged or unlogged table
    */
-  case class TableConfig(name: TableIdentifier, tablespace: Option[TableSpace], storage: Storage)
+  case class TableConfig(name: TableIdentifier, tablespace: Option[TableSpace], storage: Storage, logged: Boolean)
 
   object TableConfig {
-    def apply(schema: String, name: String, tablespace: Option[String], vacuum: Boolean = true): TableConfig = {
+    def apply(schema: String, name: String, tablespace: Option[String], vacuum: Boolean = true, logged: Boolean = true): TableConfig = {
       val storage = if (vacuum) { Storage.Nothing } else { Storage.AutoVacuumDisabled }
       val ts = tablespace.collect { case t if t.nonEmpty => TableSpace(t) }
-      TableConfig(TableIdentifier(schema, name), ts, storage)
+      TableConfig(TableIdentifier(schema, name), ts, storage, logged)
     }
   }
 
@@ -369,18 +363,16 @@ package object dialect {
     )
 
   object PartitionInfo {
-
-    import Config.ConfigConversions
-
     def apply(sft: SimpleFeatureType): PartitionInfo = {
-      val hours = sft.getIntervalHours
+      val hours = SftUserData.IntervalHours.get(sft)
       require(hours > 0 && hours <= 24, s"Partition interval must be between 1 and 24 hours: $hours hours")
       require(24 % hours == 0, s"Partition interval must be a divisor of 24 hours: $hours hours")
-      val cronMinute = sft.getCronMinute
+      val cronMinute = SftUserData.CronMinute.get(sft)
       require(cronMinute.forall(m => m >= 0 && m < 9), s"Cron minute must be between 0 and 8: ${cronMinute.orNull}")
-      val pagesPerRange = sft.getPagesPerRange
+      val pagesPerRange = SftUserData.PagesPerRange.get(sft)
       require(pagesPerRange >= 0, s"Pages per range but be a positive number: $pagesPerRange")
-      PartitionInfo(hours, pagesPerRange, sft.getMaxPartitions, cronMinute)
+      val maxPartitions = SftUserData.MaxPartitions.get(sft)
+      PartitionInfo(hours, pagesPerRange, maxPartitions, cronMinute)
     }
   }
 

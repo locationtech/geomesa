@@ -22,6 +22,7 @@ object WriteAheadTable extends SqlStatements {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
+    val logging = if (info.tables.writeAhead.logged) { "" } else { "UNLOGGED" }
     val move = table.tablespace.toSeq.map { ts =>
       s"ALTER TABLE ${table.name.qualified} SET TABLESPACE ${ts.quoted};\n"
     }
@@ -35,7 +36,7 @@ object WriteAheadTable extends SqlStatements {
          |    WHERE type_name = ${literal(info.typeName)} INTO seq_val;
          |  partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
          |
-         |  EXECUTE 'CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
+         |  EXECUTE 'CREATE $logging TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(partition) || '(' ||
          |    'CONSTRAINT ' || quote_ident(partition || '_pkey') ||
          |    ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs ' ||
          |    ') INHERITS (${table.name.qualified})${table.storage.opts}$tableTs';

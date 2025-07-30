@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, SequenceTable}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{SequenceTable, UserDataTable}
 
 /**
  * Moves the current write ahead table to a sequential name, and creates a new write ahead table
@@ -29,9 +30,6 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
     Seq(proc(info)) ++ super.createStatements(info)
 
   private def proc(info: TypeInfo): String = {
-    val table = info.tables.writeAhead
-    val partitionsTable = s"${info.schema.quoted}.${PartitionTablespacesTable.Name.quoted}"
-
     s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
@@ -40,15 +38,16 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |      next_partition text;       -- next partition that will be created from the _writes table
        |      partition_tablespace text; -- table space command
        |      index_space text;          -- index table space command
+       |      table_wa_logging text;     -- wa log options
        |      pexists boolean;           -- table exists check
        |    BEGIN
        |
        |      SELECT value FROM ${info.schema.quoted}.${SequenceTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
-       |      cur_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |      cur_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
        |
        |      -- get the required locks up front to avoid deadlocks with inserts
-       |      LOCK TABLE ONLY ${table.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
+       |      LOCK TABLE ONLY ${info.tables.writeAhead.name.qualified} IN SHARE UPDATE EXCLUSIVE MODE;
        |
        |      -- don't re-create the table if there hasn't been any data inserted
        |      EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(cur_partition) || ')'
@@ -65,9 +64,10 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          WHERE type_name = ${literal(info.typeName)};
        |
        |        -- format the table name to be 3 digits, with leading zeros as needed
-       |        next_partition := ${literal(table.name.raw + "_")} || lpad(seq_val::text, 3, '0');
-       |        SELECT table_space INTO partition_tablespace FROM $partitionsTable
-       |          WHERE type_name = ${literal(info.typeName)} AND table_type = ${WriteAheadTableSuffix.quoted};
+       |        next_partition := ${literal(info.tables.writeAhead.name.raw + "_")} || lpad(seq_val::text, 3, '0');
+       |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WriteAheadTableSpace.key)}
+       |          INTO partition_tablespace;
        |        IF partition_tablespace IS NULL THEN
        |          partition_tablespace := '';
        |          index_space := '';
@@ -76,11 +76,20 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
        |          index_space := ' USING INDEX' || partition_tablespace;
        |        END IF;
        |
+       |        SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}
+       |          INTO table_wa_logging;
+       |        IF table_wa_logging IS NULL OR NOT table_wa_logging::boolean THEN
+       |          table_wa_logging := '';
+       |        ELSE
+       |          table_wa_logging := 'UNLOGGED ';
+       |        END IF;
+       |
        |        -- requires SHARE UPDATE EXCLUSIVE
-       |        EXECUTE 'CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
+       |        EXECUTE 'CREATE ' || table_wa_logging || 'TABLE IF NOT EXISTS ${info.schema.quoted}.' || quote_ident(next_partition) || '(' ||
        |          'CONSTRAINT ' || quote_ident(next_partition || '_pkey') ||
        |          ' PRIMARY KEY (fid, ${info.cols.dtg.quoted})' || index_space || ')' ||
-       |          ' INHERITS (${table.name.qualified})${table.storage.opts}' || partition_tablespace;
+       |          ' INHERITS (${info.tables.writeAhead.name.qualified})${info.tables.writeAhead.storage.opts}' || partition_tablespace;
        |        EXECUTE 'CREATE INDEX IF NOT EXISTS ' || quote_ident(next_partition || '_' || ${info.cols.dtg.asLiteral}) ||
        |          ' ON ${info.schema.quoted}.' || quote_ident(next_partition) || ' (${info.cols.dtg.quoted})' ||
        |          partition_tablespace;

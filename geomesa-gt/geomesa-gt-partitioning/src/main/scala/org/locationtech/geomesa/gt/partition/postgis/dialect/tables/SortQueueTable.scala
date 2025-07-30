@@ -9,14 +9,17 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+
 /**
  * Stores main partitions that have data inserted out-of-order, which may end up impacting scan performance
  */
 object SortQueueTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
+    val logging = if (info.tables.sortQueue.logged) { "" } else { "UNLOGGED" }
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.tables.sortQueue.name.qualified} (
+      s"""CREATE $logging TABLE IF NOT EXISTS ${info.tables.sortQueue.name.qualified} (
          |  partition_name text,
          |  unsorted_count bigint,
          |  enqueued timestamp without time zone
