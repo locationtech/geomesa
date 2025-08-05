@@ -380,7 +380,7 @@
             <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
             <id>bloop</id>
             <properties>
-                <scala.maven.plugin.version>4.9.2</scala.maven.plugin.version>
+                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -3683,9 +3683,9 @@
     <distributionManagement>
         <site>
             <id>geomesa.org</id>
-            <name>geomesa.org</name>
             <url>https://www.geomesa.org/</url>
         </site>
+        <downloadUrl>https://github.com/locationtech/geomesa/releases</downloadUrl>
     </distributionManagement>
 
     <developers>

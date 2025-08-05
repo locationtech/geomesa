@@ -26,7 +26,7 @@ if ! [[ -d "$WEBSITE_DIR" ]]; then
   exit 1
 fi
 
-JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout)"
+JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
 if ! [[ $(java -version 2>&1 | head -n 1 | cut -d'"' -f2) =~ ^$JAVA_VERSION.* ]]; then
   echo "Error: invalid Java version - Java $JAVA_VERSION required"
   exit 1
@@ -64,41 +64,45 @@ virtualenv .sphinx && source .sphinx/bin/activate && pip install -r docs/require
 # build the docs
 mvn clean install -pl docs/ -Pdocs
 
-DOCS_DIR="stable"
-
 # ensure docs repo is up to date
 pushd "$WEBSITE_DIR" && \
   git checkout main && \
   git pull origin main
 # move current docs to a versioned folder
-if [[ $LAST_RELEASE_SHORT == "$RELEASE_SHORT" ]]; then
-  # new bug fix on latest release
-  rm -r documentation/stable/
-elif [[ -d "documentation/$RELEASE_SHORT" ]]; then
+if [[ -d "documentation/$RELEASE_SHORT" ]]; then
   # new bug fix on older release
-  DOCS_DIR="$RELEASE_SHORT"
-  rm -r "documentation/$DOCS_DIR"
+  rm -r "documentation/$RELEASE_SHORT/*"
 else
-  # new major/minor release
-  mv documentation/stable "documentation/${LAST_RELEASE_SHORT}"
-  # add link to previous docs
-  sed -i "s|<li class=\"dropdown-header\">Previous Releases</li>|\0\n            <li><a href=\"/documentation/${LAST_RELEASE_SHORT}/\">${LAST_RELEASE}</a></li>|" _includes/header.html
+  if [[ $LAST_RELEASE_SHORT == "$RELEASE_SHORT" ]]; then
+    # new bug fix on latest release
+    rm -r "documentation/$RELEASE_SHORT/*"
+  else
+    # new major/minor release
+    mkdir "documentation/$RELEASE_SHORT/"
+    pushd documentation
+    rm stable
+    ln -s "$RELEASE_SHORT" stable
+    popd
+    # add link to previous docs
+    sed -i "s|<li class=\"dropdown-header\">Previous Releases</li>|\0\n            <li><a href=\"/documentation/${LAST_RELEASE_SHORT}/\">${LAST_RELEASE}</a></li>|" _includes/header.html
+  fi
+  # update 'stable version'
+  sed -i "s/^stableVersion:.*/stableVersion: \"$RELEASE\"/" _config.yml
 fi
-mkdir "documentation/$DOCS_DIR/" && \
-  popd
+popd
 
 # copy the docs we just built
-cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$DOCS_DIR/"
+cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$RELEASE_SHORT/"
 
 # build site docs - takes ~an hour
+# first, update the pom url so that dependency links work
+sed -i "s|<url>https://www.geomesa.org/</url>|<url>https://www.geomesa.org/documentation/$RELEASE_SHORT/site/</url>|" pom.xml
+# we need a newer version of the maven plugin in order to generate scaladocs
 mvn clean package scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
-  mvn generate-sources site && \
-  mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$DOCS_DIR/site/"
-
-# update 'stable version'
-if [[ $DOCS_DIR == "stable" ]]; then
-  sed -i "s/^stableVersion:.*/stableVersion: \"$RELEASE\"/" "$WEBSITE_DIR"/_config.yml
-fi
+  mvn generate-sources site -Dscala.maven.plugin.version=4.9.5 && \
+  mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$RELEASE_SHORT/site/"
+# revert the changes to the pom
+git restore pom.xml
 
 # commit and push docs
 pushd "$WEBSITE_DIR" && \
