@@ -24,7 +24,7 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.Config.WalLogEnabled
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
@@ -34,6 +34,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfi
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.specs2.data.Sized
+import org.specs2.matcher.ValueChecks
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
@@ -94,27 +96,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "preparedStatements" -> "true"
   )
 
-  def isTableLoggedQuery(tableName: String, schemaName: String): String =
-    s"""
-      |SELECT
-      |    n.nspname AS schema_name,
-      |    c.relname AS table_name,
-      |    CASE c.relpersistence
-      |        WHEN 'u' THEN 'unlogged'
-      |        WHEN 'p' THEN 'permanent'
-      |        WHEN 't' THEN 'temporary'
-      |        ELSE 'unknown'
-      |    END AS table_type
-      |FROM
-      |    pg_class c
-      |JOIN
-      |    pg_namespace n ON n.oid = c.relnamespace
-      |WHERE
-      |    c.relname = '$tableName'
-      |    AND n.nspname = '$schemaName';
-      |
-      |""".stripMargin
-
   var container: PostgisContainer = _
 
   lazy val host = Option(container).map(_.getHost).getOrElse("localhost")
@@ -155,77 +136,6 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.dispose()
       }
       ok
-    }
-
-    "create logged tables" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
-      ds must not(beNull)
-
-      try {
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "logged_test")
-
-        ds.createSchema(sft)
-
-        val typeInfo: TypeInfo = TypeInfo(this.schema, sft)
-
-        Seq(
-          typeInfo.tables.mainPartitions.name.raw,
-          typeInfo.tables.writeAheadPartitions.name.raw,
-          typeInfo.tables.spillPartitions.name.raw,
-          typeInfo.tables.analyzeQueue.name.raw,
-          typeInfo.tables.sortQueue.name.raw).forall { tableName =>
-          val sql = isTableLoggedQuery(tableName, "public")
-          // verify that the table is logged
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-            WithClose(cx.createStatement()) { st =>
-              WithClose(st.executeQuery(sql)) { rs =>
-                rs.next() must beTrue
-                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
-                rs.getString("table_type") mustEqual "permanent"
-              }
-            }
-          }
-        }
-      } finally {
-        ds.dispose()
-      }
-    }
-
-    "create unlogged tables" in {
-      val ds = DataStoreFinder.getDataStore(params.asJava)
-      ds must not(beNull)
-
-      try {
-        val sft = SimpleFeatureTypes.renameSft(this.sft, "unlogged_test")
-        sft.getUserData.put(WalLogEnabled, "false")
-
-        ds.createSchema(sft)
-
-        val typeInfo: TypeInfo = TypeInfo(this.schema, sft)
-
-        Seq(
-          typeInfo.tables.mainPartitions.name.raw,
-          typeInfo.tables.writeAheadPartitions.name.raw,
-          //          typeInfo.tables.writeAhead.name.raw, write ahead table is created with PartitionedPostgisDialect#encodePostCreateTable
-          //          which doesnt have access to the user data, should be ok because the write ahead main table doesnt have any data
-          typeInfo.tables.spillPartitions.name.raw,
-          typeInfo.tables.analyzeQueue.name.raw,
-          typeInfo.tables.sortQueue.name.raw).forall { tableName =>
-          val sql = isTableLoggedQuery(tableName, "public")
-          // verify that the table is unlogged
-          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
-            WithClose(cx.createStatement()) { st =>
-              WithClose(st.executeQuery(sql)) { rs =>
-                rs.next() must beTrue
-                logger.debug(s"Table ${rs.getString("table_name")} is ${rs.getString("table_type")}")
-                rs.getString("table_type") mustEqual "unlogged"
-              }
-            }
-          }
-        }
-      } finally {
-        ds.dispose()
-      }
     }
 
     "work" in {
@@ -666,8 +576,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           }
 
           // get all the user data and other associated metadata
-          def getMeta: Seq[String] = {
-            val meta = ArrayBuffer.empty[String]
+          def getMeta: Map[String, Seq[String]] = {
+            val meta = Map.newBuilder[String, Seq[String]]
             WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
               Seq(
                 (UserDataTable.Name, "type_name", "key"),
@@ -675,16 +585,22 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
                 (PrimaryKeyTable.Name, "table_name", "pk_column"),
                 (PartitionTablespacesTable.Name, "type_name", "table_type")
               ).foreach { case (table, where, select) =>
-                WithClose(cx.prepareStatement(s"SELECT $select FROM ${table.quoted} WHERE $where like 'dropme%';")) { st =>
-                  WithClose(st.executeQuery()) { rs =>
-                    while (rs.next()) {
-                      meta += rs.getString(1)
+                val values = ArrayBuffer.empty[String]
+                if (WithClose(cx.getMetaData.getTables(null, null, table.raw, null))(_.next())) {
+                  WithClose(cx.prepareStatement(s"SELECT $select FROM ${table.quoted} WHERE $where like 'dropme%';")) { st =>
+                    WithClose(st.executeQuery()) { rs =>
+                      while (rs.next()) {
+                        values += s"${table.raw} ${rs.getString(1)}"
+                      }
                     }
                   }
                 }
+                if (values.nonEmpty) {
+                  meta += table.raw -> values.toSeq
+                }
               }
             }
-            meta.toSeq
+            meta.result()
           }
 
           // _wa, _wa_partition, _partition, _spill tables + dtg, pk, geom indices for each
@@ -695,8 +611,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
           getFunctions must haveLength(11)
           // log_cleaner, analyze_partitions, roll_wa, partition_maintenance
           getCrons must haveLength(4)
-          // 3 tablespaces, 4 user data, 1 seq count, 1 primary key
-          getMeta must haveLength(9)
+          // 3 user data, 1 seq count, 1 primary key
+          val meta = getMeta
+          meta must haveSize(3)
+          meta.get(UserDataTable.Name.raw) must beSome(haveLength[Seq[String]](3))
+          meta.get(SequenceTable.Name.raw) must beSome(haveLength[Seq[String]](1))
+          meta.get(PrimaryKeyTable.Name.raw) must beSome(haveLength[Seq[String]](1))
 
           ds.removeSchema(sft.getTypeName)
 
@@ -730,7 +650,10 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
         foreach(Seq(true, false)) { ignoreFilters =>
           val sft = SimpleFeatureTypes.renameSft(this.sft, s"ignore_$ignoreFilters")
-          sft.getUserData.put(PartitionedPostgisDialect.Config.FilterWholeWorld, s"$ignoreFilters")
+          // default is true
+          if (!ignoreFilters) {
+            sft.getUserData.put(SftUserData.FilterWholeWorld.key, ignoreFilters.toString)
+          }
 
           ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
           ds.createSchema(sft)
@@ -880,6 +803,154 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
     }
 
+    "support partition size change through user_data table" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "partition-size")
+        sft.getUserData.put(SftUserData.IntervalHours.key, "6")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // verify data is being partitioned as expected
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          val typeInfo = TypeInfo(this.schema, sft)
+          // initially everything is in the write ahead log
+          foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+          foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions))(table => count(cx, table) mustEqual 0)
+          // manually invoke the scheduled crons so we don't have to wait
+          WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+          // verify that data was sorted into the appropriate tables based on dtg
+          count(cx, typeInfo.tables.view) mustEqual 10
+          count(cx, typeInfo.tables.writeAhead) mustEqual 0
+          count(cx, typeInfo.tables.writeAheadPartitions) must beGreaterThan(0)
+          // initially main partitions will not have any data due to 6 hour partition size
+          count(cx, typeInfo.tables.mainPartitions) mustEqual 0
+          // update the partition count
+          WithClose(cx.createStatement()) { st =>
+            val sql =
+              s"update ${UserDataTable.Name.quoted} set value = '1' where type_name = '${sft.getTypeName}' and " +
+                s"key = '${SftUserData.IntervalHours.key}'"
+            st.executeUpdate(sql) mustEqual 1
+          }
+          // re-run the scheduled crons
+          WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+          // verify that data was sorted into the appropriate tables based on dtg
+          count(cx, typeInfo.tables.view) mustEqual 10
+          count(cx, typeInfo.tables.writeAhead) mustEqual 0
+          count(cx, typeInfo.tables.writeAheadPartitions) must beGreaterThan(0)
+          // now main partitions should have some data due to 1 hour partition size
+          count(cx, typeInfo.tables.mainPartitions) must beGreaterThan(0)
+        }
+      } catch {
+        case NonFatal(e) => logger.error("", e); ko
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "create logged tables" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "logged_test")
+
+        ds.createSchema(sft)
+
+        val typeInfo = TypeInfo(this.schema, sft)
+
+        val tables =
+          Seq(
+            typeInfo.tables.mainPartitions.name.raw,
+            typeInfo.tables.writeAheadPartitions.name.raw,
+            typeInfo.tables.spillPartitions.name.raw,
+            typeInfo.tables.analyzeQueue.name.raw,
+            typeInfo.tables.sortQueue.name.raw,
+          )
+        forall(tables) { tableName =>
+          val sql = isTableLoggedQuery(tableName, "public")
+          // verify that the table is logged
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.createStatement()) { st =>
+              WithClose(st.executeQuery(sql)) { rs =>
+                rs.next() must beTrue
+                val tableType = rs.getString("table_type")
+                logger.debug(s"Table ${rs.getString("table_name")} is $tableType")
+                tableType mustEqual "permanent"
+              }
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "create unlogged tables" in {
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      try {
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "unlogged_test")
+        sft.getUserData.put(SftUserData.WalLogEnabled.key, "false")
+
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        SftUserData.WalLogEnabled.get(schema) must beFalse
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        val typeInfo = TypeInfo(this.schema, sft)
+        val tables =
+          Seq(
+            typeInfo.tables.mainPartitions.name.raw,
+            typeInfo.tables.writeAheadPartitions.name.raw,
+            // typeInfo.tables.writeAhead.name.raw, write ahead table is created with PartitionedPostgisDialect#encodePostCreateTable
+            //  which doesn't have access to the user data, should be ok because the write ahead main table doesn't have any data
+            typeInfo.tables.spillPartitions.name.raw,
+            typeInfo.tables.analyzeQueue.name.raw,
+            typeInfo.tables.sortQueue.name.raw,
+          )
+        forall(tables) { tableName =>
+          val sql = isTableLoggedQuery(tableName, "public")
+          // verify that the table is unlogged
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            WithClose(cx.createStatement()) { st =>
+              WithClose(st.executeQuery(sql)) { rs =>
+                rs.next() must beTrue
+                val tableType = rs.getString("table_type")
+                logger.debug(s"Table ${rs.getString("table_name")} is $tableType")
+                tableType mustEqual "unlogged"
+              }
+            }
+          }
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "support idle_in_transaction_session_timeout" in {
       val sft = SimpleFeatureTypes.renameSft(this.sft, "timeout")
 
@@ -940,4 +1011,24 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
       }
     }
   }
+
+  def isTableLoggedQuery(tableName: String, schemaName: String): String =
+    s"""
+       |SELECT
+       |    n.nspname AS schema_name,
+       |    c.relname AS table_name,
+       |    CASE c.relpersistence
+       |        WHEN 'u' THEN 'unlogged'
+       |        WHEN 'p' THEN 'permanent'
+       |        WHEN 't' THEN 'temporary'
+       |        ELSE 'unknown'
+       |    END AS table_type
+       |FROM
+       |    pg_class c
+       |JOIN
+       |    pg_namespace n ON n.oid = c.relnamespace
+       |WHERE
+       |    c.relname = '$tableName'
+       |    AND n.nspname = '$schemaName';
+       |""".stripMargin
 }

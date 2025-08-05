@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+
 /**
  * The main and write ahead partitioned tables
  */
@@ -31,8 +33,10 @@ object PartitionTables extends SqlStatements {
       case None => ("", "")
       case Some(ts) => (s" TABLESPACE ${ts.quoted}", s" USING INDEX TABLESPACE ${ts.quoted}")
     }
+
+    val logging = if (table.logged) { "" } else { "UNLOGGED" }
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${table.name.qualified} (
+      s"""CREATE $logging TABLE IF NOT EXISTS ${table.name.qualified} (
          |  LIKE ${info.tables.writeAhead.name.qualified} INCLUDING DEFAULTS INCLUDING CONSTRAINTS,
          |  CONSTRAINT ${escape(table.name.raw, "pkey")} PRIMARY KEY (fid, ${info.cols.dtg.quoted})$indexTs
          |) PARTITION BY RANGE(${info.cols.dtg.quoted})$tableTs;""".stripMargin

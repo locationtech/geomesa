@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package procedures
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.PartitionTablespacesTable
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.UserDataTable
 
 /**
  * Merge recent write-ahead partitions and move them into the main partition table
@@ -21,17 +22,10 @@ object MergeWriteAheadPartitions extends SqlProcedure {
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
   private def proc(info: TypeInfo): String = {
-    val hours = info.partitions.hoursPerPartition
-    val writeAheadPartitions = info.tables.writeAheadPartitions
-    val mainPartitions = info.tables.mainPartitions
-    val spillPartitions = info.tables.spillPartitions
-    val tablespacesTable = s"${info.schema.quoted}.${PartitionTablespacesTable.Name.quoted}"
-    val dtgCol = info.cols.dtg.quoted
-    val geomCol = info.cols.geom.quoted
-
     s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
+       |      partition_size int;                          -- size of the partition, in hours
        |      min_dtg timestamp without time zone;         -- min date in our partitioned tables
        |      main_cutoff timestamp without time zone;     -- max age of the records for main tables
        |      partition_start timestamp without time zone; -- start bounds for the partition we're writing
@@ -40,24 +34,30 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |      partition_parent text;                       -- partition table to attach to
        |      partition_tablespace text;                   -- partition tablespace
        |      index_tablespace text;                       -- index tablespace
+       |      table_wa_logging text;                       -- wa log options
        |      write_ahead_partitions text[];               -- names of the partitions we're migrating
        |      write_ahead_partition text;                  -- name of current partition
        |      pexists boolean;                             -- table exists check
        |      unsorted_count bigint;
        |    BEGIN
        |      -- constants
-       |      main_cutoff := truncate_to_partition(cur_time, $hours) - INTERVAL '$hours HOURS';
+       |      SELECT COALESCE(
+       |          (SELECT value::int FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
+       |          ${SftUserData.IntervalHours.default}
+       |        ) INTO partition_size;
+       |      main_cutoff := truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
        |      -- move data from the write ahead partitions to the main partitions
        |      LOOP
        |        -- find the range of dates in the write ahead partition tables
-       |        SELECT min($dtgCol) INTO min_dtg FROM ${writeAheadPartitions.name.qualified}
-       |          WHERE $dtgCol < main_cutoff;
+       |        SELECT min(${info.cols.dtg.quoted}) INTO min_dtg FROM ${info.tables.writeAheadPartitions.name.qualified}
+       |          WHERE ${info.cols.dtg.quoted} < main_cutoff;
        |        EXIT WHEN min_dtg IS NULL;
        |
-       |        partition_start := truncate_to_partition(min_dtg, $hours);
-       |        partition_end := partition_start + INTERVAL '$hours HOURS';
-       |        partition_parent := ${mainPartitions.name.asLiteral};
+       |        partition_start := truncate_to_partition(min_dtg, partition_size);
+       |        partition_end := partition_start + make_interval(hours => partition_size);
+       |        partition_parent := ${info.tables.mainPartitions.name.asLiteral};
        |        partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |
        |        SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name)
@@ -65,7 +65,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |
        |        -- if the partition already exists, write to the spill partition instead to avoid messing up the BRIN index
        |        IF pexists THEN
-       |          partition_parent := ${spillPartitions.name.asLiteral};
+       |          partition_parent := ${info.tables.spillPartitions.name.asLiteral};
        |          partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |          SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = ${info.schema.asLiteral} AND tablename = partition_name)
        |            INTO pexists;
@@ -78,9 +78,9 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            FROM pg_catalog.pg_inherits
        |            INNER JOIN pg_catalog.pg_class ON (pg_inherits.inhrelid = pg_class.oid)
        |            INNER JOIN pg_catalog.pg_namespace ON (pg_class.relnamespace = pg_namespace.oid)
-       |            WHERE inhparent = ${writeAheadPartitions.name.asRegclass}
-       |              AND pg_class.relname >= ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI')
-       |              AND pg_class.relname < ${writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_end, 'YYYY_MM_DD_HH24_MI')
+       |            WHERE inhparent = ${info.tables.writeAheadPartitions.name.asRegclass}
+       |              AND pg_class.relname >= ${info.tables.writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI')
+       |              AND pg_class.relname < ${info.tables.writeAheadPartitions.name.asLiteral} || '_' || to_char(partition_end, 'YYYY_MM_DD_HH24_MI')
        |            ORDER BY 1
        |          );
        |
@@ -101,14 +101,15 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          RAISE INFO '% Copying rows to partition %', timeofday()::timestamp, partition_name;
        |          EXECUTE 'INSERT INTO ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' SELECT * FROM ' || quote_ident(partition_name || '_tmp_migrate') ||
-       |            '   ORDER BY _st_sortablehash($geomCol)' ||
+       |            '   ORDER BY _st_sortablehash(${info.cols.geom.quoted})' ||
        |            '   ON CONFLICT DO NOTHING';
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |        ELSE
        |          RAISE INFO '% Creating partition with insert % (unattached)', timeofday()::timestamp, partition_name;
-       |          -- create the partition table with a 'create as' for improved performance
-       |          SELECT table_space INTO partition_tablespace FROM $tablespacesTable
-       |            WHERE type_name = ${literal(info.typeName)} AND table_type = ${PartitionedTableSuffix.quoted};
+       |
+       |          SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
+       |            INTO partition_tablespace;
        |          IF partition_tablespace IS NULL THEN
        |            index_tablespace := '';
        |            partition_tablespace := '';
@@ -116,15 +117,28 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            index_tablespace := ' USING INDEX TABLESPACE '|| quote_ident(partition_tablespace);
        |            partition_tablespace := ' TABLESPACE ' || quote_ident(partition_tablespace);
        |          END IF;
+       |
+       |          SELECT COALESCE(
+       |            (SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
+       |              WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.WalLogEnabled.key)}),
+       |              '${SftUserData.WalLogEnabled.default}'
+       |            ) INTO table_wa_logging;
+       |          IF table_wa_logging IS NULL OR NOT table_wa_logging::boolean THEN
+       |            table_wa_logging := '';
+       |          ELSE
+       |            table_wa_logging := 'UNLOGGED ';
+       |          END IF;
+       |
        |          -- upper bounds are exclusive
        |          -- this won't have any indices until we attach it to the parent partition table
        |          -- use "create table as" (vs create then insert) for performance benefits related to WAL skipping
        |          -- we need a "select distinct" to avoid primary key conflicts - this should be fairly cheap since
        |          --   we're already sorting and there should be few or no conflicts
-       |          EXECUTE 'CREATE ${info.walLogSQL} TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
+       |          -- create the partition table with a 'create as' for improved performance
+       |          EXECUTE 'CREATE ' || table_wa_logging || 'TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            partition_tablespace || ' AS SELECT DISTINCT ON' ||
-       |            ' (_st_sortablehash($geomCol), fid, ${info.cols.dtg.quoted}) * FROM ' ||
-       |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash($geomCol)';
+       |            ' (_st_sortablehash(${info.cols.geom.quoted}), fid, ${info.cols.dtg.quoted}) * FROM ' ||
+       |            quote_ident(partition_name || '_tmp_migrate') || ' ORDER BY _st_sortablehash(${info.cols.geom.quoted})';
        |          GET DIAGNOSTICS unsorted_count := ROW_COUNT;
        |          EXECUTE 'ALTER TABLE ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_pkey') ||
@@ -132,12 +146,12 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          -- creating a constraint allows it to be attached to the parent without any additional checks
        |          EXECUTE 'ALTER TABLE  ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |            ' ADD CONSTRAINT ' || quote_ident(partition_name || '_constraint') ||
-       |            ' CHECK ( $dtgCol >= ' || quote_literal(partition_start) ||
-       |            ' AND $dtgCol < ' || quote_literal(partition_end) || ' )';
+       |            ' CHECK ( ${info.cols.dtg.quoted} >= ' || quote_literal(partition_start) ||
+       |            ' AND ${info.cols.dtg.quoted} < ' || quote_literal(partition_end) || ' )';
        |        END IF;
        |        RAISE INFO '% Done writing % rows to partition %', timeofday()::timestamp, unsorted_count, partition_name;
        |
-       |        IF partition_parent = ${spillPartitions.name.asLiteral} THEN
+       |        IF partition_parent = ${info.tables.spillPartitions.name.asLiteral} THEN
        |          -- store record of unsorted row counts which could negatively impact BRIN index scans
        |          INSERT INTO ${info.tables.sortQueue.name.qualified}(partition_name, unsorted_count, enqueued)
        |            VALUES (partition_name, unsorted_count, now());

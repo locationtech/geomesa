@@ -94,31 +94,74 @@ object Conversions extends Conversions {
   }
 }
 
+object PrimitiveConversions {
+
+  trait Conversion[T] {
+    def convert(value: AnyRef): T
+  }
+
+  implicit object ConvertToBoolean extends ConvertToBoolean
+
+  trait ConvertToBoolean extends Conversion[Boolean] {
+    override def convert(value: AnyRef): Boolean = value match {
+      case v: String => v.equalsIgnoreCase("true")
+      case v: java.lang.Boolean => v.booleanValue
+      case _ => throw new IllegalArgumentException(s"Input $value is not a Boolean type")
+    }
+  }
+
+  implicit object ConvertToDouble extends ConvertToDouble
+
+  trait ConvertToDouble extends Conversion[Double] {
+    override def convert(value: AnyRef): Double = value match {
+      case v: String => v.toDouble
+      case v: Number => v.doubleValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToInt extends ConvertToInt
+
+  trait ConvertToInt extends Conversion[Int] {
+    override def convert(value: AnyRef): Int = value match {
+      case v: String => v.toInt
+      case v: Number => v.intValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToShort extends ConvertToShort
+
+  trait ConvertToShort extends Conversion[Short] {
+    override def convert(value: AnyRef): Short = value match {
+      case v: String => v.toShort
+      case v: Number => v.shortValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToString extends ConvertToString
+
+  trait ConvertToString extends Conversion[String] {
+    override def convert(value: AnyRef): String = value match {
+      case v: String => v
+      case v         => v.toString
+    }
+  }
+}
+
 trait Conversions {
 
-  protected def boolean(value: AnyRef, default: Boolean = false): Boolean = value match {
-    case v: String => v.equalsIgnoreCase("true")
-    case v: java.lang.Boolean => v.booleanValue
-    case _ => default
-  }
+  import PrimitiveConversions._
 
-  protected def double(value: AnyRef): Double = value match {
-    case v: Number => v.doubleValue()
-    case v: String => v.toDouble
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def boolean(value: AnyRef, default: Boolean = false): Boolean =
+    Try(ConvertToBoolean.convert(value)).getOrElse(default)
 
-  protected def int(value: AnyRef): Int = value match {
-    case v: String => v.toInt
-    case v: Number => v.intValue()
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def double(value: AnyRef): Double = ConvertToDouble.convert(value)
 
-  protected def short(value: AnyRef): Short = value match {
-    case v: String => v.toShort
-    case v: Number => v.shortValue()
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def int(value: AnyRef): Int = ConvertToInt.convert(value)
+
+  protected def short(value: AnyRef): Short = ConvertToShort.convert(value)
 }
 
 /**

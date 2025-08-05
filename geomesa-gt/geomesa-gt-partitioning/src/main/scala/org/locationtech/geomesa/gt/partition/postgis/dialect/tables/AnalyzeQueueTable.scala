@@ -9,14 +9,17 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+
 /**
  * Stores tables that need to be analyzed
  */
 object AnalyzeQueueTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
+    val logging = if (info.tables.analyzeQueue.logged) { "" } else { "UNLOGGED" }
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
+      s"""CREATE $logging TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
          |  partition_name text,
          |  enqueued timestamp without time zone
          |);""".stripMargin
