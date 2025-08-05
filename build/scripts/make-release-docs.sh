@@ -26,7 +26,7 @@ if ! [[ -d "$WEBSITE_DIR" ]]; then
   exit 1
 fi
 
-JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout)"
+JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
 if ! [[ $(java -version 2>&1 | head -n 1 | cut -d'"' -f2) =~ ^$JAVA_VERSION.* ]]; then
   echo "Error: invalid Java version - Java $JAVA_VERSION required"
   exit 1
@@ -91,8 +91,9 @@ mkdir "documentation/$DOCS_DIR/" && \
 cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$DOCS_DIR/"
 
 # build site docs - takes ~an hour
+# need a newer version of the maven plugin in order to generate scaladocs
 mvn clean package scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
-  mvn generate-sources site && \
+  mvn generate-sources site -Dscala.maven.plugin.version=4.9.5 && \
   mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$DOCS_DIR/site/"
 
 # update 'stable version'
