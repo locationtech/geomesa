@@ -96,7 +96,7 @@ cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$RELEASE_SHORT/"
 
 # build site docs - takes ~an hour
 # first, update the pom url so that dependency links work
-sed -i "s|<url>https://www.geomesa.org/</url>|<url>https://www.geomesa.org/documentation/$RELEASE_SHORT/</url>|" pom.xml
+sed -i "s|<url>https://www.geomesa.org/</url>|<url>https://www.geomesa.org/documentation/$RELEASE_SHORT/site/</url>|" pom.xml
 # we need a newer version of the maven plugin in order to generate scaladocs
 mvn clean package scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
   mvn generate-sources site -Dscala.maven.plugin.version=4.9.5 && \
