@@ -3382,26 +3382,6 @@
                             <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>set-root-location</id>
-                        <goals>
-                            <goal>rootlocation</goal>
-                        </goals>
-                    </execution>
-                    <!-- set up the distribution url so site docs link correctly, since module names do not match
-                         directory names -->
-                    <execution>
-                        <id>set-site-url</id>
-                        <goals>
-                            <goal>regex-property</goal>
-                        </goals>
-                        <configuration>
-                            <name>site.deploy.path</name>
-                            <value>${project.basedir}</value>
-                            <regex>\Q${rootlocation}\E/?(.*)</regex>
-                            <replacement>$1</replacement>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -3702,8 +3682,8 @@
 
     <distributionManagement>
         <site>
-            <id>github.com</id>
-            <url>https://github.com/locationtech/geomesa/tree/main/${site.deploy.path}</url>
+            <id>geomesa.org</id>
+            <url>https://www.geomesa.org/</url>
         </site>
         <downloadUrl>https://github.com/locationtech/geomesa/releases</downloadUrl>
     </distributionManagement>
