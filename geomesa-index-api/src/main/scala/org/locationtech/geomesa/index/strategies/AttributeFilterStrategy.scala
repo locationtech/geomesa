@@ -12,6 +12,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter._
 import org.geotools.api.filter.expression.{Expression, PropertyName}
 import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
@@ -29,7 +30,7 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
   private val isList = descriptor.isList
   private val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
-  override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
+  override def getFilterStrategy(filter: Filter, hints: Hints): Option[FilterStrategy] = {
 
     val (primary, secondary) =
       FilterExtractingVisitor(filter, attribute, sft, AttributeFilterStrategy.attributeCheck(sft))
@@ -54,7 +55,7 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
           case Cardinality.UNKNOWN => basePriority
           case Cardinality.LOW     => basePriority * 10f
         }
-        Some(FilterStrategy(this, primary, secondary, temporal, priority))
+        Some(FilterStrategy(this, primary, secondary, temporal, priority, hints))
       }
     }
   }

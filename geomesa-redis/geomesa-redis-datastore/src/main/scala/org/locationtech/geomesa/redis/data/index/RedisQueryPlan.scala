@@ -11,7 +11,7 @@ package index
 
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
@@ -77,7 +77,7 @@ object RedisQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends RedisQueryPlan {
+  case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends RedisQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val ranges: Seq[BoundedByteRange] = Seq.empty
     override val ecql: Option[Filter] = None
@@ -90,7 +90,7 @@ object RedisQueryPlan {
 
   // uses zrangebylex
   case class ZLexPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[BoundedByteRange],
       pipeline: Boolean,
@@ -105,6 +105,8 @@ object RedisQueryPlan {
     import scala.collection.JavaConverters._
 
     override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = {
+      // query guard hook - also handles full table scan checks
+      strategy.runGuards(ds)
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))
       if (ds.config.queries.parallelPartitionScans) {
