@@ -448,7 +448,4 @@ Beyond Curl
 -----------
 
 WPS services can also be accessed by a variety of clients including
-`OpenLayers <https://openlayers.org/>`__, which has implemented a
-`JavaScript WPS
-Builder <https://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/wps.html>`__
-tutorial similar to the one built into GeoServer.
+`OpenLayers <https://openlayers.org/>`__, which provides a JavaScript WPS client.

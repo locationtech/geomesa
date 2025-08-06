@@ -15,8 +15,7 @@ Background
 `GDELT <https://gdeltproject.org/>`__ provides a comprehensive time- and location-indexed archive of events reported
 in broadcast, print, and web news media worldwide from 1979 to today.
 
-`FIPS Codes <https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html>`__ are
-Federal Information Processing Standard Publication codes that uniquely identify counties in the United States.
+FIPS Codes are Federal Information Processing Standard Publication codes that uniquely identify counties in the United States.
 
 If we make the assumption that a county with more GDELT events is somehow more politically relevant, we may be interested
 in seeing which counties are more dense with GDELT events.
@@ -27,7 +26,7 @@ points with the county that contains them.
 
 In this case, the number of counties is particularly small, approximately 3000 records, we can make our query much
 more efficient by "broadcasting" the counties. "Broadcast" here meaning a
-`Spark Broadcast <https://spark.apache.org/docs/2.2.0/api/java/org/apache/spark/sql/functions.html#broadcast-org.apache.spark.sql.Dataset->`__.
+`Spark Broadcast <https://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/functions.html#broadcast(org.apache.spark.sql.Dataset)>`__.
 In a traditional Spark SQL join, data will be shuffled around the executors based on the partitioners of the RDDs,
 and since in our case the join key is a geometric field, there is no built-in Spark partitioner that can map data effectively.
 The resulting movement of data across nodes is expensive, so we can attain a performance boost by sending (broadcasting)
