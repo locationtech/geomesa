@@ -320,7 +320,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
             throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
                 "version of GeoMesa than this client can handle. Please ensure that you are using the " +
                 "same GeoMesa jar versions across your entire workflow. For more information, see " +
-                "https://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+                "https://www.geomesa.org/documentation/stable/user/upgrade.html")
         }
       }
 
