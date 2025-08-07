@@ -306,7 +306,7 @@ NYCTaxi_, GTD_, and Twitter_. The first five of these sets are easily downloadab
 .. _GDELT: https://gdeltproject.org/
 .. _GeoLife: https://research.microsoft.com/en-us/projects/geolife/
 .. _OSM-GPX: https://wiki.openstreetmap.org/wiki/Planet.gpx
-.. _T-Drive: https://research.microsoft.com/apps/pubs/?id=152883
+.. _T-Drive: https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/
 .. _GeoNames: https://www.geonames.org/
 .. _NYCTaxi: https://publish.illinois.edu/dbwork/open-data/
 .. _GTD: https://www.start.umd.edu/gtd/

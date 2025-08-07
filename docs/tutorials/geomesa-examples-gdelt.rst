@@ -184,7 +184,7 @@ Let's use a custom icon to display THREATEN events, by adding an `SLD
 style <https://docs.geoserver.org/stable/en/user/styling/webadmin/index.html>`__ to
 the layer. Add the SLD file :download:`threat.sld <_static/geomesa-examples-gdelt/threat.sld>`
 to GeoServer by going to "Styles" on the left menu and then "Add new style".
-The SLD references an icon from `EmojiOne <https://www.emojione.com/>`__. Download the emojis
+The SLD references an icon from `Emojipedia <https://emojipedia.org/joypixels/9.0/fire/>`__. Download the emojis
 and rename ``1f525.png`` to ``fire.png``, then copy the file into your GeoServer servlet so
 that it's available at http://localhost:8080/icons/fire.png.
 

@@ -1,6 +1,12 @@
 Web Processing Services (WPS) Tube Select
 =========================================
 
+.. warning::
+
+    This tutorial uses data from the old Twitter, but has not been updated for the current X API. If you are interested in
+    updating the tutorial, please reach out to the
+    `GeoMesa community <https://github.com/locationtech/geomesa/?tab=readme-ov-file#join-the-community>`__.
+
 This tutorial will show you how to:
 
 1. Ingest a set of Twitter data.

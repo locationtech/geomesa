@@ -27,7 +27,7 @@ object FeatureUtils {
 
   // sourced from the following:
   //   https://github.com/geotools/geotools/blob/master/modules/library/cql/src/main/jjtree/ECQLGrammar.jjt
-  //   http://docs.geotools.org/latest/userguide/library/cql/internal.html
+  //   https://docs.geotools.org/latest/userguide/library/cql/internal.html
   val ReservedWords: Set[String] = HashSet(
     "AFTER",
     "AND",

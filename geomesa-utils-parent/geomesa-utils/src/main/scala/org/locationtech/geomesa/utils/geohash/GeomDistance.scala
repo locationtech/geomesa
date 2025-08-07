@@ -70,7 +70,7 @@ trait GeomDistance {
  *
  *  This implementation depends on docs.geotools.org/latest/javadocs/org/geotools/referencing/GeodeticCalculator.html
  *  Which is backed by Thaddeus Vincenty's formulas for calculating distances on an ellipsoid
- *  http://en.wikipedia.org/wiki/Vincenty%27s_formulae
+ *  https://en.wikipedia.org/wiki/Vincenty%27s_formulae
  */
 
 object VincentyModel extends GeomDistance {

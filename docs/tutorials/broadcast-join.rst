@@ -184,6 +184,11 @@ of the event density in each county, which we will see in the next section.
 Visualization
 -------------
 
+.. warning::
+
+    This tutorial uses Leaflet v0.7.7, which is no longer available. If you are interested in updating the tutorial,
+    please reach out to the `GeoMesa community <https://github.com/locationtech/geomesa/?tab=readme-ov-file#join-the-community>`__.
+
 To visualize this result, we first need to map our data into the `GeoJSON <https://geojson.org/>`__ format. To do this,
 we make use of GeoMesa's DataFrame to GeoJSON converter.
 
