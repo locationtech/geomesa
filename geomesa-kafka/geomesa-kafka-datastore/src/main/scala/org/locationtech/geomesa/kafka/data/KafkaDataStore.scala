@@ -73,7 +73,7 @@ class KafkaDataStore(
   private val registry = config.registrySetup.map(_.register())
 
   // note: sharing a single producer is generally faster
-  // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
+  // https://kafka.apache.org/39/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html
 
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))

@@ -21,7 +21,7 @@ The first step to getting started with Cassandra and GeoMesa is to install
 Cassandra itself. You can find good directions for downloading and installing
 Cassandra online. For example, see Cassandra's official `getting started`_ documentation.
 
-.. _getting started: https://cassandra.apache.org/doc/latest/getting_started/index.html
+.. _getting started: https://cassandra.apache.org/
 
 Once you have Cassandra installed, the next step is to prepare your Cassandra installation
 to integrate with GeoMesa. First, create a key space within Cassandra. The easiest way to

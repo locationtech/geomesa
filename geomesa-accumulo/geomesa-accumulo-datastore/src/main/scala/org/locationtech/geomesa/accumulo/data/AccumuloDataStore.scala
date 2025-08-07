@@ -176,7 +176,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
           val nsMsg = if (namespace.isEmpty) { "" } else { s" for the namespace '$namespace'" }
           throw new RuntimeException(s"$msg. You may override this check by setting the system property " +
             s"'${ValidateDistributedClasspath.property}=false'. Otherwise, please verify that the appropriate " +
-            s"JARs are installed$nsMsg - see http://www.geomesa.org/documentation/user/accumulo/install.html" +
+            s"JARs are installed$nsMsg - see https://www.geomesa.org/documentation/stable/user/accumulo/install.html" +
             "#installing-the-accumulo-distributed-runtime-library")
         }
       }

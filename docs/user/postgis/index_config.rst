@@ -56,7 +56,7 @@ Configuring Index Resolution
 ----------------------------
 
 Each feature type can be configured with a number of pages per range. The partition tables use a
-`BRIN <https://www.postgresql.org/docs/current/brin-intro.html>`__ index, which is a lossy index structure.
+`BRIN <https://www.postgresql.org/docs/17/brin.html>`__ index, which is a lossy index structure.
 The number of data pages stored in each index range controls how lossy, and how large the index becomes.
 By default, Postgres stores 128 pages in each range. Storing fewer pages will generally make the index more
 efficient, at the cost of requiring more space; however, the optimal number will depend on data characteristics

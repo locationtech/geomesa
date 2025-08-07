@@ -2,7 +2,7 @@ T-Drive Trajectory Data
 =======================
 
 This directory provides
-`T-Drive <https://research.microsoft.com/apps/pubs/?id=152883>`__ GeoMesa
+`T-Drive <https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/>`__ GeoMesa
 ingest commands and converter configuration files.
 
 T-Drive is a project of Microsoft Research Asia. The `overall
@@ -11,7 +11,7 @@ collected GPS tracks from over 30,000 taxis in Beijing for three months.
 These data were used to demonstrate a more efficient routing system.
 
 Microsoft makes a small subsample of its data `available for
-download <https://research.microsoft.com/apps/pubs/?id=152883>`__. This
+download <https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/>`__. This
 is about one third of the taxis for a period of a week.
 
 Before proceeding please check out the data description and included
@@ -28,7 +28,7 @@ The T-Drive data set can be downloaded using the provided
     ./download-data.sh tdrive
 
 Alternatively, download the T-Drive datasets from
-`here <https://research.microsoft.com/apps/pubs/?id=152883>`__ download
+`here <https://www.microsoft.com/en-us/research/publication/t-drive-trajectory-data-sample/>`__ download
 one or all of the zip files, then ``unzip`` into a convenient directory.
 
 Each zip contains several hundred CSVs for a total of 7,952 files and

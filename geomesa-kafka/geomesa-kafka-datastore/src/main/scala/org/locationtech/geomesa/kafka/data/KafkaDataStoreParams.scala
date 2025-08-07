@@ -81,7 +81,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[Properties](
       "kafka.producer.config",
       "Configuration options for kafka producer, in Java properties format. " +
-          "See http://kafka.apache.org/documentation.html#producerconfigs",
+          "See https://kafka.apache.org/documentation.html#producerconfigs",
       largeText = true,
       deprecatedKeys = Seq("producerConfig"),
       readWrite = ReadWriteFlag.WriteOnly
@@ -91,7 +91,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[Properties](
       "kafka.consumer.config",
       "Configuration options for kafka consumer, in Java properties format. " +
-          "See http://kafka.apache.org/documentation.html#consumerconfigs",
+          "See https://kafka.apache.org/documentation.html#consumerconfigs",
       largeText = true,
       deprecatedKeys = Seq("consumerConfig"),
       readWrite = ReadWriteFlag.ReadWrite // used for reading the catalog topic, if not using zk

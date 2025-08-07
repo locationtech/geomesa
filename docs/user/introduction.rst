@@ -48,7 +48,7 @@ The main GeoMesa website is `geomesa.org <https://www.geomesa.org/>`_. For addit
 * Getting started `tutorials <https://www.geomesa.org/tutorials/>`_
 * The GeoMesa `users <https://accounts.eclipse.org/mailing-list/geomesa-users>`_ and
   `developers <https://accounts.eclipse.org/mailing-list/geomesa-dev>`_ mailing list archives
-* The community chat on `Gitter <https://gitter.im/locationtech/geomesa/>`_.
+* The community chat on `Gitter <https://gitter.im/locationtech/geomesa>`_.
 
 |locationtech-icon|
 
