@@ -10,7 +10,66 @@
     <category name="org.locationtech.geomesa">
         <priority value="info"/>
     </category>
+    <category name="org.locationtech.geomesa.convert">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.kafka">
+        <priority value="warn"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.user">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.output">
+        <priority value="warn"/>
+    </category>
 
+    <!-- some geomesa messages that we want to suppress -->
+    <category name="org.locationtech.geomesa.utils.index.TemporalIndexCheck$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.utils.geotools.GeoMesaSystemProperties$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.export.formats.FileSystemExporter$">
+        <priority value="warn"/>
+    </category>
+
+    <!-- suppress errors that we intentionally throw in the test suite -->
+    <category name="org.locationtech.geomesa.accumulo.iterators.ArrowIterator">
+        <priority value="fatal"/>
+    </category>
+
+    <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
+    <!--
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
+        <priority value="trace"/>
+    </category>
+    -->
+
+    <!-- uncomment the following lines to enable verbose log messages from the Spark SQL query-planner -->
+    <!--
+    <category name="org.locationtech.geomesa.spark">
+        <priority value="info"/>
+    </category>
+    <category name="org.apache.spark.sql.execution">
+        <priority value="trace"/>
+    </category>
+    <category name="org.apache.spark.sql">
+        <priority value="debug"/>
+    </category>
+    -->
+
+    <!-- uncomment the following lines to enable logging SQL statements from the postgres dialect -->
+    <!--
+    <category name="org.locationtech.geomesa.gt">
+        <priority value="debug"/>
+    </category>
+    -->
+
+    <!-- other chatty libraries we want to suppress -->
     <category name="org.apache.hadoop">
         <priority value="error"/>
     </category>
@@ -87,40 +146,6 @@
         <priority value="error"/>
     </category>
 
-    <!-- some geomesa messages that we want to suppress -->
-    <category name="org.locationtech.geomesa.utils.index.TemporalIndexCheck$">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor$">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.utils.geotools.GeoMesaSystemProperties$">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.convert">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.convert2">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.kafka">
-        <priority value="warn"/>
-    </category>
-    <category name="org.locationtech.geomesa.tools.user">
-        <priority value="error"/>
-    </category>
-    <category name="org.locationtech.geomesa.tools.output">
-        <priority value="warn"/>
-    </category>
-    <category name="org.locationtech.geomesa.tools.export.formats.FileSystemExporter$">
-        <priority value="warn"/>
-    </category>
-
-    <!-- suppress errors that we intentionally throw in the test suite -->
-    <category name="org.locationtech.geomesa.accumulo.iterators.ArrowIterator">
-        <priority value="fatal"/>
-    </category>
-
     <!-- suppress logs from Apache Sedona kryo serializer registrator -->
     <category name="org.apache.sedona.core.serde">
         <priority value="warn"/>
@@ -129,36 +154,10 @@
         <priority value="warn"/>
     </category>
 
-    <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
-    <!--
-    <category name="org.locationtech.geomesa.index.utils.Explainer">
-        <priority value="trace"/>
-    </category>
-    -->
-
-    <!-- uncomment the following lines to enable verbose log messages from the Spark SQL query-planner -->
-    <!--
-    <category name="org.locationtech.geomesa.spark">
-        <priority value="info"/>
-    </category>
-    <category name="org.apache.spark.sql.execution">
-        <priority value="trace"/>
-    </category>
-    <category name="org.apache.spark.sql">
-        <priority value="debug"/>
-    </category>
-    -->
-
-    <!-- uncomment the following lines to enable logging SQL statements from the postgres dialect -->
-    <!--
-    <category name="org.locationtech.geomesa.gt">
-        <priority value="debug"/>
-    </category>
-    -->
-
     <root>
         <priority value="info"/>
         <appender-ref ref="CONSOLE" />
     </root>
+
 </log4j:configuration>
 
