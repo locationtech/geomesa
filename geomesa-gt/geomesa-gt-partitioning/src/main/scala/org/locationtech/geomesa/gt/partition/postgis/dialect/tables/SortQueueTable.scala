@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.gt.partition.postgis.dialect
 package tables
 
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
-
 /**
  * Stores main partitions that have data inserted out-of-order, which may end up impacting scan performance
  */
