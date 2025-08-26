@@ -3213,6 +3213,8 @@
                             <additionalOption>--class-path</additionalOption>
                             <additionalOption>'${project.build.outputDirectory}:${dep.cp}'</additionalOption>
                         </additionalOptions>
+                        <charset>UTF-8</charset>
+                        <docencoding>UTF-8</docencoding>
                     </configuration>
                 </plugin>
                 <plugin>
