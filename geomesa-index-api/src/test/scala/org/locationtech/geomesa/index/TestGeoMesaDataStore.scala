@@ -11,9 +11,8 @@ package org.locationtech.geomesa.index
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
@@ -96,7 +95,7 @@ object TestGeoMesaDataStore {
         case SingleRowByteRange(row)  => TestRange(row, ByteArrays.rowFollowingRow(row))
         case BoundedByteRange(lo, hi) => TestRange(lo, hi)
       }
-      val opts = if (strategy.index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+      val opts = if (strategy.index.serializedWithId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) }
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform

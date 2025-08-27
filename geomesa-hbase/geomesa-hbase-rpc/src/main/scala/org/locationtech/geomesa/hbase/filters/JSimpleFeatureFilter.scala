@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.filters
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter
 import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter._
@@ -65,7 +65,7 @@ object JSimpleFeatureFilter {
     // we do just enough here to be able to serialize the filter again
     // this should only be invoked on the client, where the filter won't be used
     lazy val feature = {
-      val f = KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+      val f = KryoFeatureSerializer(sft, SerializationOption.WithoutId).getReusableFeature
       f.setTransforms(transformString, SimpleFeatureTypes.createType("", transformSchemaString))
       f
     }

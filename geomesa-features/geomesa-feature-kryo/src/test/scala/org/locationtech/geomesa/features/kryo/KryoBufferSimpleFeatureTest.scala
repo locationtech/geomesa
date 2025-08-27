@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.features.kryo
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -39,7 +38,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       val serialized = serializer.serialize(sf)
 
       val laz = serializer.getReusableFeature
@@ -143,7 +142,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val bytes = laz.transform()
 
-      foreach(Seq(SerializationOptions.none, SerializationOptions.builder.`lazy`.build)) { opts =>
+      foreach(Seq(SerializationOption.defaults, SerializationOption.builder.`lazy`.build())) { opts =>
         val transformed = KryoFeatureSerializer(projectedSft, opts).deserialize(bytes)
         transformed.getID mustEqual sf.getID
         transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -278,7 +277,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       val name = new String(Array.fill(Short.MaxValue * 2)(1.toByte), StandardCharsets.UTF_8)
       sf.setAttribute("name", name)
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithoutId)
       val laz = serializer.getReusableFeature
 
       laz.setBuffer(serializer.serialize(sf))
@@ -310,7 +309,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       val serialized = serializer.serialize(sf)
 
       val start = System.currentTimeMillis()

@@ -12,7 +12,8 @@ package io
 import org.apache.avro.file.{CodecFactory, DataFileWriter}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
@@ -37,7 +38,7 @@ class AvroDataFileWriter(
   // constructors for java interop
   def this(os: OutputStream, sft: SimpleFeatureType, compression: Int) = this(os, sft, compression, Set.empty)
 
-  private val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData ++ opts)
+  private val writer = new SimpleFeatureDatumWriter(sft, SerializationOption.WithUserData ++ opts)
   private val dfw    = new DataFileWriter[SimpleFeature](writer)
 
   if (compression != Deflater.NO_COMPRESSION) {

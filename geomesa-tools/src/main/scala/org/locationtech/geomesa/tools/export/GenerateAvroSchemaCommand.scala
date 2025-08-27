@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.export
 
 import com.beust.jcommander.{Parameter, Parameters}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.avro.serialization.SimpleFeatureDatumWriter
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand.GenerateAvroSchemaParams
@@ -22,14 +22,14 @@ class GenerateAvroSchemaCommand extends Command {
 
   override def execute(): Unit = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
-    val builder = SerializationOptions.builder.withUserData
+    val builder = SerializationOption.builder.withUserData
     if (params.native) {
       builder.withNativeCollections
     }
     if (params.kafka) {
       builder.withoutId
     }
-    val schema = new SimpleFeatureDatumWriter(sft, builder.build).getSchema
+    val schema = new SimpleFeatureDatumWriter(sft, builder.build()).getSchema
     Command.output.info(schema.toString(true))
   }
 }

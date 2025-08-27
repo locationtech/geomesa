@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro.serialization
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.avro.AbstractAvroSimpleFeatureTest
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.specs2.mock.Mockito
@@ -90,7 +90,7 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
       userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
-      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOption.WithUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)
@@ -127,7 +127,7 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 
-      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOption.WithUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)

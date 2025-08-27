@@ -16,9 +16,8 @@ import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -70,7 +69,7 @@ class QueryPlannerTest extends Specification with TestWithFeatureType {
       val visibilities = Array("", "USER", "ADMIN")
       val expectedVis = visibilities.map(vis => if (vis.isEmpty) None else Some(vis))
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithoutId)
 
       val value = new Value(serializer.serialize(sf))
       val kvs = visibilities.zipWithIndex.map { case (vis, ndx) =>

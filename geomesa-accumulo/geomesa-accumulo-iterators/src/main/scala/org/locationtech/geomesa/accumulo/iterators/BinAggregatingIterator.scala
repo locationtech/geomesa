@@ -15,11 +15,10 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SerializationType}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
@@ -100,8 +99,8 @@ object BinAggregatingIterator extends LazyLogging {
       }
     } else {
       val deserializer = serializationType match {
-        case SerializationType.KRYO => KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
-        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft, SerializationOptions.withoutId)
+        case SerializationType.KRYO => KryoFeatureSerializer(returnSft, SerializationOption.WithoutId)
+        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft, SerializationOption.WithoutId)
       }
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())

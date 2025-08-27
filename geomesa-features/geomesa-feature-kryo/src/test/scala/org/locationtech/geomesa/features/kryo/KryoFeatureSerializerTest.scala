@@ -420,7 +420,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val sf = ScalaSimpleFeature.create(sft, "fid-0", "10", null, "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)")
       val name = new String(Array.fill(131011)('a'.toByte), StandardCharsets.UTF_8)
       sf.setAttribute("name", name)
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithoutId)
       val serialized = serializer.serialize(sf)
       val deserialized = serializer.deserialize(serialized)
       deserialized.getAttribute("name") mustEqual name
@@ -432,7 +432,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val spec = "*geom:Point:srid=4326,dtg:Date," + Seq.tabulate(1000)(i => f"a$i%02d:Int").mkString(",")
       val sft = SimpleFeatureTypes.createType("test", spec)
       val sf = ScalaSimpleFeature.create(sft, "fid-0", "POINT(45.0 49.0)", "2013-01-02T00:00:00.000Z")
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithoutId)
       var serialized: Try[Array[Byte]] = Failure(new IllegalArgumentException("thread not invoked?"))
       // we run the serialize in a new thread to avoid any buffer caching that can cause this test to not be reproducible
       // buffers are cached in thread-locals, so a new thread should ensure a fresh buffer
@@ -485,7 +485,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       val serialized = serializer.serialize(sf)
 
       val start = System.currentTimeMillis()

@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.features.kryo
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
 
 import java.io.{InputStream, OutputStream}
 
@@ -27,7 +27,7 @@ class ProjectingKryoFeatureDeserializer(
     val options: Set[SerializationOption] = Set.empty
   ) extends SimpleFeatureSerializer {
 
-  private val delegate = KryoFeatureSerializer(original, SerializationOptions.builder.`lazy`.build ++ options)
+  private val delegate = KryoFeatureSerializer(original, SerializationOption.Lazy ++ options)
 
   private val mappings = Array.tabulate(projected.getAttributeCount) { i =>
     original.indexOf(projected.getDescriptor(i).getLocalName)
