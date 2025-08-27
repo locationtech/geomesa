@@ -62,7 +62,7 @@ class SimpleFeatureSerializersTest extends Specification {
   "SimpleFeatureEncoder" should {
 
     "have a properly working apply() method" >> {
-      val opts = SerializationOption.WithUserData
+      val opts = Set(SerializationOption.WithUserData)
 
       // AVRO without options
       val avro1 = new AvroFeatureSerializer(sft)
