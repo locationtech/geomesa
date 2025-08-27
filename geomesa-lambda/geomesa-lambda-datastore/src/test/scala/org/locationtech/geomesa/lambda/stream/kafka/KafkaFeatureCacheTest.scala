@@ -12,6 +12,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
+import org.locationtech.geomesa.lambda.data.LambdaDataStore.PersistenceConfig
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.PartitionOffset
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -40,7 +41,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       manager.acquireLock(anyString, anyInt, anyLong) returns Some(mock[Closeable])
       WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
         ds.createSchema(sft)
-        WithClose(new KafkaFeatureCache(ds, sft, manager, "", Some(Duration(1, "ms")), None)) { cache =>
+        WithClose(new KafkaFeatureCache(ds, sft, manager, "", Some(PersistenceConfig(Duration(1, "ms"), 100)))) { cache =>
           cache.partitionAssigned(1, -1L)
           cache.partitionAssigned(0, -1L)
           cache.add(one, 0, 0, 0)
@@ -80,7 +81,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
     "expire features passively" in {
       implicit val clock: TestClock = new TestClock()
       val manager = mock[OffsetManager]
-      WithClose(new KafkaFeatureCache(null, sft, manager, "", None, None)) { cache =>
+      WithClose(new KafkaFeatureCache(null, sft, manager, "", None)) { cache =>
         cache.partitionAssigned(1, -1L)
         cache.partitionAssigned(0, -1L)
         cache.add(one, 0, 0, 0)

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
-import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
+import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -90,7 +90,9 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
   val BatchSizeParam =
     new GeoMesaParam[Integer](
       "lambda.persist.batch.size",
-      "Maximum number of features to persist in one run")
+      "Maximum number of features to persist in one run",
+      default = 100,
+    )
 
   // test params
   val ClockParam =
@@ -114,13 +116,14 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 
   def parse(params: java.util.Map[String, _], namespace: String): LambdaConfig = {
     val brokers = BrokersParam.lookup(params)
-    val expiry = if (!PersistParam.lookup(params).booleanValue) { None } else {
-      ExpiryParam.lookupOpt(params).collect { case d: FiniteDuration => d}
+    val persistence = if (!PersistParam.lookup(params).booleanValue) { None } else {
+      ExpiryParam.lookupOpt(params).collect { case d: FiniteDuration =>
+        PersistenceConfig(d, BatchSizeParam.lookup(params).intValue())
+      }
     }
 
     val partitions = PartitionsParam.lookup(params).intValue
     val consumers = ConsumersParam.lookup(params).intValue
-    val batchSize = BatchSizeParam.lookupOpt(params).map(_.intValue())
 
     val bootstrap = Map("bootstrap.servers" -> brokers)
     val consumerConfig = ConsumerOptsParam.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty) ++ bootstrap
@@ -131,6 +134,6 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
 
     val offsetCommitInterval = ConsumerOffsetCommitInterval.lookup(params)
 
-    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, expiry, batchSize, offsetCommitInterval)
+    LambdaConfig(zk, zkNamespace, producerConfig, consumerConfig, partitions, consumers, persistence, offsetCommitInterval)
   }
 }

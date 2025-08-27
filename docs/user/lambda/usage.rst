@@ -25,7 +25,7 @@ Parameter                              Type    Description
                                                See `Consumer Configs <https://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``lambda.expiry``                      String  A duration for how long features are kept in memory before being persisted (e.g. ``10 minutes``).
 ``lambda.persist``                     Boolean Whether this instance should participate in persisting expired features to Accumulo
-``lambda.persist.batch.size``          Integer Maximum number of features to persist in one run
+``lambda.persist.batch.size``          Integer Maximum number of features to persist at one time, default 100
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries via Accumulo
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation

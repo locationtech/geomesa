@@ -54,7 +54,7 @@ class KafkaStore(
 
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 
-  private val cache = new KafkaFeatureCache(ds, sft, offsetManager, topic, config.expiry, config.persistBatchSize)
+  private val cache = new KafkaFeatureCache(ds, sft, offsetManager, topic, config.persistence)
 
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification

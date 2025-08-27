@@ -16,7 +16,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
-import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
+import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
 import org.locationtech.geomesa.lambda.{InMemoryOffsetManager, LambdaContainerTest}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -66,7 +66,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(PersistenceConfig(Duration(1, "s"), 100)), Duration(10, TimeUnit.SECONDS)))
         }
 
         WithClose(newStore(), newStore()) { (store1, store2) =>
@@ -98,7 +98,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(PersistenceConfig(Duration(1, "s"), 100)), Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature)
@@ -139,7 +139,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(PersistenceConfig(Duration(1, "s"), 100)), Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
@@ -201,7 +201,7 @@ class KafkaStoreTest extends LambdaContainerTest {
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
-            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(Duration(1, "s")), None, Duration(10, TimeUnit.SECONDS)))
+            LambdaConfig(zookeepers, ns, config, config, 2, 1, Some(PersistenceConfig(Duration(1, "s"), 100)), Duration(10, TimeUnit.SECONDS)))
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           store1.write(feature1)
