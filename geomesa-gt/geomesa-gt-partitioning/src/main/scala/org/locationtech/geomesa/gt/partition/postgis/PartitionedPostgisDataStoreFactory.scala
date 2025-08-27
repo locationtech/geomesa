@@ -12,11 +12,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp.BasicDataSource
 import org.geotools.data.postgis.{PostGISDialect, PostGISPSDialect, PostgisNGDataStoreFactory}
 import org.geotools.jdbc.{JDBCDataStore, SQLDialect}
-import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect}
+import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, RoleName}
 
 class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with LazyLogging {
 
-  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, PreparedStatements}
+  import PartitionedPostgisDataStoreParams.{DbType, IdleInTransactionTimeout, ReadAccessRoles, PreparedStatements}
 
   override def getDisplayName: String = "PostGIS (partitioned)"
 
@@ -26,7 +26,7 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
 
   override protected def setupParameters(parameters: java.util.Map[String, AnyRef]): Unit = {
     super.setupParameters(parameters)
-    Seq(DbType, IdleInTransactionTimeout, PreparedStatements)
+    Seq(DbType, IdleInTransactionTimeout, PreparedStatements, ReadAccessRoles)
         .foreach(p => parameters.put(p.key, p))
   }
 
@@ -57,8 +57,10 @@ class PartitionedPostgisDataStoreFactory extends PostgisNGDataStoreFactory with 
       // also set in the params for consistency, although it's not used anywhere
       params.put(PostgisNGDataStoreFactory.SCHEMA.key, "public")
     }
+    val roles = Option(ReadAccessRoles.lookUp(params).asInstanceOf[String]).toSeq.flatMap(_.split(",")).map(r => RoleName(r.trim))
+
     val ds = super.createDataStoreInternal(store, params)
-    val dialect = new PartitionedPostgisDialect(ds)
+    val dialect = new PartitionedPostgisDialect(ds, roles)
 
     ds.getSQLDialect match {
       case d: PostGISDialect =>

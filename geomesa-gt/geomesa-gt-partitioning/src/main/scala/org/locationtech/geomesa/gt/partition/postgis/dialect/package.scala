@@ -181,6 +181,18 @@ package object dialect {
   }
 
   /**
+   * A user/role name
+   *
+   * @param quoted escaped name
+   * @param raw name without escaping
+   */
+  case class RoleName(quoted: String, raw: String) extends SqlIdentifier
+
+  object RoleName {
+    def apply(name: String): RoleName = RoleName(escape(name), name)
+  }
+
+  /**
    * Tables used by the partitioning system
    *
    * @param view primary view of all partitions
@@ -282,9 +294,8 @@ package object dialect {
   case class TableName(quoted: String, raw: String) extends SqlIdentifier
 
   object TableName {
-    def apply(name: String): TableName  = TableName(escape(name), name)
+    def apply(name: String): TableName = TableName(escape(name), name)
   }
-
 
   /**
    * Columns names for the feature type
@@ -531,7 +542,7 @@ package object dialect {
     def name(info: TypeInfo): FunctionName
 
     override protected def dropStatements(info: TypeInfo): Seq[String] =
-      Seq(s"DROP FUNCTION IF EXISTS ${name(info).quoted};")
+      Seq(s"DROP FUNCTION IF EXISTS ${info.schema.quoted}.${name(info).quoted};")
   }
 
   /**
@@ -565,13 +576,14 @@ package object dialect {
     override protected def createStatements(info: TypeInfo): Seq[String] = {
       // there is no "create or replace" for triggers so we have to wrap it in a check
       val tgName = triggerName(info)
+      val tgTable = table(info)
       val create =
         s"""DO $$$$
            |BEGIN
-           |  IF NOT EXISTS (SELECT FROM pg_trigger WHERE tgname = ${tgName.asLiteral}) THEN
+           |  IF NOT EXISTS (SELECT FROM pg_trigger WHERE tgname = ${tgName.asLiteral} AND tgrelid = ${tgTable.asRegclass}) THEN
            |    CREATE TRIGGER ${tgName.quoted}
-           |      $action ON ${table(info).qualified}
-           |      FOR EACH ROW EXECUTE PROCEDURE ${name(info).quoted}();
+           |      $action ON ${tgTable.qualified}
+           |      FOR EACH ROW EXECUTE PROCEDURE ${info.schema.quoted}.${name(info).quoted}();
            |  END IF;
            |END$$$$;""".stripMargin
       Seq(create)

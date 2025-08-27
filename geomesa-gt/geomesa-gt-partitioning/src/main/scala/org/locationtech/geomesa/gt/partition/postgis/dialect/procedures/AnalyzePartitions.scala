@@ -26,7 +26,7 @@ object AnalyzePartitions extends SqlProcedure with CronSchedule {
   override protected def invocation(info: TypeInfo): SqlLiteral = SqlLiteral(s"CALL ${name(info).quoted}()")
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}() LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      cur_time timestamp without time zone;        -- current time

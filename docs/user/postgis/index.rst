@@ -14,3 +14,4 @@ efficient spatio-temporal queries against large data sets.
     geoserver
     commandline
     index_config
+    multi_tenancy

@@ -22,7 +22,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      partition_size int;                          -- size of the partition, in hours
@@ -46,7 +46,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
        |          ${SftUserData.IntervalHours.default}
        |        ) INTO partition_size;
-       |      main_cutoff := truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
+       |      main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
        |      -- move data from the write ahead partitions to the main partitions
        |      LOOP
@@ -55,7 +55,7 @@ object MergeWriteAheadPartitions extends SqlProcedure {
        |          WHERE ${info.cols.dtg.quoted} < main_cutoff;
        |        EXIT WHEN min_dtg IS NULL;
        |
-       |        partition_start := truncate_to_partition(min_dtg, partition_size);
+       |        partition_start := ${info.schema.quoted}.truncate_to_partition(min_dtg, partition_size);
        |        partition_end := partition_start + make_interval(hours => partition_size);
        |        partition_parent := ${info.tables.mainPartitions.name.asLiteral};
        |        partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');

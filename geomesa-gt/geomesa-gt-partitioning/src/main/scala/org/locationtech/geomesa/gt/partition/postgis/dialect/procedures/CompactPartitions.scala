@@ -23,7 +23,7 @@ object CompactPartitions extends SqlProcedure {
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(for_date timestamp without time zone) LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}(for_date timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      partition_name text;
@@ -48,7 +48,7 @@ object CompactPartitions extends SqlProcedure {
        |          ${SftUserData.IntervalHours.default})
        |        INTO partition_size;
        |      partition_name := ${info.tables.mainPartitions.name.asLiteral} || '_' ||
-       |        to_char(truncate_to_partition(for_date, partition_size), 'YYYY_MM_DD_HH24');
+       |        to_char(${info.schema.quoted}.truncate_to_partition(for_date, partition_size), 'YYYY_MM_DD_HH24');
        |
        |      SELECT value FROM ${info.schema.quoted}.${UserDataTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.MainTableSpace.key)}
@@ -79,7 +79,7 @@ object CompactPartitions extends SqlProcedure {
        |        ' IN SHARE ROW EXCLUSIVE MODE';
        |      EXECUTE 'SELECT ${info.cols.dtg.quoted} FROM ${info.schema.quoted}.' || quote_ident(partition_name) ||
        |        ' LIMIT 1' INTO min_dtg;
-       |      partition_start := truncate_to_partition(min_dtg, partition_size);
+       |      partition_start := ${info.schema.quoted}.truncate_to_partition(min_dtg, partition_size);
        |      partition_end := partition_start + make_interval(hours => partition_size);
        |      spill_partition := ${info.tables.spillPartitions.name.asLiteral} || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |

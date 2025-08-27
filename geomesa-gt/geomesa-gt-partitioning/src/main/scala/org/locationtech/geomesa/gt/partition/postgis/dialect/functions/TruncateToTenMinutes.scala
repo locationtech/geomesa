@@ -20,12 +20,12 @@ class TruncateToTenMinutes extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      """CREATE OR REPLACE FUNCTION truncate_to_ten_minutes(dtg timestamp without time zone)
-        |RETURNS timestamp without time zone AS
-        |  $BODY$
-        |    SELECT date_trunc('hour', dtg) + INTERVAL '10 MINUTES' * floor(date_part('minute', dtg) / 10);
-        |  $BODY$
-        |LANGUAGE sql;""".stripMargin
+      s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.truncate_to_ten_minutes(dtg timestamp without time zone)
+         |RETURNS timestamp without time zone AS
+         |  $$BODY$$
+         |    SELECT date_trunc('hour', dtg) + INTERVAL '10 MINUTES' * floor(date_part('minute', dtg) / 10);
+         |  $$BODY$$
+         |LANGUAGE sql;""".stripMargin
     )
   }
 

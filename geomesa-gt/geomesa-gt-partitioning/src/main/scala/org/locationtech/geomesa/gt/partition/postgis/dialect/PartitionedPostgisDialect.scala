@@ -35,7 +35,14 @@ import java.sql.{Connection, DatabaseMetaData, ResultSet, Types}
 import scala.util.Try
 import scala.util.control.NonFatal
 
-class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(store) with StrictLogging {
+/**
+ * Dialect
+ *
+ * @param store data store
+ * @param grants roles that should be granted access to feature types created by this dialect
+ */
+class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Seq.empty)
+    extends PostGISDialect(store) with StrictLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -136,6 +143,22 @@ class PartitionedPostgisDialect(store: JDBCDataStore) extends PostGISDialect(sto
     implicit val ex: ExecutionContext = new ExecutionContext(cx)
     try {
       PartitionedPostgisDialect.Commands.foreach(_.create(info))
+      if (grants.nonEmpty) {
+        val roles = grants.map(_.quoted).mkString(", ")
+        val tables =
+          Seq(
+            info.tables.view.name,
+            info.tables.writeAhead.name,
+            info.tables.writeAheadPartitions.name,
+            info.tables.mainPartitions.name,
+            info.tables.spillPartitions.name,
+            TableIdentifier(schemaName, PrimaryKeyTable.Name.raw),
+            TableIdentifier(schemaName, UserDataTable.Name.raw)
+          )
+        tables.foreach { table =>
+          ex.execute(s"GRANT SELECT ON ${table.qualified} TO $roles;")
+        }
+      }
     } finally {
       ex.close()
     }

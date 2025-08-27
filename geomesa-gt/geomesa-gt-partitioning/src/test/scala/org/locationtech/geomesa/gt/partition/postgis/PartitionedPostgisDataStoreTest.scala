@@ -34,13 +34,11 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfi
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.specs2.data.Sized
-import org.specs2.matcher.ValueChecks
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
 
-import java.io.{ByteArrayInputStream, SequenceInputStream}
+import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
@@ -204,6 +202,92 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
 
           WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
             reader.hasNext must beFalse
+          }
+        }
+      } catch {
+        case NonFatal(e) => logger.error("", e); ko
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "support read-only roles" in {
+      val readOnlyUser = "readme"
+      val noAccessUser = "noread"
+
+      val ds = DataStoreFinder.getDataStore((params ++ Map(PartitionedPostgisDataStoreParams.ReadAccessRoles.key -> readOnlyUser)).asJava)
+      ds must not(beNull)
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+
+        WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+          WithClose(cx.createStatement()) { st =>
+            st.execute(s"CREATE ROLE $readOnlyUser WITH LOGIN PASSWORD '$readOnlyUser';")
+            st.execute(s"CREATE ROLE $noAccessUser WITH LOGIN PASSWORD '$noAccessUser';")
+          }
+        }
+
+        val sft = SimpleFeatureTypes.renameSft(this.sft, "readonly")
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        WithClose(DataStoreFinder.getDataStore((params ++ Map("user" -> noAccessUser, "passwd" -> noAccessUser)).asJava)) { noAccessDs =>
+          noAccessDs.getSchema(sft.getTypeName) must throwAn[IOException]
+          noAccessDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT) must throwAn[IOException]
+          noAccessDs.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT) must throwAn[IOException]
+        }
+        WithClose(DataStoreFinder.getDataStore((params ++ Map("user" -> readOnlyUser, "passwd" -> readOnlyUser)).asJava)) { readOnlyDs =>
+          // ensure we can't write data
+          WithClose(new DefaultTransaction()) { tx =>
+            val writer = readOnlyDs.getFeatureWriterAppend(sft.getTypeName, tx)
+            val builder = new SimpleFeatureBuilder(sft)
+            builder.init(features.head)
+            val feature = builder.buildFeature(s"fidxx")
+            FeatureUtils.write(writer, feature, useProvidedFid = true)
+            writer.close() must throwAn[IOException]
+            tx.commit()
+          }
+          // verify we can read the existing features but the one we tried to write wasn't persisted
+          WithClose(readOnlyDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
+          }
+          // verify data is being partitioned as expected
+          WithClose(ds.asInstanceOf[JDBCDataStore].getConnection(Transaction.AUTO_COMMIT)) { cx =>
+            val typeInfo = TypeInfo(this.schema, sft)
+            // initially everything is in the write ahead log
+            foreach(Seq(typeInfo.tables.view, typeInfo.tables.writeAhead))(table => count(cx, table) mustEqual 10)
+            foreach(Seq(typeInfo.tables.writeAheadPartitions, typeInfo.tables.mainPartitions))(table => count(cx, table) mustEqual 0)
+            // manually invoke the scheduled crons so we don't have to wait
+            WithClose(cx.prepareCall(s"call ${RollWriteAheadLog.name(typeInfo).quoted}();"))(_.execute())
+            WithClose(cx.prepareCall(s"call ${PartitionMaintenance.name(typeInfo).quoted}();"))(_.execute())
+            // verify that data was sorted into the appropriate tables based on dtg
+            count(cx, typeInfo.tables.view) mustEqual 10
+            count(cx, typeInfo.tables.writeAhead) mustEqual 0
+            count(cx, typeInfo.tables.writeAheadPartitions) must beGreaterThan(0)
+            count(cx, typeInfo.tables.mainPartitions) must beGreaterThan(0)
+          }
+
+          // ensure we still get same results after running partitioning
+          WithClose(readOnlyDs.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+            val result = SelfClosingIterator(reader).toList
+            result.map(compFromDb) must containTheSameElementsAs(features.map(compWithFid(_, sft)))
           }
         }
       } catch {
