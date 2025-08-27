@@ -217,8 +217,17 @@ object LambdaDataStore {
       consumerConfig: Map[String, String],
       partitions: Int,
       consumers: Int,
-      expiry: Option[FiniteDuration],
-      persistBatchSize: Option[Int] = None,
+      persistence: Option[PersistenceConfig],
       offsetCommitInterval: FiniteDuration,
     )
+
+  /**
+   * Persistence config
+   *
+   * @param expiry expiration
+   * @param batchSize batch size
+   */
+  case class PersistenceConfig(expiry: FiniteDuration, batchSize: Int) {
+    require(batchSize > 0, s"Invalid persistence batch size: $batchSize")
+  }
 }
