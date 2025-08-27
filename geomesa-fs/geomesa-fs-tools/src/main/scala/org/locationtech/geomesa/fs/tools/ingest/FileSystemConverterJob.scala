@@ -10,13 +10,13 @@ package org.locationtech.geomesa.fs.tools.ingest
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{BytesWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -141,7 +141,7 @@ object FileSystemConverterJob {
       metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
-      serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
+      serializer = KryoFeatureSerializer(metadata.sft, SerializationOption.defaults)
       scheme = metadata.scheme
 
       mapped = context.getCounter(OutputCounters.Group, "mapped")
@@ -182,7 +182,7 @@ object FileSystemConverterJob {
       val metadata = StorageMetadataFactory.load(FileSystemContext(root, context.getConfiguration)).getOrElse {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
-      serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
+      serializer = KryoFeatureSerializer(metadata.sft, SerializationOption.defaults)
       reduced = context.getCounter(OutputCounters.Group, "reduced")
       metadata.close()
     }

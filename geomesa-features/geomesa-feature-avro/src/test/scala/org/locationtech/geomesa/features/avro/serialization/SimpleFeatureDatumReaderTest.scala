@@ -14,8 +14,7 @@ import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -202,7 +201,7 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
 
       // serialize
       val baos = new ByteArrayOutputStream()
-      val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData)
+      val writer = new SimpleFeatureDatumWriter(sft, SerializationOption.WithUserData)
       val encoder = EncoderFactory.get().binaryEncoder(baos, null)
       writer.write(sf, encoder)
       encoder.flush()

@@ -12,6 +12,7 @@ import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -67,6 +68,16 @@ object IteratorCache extends StrictLogging {
       serializer
     }
   }
+
+  /**
+   * Returns a cached serializer, creating one if necessary
+   *
+   * @param spec simple feature type spec
+   * @param withId serialization option
+   * @return
+   */
+  def serializer(spec: String, withId: Boolean): KryoFeatureSerializer =
+    serializer(spec, if (withId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) })
 
   /**
     * Returns a cached filter, creating one if necessary.

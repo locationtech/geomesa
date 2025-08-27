@@ -16,7 +16,6 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.FilterCompatibility
@@ -63,9 +62,7 @@ class FilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Sa
         IteratorCache.index(IteratorCache.sft(indexSpec), indexSpec, options.get(IndexOpt))
       }
     }
-    // noinspection ScalaDeprecation
-    val kryo = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-    reusableSf = IteratorCache.serializer(spec, kryo).getReusableFeature
+    reusableSf = IteratorCache.serializer(spec, index.serializedWithId).getReusableFeature
     reusableSf.setIdParser(index.getIdFromRow(_, _, _, null))
 
     val transform = Option(options.get(TransformDefsOpt))

@@ -12,10 +12,10 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.ImmutableSimpleFeatureType
 
@@ -68,7 +68,7 @@ trait IndexValueSerializer {
   private val cache = new ConcurrentHashMap[ImmutableSimpleFeatureType, ImmutableSimpleFeatureType]()
 
   def apply(sft: SimpleFeatureType): org.locationtech.geomesa.features.SimpleFeatureSerializer =
-    new ProjectingKryoFeatureSerializer(sft, getIndexSft(sft), SerializationOptions.withoutId)
+    new ProjectingKryoFeatureSerializer(sft, getIndexSft(sft), SerializationOption.WithoutId)
 
   /**
    * Gets a feature type compatible with the stored index value

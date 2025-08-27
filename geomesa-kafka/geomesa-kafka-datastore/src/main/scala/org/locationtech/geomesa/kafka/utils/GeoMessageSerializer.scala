@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -99,7 +99,7 @@ object GeoMessageSerializer {
       sft: SimpleFeatureType,
       serialization: SerializationType,
       opts: Set[SerializationOption]): GeoMessageSerializer = {
-    val options = SerializationOptions.builder.withoutId.withUserData.immutable.build ++ opts
+    val options = SerializationOption.builder.withoutId.withUserData.immutable.build() ++ opts
     val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
     val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()
     val (serializer, version) = serialization match {

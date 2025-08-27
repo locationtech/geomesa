@@ -18,7 +18,7 @@ import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -59,7 +59,7 @@ class KafkaStore(
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification
     // use lazy so that we don't create lots of objects that get replaced/updated before actually being read
-    val options = SerializationOptions.builder.withUserData.withoutFidHints.immutable.`lazy`.build
+    val options = SerializationOption.builder.withUserData.withoutFidHints.immutable.`lazy`.build()
     KryoFeatureSerializer(sft, options)
   }
 
@@ -289,7 +289,7 @@ object KafkaStore {
         case s: String => s
         case s => throw new IllegalStateException(s"Invalid spec config for $SimpleFeatureSpecConfig: $s")
       }
-      val options = SerializationOptions.builder.immutable.`lazy`.build
+      val options = SerializationOption.builder.immutable.`lazy`.build()
       serializer = KryoFeatureSerializer(SimpleFeatureTypes.createType("", spec), options)
     }
 

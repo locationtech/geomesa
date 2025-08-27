@@ -125,6 +125,13 @@ The following modules have been deprecated and will be removed in the next major
 * ``geomesa-metrics-graphite``
 * ``geomesa-metrics-prometheus``
 
+Deprecated Classes
+------------------
+
+The following classes have been deprecated and will be removed in the next major release:
+
+* ``org.locationtech.geomesa.features.SerializationOption.SerializationOptions``
+
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

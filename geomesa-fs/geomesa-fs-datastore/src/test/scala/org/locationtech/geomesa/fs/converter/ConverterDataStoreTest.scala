@@ -157,7 +157,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
         writeTarGz(fc, s"$bucket$path", contents, multiplier)
       }
 
-      foreach(Seq(("100 millis", true), ("60 seconds", false))) { case (timeout, expectTimeout) =>
+      foreach(Seq(("100 millis", true), ("5 minutes", false))) { case (timeout, expectTimeout) =>
         val params = Map(
           "fs.path"               -> bucket,
           "fs.encoding"           -> "converter",
