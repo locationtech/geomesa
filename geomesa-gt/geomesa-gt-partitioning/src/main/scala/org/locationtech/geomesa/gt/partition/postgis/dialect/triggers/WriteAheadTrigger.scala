@@ -26,7 +26,7 @@ object WriteAheadTrigger extends SqlTriggerFunction {
     Seq(function(info)) ++ super.createStatements(info)
 
   private def function(info: TypeInfo): String =
-    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;

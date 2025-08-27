@@ -22,7 +22,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;
@@ -47,7 +47,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |          WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
        |        ${SftUserData.IntervalHours.default})
        |        INTO partition_size;
-       |      main_cutoff := truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
+       |      main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |
        |      SELECT value from ${info.schema.quoted}.${SequenceTable.Name.quoted}
        |        WHERE type_name = ${literal(info.typeName)} INTO seq_val;
@@ -75,7 +75,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |
        |        -- wait until the table doesn't contain any recent records
        |        EXECUTE 'SELECT EXISTS(SELECT 1 FROM ${info.schema.quoted}.' || quote_ident(write_ahead.name) ||
-       |          ' WHERE ${info.cols.dtg.quoted} >= ' || quote_literal(truncate_to_ten_minutes(cur_time)) || ')'
+       |          ' WHERE ${info.cols.dtg.quoted} >= ' || quote_literal(${info.schema.quoted}.truncate_to_ten_minutes(cur_time)) || ')'
        |          INTO pexists;
        |
        |        IF pexists THEN
@@ -91,7 +91,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |
        |            -- calculate the partition bounds for the min date
        |            IF min_dtg < main_cutoff THEN
-       |              partition_start := truncate_to_partition(min_dtg, partition_size);
+       |              partition_start := ${info.schema.quoted}.truncate_to_partition(min_dtg, partition_size);
        |              partition_end := partition_start + make_interval(hours => partition_size);
        |              partition_parent := ${info.tables.mainPartitions.name.asLiteral};
        |              partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
@@ -115,7 +115,7 @@ object PartitionWriteAheadLog extends SqlProcedure {
        |                partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24');
        |              END IF;
        |            ELSE
-       |              partition_start := truncate_to_ten_minutes(min_dtg);
+       |              partition_start := ${info.schema.quoted}.truncate_to_ten_minutes(min_dtg);
        |              partition_end := partition_start + INTERVAL '10 MINUTES';
        |              partition_parent := ${info.tables.writeAheadPartitions.name.asLiteral};
        |              partition_name := partition_parent || '_' || to_char(partition_start, 'YYYY_MM_DD_HH24_MI');

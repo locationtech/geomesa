@@ -20,13 +20,13 @@ class TruncateToPartition extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      """CREATE OR REPLACE FUNCTION truncate_to_partition(dtg timestamp without time zone, hours int)
-        |RETURNS timestamp without time zone AS
-        |  $BODY$
-        |    SELECT date_trunc('day', dtg) +
-        |      (hours * INTERVAL '1 HOUR' * floor(date_part('hour', dtg) / hours));
-        |  $BODY$
-        |LANGUAGE sql;""".stripMargin
+      s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.truncate_to_partition(dtg timestamp without time zone, hours int)
+         |RETURNS timestamp without time zone AS
+         |  $$BODY$$
+         |    SELECT date_trunc('day', dtg) +
+         |      (hours * INTERVAL '1 HOUR' * floor(date_part('hour', dtg) / hours));
+         |  $$BODY$$
+         |LANGUAGE sql;""".stripMargin
     )
   }
 

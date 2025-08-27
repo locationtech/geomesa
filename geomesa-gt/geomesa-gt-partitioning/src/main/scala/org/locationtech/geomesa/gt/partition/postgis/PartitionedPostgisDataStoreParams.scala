@@ -44,6 +44,14 @@ object PartitionedPostgisDataStoreParams {
       false
     ) with TimeoutParam
 
+  val ReadAccessRoles =
+    new Param(
+      "read_access_roles",
+      classOf[String],
+      "List of database roles that will be granted read access to any schemas created by this store, comma-separated",
+      false
+    )
+
   // note: need a default string constructor so geotools can create it from the param
   class Timeout(repr: String) {
     private val duration = Duration(repr)

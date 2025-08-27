@@ -27,7 +27,7 @@ class LogCleaner extends SqlFunction with CronSchedule {
   override def jobName(info: TypeInfo): SqlLiteral = SqlLiteral(s"${info.typeName}-cron-log-cleaner")
 
   override protected def createStatements(info: TypeInfo): Seq[String] =
-    Seq(function()) ++ super.createStatements(info)
+    Seq(function(info.schema)) ++ super.createStatements(info)
 
   // function is shared between types, but we want to unschedule the cron
   override protected def dropStatements(info: TypeInfo): Seq[String] =
@@ -36,16 +36,16 @@ class LogCleaner extends SqlFunction with CronSchedule {
   override protected def schedule(info: TypeInfo): SqlLiteral = SqlLiteral("30 1 * * *") // 01:30 every day
 
   override protected def invocation(info: TypeInfo): SqlLiteral =
-    SqlLiteral(s"SELECT cron_log_cleaner(${info.tables.view.name.asLiteral}, INTERVAL '7 DAYS')")
+    SqlLiteral(s"SELECT ${info.schema.quoted}.cron_log_cleaner(${info.tables.view.name.asLiteral}, INTERVAL '7 DAYS')")
 
-  private def function(): String = {
+  private def function(schema: SchemaName): String = {
     val info = TypeInfo(SchemaName("", ""), "", null, null, null)
     val maintenanceSuffix = PartitionMaintenance.jobName(info).quoted
     val rollSuffix = RollWriteAheadLog.jobName(info).quoted
     val analyzeSuffix = AnalyzePartitions.jobName(info).quoted
     val logsSuffix = jobName(info).quoted
 
-    s"""CREATE OR REPLACE FUNCTION cron_log_cleaner(name text, tokeep interval) RETURNS void LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE FUNCTION ${schema.quoted}.cron_log_cleaner(name text, tokeep interval) RETURNS void LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      maintenance_name text;

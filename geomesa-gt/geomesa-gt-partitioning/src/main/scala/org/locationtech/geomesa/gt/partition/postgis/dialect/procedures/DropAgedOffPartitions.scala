@@ -22,7 +22,7 @@ object DropAgedOffPartitions extends SqlProcedure {
   override protected def createStatements(info: TypeInfo): Seq[String] = Seq(proc(info))
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}(cur_time timestamp without time zone) LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      num_partitions int;                          -- number of partitions to keep
@@ -41,7 +41,7 @@ object DropAgedOffPartitions extends SqlProcedure {
        |            WHERE type_name = ${literal(info.typeName)} AND key = ${literal(SftUserData.IntervalHours.key)}),
        |          ${SftUserData.IntervalHours.default})
        |          INTO partition_size;
-       |        main_cutoff := truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
+       |        main_cutoff := ${info.schema.quoted}.truncate_to_partition(cur_time, partition_size) - make_interval(hours => partition_size);
        |        -- remove any partitions that have aged out
        |        partition_start := main_cutoff - (make_interval(hours => partition_size) * num_partitions);
        |        FOR partition_name IN

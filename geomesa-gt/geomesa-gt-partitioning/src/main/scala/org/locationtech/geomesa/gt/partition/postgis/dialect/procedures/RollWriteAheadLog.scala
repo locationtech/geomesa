@@ -30,7 +30,7 @@ object RollWriteAheadLog extends SqlProcedure with CronSchedule {
     Seq(proc(info)) ++ super.createStatements(info)
 
   private def proc(info: TypeInfo): String = {
-    s"""CREATE OR REPLACE PROCEDURE ${name(info).quoted}() LANGUAGE plpgsql AS
+    s"""CREATE OR REPLACE PROCEDURE ${info.schema.quoted}.${name(info).quoted}() LANGUAGE plpgsql AS
        |  $$BODY$$
        |    DECLARE
        |      seq_val smallint;

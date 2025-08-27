@@ -15,8 +15,9 @@ Parameter                               Type     Description
 ======================================= ======== ===================================================================================================================================
 ``idle_in_transaction_session_timeout`` Duration Transaction idle timeout (e.g. ``2 minutes``). See the
                                                  `Postgres documentation <https://www.postgresql.org/docs/15/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT>`__
-                                                 for more information. Setting this timeout may help prevent
-                                                 abandoned queries from slowing down database operations.
+                                                 for more information. Setting this timeout may help prevent abandoned queries from slowing down database operations.
+``read_access_roles``                   String   A comma-separated list of roles that should be granted read-only access to any new schemas. These roles must already exist in the
+                                                 database.
 ======================================= ======== ===================================================================================================================================
 
 Programmatic Access
