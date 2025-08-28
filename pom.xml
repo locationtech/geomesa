@@ -173,6 +173,7 @@
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>4.9.10</git.commit.id.plugin.version>
         <license.maven.plugin.version>5.0.0</license.maven.plugin.version>
+        <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.7.1</maven.assembly.plugin.version>
         <maven.checkstyle.plugin.version>3.6.0</maven.checkstyle.plugin.version>
         <maven.clean.plugin.version>3.5.0</maven.clean.plugin.version>
@@ -374,6 +375,34 @@
                 <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
                 <skipTests>true</skipTests>
             </properties>
+        </profile>
+
+        <profile>
+            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
+            <id>site</id>
+            <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-antrun-plugin</artifactId>
+                      <version>${maven.antrun.plugin.version}</version>
+                      <executions>
+                          <execution>
+                              <id>create-missing-apidocs</id>
+                              <phase>site</phase>
+                              <goals>
+                                  <goal>run</goal>
+                              </goals>
+                              <configuration>
+                                  <target>
+                                      <mkdir dir="${project.build.directory}/site/apidocs"/>
+                                  </target>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+            </build>
         </profile>
 
         <profile>
@@ -3213,8 +3242,6 @@
                             <additionalOption>--class-path</additionalOption>
                             <additionalOption>'${project.build.outputDirectory}:${dep.cp}'</additionalOption>
                         </additionalOptions>
-                        <charset>UTF-8</charset>
-                        <docencoding>UTF-8</docencoding>
                     </configuration>
                 </plugin>
                 <plugin>
