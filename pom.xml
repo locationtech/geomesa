@@ -123,7 +123,7 @@
         <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <testcontainers.version>1.21.0</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <testcontainers.accumulo.version>1.4.1</testcontainers.accumulo.version>
         <testcontainers.hbase.version>1.0.0</testcontainers.hbase.version>
 
@@ -195,7 +195,7 @@
         <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
         <!-- note: we use an older version that still supports using zinc compile server -->
         <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
-        <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
+        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version> <!-- note: requires java 17+ when building site -->
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
