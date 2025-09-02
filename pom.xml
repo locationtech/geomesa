@@ -202,7 +202,7 @@
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
-        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
         <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
@@ -367,43 +367,6 @@
                     <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
-        </profile>
-
-        <profile>
-            <!-- for generating scoverage reports on test coverage -->
-            <id>scoverage</id>
-            <properties>
-                <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
-                <skipTests>true</skipTests>
-            </properties>
-        </profile>
-
-        <profile>
-            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
-            <id>site</id>
-            <build>
-              <plugins>
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-antrun-plugin</artifactId>
-                      <version>${maven.antrun.plugin.version}</version>
-                      <executions>
-                          <execution>
-                              <id>create-missing-apidocs</id>
-                              <phase>site</phase>
-                              <goals>
-                                  <goal>run</goal>
-                              </goals>
-                              <configuration>
-                                  <target>
-                                      <mkdir dir="${project.build.directory}/site/apidocs"/>
-                                  </target>
-                              </configuration>
-                          </execution>
-                      </executions>
-                  </plugin>
-              </plugins>
-            </build>
         </profile>
 
         <profile>
@@ -3381,6 +3344,11 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>${maven.project.info.reports.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${maven.antrun.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -3639,6 +3607,25 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
+                    <execution>
+                        <id>create-missing-apidocs</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/site/apidocs"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -3650,7 +3637,7 @@
                 <reportSets>
                     <reportSet>
                         <reports>
-                            <report>report-only</report>
+                            <report>integration-report</report>
                         </reports>
                     </reportSet>
                 </reportSets>
