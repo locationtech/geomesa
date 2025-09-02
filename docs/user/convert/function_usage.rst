@@ -755,13 +755,13 @@ The arguments to a math functions must be numbers - Integers, Doubles, Floats, L
 All math functions return Doubles. If another data type is needed, convert the value afterwards,
 e.g. ``add($1,$2)::long``
 
-Math functions accept multiple arguments, or will accept a single java.util.List containing the arguments.
+Most math functions accept multiple arguments, or will accept a single java.util.List containing the arguments.
 
 Example:
 
 ::
 
-  { name = "value3",   transform = "add($value1, multiply($value2, 1.2))::double" }
+  { name = "value3", transform = "add($value1, multiply($value2, 1.2))::double" }
 
 add
 ^^^
@@ -807,6 +807,16 @@ Example: ``divide($1,$2,"15")`` is equivalent to ``($1/$2)/"15"``
 
 Example: ``divide(list(3,2))``
 
+modulo
+^^^^^^
+
+Description: Takes the modulo of two values. Note that unlike other math functions, modulo expects and returns integers instead
+of doubles.
+
+Example: ``modulo($1,$2)``
+
+Example: ``modulo(list(3,2))``
+
 mean
 ^^^^
 
@@ -833,6 +843,69 @@ Description: Finds the maximum of two or more numbers.
 Example: ``max($1,$2,$3)``
 
 Example: ``max(list(1,2,3))``
+
+sin
+^^^
+
+Description: Calculates the sine of a number.
+
+Example: ``sin($1)``
+
+cos
+^^^
+
+Description: Calculates the cosine of a number.
+
+Example: ``cos($1)``
+
+tan
+^^^
+
+Description: Calculates the tangent of a number.
+
+Example: ``tan($1)``
+
+asin
+^^^^
+
+Description: Calculates the arc sine of a number.
+
+Example: ``asin($1)``
+
+acos
+^^^^
+
+Description: Calculates the arc cosine of a number.
+
+Example: ``acos($1)``
+
+atan
+^^^^
+
+Description: Calculates the arc tangent of a number.
+
+Example: ``atan($1)``
+
+ln
+^^
+
+Description: Calculates the natural logarithm of a number.
+
+Example: ``ln($1)``
+
+exp
+^^^
+
+Description: Calculates Euler's number *e* raised to the power of a number.
+
+Example: ``exp($1)``
+
+sqrt
+^^^^
+
+Description: Calculates the square root of a number.
+
+Example: ``sqrt($1)``
 
 List and Map Functions
 ~~~~~~~~~~~~~~~~~~~~~~
