@@ -691,6 +691,55 @@ class ExpressionTest extends Specification {
       val exp1 = Expression("max($0,$1,$2)")
       exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
     }
+    "calculate sin" >> {
+      val exp = Expression("sin($1)")
+      exp.apply(Array("", Double.box(Math.PI / 2))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+    }
+    "calculate asin" >> {
+      val exp = Expression("asin($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.PI / 2, 0.0001)
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+    }
+    "calculate cos" >> {
+      val exp = Expression("cos($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.PI))).asInstanceOf[Double] must beCloseTo(-1.0, 0.0001)
+    }
+    "calculate acos" >> {
+      val exp = Expression("acos($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(-1.0))).asInstanceOf[Double] must beCloseTo(Math.PI, 0.0001)
+    }
+    "calculate tan" >> {
+      val exp = Expression("tan($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.PI / 4))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+    }
+    "calculate atan" >> {
+      val exp = Expression("atan($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.PI / 4, 0.0001)
+    }
+    "calculate ln" >> {
+      val exp = Expression("ln($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.E))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+    }
+    "calculate exp" >> {
+      val exp = Expression("exp($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.E, 0.0001)
+    }
+    "calculate sqrt" >> {
+      val exp = Expression("sqrt($1)")
+      exp.apply(Array("", Double.box(4.0))).asInstanceOf[Double] must beCloseTo(2.0, 0.0001)
+      exp.apply(Array("", Double.box(2.0))).asInstanceOf[Double] must beCloseTo(Math.sqrt(2), 0.0001)
+    }
+    "calculate modulo" >> {
+      val exp = Expression("modulo($1, $2)")
+      exp.apply(Array("", Int.box(5), Int.box(2))).asInstanceOf[Int] mustEqual 1
+    }
     "allow for number formatting using printf" >> {
       val exp = Expression("printf('%.2f', divide($1,$2,$3))")
       exp.apply(Array("","-1","2","3.0")) mustEqual "-0.17"
