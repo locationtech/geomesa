@@ -66,7 +66,10 @@ function dependencies() {
     local micrometer_version
     local opentelemetry_version
 
-    if version_ge "${accumulo_version}" 2.1.3; then
+    if version_ge "${accumulo_version}" 2.1.4; then
+      micrometer_version="1.14.5"
+      opentelemetry_version="1.48.0"
+    elif version_ge "${accumulo_version}" 2.1.3; then
       micrometer_version="1.12.2"
       opentelemetry_version="1.34.1"
     else
