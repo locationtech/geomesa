@@ -98,6 +98,8 @@ Dependency Version Upgrades
 
 The following dependencies have been upgraded:
 
+* accumulo ``2.1.3`` -> ``2.1.4``
+* micrometer ``1.13.4`` -> ``1.15.3``
 * nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
 
@@ -114,6 +116,12 @@ Partitioned PostGIS Table Changes
 
 The ``partition_tablespaces`` table used to store tablespaces for the Partitioned PostGIS data store has been deprecated,
 and will be removed in a future version. Tablespace information is now stored in the ``geomesa_userdata`` table.
+
+Deprecated Support for Accumulo 2.0
+-----------------------------------
+
+Support for Accumulo 2.0 has been deprecated, and will be removed in the next major release. Users should
+upgrade to Accumulo 2.1.
 
 Deprecated Modules
 ------------------

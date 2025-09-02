@@ -5,6 +5,10 @@ Installing GeoMesa Accumulo
 
     GeoMesa currently supports Accumulo |accumulo_supported_versions|.
 
+.. warning::
+
+    Support for Accumulo 2.0.1 has been deprecated, and will be removed in a future version.
+
 .. note::
 
     The examples below expect a version to be set in the environment:

@@ -5,6 +5,10 @@ Accumulo Data Store
 
     GeoMesa currently supports Accumulo |accumulo_supported_versions|.
 
+.. warning::
+
+    Support for Accumulo 2.0.1 has been deprecated, and will be removed in a future version.
+
 The GeoMesa Accumulo Data Store module is an implementation of the
 GeoTools ``DataStore`` that is backed by `Apache Accumulo`_. GeoMesa
 also contains many other modules designed to operate with Accumulo,
