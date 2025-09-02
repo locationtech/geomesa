@@ -179,7 +179,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
         .register(Metrics.globalRegistry)
     val dtgMetrics = sft.getDtgIndex.map { i =>
       val date = new AtomicLong(0)
-      TimeGauge.builder(ConverterMetrics.name("dtg.last"), () => date.get, TimeUnit.MILLISECONDS)
+      TimeGauge.builder(ConverterMetrics.name("dtg.last"), () => Long.box(date.get), TimeUnit.MILLISECONDS)
         .tags(tags)
         .register(Metrics.globalRegistry)
       val latency =
