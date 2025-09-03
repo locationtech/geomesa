@@ -200,6 +200,7 @@
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
         <maven.shade.skip>false</maven.shade.skip>
+        <maven.assembly.skip>false</maven.assembly.skip>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
@@ -3045,6 +3046,7 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven.assembly.plugin.version}</version>
                     <configuration>
+                        <skipAssembly>${maven.assembly.skip}</skipAssembly>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
                 </plugin>
