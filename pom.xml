@@ -204,7 +204,7 @@
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
-        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED</maven.test.opens>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
         <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
