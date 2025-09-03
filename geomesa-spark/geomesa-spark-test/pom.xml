@@ -85,23 +85,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
             <classifier>tests</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
