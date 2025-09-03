@@ -199,6 +199,7 @@
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
+        <maven.shade.skip>false</maven.shade.skip>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
@@ -3052,6 +3053,7 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>${maven.shade.plugin.version}</version>
                     <configuration>
+                        <skip>${maven.shade.skip}</skip>
                         <artifactSet>
                             <excludes combine.children="append">
                                 <exclude>org.slf4j:*</exclude>
