@@ -211,6 +211,7 @@
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
+        <test.accumulo.distributed.runtime/> <!-- set this to override the default distributed runtime classpath lookup in tests -->
         <test.accumulo.docker.tag>2.1.4</test.accumulo.docker.tag>
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
@@ -3153,6 +3154,7 @@
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
+                            <accumulo.distributed.runtime.path>${test.accumulo.distributed.runtime}</accumulo.distributed.runtime.path>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
@@ -3182,6 +3184,7 @@
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
                         <systemPropertyVariables>
+                            <accumulo.distributed.runtime.path>${test.accumulo.distributed.runtime}</accumulo.distributed.runtime.path>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
