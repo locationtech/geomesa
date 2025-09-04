@@ -23,10 +23,11 @@ com.google.code.gson:gson	2.10.1	compile
 com.google.flatbuffers:flatbuffers-java	25.2.10	compile
 com.google.guava:failureaccess	1.0	compile
 com.google.guava:failureaccess	1.0.2	compile
+com.google.guava:failureaccess	1.0.3	compile
 com.google.guava:guava	18.0	compile
 com.google.guava:guava	27.0-jre	compile
-com.google.guava:guava	33.0.0-jre	compile
 com.google.guava:guava	33.2.1-jre	compile
+com.google.guava:guava	33.4.6-jre	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
 com.google.protobuf:protobuf-java	3.25.6	compile
 com.google.re2j:re2j	1.1	compile
@@ -264,6 +265,7 @@ org.json4s:json4s-core_2.12	4.0.7	compile
 org.json4s:json4s-native-core_2.12	4.0.7	compile
 org.json4s:json4s-native_2.12	4.0.7	compile
 org.json4s:json4s-scalap_2.12	4.0.7	compile
+org.jspecify:jspecify	1.0.0	compile
 org.locationtech.jts.io:jts-io-common	1.20.0	compile
 org.locationtech.jts:jts-core	1.20.0	compile
 org.locationtech.spatial4j:spatial4j	0.8	compile
