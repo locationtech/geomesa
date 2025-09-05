@@ -3174,7 +3174,6 @@
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
-                            <accumulo.distributed.runtime.path>${test.accumulo.distributed.runtime}</accumulo.distributed.runtime.path>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
@@ -3204,7 +3203,6 @@
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
                         <systemPropertyVariables>
-                            <accumulo.distributed.runtime.path>${test.accumulo.distributed.runtime}</accumulo.distributed.runtime.path>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
