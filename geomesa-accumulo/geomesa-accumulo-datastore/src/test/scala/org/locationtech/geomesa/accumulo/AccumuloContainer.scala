@@ -47,12 +47,8 @@ case object AccumuloContainer extends StrictLogging {
 
   private lazy val tryContainer: Try[AccumuloContainer] = Try {
     logger.info("Starting Accumulo container")
-    val container = new AccumuloContainer(ImageName)
+    val container = new AccumuloContainer(ImageName).withGeoMesaDistributedRuntime()
     initialized.getAndSet(true)
-    sys.props.get("accumulo.distributed.runtime.path") match {
-      case Some(path) if path.nonEmpty => container.withGeoMesaDistributedRuntime(path)
-      case _ => container.withGeoMesaDistributedRuntime()
-    }
     container.start()
     logger.info("Started Accumulo container")
     container

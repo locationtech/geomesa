@@ -199,6 +199,7 @@
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
+        <maven.scoverage.phase>package</maven.scoverage.phase>
         <maven.shade.skip>false</maven.shade.skip>
         <maven.assembly.skip>false</maven.assembly.skip>
 
@@ -211,7 +212,6 @@
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.accumulo.distributed.runtime/> <!-- set this to override the default distributed runtime classpath lookup in tests -->
         <test.accumulo.docker.tag>2.1.4</test.accumulo.docker.tag>
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
@@ -370,6 +370,34 @@
                     <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
+        </profile>
+
+        <profile>
+            <!-- for generating scoverage reports on test coverage -->
+            <id>scoverage</id>
+            <properties>
+                <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
+                <skipTests>true</skipTests>
+                <maven.source.skip>true</maven.source.skip>
+                <test.fork.count>1</test.fork.count>
+            </properties>
+            <build>
+              <plugins>
+                <plugin>
+                  <groupId>org.scoverage</groupId>
+                  <artifactId>scoverage-maven-plugin</artifactId>
+                  <executions>
+                    <execution>
+                      <id>integration-test</id>
+                      <phase>${maven.scoverage.phase}</phase>
+                      <goals>
+                        <goal>integration-test</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+              </plugins>
+            </build>
         </profile>
 
         <profile>
@@ -3636,7 +3664,7 @@
                 <reportSets>
                     <reportSet>
                         <reports>
-                            <report>integration-report</report>
+                            <report>report-only</report>
                         </reports>
                     </reportSet>
                 </reportSets>
