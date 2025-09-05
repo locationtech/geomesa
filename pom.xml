@@ -401,6 +401,36 @@
         </profile>
 
         <profile>
+            <id>site</id>
+            <properties>
+              <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
+                            <execution>
+                                <id>create-missing-apidocs</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <mkdir dir="${project.build.directory}/site/apidocs"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
             <id>bloop</id>
             <properties>
@@ -3628,25 +3658,6 @@
                                     <version>[3.6.3,)</version>
                                 </requireMavenVersion>
                             </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
-                    <execution>
-                        <id>create-missing-apidocs</id>
-                        <phase>site</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <mkdir dir="${project.build.directory}/site/apidocs"/>
-                            </target>
                         </configuration>
                     </execution>
                 </executions>
