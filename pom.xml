@@ -375,9 +375,10 @@
             <!-- for generating scoverage reports on test coverage -->
             <id>scoverage</id>
             <properties>
+                <maven.assembly.skip>true</maven.assembly.skip>
+                <maven.source.skip>true</maven.source.skip>
                 <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
                 <skipTests>true</skipTests>
-                <maven.source.skip>true</maven.source.skip>
                 <test.fork.count>1</test.fork.count>
             </properties>
             <build>
