@@ -13,7 +13,8 @@
     <description>GeoMesa coprocessors and filters, for installation into an HBase cluster</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
     </properties>
 
     <dependencies>

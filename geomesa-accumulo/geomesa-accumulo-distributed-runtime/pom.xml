@@ -12,8 +12,7 @@
     <name>GeoMesa Accumulo Distributed Runtime</name>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- scoverage messes up the distributed runtime jar in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
         <maven.scoverage.phase>none</maven.scoverage.phase>
     </properties>
 

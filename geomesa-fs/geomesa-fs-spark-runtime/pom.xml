@@ -10,6 +10,11 @@
     <name>GeoMesa Filesystem Spark Runtime</name>
     <artifactId>geomesa-fs-spark-runtime_2.12</artifactId>
 
+    <properties>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
