@@ -98,9 +98,8 @@ cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$RELEASE_SHORT/"
 # build site docs - takes ~an hour
 # first, update the pom url so that dependency links work
 sed -i "s|<url>https://www.geomesa.org/</url>|<url>https://www.geomesa.org/documentation/$RELEASE_SHORT/site/</url>|" pom.xml
-mvn clean install -T8 -DskipTests && \
-  mvn scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
-  mvn generate-sources site -Psite -Dscala.maven.plugin.version=4.9.5 && \
+mvn clean package -Pscoverage && \
+  mvn generate-sources site -Psite && \
   mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$RELEASE_SHORT/site/"
 # revert the changes to the pom
 git restore pom.xml
