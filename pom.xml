@@ -382,28 +382,28 @@
                 <test.fork.count>1</test.fork.count>
             </properties>
             <build>
-              <plugins>
-                <plugin>
-                  <groupId>org.scoverage</groupId>
-                  <artifactId>scoverage-maven-plugin</artifactId>
-                  <executions>
-                    <execution>
-                      <id>integration-test</id>
-                      <phase>${maven.scoverage.phase}</phase>
-                      <goals>
-                        <goal>integration-test</goal>
-                      </goals>
-                    </execution>
-                  </executions>
-                </plugin>
-              </plugins>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scoverage</groupId>
+                        <artifactId>scoverage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>${maven.scoverage.phase}</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
 
         <profile>
             <id>site</id>
             <properties>
-              <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
+                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
             </properties>
             <build>
                 <plugins>
