@@ -15,7 +15,6 @@
 
     <properties>
         <guava.version>${hbase.guava.version}</guava.version>
-        <hadoop.version>${hbase.hadoop.version}</hadoop.version>
         <protobuf.version>${hbase.protobuf.version}</protobuf.version>
         <tools.module>hbase</tools.module>
         <tools.dist.name>GEOMESA_HBASE</tools.dist.name>

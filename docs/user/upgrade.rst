@@ -99,6 +99,7 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * accumulo ``2.1.3`` -> ``2.1.4``
+* hadoop ``3.4.1`` -> ``3.4.2``
 * micrometer ``1.13.4`` -> ``1.15.3``
 * nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
