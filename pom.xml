@@ -194,14 +194,17 @@
         <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
         <!-- note: we use an older version that still supports using zinc compile server -->
         <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
-        <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
+        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version> <!-- note: requires java 17+ when building site -->
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
+        <maven.scoverage.phase>package</maven.scoverage.phase>
+        <maven.shade.skip>false</maven.shade.skip>
+        <maven.assembly.skip>false</maven.assembly.skip>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
-        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
         <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
@@ -372,36 +375,58 @@
             <!-- for generating scoverage reports on test coverage -->
             <id>scoverage</id>
             <properties>
+                <maven.assembly.skip>true</maven.assembly.skip>
+                <maven.source.skip>true</maven.source.skip>
                 <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
                 <skipTests>true</skipTests>
+                <test.fork.count>1</test.fork.count>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scoverage</groupId>
+                        <artifactId>scoverage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>${maven.scoverage.phase}</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
-            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
             <id>site</id>
+            <properties>
+                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
+            </properties>
             <build>
-              <plugins>
-                  <plugin>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-antrun-plugin</artifactId>
-                      <version>${maven.antrun.plugin.version}</version>
-                      <executions>
-                          <execution>
-                              <id>create-missing-apidocs</id>
-                              <phase>site</phase>
-                              <goals>
-                                  <goal>run</goal>
-                              </goals>
-                              <configuration>
-                                  <target>
-                                      <mkdir dir="${project.build.directory}/site/apidocs"/>
-                                  </target>
-                              </configuration>
-                          </execution>
-                      </executions>
-                  </plugin>
-              </plugins>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
+                            <execution>
+                                <id>create-missing-apidocs</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <mkdir dir="${project.build.directory}/site/apidocs"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
 
@@ -1623,18 +1648,10 @@
             </dependency>
             <dependency>
                 <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-core</artifactId>
+                <artifactId>micrometer-bom</artifactId>
                 <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-prometheus</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-cloudwatch2</artifactId>
-                <version>${micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.prometheus</groupId>
@@ -3080,6 +3097,7 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven.assembly.plugin.version}</version>
                     <configuration>
+                        <skipAssembly>${maven.assembly.skip}</skipAssembly>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
                 </plugin>
@@ -3088,6 +3106,7 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>${maven.shade.plugin.version}</version>
                     <configuration>
+                        <skip>${maven.shade.skip}</skip>
                         <artifactSet>
                             <excludes combine.children="append">
                                 <exclude>org.slf4j:*</exclude>
@@ -3379,6 +3398,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>${maven.project.info.reports.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${maven.antrun.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

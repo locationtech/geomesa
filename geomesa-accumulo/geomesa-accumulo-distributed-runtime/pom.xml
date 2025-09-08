@@ -12,7 +12,8 @@
     <name>GeoMesa Accumulo Distributed Runtime</name>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
     </properties>
 
     <dependencies>
@@ -57,19 +58,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.scoverage</groupId>
-                    <artifactId>scoverage-maven-plugin</artifactId>
-                    <configuration>
-                        <!-- scoverage messes up the distributed runtime loading in testcontainers.
-                             there isn't any code in this module anyway, so it shouldn't matter anyway -->
-                        <skip>true</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

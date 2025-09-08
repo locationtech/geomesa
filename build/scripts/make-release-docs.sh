@@ -26,7 +26,8 @@ if ! [[ -d "$WEBSITE_DIR" ]]; then
   exit 1
 fi
 
-JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
+# JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
+JAVA_VERSION=17 # although we normally build with 11, we need to build with 17+ for scoverage reports
 if ! [[ $(java -version 2>&1 | head -n 1 | cut -d'"' -f2) =~ ^$JAVA_VERSION.* ]]; then
   echo "Error: invalid Java version - Java $JAVA_VERSION required"
   exit 1
@@ -97,9 +98,8 @@ cp -r docs/target/html/* "$WEBSITE_DIR/documentation/$RELEASE_SHORT/"
 # build site docs - takes ~an hour
 # first, update the pom url so that dependency links work
 sed -i "s|<url>https://www.geomesa.org/</url>|<url>https://www.geomesa.org/documentation/$RELEASE_SHORT/site/</url>|" pom.xml
-# we need a newer version of the maven plugin in order to generate scaladocs
-mvn clean package scoverage:integration-test -Pscoverage -Dmaven.source.skip && \
-  mvn generate-sources site -Psite -Dscala.maven.plugin.version=4.9.5 && \
+mvn clean package -Pscoverage && \
+  mvn generate-sources site -Psite && \
   mvn site:stage -DstagingDirectory="$WEBSITE_DIR/documentation/$RELEASE_SHORT/site/"
 # revert the changes to the pom
 git restore pom.xml

@@ -34,7 +34,7 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
     sc = SparkContext.getOrCreate(conf)
   }
 
-  val dsParams = Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true")
+  val dsParams = Map("cqengine" -> "true", "geotools" -> "true")
 
   lazy val chicagoSft =
     SimpleFeatureTypes.createType("chicago",
@@ -51,23 +51,25 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
 
   "The GeoToolsSpatialRDDProvider" should {
     "read from the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
+      val params = dsParams ++ Map("namespace" -> s"${getClass.getSimpleName}read")
+      val ds = DataStoreFinder.getDataStore(params.asJava)
       ds.createSchema(chicagoSft)
       WithClose(ds.getFeatureWriterAppend("chicago", Transaction.AUTO_COMMIT)) { writer =>
         chicagoFeatures.take(3).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
-      val rdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, new Query("chicago"))
       rdd.count() mustEqual 3l
     }
 
     "write to the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
+      val params = dsParams ++ Map("namespace" -> s"${getClass.getSimpleName}write")
+      val ds = DataStoreFinder.getDataStore(params.asJava)
       ds.createSchema(chicagoSft)
       val writeRdd = sc.parallelize(chicagoFeatures)
-      GeoMesaSpark(dsParams.asJava).save(writeRdd, dsParams, "chicago")
+      GeoMesaSpark(params.asJava).save(writeRdd, params, "chicago")
       // verify write
-      val readRdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
+      val readRdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sc, params, new Query("chicago"))
       readRdd.count() mustEqual 6l
     }
   }
