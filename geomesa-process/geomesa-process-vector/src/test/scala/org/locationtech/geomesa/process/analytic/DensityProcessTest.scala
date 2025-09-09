@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DensityProcessTest extends Specification {
+class DensityProcessTest extends Specification with LazyLogging {
 
   "DensityProcess" should {
     "flip a square grid" in {
@@ -47,9 +48,9 @@ class DensityProcessTest extends Specification {
   def printGrid[T](grid: Array[Array[T]]): Unit = {
     grid.indices.foreach { y =>
       grid(0).indices.foreach { x =>
-        print(grid(y)(x) + " ")
+        logger.info(grid(y)(x) + " ")
       }
-      println
+      logger.info("")
     }
   }
 }

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
@@ -32,7 +33,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
-class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
+class Z2IdxStrategyTest extends Specification with TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -60,17 +61,16 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
   "Z2IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      println()
       ds.manager.indices(sft).filter(_.name == Z2Index.name).flatMap(_.getTableNames()).foreach { table =>
-        println(table)
+        logger.info(table)
         ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val keyZ = ByteArrays.readLong(bytes.drop(2))
           val (x, y) = Z2SFC.invert(keyZ)
-          println(s"row: $x $y")
+          logger.info(s"row: $x $y")
         }
       }
-      println()
+      logger.info("")
       success
     }
 

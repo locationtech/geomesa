@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.curve
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.zorder.sfcurve.{CoveredRange, Z3, ZRange}
 import org.specs2.mutable.Specification
@@ -16,7 +17,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Z3Test extends Specification {
+class Z3Test extends Specification with LazyLogging {
 
   val rand = new Random(-574)
   val maxInt = Z3SFC(TimePeriod.Week).lon.maxIndex
@@ -206,7 +207,7 @@ class Z3Test extends Specification {
         )
 
         def print(l: Z3, u: Z3, size: Int): Unit =
-          println(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
+          logger.info(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
         def round(z: (Double, Double, Long)): (Double, Double, Long) =
           (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0, z._3)
 

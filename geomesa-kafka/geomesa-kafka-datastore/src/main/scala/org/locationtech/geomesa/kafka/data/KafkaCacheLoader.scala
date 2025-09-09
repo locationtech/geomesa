@@ -43,11 +43,20 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 
 object KafkaCacheLoader extends LazyLogging {
 
+  /**
+   * Object for tracking the initial load status of data stores
+   */
   object LoaderStatus {
 
     private val loading = Collections.newSetFromMap(new ConcurrentHashMap[AnyRef, java.lang.Boolean]())
     private val firstLoadStartTime = new AtomicLong(0L)
 
+    /**
+     * Register a loader starting
+     *
+     * @param loader loader instance
+     * @return
+     */
     def startLoad(loader: AnyRef): Boolean = synchronized {
       if (!loading.add(loader)) {
         logger.warn(s"Called startLoad for a loader that was already registered and has not yet completed: $loader")
@@ -55,6 +64,11 @@ object KafkaCacheLoader extends LazyLogging {
       firstLoadStartTime.compareAndSet(0L, System.currentTimeMillis())
     }
 
+    /**
+     * De-register a loader as having completed
+     *
+     * @param loader loader instance
+     */
     def completedLoad(loader: AnyRef): Unit = synchronized {
       if (!loading.remove(loader)) {
         logger.warn(s"Called completedLoad for a loader that was not registered or already deregistered: $loader")
@@ -65,6 +79,11 @@ object KafkaCacheLoader extends LazyLogging {
       }
     }
 
+    /**
+     * Indicates if any active loads are ongoing
+     *
+     * @return
+     */
     def allLoaded(): Boolean = loading.isEmpty
   }
 
@@ -140,10 +159,8 @@ object KafkaCacheLoader extends LazyLogging {
           cache.fireChange(timestamp, m.feature)
           cache.put(m.feature)
           updates.increment()
-          println("update")
           dtgMetrics.foreach { case DateMetrics(index, dtg, latency) =>
             val date = m.feature.getAttribute(index).asInstanceOf[Date]
-            println(s"dtg update: ${date}")
             if (date != null) {
               dtg.updateAndGet(prev => Math.max(prev, date.getTime))
               latency.record(System.currentTimeMillis() - date.getTime)
@@ -209,26 +226,30 @@ object KafkaCacheLoader extends LazyLogging {
                 val end = consumer.position(tp)
                 logger.debug(s"Setting max offset to [${tp.topic}:${tp.partition}:${end - 1}]")
                 offsets.put(tp.partition(), end - 1)
-                if (!readBack.isFinite) {
-                  KafkaConsumerVersions.seekToBeginning(consumer, tp)
-                } else {
-                  val offset = Try {
-                    val time = System.currentTimeMillis() - readBack.toMillis
-                    KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
-                  }
-                  offset match {
-                    case Success(Some(o)) =>
-                      logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
-                      consumer.seek(tp, o)
+                try {
+                  if (!readBack.isFinite) {
+                    KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                  } else {
+                    val offset = Try {
+                      val time = System.currentTimeMillis() - readBack.toMillis
+                      KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
+                    }
+                    offset match {
+                      case Success(Some(o)) =>
+                        logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
+                        consumer.seek(tp, o)
 
-                    case Success(None) =>
-                      logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
-                        "reading from head of queue")
+                      case Success(None) =>
+                        logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
+                          "reading from head of queue")
 
-                    case Failure(e) =>
-                      logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
-                      KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                      case Failure(e) =>
+                        logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
+                        KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                    }
                   }
+                } finally {
+                  checkComplete(consumer, tp)
                 }
               } finally {
                 KafkaConsumerVersions.resume(consumer, tp)
@@ -256,7 +277,6 @@ object KafkaCacheLoader extends LazyLogging {
               toLoad.cache.fireChange(timestamp, m.feature)
               cache.put(m.feature)
               updates.increment()
-              println("initial load update")
 
             case m: Delete =>
               toLoad.cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull)
@@ -319,6 +339,23 @@ object KafkaCacheLoader extends LazyLogging {
       }
 
       /**
+       * Checks the current position of the consumer, and notifies through the countdown latch when the initial load
+       * is complete
+       *
+       * @param consumer consumer
+       * @param tp topic and partition to check
+       */
+      private def checkComplete(consumer: Consumer[Array[Byte], Array[Byte]], tp: TopicPartition): Unit = {
+        val position = consumer.position(tp)
+        // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
+        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue)) {
+          offsets.remove(tp.partition)
+          latch.countDown()
+          logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
+        }
+      }
+
+      /**
        * Consumer runnable that tracks when we have completed the initial load
        *
        * @param id id
@@ -329,19 +366,8 @@ object KafkaCacheLoader extends LazyLogging {
           extends ConsumerRunnable(id, consumer, handler) {
 
         override protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
-          try {
-            super.processPoll(result)
-          } finally {
-            result.partitions().asScala.foreach { tp =>
-              val position = consumer.position(tp)
-              // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
-              if (position >= offsets.getOrDefault(tp.partition(), Long.MaxValue)) {
-                offsets.remove(tp.partition)
-                latch.countDown()
-                logger.info(s"Initial load: consumed [$topic:${tp.partition}:${position - 1}]")
-                logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
-              }
-            }
+          try { super.processPoll(result) } finally {
+            result.partitions().asScala.foreach(checkComplete(consumer, _))
           }
         }
       }

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.parquet
 
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.util.factory.Hints
@@ -24,7 +25,7 @@ import java.util.{Locale, UUID}
 /**
  * Writes GeoParquet 'native' and 'wkb' files to /tmp/, for testing interoperability with other systems.
  */
-object GenerateParquetFiles {
+object GenerateParquetFiles extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
 
@@ -76,7 +77,7 @@ object GenerateParquetFiles {
       WithClose(new ParquetFileSystemWriter(sft, context, file)) { writer =>
         features.foreach(writer.write)
       }
-      println(s"Wrote ${features.length} features to $file")
+      logger.info(s"Wrote ${features.length} features to $file")
     }
   }
 }

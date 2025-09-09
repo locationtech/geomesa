@@ -26,7 +26,7 @@ class BinSorterTest extends Specification {
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
   val sft = SimpleFeatureTypes.createType(getClass.getSimpleName, spec)
-  val seed = 10 // new Random().nextLong(); println("SEED " + seed)
+  val seed = 10 // new Random().nextLong(); logger.info("SEED " + seed)
   val r = new Random(seed)
 
   val features = (0 until r.nextInt(100) + 1).map { i =>

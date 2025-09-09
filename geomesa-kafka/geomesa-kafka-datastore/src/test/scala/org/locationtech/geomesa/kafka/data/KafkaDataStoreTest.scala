@@ -60,7 +60,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
   import scala.concurrent.duration._
 
   lazy val baseParams = Map(
-//    "kafka.serialization.type" -> "avro",
+    // "kafka.serialization.type" -> "avro",
     "kafka.brokers"            -> brokers,
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
@@ -342,6 +342,28 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "support topic read-back with multiple partitions, some empty" >> {
+      val params = Map("kafka.consumer.read-back" -> "2 minutes", "kafka.topic.partitions" -> "2")
+      val (producer, consumer, sft) = createStorePair(params)
+      try {
+        producer.createSchema(sft)
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+
+        // initial write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        consumer.metadata.resetCache()
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0))
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 
