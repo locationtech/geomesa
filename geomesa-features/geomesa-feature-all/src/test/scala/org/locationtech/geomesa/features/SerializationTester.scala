@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features
 
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.avro.serialization.{SimpleFeatureDatumReader, SimpleFeatureDatumWriter}
@@ -25,9 +26,9 @@ import scala.util.Random
 /*
  * Run with -Xms1024m -Xmx6000m -XX:MaxPermSize=1g to avoid GC issues
  */
-object SerializationTester {
+object SerializationTester extends StrictLogging {
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
 
     def createComplicatedFeatures(numFeatures : Int) : List[SimpleFeature] = {
       val geoSchema = "f0:String,f1:Integer,f2:Double,f3:Float,f4:Boolean,f5:UUID,f6:Date," +
@@ -115,14 +116,14 @@ object SerializationTester {
     }
 
     // prime
-    println(two())
-    println(three())
+    logger.info(two().toString)
+    logger.info(three().toString)
 
     val twos = time(1000, two)
     val threes = time(1000, three)
 
-    println("avro: " + twos)
-    println("kryo: " + threes)
-    println()
+    logger.info("avro: " + twos)
+    logger.info("kryo: " + threes)
+    logger.info("")
   }
 }

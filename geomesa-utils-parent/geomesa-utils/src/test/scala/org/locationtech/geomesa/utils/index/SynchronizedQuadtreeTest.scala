@@ -104,16 +104,15 @@ class SynchronizedQuadtreeTest extends Specification with LazyLogging {
       allThreads.foreach(_.start())
       allThreads.foreach(_.join())
 
-      println("Total reads: " + qt.totalReads.get)
-      println("Read rate: " + (qt.totalReads.get / 10) + "/s")
-      println("Average time waiting for read: " + (qt.readWait.get / qt.totalReads.get) + "ms")
-      println("Max time waiting for read: " + qt.maxReadWait.get + "ms")
+      logger.info("Total reads: " + qt.totalReads.get)
+      logger.info("Read rate: " + (qt.totalReads.get / 10) + "/s")
+      logger.info("Average time waiting for read: " + (qt.readWait.get / qt.totalReads.get) + "ms")
+      logger.info("Max time waiting for read: " + qt.maxReadWait.get + "ms")
 
-      println("Total writes: " + qt.totalWrites.get)
-      println("Write rate: " + (qt.totalWrites.get / 10) + "/s")
-      println("Average time waiting for write: " + (qt.writeWait.get / qt.totalWrites.get) + "ms")
-      println("Max time waiting for write: " + qt.maxWriteWait.get + "ms")
-      println()
+      logger.info("Total writes: " + qt.totalWrites.get)
+      logger.info("Write rate: " + (qt.totalWrites.get / 10) + "/s")
+      logger.info("Average time waiting for write: " + (qt.writeWait.get / qt.totalWrites.get) + "ms")
+      logger.info("Max time waiting for write: " + qt.maxWriteWait.get + "ms")
 
       // Average results:
 

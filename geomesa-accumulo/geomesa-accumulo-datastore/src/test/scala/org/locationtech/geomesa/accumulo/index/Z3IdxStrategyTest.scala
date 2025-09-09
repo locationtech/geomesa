@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
@@ -30,7 +31,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
-class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
+class Z3IdxStrategyTest extends Specification with TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -79,17 +80,17 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
       ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
-        println(table)
+        logger.info(table)
         ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
           val keyZ = ByteArrays.readLong(bytes, prefix + 2)
           val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(keyZ)
           val weeks = ByteArrays.readShort(bytes, prefix)
-          println(s"row: $weeks $x $y $t")
+          logger.info(s"row: $weeks $x $y $t")
         }
       }
-      println()
+      logger.info("")
       success
     }
 

@@ -84,7 +84,7 @@ class CqlTransformFilterTest extends Specification with LazyLogging {
   }
 }
 
-object CqlTransformFilterTest {
+object CqlTransformFilterTest extends LazyLogging {
   def encode(): Unit = {
 
     //code used for generating base64 serialized filters
@@ -101,16 +101,16 @@ object CqlTransformFilterTest {
     //  CqlFilter[BBOX(geom, -55.0,45.0,-45.0,55.0)]
     val bytesFilter = CqlTransformFilter(featureType, NullFeatureIndex, Option(ecqlFilter), None, new Hints()).toByteArray
     val base64Filter = Base64.getEncoder.encodeToString(bytesFilter)
-    println(base64Filter)
+    logger.info(base64Filter)
 
     //  TransformFilter[name=name]
     val bytesTransformer = CqlTransformFilter(featureType, NullFeatureIndex, None, transform, new Hints()).toByteArray
     val base64Transformer = Base64.getEncoder.encodeToString(bytesTransformer)
-    println(base64Transformer)
+    logger.info(base64Transformer)
 
     //  CqlTransformFilter[BBOX(geom, -55.0,45.0,-45.0,55.0), name=name]
     val bytesTransformFilter = CqlTransformFilter(featureType, NullFeatureIndex, Option(ecqlFilter), transform, new Hints()).toByteArray
     val base64TransformerFilter = Base64.getEncoder.encodeToString(bytesTransformFilter)
-    println(base64TransformerFilter)
+    logger.info(base64TransformerFilter)
   }
 }

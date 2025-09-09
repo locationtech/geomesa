@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -19,7 +20,7 @@ import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class KryoBufferSimpleFeatureTest extends Specification {
+class KryoBufferSimpleFeatureTest extends Specification with LazyLogging {
 
   "KryoBufferSimpleFeature" should {
 
@@ -317,7 +318,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
         val de = serializer.deserialize(serialized)
         de.getAttribute(1)
       }
-      println(s"took ${System.currentTimeMillis() - start}ms")
+      logger.info(s"took ${System.currentTimeMillis() - start}ms")
 
       val start2 = System.currentTimeMillis()
       val reusable = serializer.getReusableFeature
@@ -325,10 +326,8 @@ class KryoBufferSimpleFeatureTest extends Specification {
         reusable.setBuffer(serialized)
         reusable.getAttribute(7)
       }
-      println(s"took ${System.currentTimeMillis() - start2}ms")
+      logger.info(s"took ${System.currentTimeMillis() - start2}ms")
 
-      println()
-      println()
       success
     }
   }

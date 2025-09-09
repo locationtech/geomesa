@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.utils.bin
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
@@ -17,7 +18,7 @@ import org.specs2.runner.JUnitRunner
 import java.io.ByteArrayOutputStream
 
 @RunWith(classOf[JUnitRunner])
-class BinaryEncodeCallbackTest extends Specification {
+class BinaryEncodeCallbackTest extends Specification with LazyLogging {
 
   "BinaryEncodeCallback" should {
 
@@ -96,14 +97,13 @@ class BinaryEncodeCallbackTest extends Specification {
       val start2 = System.currentTimeMillis()
       (0 to times).foreach(_ => ByteArrayCallback.apply(one.trackId, one.lat, one.lon, one.dtg, one.label))
       val total2 = System.currentTimeMillis() - start2
-      println(s"array took $total2 ms")
+      logger.info(s"array took $total2 ms")
 
       val start = System.currentTimeMillis()
       (0 to times).foreach(_ => streamCallback.apply(one.trackId, one.lat, one.lon, one.dtg, one.label))
       val total = System.currentTimeMillis() - start
-      println(s"stream took $total ms")
+      logger.info(s"stream took $total ms")
 
-      println
       success
     }
   }
