@@ -206,6 +206,25 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
+    "support multiple stores creating schemas on the same catalog topic" >> {
+      val (producer, consumer, sft) = createStorePair()
+      val sft2 = SimpleFeatureTypes.renameSft(sft, "consumer")
+
+      consumer must not(beNull)
+      producer must not(beNull)
+      try {
+        producer.createSchema(sft)
+        consumer.createSchema(sft2)
+        foreach(Seq(producer, consumer)) { ds =>
+          ds.metadata.resetCache()
+          ds.getTypeNames.toSeq must containAllOf(Seq(sft.getTypeName, sft2.getTypeName))
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
     "write/update/read/delete features" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val params = if (cqEngine) {
