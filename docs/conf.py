@@ -53,6 +53,7 @@ ultimate_replacements = {
   "{{spark_required_version}}": target.versions.spark_version,
 }
 
+
 def setup(app):
   app.add_css_file('https://fonts.googleapis.com/css?family=Roboto:400,700')
   app.add_config_value('ultimate_replacements', {}, True)
