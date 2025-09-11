@@ -25,8 +25,8 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
 -  Completion of the GeoMesa quick start for your choice of back end
 
@@ -70,7 +70,7 @@ On the command-line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-hbase/geomesa-tutorials-hbase-avro/target/geomesa-tutorials-hbase-avro-$VERSION.jar \
+    $ java -cp geomesa-tutorials-hbase/geomesa-tutorials-hbase-avro/target/geomesa-tutorials-hbase-avro-{{release}}.jar \
         org.geomesa.example.hbase.avro.HBaseAvroTutorial \
         --hbase.zookeepers <zookeepers>                  \
         --hbase.catalog <table>

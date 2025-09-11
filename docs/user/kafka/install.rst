@@ -3,17 +3,7 @@ Installing GeoMesa Kafka
 
 .. note::
 
-    GeoMesa currently supports Kafka |kafka_supported_versions|.
-
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        $ export SCALA_VERSION="|scala_binary_version|" # note: |scala_binary_version| is the Scala build version
-        $ export VERSION="${SCALA_VERSION}-${TAG}"
+    GeoMesa currently supports Kafka {{kafka_supported_versions}}.
 
 Installing from the Binary Distribution
 ---------------------------------------
@@ -28,9 +18,9 @@ Download and extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-kafka_${VERSION}-bin.tar.gz"
-    $ tar xvf geomesa-kafka_${VERSION}-bin.tar.gz
-    $ cd geomesa-kafka_${VERSION}
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-{{release}}/geomesa-kafka_{{scala_binary_version}}-{{release}}-bin.tar.gz"
+    $ tar xvf geomesa-kafka_{{scala_binary_version}}-{{release}}-bin.tar.gz
+    $ cd geomesa-kafka_{{scala_binary_version}}-{{release}}
 
 .. _kafka_install_source:
 
@@ -50,7 +40,7 @@ Setting up the Kafka Command Line Tools
 ---------------------------------------
 
 GeoMesa comes with a set of command line tools for managing Kafka features. In the Kafka distribution the
-tools are located in ``geomesa-kafka_${VERSION}/bin/``.
+tools are located in ``geomesa-kafka_{{scala_binary_version}}-{{release}}/bin/``.
 
 If the environment variables ``KAFKA_HOME`` and ``ZOOKEEPER_HOME`` are set, then GeoMesa will load the appropriate
 JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
@@ -100,8 +90,8 @@ Installing GeoServer
 ^^^^^^^^^^^^^^^^^^^^
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
-`GeoTools`_-compatible data store. This makes it possible
-to use GeoMesa Kafka as a data store in `GeoServer`_.
+`GeoTools <https://geotools.org/>`_-compatible data store. This makes it possible
+to use GeoMesa Kafka as a data store in `GeoServer <https://geoserver.org/>`_.
 GeoServer's web site includes `installation instructions for GeoServer`_.
 
 .. _installation instructions for GeoServer: https://docs.geoserver.org/stable/en/user/installation/index.html
@@ -128,21 +118,21 @@ Installing the GeoMesa Kafka Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-kafka_${VERSION}/dist/gs-plugins/``
+``geomesa-kafka-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz`` file in ``geomesa-kafka_{{scala_binary_version}}-{{release}}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-kafka_${VERSION}/dist/gs-plugins/geomesa-kafka-gs-plugin_${VERSION}-install.tar.gz \
+      geomesa-kafka_{{scala_binary_version}}-{{release}}/dist/gs-plugins/geomesa-kafka-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
 you can download the JARs manually.
 
-Edit the file ``geomesa-kafka_${VERSION}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
+Edit the file ``geomesa-kafka_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
 to match the target environment, and then run the script:
 
 .. code-block:: bash
@@ -166,5 +156,5 @@ add the ``geomesa-gs-kafka-status-endpoint`` JAR to GeoServer's lib directory:
 .. code-block:: bash
 
     $ export MAVEN_URL="https://search.maven.org/remotecontent?filepath=org/geomesa/geoserver"
-    $ wget "${MAVEN_URL}/geomesa-gs-kafka-status-endpoint_${SCALA_VERSION}/${TAG}/geomesa-gs-kafka-status-endpoint_${VERSION}.jar" \
-      -O /path/to/geoserver/webapps/geoserver/WEB-INF/lib/geomesa-gs-kafka-status-endpoint_${VERSION}.jar
+    $ wget "${MAVEN_URL}/geomesa-gs-kafka-status-endpoint_{{scala_binary_version}}/{{release}}/geomesa-gs-kafka-status-endpoint_{{scala_binary_version}}-{{release}}.jar" \
+      -O /path/to/geoserver/webapps/geoserver/WEB-INF/lib/geomesa-gs-kafka-status-endpoint_{{scala_binary_version}}-{{release}}.jar

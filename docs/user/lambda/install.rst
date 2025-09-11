@@ -1,15 +1,6 @@
 Installing GeoMesa Lambda
 =========================
 
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -23,9 +14,9 @@ Download and extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-lambda_${VERSION}-bin.tar.gz"
-    $ tar xvf geomesa-lambda_${VERSION}-bin.tar.gz
-    $ cd geomesa-lambda_${VERSION}
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-{{release}}/geomesa-lambda_{{scala_binary_version}}-{{release}}-bin.tar.gz"
+    $ tar xvf geomesa-lambda_{{scala_binary_version}}-{{release}}-bin.tar.gz
+    $ cd geomesa-lambda_{{scala_binary_version}}-{{release}}
 
 .. _lambda_install_source:
 
@@ -51,7 +42,7 @@ The Lambda data store requires the Accumulo data store distributed runtime to be
 Setting up the Lambda Command Line Tools
 ----------------------------------------
 
-GeoMesa comes with a set of command line tools located in ``geomesa-lambda_${VERSION}/bin/`` of the binary distribution.
+GeoMesa comes with a set of command line tools located in ``geomesa-lambda_{{scala_binary_version}}-{{release}}/bin/`` of the binary distribution.
 
 Configuring the Classpath
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,7 +56,7 @@ you will be prompted to download the appropriate JARs the first time you invoke 
 specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
 In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files from your Hadoop installation
-must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-lamdba_${VERSION}/conf``.
+must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-lamdba_{{scala_binary_version}}-{{release}}/conf``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
 ``GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
@@ -112,9 +103,9 @@ Installing GeoMesa Lambda in GeoServer
 Installing GeoServer
 ^^^^^^^^^^^^^^^^^^^^
 
-As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a `GeoTools`_-compatible data store.
-This makes it possible to use GeoMesa as a data store in `GeoServer`_. GeoServer's web site includes
-`installation instructions for GeoServer`_.
+As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a `GeoTools <https://geotools.org/>`_-compatible data
+store. This makes it possible to use GeoMesa as a data store in `GeoServer <https://geoserver.org/>`_. GeoServer's web site
+includes `installation instructions for GeoServer`_.
 
 .. _installation instructions for GeoServer: https://docs.geoserver.org/stable/en/user/installation/index.html
 
@@ -140,21 +131,21 @@ Installing the GeoMesa Lambda Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-lambda_${VERSION}/dist/gs-plugins/``
+``geomesa-lambda-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz`` file in ``geomesa-lambda_{{scala_binary_version}}-{{release}}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-lambda/geomesa-lambda-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-lambda_${VERSION}/dist/gs-plugins/geomesa-lambda-gs-plugin_${VERSION}-install.tar.gz \
+      geomesa-lambda_{{scala_binary_version}}-{{release}}/dist/gs-plugins/geomesa-lambda-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Accumulo, Hadoop and Kafka. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
 you can download the JARs manually.
 
-Edit the file ``geomesa-lambda_${VERSION}/conf/dependencies.sh`` to set the versions of Accumulo, Hadoop and Kafka
+Edit the file ``geomesa-lambda_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the versions of Accumulo, Hadoop and Kafka
 to match the target environment, and then run the script:
 
 .. code-block:: bash

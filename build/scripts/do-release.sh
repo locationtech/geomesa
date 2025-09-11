@@ -65,12 +65,10 @@ mvn release:prepare \
 
 RELEASE="$(readPomVersion pom.xml.tag)"
 TAG="$(readReleaseProp scm.tag)"
-NEXT="$(readPomVersion pom.xml.next)"
 
 # update README versions and commit
 for pom in pom.xml pom.xml.tag pom.xml.next; do
   sed -i "s|<geomesa\.release\.version>.*|<geomesa.release.version>$RELEASE</geomesa.release.version>|" "$pom"
-  sed -i "s|<geomesa\.devel\.version>.*|<geomesa.devel.version>$NEXT</geomesa.devel.version>|" "$pom"
 done
 # regenerates the README
 mvn clean install -pl .

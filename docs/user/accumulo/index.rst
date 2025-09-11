@@ -3,7 +3,7 @@ Accumulo Data Store
 
 .. note::
 
-    GeoMesa currently supports Accumulo |accumulo_supported_versions|.
+    GeoMesa currently supports Accumulo {{accumulo_supported_versions}}.
 
 .. warning::
 

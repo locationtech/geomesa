@@ -91,7 +91,7 @@ you are using:
 
 .. code-block:: bash
 
-    $ git checkout tags/geomesa-tutorials-$TUTORIAL_VERSION
+    $ git checkout tags/geomesa-tutorials-{{release}}
 
 In general, the major, minor, and patch version numbers of the
 tutorials release will match the corresponding numbers of the
@@ -103,14 +103,3 @@ You may also see the releases available, and download them directly from the `ge
 .. _geomesa-tutorials: https://github.com/geomesa/geomesa-tutorials/
 
 .. _geomesa-tutorials releases page: https://github.com/geomesa/geomesa-tutorials/releases
-
-Hadoop Version
-^^^^^^^^^^^^^^
-
-Most of the tutorials encourage you to update the ``pom.xml``
-to match the versions of the services you are using (Hadoop,
-ZooKeeper, Accumulo, etc.) However, there may be issues when
-incrementing the Hadoop version to 2.6 or above, which can result
-in Apache Curator version conflicts. Leaving the
-Hadoop version set to 2.2 in the tutorials ``pom.xml`` will work
-with all subsequent Hadoop 2.X releases.

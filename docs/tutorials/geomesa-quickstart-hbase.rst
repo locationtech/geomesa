@@ -24,10 +24,10 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
--  an HBase |hbase_required_version| instance
+-  an HBase {{hbase_required_version}} instance
 -  the GeoMesa HBase distributed runtime installed for your HBase instance (see below)
 
 If you do not have an existing HBase instance, you can easily set one up
@@ -36,7 +36,7 @@ as detailed next.
 Setting up HBase in standalone mode (optional)
 ----------------------------------------------
 
-(Skip this section if you have an existing HBase |hbase_required_version| installation.)
+(Skip this section if you have an existing HBase {{hbase_required_version}} installation.)
 
 Download the HBase 1.4.13 binary distribution from
 https://hbase.apache.org/downloads.html
@@ -84,7 +84,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-hbase/geomesa-tutorials-hbase-quickstart/target/geomesa-tutorials-hbase-quickstart-$VERSION.jar \
+    $ java -cp geomesa-tutorials-hbase/geomesa-tutorials-hbase-quickstart/target/geomesa-tutorials-hbase-quickstart-{{release}}.jar \
         org.geomesa.example.hbase.HBaseQuickStart \
         --hbase.zookeepers <zookeepers>           \
         --hbase.catalog <table>
@@ -240,7 +240,7 @@ Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in
+download and install version {{geoserver_version}}. Then follow the instructions in
 :ref:`install_hbase_geoserver` to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer

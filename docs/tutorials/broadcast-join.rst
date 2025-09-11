@@ -54,12 +54,11 @@ To start working with Spark, we will need a Spark Session initialized, and to ap
 Types (UDTs) and User Defined Functions (UDFs) to our data in Spark, we will need to initialize our SparkSQL extensions.
 This functionality requires having the appropriate GeoMesa Spark runtime jar on the classpath when running your Spark job.
 GeoMesa provides Spark runtime jars for Accumulo, HBase, and FileSystem data stores. For example, the following would start an
-interactive Spark REPL with all dependencies needed for running Spark with GeoMesa on an Accumulo data store. Replace
-``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|):
+interactive Spark REPL with all dependencies needed for running Spark with GeoMesa on an Accumulo data store.
 
 .. code-block:: bash
 
-    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar
+    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar
 
 .. note::
 
