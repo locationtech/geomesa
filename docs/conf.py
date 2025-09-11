@@ -4,7 +4,6 @@ from common import *
 
 # Warning: current version numbers are handled in versions.py, which is preprocessed
 # by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version
 import target
 
 # Suffix of source filenames
@@ -27,6 +26,7 @@ def ultimateReplace(app, docname, source):
   for key in app.config.ultimate_replacements:
     result = result.replace(key, app.config.ultimate_replacements[key])
   source[0] = result
+
 
 ultimate_replacements = {
   "{{accumulo_supported_versions}}": "versions 2.0.1 and " + target.versions.accumulo_version,
