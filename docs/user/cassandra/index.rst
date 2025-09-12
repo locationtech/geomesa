@@ -3,7 +3,7 @@ Cassandra Data Store
 
 .. note::
 
-    GeoMesa currently supports Cassandra version |cassandra_version|.
+    GeoMesa currently supports Cassandra {{cassandra_supported_versions}}.
 
 The GeoMesa Cassandra Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `Apache Cassandra`_.

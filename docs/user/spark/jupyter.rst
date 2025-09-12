@@ -4,7 +4,7 @@ Deploying GeoMesa Spark with Jupyter Notebook
 `Jupyter Notebook`_ is a web-based application for creating interactive documents containing runnable code,
 visualizations, and text. Via the `Apache Toree`_ kernel, Jupyter can be used for preparing spatio-temporal
 analyses in Scala and submitting them in `Spark`_. The guide below describes how to configure Jupyter with
-Spark |spark_required_version| and GeoMesa.
+Spark {{spark_required_version}} and GeoMesa.
 
 .. note::
 
@@ -16,7 +16,7 @@ Spark |spark_required_version| and GeoMesa.
 Prerequisites
 -------------
 
-`Spark`_ |spark_required_version| should be installed, and the environment variable ``SPARK_HOME`` should be set.
+`Spark`_ {{spark_required_version}} should be installed, and the environment variable ``SPARK_HOME`` should be set.
 
 `Python`_ 2.7 or 3.x should be installed, and it is recommended that Jupyter and Toree are installed inside a Python
 ``virtualenv`` or inside a ``conda`` environment.
@@ -62,21 +62,16 @@ GeoMesa:
 
     Ensure that the Scala version you use matches the Scala version of your Spark version.
 
-.. parsed-literal::
-
-    $ export TAG="|release_version|"
-    $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 .. code-block:: bash
 
     #!/bin/sh
 
     # bundled GeoMesa Accumulo Spark and Spark SQL runtime JAR
     # (contains geomesa-accumulo-spark, geomesa-spark-core, geomesa-spark-sql, and dependencies)
-    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime-accumulo21_$VERSION.jar"
+    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar"
 
     # uncomment to use the converter RDD provider
-    #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-converter_$VERSION.jar"
+    #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-converter_{{scala_binary_version}}-{{release}}.jar"
 
     # uncomment to work with shapefiles (requires $GEOMESA_ACCUMULO_HOME/bin/install-shapefile-dependencies.sh)
     #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/jai_codec-1.1.3.jar"
@@ -86,7 +81,7 @@ GeoMesa:
     jupyter toree install \
         --replace \
         --user \
-        --kernel_name "GeoMesa Spark $VERSION" \
+        --kernel_name "GeoMesa Spark {{scala_binary_version}}-{{release}}" \
         --spark_home=${SPARK_HOME} \
         --spark_opts="--master yarn --jars $jars"
 
@@ -100,9 +95,9 @@ GeoMesa:
     You may wish to change ``--spark_opts`` to specify the number and configuration of your executors; otherwise the
     values in ``$SPARK_HOME/conf/spark-defaults.conf`` or ``$SPARK_OPTS`` will be used.
 
-You may also consider adding ``geomesa-tools_${VERSION}-data.jar`` to include prepackaged converters for
+You may also consider adding ``geomesa-tools_{{scala_binary_version}}-{{release}}-data.jar`` to include prepackaged converters for
 publicly available data sources (as described in :ref:`prepackaged_converters`),
-``geomesa-spark-jupyter-leaflet_${VERSION}.jar`` to include an interface for the `Leaflet`_ spatial visualization
+``geomesa-spark-jupyter-leaflet_{{scala_binary_version}}-{{release}}.jar`` to include an interface for the `Leaflet`_ spatial visualization
 library (see :ref:`jupyter_leaflet`, below).
 
 Running Jupyter

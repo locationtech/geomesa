@@ -84,10 +84,6 @@ something like ``--region us-west-2``. Also, you'll need to ensure that your EC2
 the ``elasticmapreduce:RunJobFlow`` action. The config below will create a single master and 3 worker nodes. You may
 wish to increase or decrease the number of worker nodes or change the instance types to suit your query needs.
 
-.. note::
-
-    In the code below, ``$VERSION`` = |scala_release_version|
-
 .. code-block:: shell
 
     $ export CID=$(
@@ -144,15 +140,14 @@ commands:
     hbase version
     hadoop version
 
-If everything looks good, download the GeoMesa HBase distribution, replacing ``${VERSION}`` with the appropriate GeoMesa
-plus Scala versions (e.g. |scala_release_version|) and ``${TAG}`` with the corresponding tag version (e.g. |release_version|):
+If everything looks good, download the GeoMesa HBase distribution:
 
 .. code-block:: shell
 
-   $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-hbase_${VERSION}-bin.tar.gz" \
-       -o /tmp/geomesa-hbase_${VERSION}-bin.tar.gz
+   $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-{{release}}/geomesa-hbase_{{scala_binary_version}}-{{release}}-bin.tar.gz" \
+       -o /tmp/geomesa-hbase_{{scala_binary_version}}-{{release}}-bin.tar.gz
    $ cd /opt
-   $ sudo tar zxvf /tmp/geomesa-hbase_${VERSION}-bin.tar.gz
+   $ sudo tar zxvf /tmp/geomesa-hbase_{{scala_binary_version}}-{{release}}-bin.tar.gz
 
 Then, bootstrap GeoMesa on HBase on S3 by executing the provided script. This script sets up the needed environment
 variables, copies hadoop jars into GeoMesa's lib directory, copies the GeoMesa distributed runtime into S3 where HBase
@@ -160,7 +155,7 @@ can utilize it, sets up the GeoMesa coprocessor registration among other adminis
 
 .. code-block:: shell
 
-   $ sudo /opt/geomesa-hbase_${VERSION}/bin/bootstrap-geomesa-hbase-aws.sh
+   $ sudo /opt/geomesa-hbase_{{scala_binary_version}}-{{release}}/bin/bootstrap-geomesa-hbase-aws.sh
 
 Now, log out and back in and your environment will be set up appropriately.
 
@@ -204,12 +199,11 @@ You can then query the data using the GeoMesa command line export tool.
 Setup GeoMesa and SparkSQL
 --------------------------
 
-To start executing SQL queries using Spark over your GeoMesa on HBase on S3 cluster, set up the following variable,
-replacing ``${VERSION}`` with the appropriate Scala plus GeoMesa versions (e.g. |scala_release_version|):
+To start executing SQL queries using Spark over your GeoMesa on HBase on S3 cluster, set up the following variable:
 
 .. code-block:: shell
-    
-    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+
+    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_{{scala_binary_version}}-{{release}}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 

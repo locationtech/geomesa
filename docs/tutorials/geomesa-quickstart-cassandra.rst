@@ -24,10 +24,10 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
--  a Cassandra |cassandra_version| instance, either standalone or cluster
+-  a Cassandra {{cassandra_required_version}} instance, either standalone or cluster
 -  a Cassandra user that has both create-table and write permissions
    (not needed for standalone instances)
 
@@ -78,7 +78,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-cassandra/geomesa-tutorials-cassandra-quickstart/target/geomesa-tutorials-cassandra-quickstart-$VERSION.jar \
+    $ java -cp geomesa-tutorials-cassandra/geomesa-tutorials-cassandra-quickstart/target/geomesa-tutorials-cassandra-quickstart-{{release}}.jar \
         org.geomesa.example.cassandra.CassandraQuickStart \
         --cassandra.contact.point <host:port>             \
         --cassandra.keyspace <keyspace>                   \
@@ -249,7 +249,7 @@ Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in
+download and install version {{geoserver_version}}. Then follow the instructions in
 :ref:`install_cassandra_geoserver` to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer

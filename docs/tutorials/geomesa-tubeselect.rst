@@ -43,7 +43,7 @@ Manual, particularly the tasks relevant to Accumulo. Afterwards, it may be
 necessary to change the versions of Accumulo and Hadoop that the tutorial
 uses. After completing the deployment tutorial, you should have:
 
--  an instance of Accumulo |accumulo_required_version| running on Hadoop |hadoop_version|,
+-  an instance of Accumulo {{accumulo_required_version}},
 -  access to an Accumulo user that has both create-table and write
    permissions, and
 -  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed.
@@ -51,9 +51,9 @@ uses. After completing the deployment tutorial, you should have:
 Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
--  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
--  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
--  a `git <https://git-scm.com/>`__ client.
+- `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  `Apache Maven <https://maven.apache.org/>`__ {{maven_required_version}}, and
+-  a `git <https://git-scm.com/>`__ client
 
 Using the GeoServer Plugin
 --------------------------

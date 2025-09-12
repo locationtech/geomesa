@@ -6,7 +6,7 @@ GeoMesa provides integration with the Spark Python API for accessing data in Geo
 Prerequisites
 -------------
 
-* `Spark`_ |spark_required_version| should be installed.
+* `Spark`_ {{spark_required_version}} should be installed.
 * `Python`_ 2.7 or 3.x should be installed.
 * `pip`_ or ``pip3`` should be installed.
 * `conda-pack`_ is optional.
@@ -22,8 +22,8 @@ the providers outlined in :ref:`spatial_rdd_providers`.
 .. code-block:: bash
 
     mvn clean install -Ppython
-    pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
-    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/target/geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar /path/to/
+    pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-{{scala_binary_version}}-{{release}}.tar.gz
+    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/target/geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar /path/to/
 
 Alternatively, you can use ``conda-pack`` to bundle the dependencies for your project. This may be more appropriate if
 you have additional dependencies.
@@ -35,11 +35,11 @@ you have additional dependencies.
     conda create --name $ENV_NAME -y python=3.7
     conda activate $ENV_NAME
 
-    pip install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
+    pip install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-{{scala_binary_version}}-{{release}}.tar.gz
     # Install additional dependencies using conda or pip here
 
     conda pack -o environment.tar.gz
-    cp geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/target/geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar /path/to/
+    cp geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21/target/geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar /path/to/
 
 .. warning::
     ``conda-pack`` currently has issues with Python 3.8, and ``pyspark`` has issues with Python 3.9, hence the explicit
@@ -57,7 +57,7 @@ the ``pyspark`` library.
 
     import geomesa_pyspark
     conf = geomesa_pyspark.configure(
-        jars=['/path/to/geomesa-accumulo-spark-runtime-accumulo21_${VERSION}.jar'],
+        jars=['/path/to/geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar'],
         packages=['geomesa_pyspark','pytz'],
         spark_home='/path/to/spark/').\
         setAppName('MyTestApp')
@@ -80,7 +80,7 @@ must start ``pyspark`` or your application as follows, updating paths as require
 .. code-block:: bash
 
     PYSPARK_DRIVER_PYTHON=/opt/anaconda3/envs/$ENV_NAME/bin/python PYSPARK_PYTHON=./environment/bin/python pyspark \
-    --jars /path/to/geomesa-accumulo-spark-runtime_${VERSION}.jar \
+    --jars /path/to/geomesa-accumulo-spark-runtime_{{scala_binary_version}}-{{release}}.jar \
     --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=./environment/bin/python \
     --master yarn --deploy-mode client --archives environment.tar.gz#environment
 

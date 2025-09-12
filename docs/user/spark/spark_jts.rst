@@ -12,20 +12,20 @@ from a GeoTools ``DataStore``, and optimizations to improve SQL query performanc
 
 This functionality is located in the ``geomesa-spark/geomesa-spark-jts`` module:
 
-.. parsed-literal::
-
-    <properties>
-      <geomesa.version>\ |release_version|\ </geomesa.version>
-      <scala.binary.version>\ |scala_binary_version|\ </scala.binary.version>
-    </properties>
-
 .. code-block:: xml
 
-    <dependency>
-      <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
-      <version>${geomesa.version}</version>
-    </dependency>
+    <properties>
+      <geomesa.version>{{release}}</geomesa.version>
+      <scala.binary.version>{{scala_binary_version}}</scala.binary.version>
+    </properties>
+
+    <dependencies>
+      <dependency>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
+        <version>${geomesa.version}</version>
+      </dependency>
+    </dependencies>
 
 Example
 ^^^^^^^

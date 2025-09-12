@@ -21,10 +21,10 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
--  an Accumulo |accumulo_required_version| instance
+-  an Accumulo {{accumulo_required_version}} instance
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa distributed runtime installed for your instance
 

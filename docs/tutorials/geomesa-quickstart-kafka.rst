@@ -46,10 +46,10 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
--  a Kafka |kafka_required_version| cluster
+-  a Kafka {{kafka_required_version}} cluster
 
 Ensure your Kafka and Zookeeper instances are running. You can use
 Kafka's `quickstart <https://kafka.apache.org/documentation.html#quickstart>`__
@@ -59,7 +59,7 @@ Configure GeoServer (optional)
 ------------------------------
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in :ref:`install_kafka_geoserver`
+download and install version {{geoserver_version}}. Then follow the instructions in :ref:`install_kafka_geoserver`
 to enable GeoMesa.
 
 Download and Build the Tutorial
@@ -94,7 +94,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-{{release}}.jar \
         org.geomesa.example.kafka.KafkaQuickStart \
         --kafka.brokers <brokers>                 \
         --kafka.zookeepers <zookeepers>
@@ -156,7 +156,7 @@ Visualize Data With GeoServer (optional)
 ----------------------------------------
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in :ref:`install_kafka_geoserver`
+download and install version {{geoserver_version}}. Then follow the instructions in :ref:`install_kafka_geoserver`
 to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer
@@ -256,7 +256,7 @@ run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-{{release}}.jar \
         org.geomesa.example.kafka.KafkaListener \
         --kafka.brokers <brokers>               \
         --kafka.zookeepers <zookeepers>

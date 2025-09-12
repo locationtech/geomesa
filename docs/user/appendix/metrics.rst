@@ -109,12 +109,12 @@ The following dependencies are required:
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
-      <version>1.13.4</version>
+      <version>{{micrometer_version}}</version>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
       <artifactId>prometheus-metrics-exporter-httpserver</artifactId>
-      <version>1.3.1</version>
+      <version>{{prometheus_version}}</version>
     </dependency>
 
 To customize behavior, the following environment variables are supported:
@@ -197,7 +197,7 @@ The following dependencies are required:
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-cloudwatch2</artifactId>
-      <version>1.13.4</version>
+      <version>{{micrometer_version}}</version>
     </dependency>
 
 The following environment variables are supported:

@@ -5,9 +5,9 @@ Versions and Downloads
 
 .. note::
 
-    The current recommended version of GeoMesa is |release_version_literal|.
+    The current recommended version of GeoMesa is ``{{release}}``.
 
-GeoMesa requires `Java`__ to run. GeoMesa supports Java LTS versions |java_supported_versions|.
+GeoMesa requires `Java`__ to run. GeoMesa currently supports Java {{java_supported_versions}}.
 
 __ https://adoptium.net/temurin/releases/
 
@@ -43,20 +43,20 @@ repositories to your pom:
 
 and then include the desired GeoMesa dependencies:
 
-.. parsed-literal::
-
-    <properties>
-      <geomesa.version>\ |release_version|\ </geomesa.version>
-      <scala.binary.version>\ |scala_binary_version|\ </scala.binary.version>
-    </properties>
-
 .. code-block:: xml
 
-    <dependency>
-      <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-      <version>${geomesa.version}</version>
-    </dependency>
+    <properties>
+      <geomesa.version>{{release}}</geomesa.version>
+      <scala.binary.version>{{scala_binary_version}}</scala.binary.version>
+    </properties>
+
+    <dependencies>
+      <dependency>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+        <version>${geomesa.version}</version>
+      </dependency>
+    </dependencies>
 
 GeoMesa provides a bill-of-materials module, which can simplify version management:
 
@@ -94,8 +94,8 @@ Source Code
 
 To build and install the source distribution requires:
 
-* `Java JDK 11 <https://adoptium.net/temurin/releases/>`__
-* `Apache Maven <https://maven.apache.org/>`__ |maven_version|
+* `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+* `Apache Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 
 Source can be cloned using `Git <https://git-scm.com/>`__ or downloaded from `GitHub`__.
 

@@ -2,7 +2,7 @@ GeoServer Plugins
 =================
 
 A straightforward way to render, manipulate, and manage data stored
-in GeoMesa data stores is to use `GeoServer`_,
+in GeoMesa data stores is to use `GeoServer <https://geoserver.org/>`_,
 an open source server for sharing geospatial data. This chapter describes
 how to work with the GeoMesa GeoServer plugins.
 

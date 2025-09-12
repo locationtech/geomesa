@@ -5,19 +5,14 @@ In this simple example we will ingest a small CSV into a local filesystem data s
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
 folder which contains an example csv file that we will ingest. First set the version you want to use:
 
-.. parsed-literal::
-
-    $ export TAG="|release_version|"
-    $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 Then download and extract the binary distribution:
 
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
-    $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
-    $ cd geomesa-fs_${VERSION}
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-{{release}}/geomesa-fs_{{scala_binary_version}}-{{release}}-bin.tar.gz"
+    $ tar xvf geomesa-fs_{{scala_binary_version}}-{{release}}-bin.tar.gz
+    $ cd geomesa-fs_{{scala_binary_version}}-{{release}}
     $ cat examples/csv/example.csv
 
 The output should look like::

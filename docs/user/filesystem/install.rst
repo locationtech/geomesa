@@ -1,15 +1,6 @@
 Installing GeoMesa FileSystem
 =============================
 
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 Installing from the Binary Distribution
 ---------------------------------------
 
@@ -23,9 +14,9 @@ Download and extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-${TAG}/geomesa-fs_${VERSION}-bin.tar.gz"
-    $ tar xvf geomesa-fs_${VERSION}-bin.tar.gz
-    $ cd geomesa-fs_${VERSION}
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa-{{release}}/geomesa-fs_{{scala_binary_version}}-{{release}}-bin.tar.gz"
+    $ tar xvf geomesa-fs_{{scala_binary_version}}-{{release}}-bin.tar.gz
+    $ cd geomesa-fs_{{scala_binary_version}}-{{release}}
 
 .. _fsds_install_source:
 
@@ -84,21 +75,21 @@ Installing GeoMesa FileSystem in GeoServer
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-fs-gs-plugin_${VERSION}-install.tar.gz`` file in ``geomesa-fs_${VERSION}/dist/gs-plugins/``
+``geomesa-fs-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz`` file in ``geomesa-fs_{{scala_binary_version}}-{{release}}/dist/gs-plugins/``
 in the binary distribution or ``geomesa-fs/geomesa-fs-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-fs_${VERSION}/dist/gs-plugins/geomesa-fs-gs-plugin_${VERSION}-install.tar.gz \
+      geomesa-fs_{{scala_binary_version}}-{{release}}/dist/gs-plugins/geomesa-fs-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 Next, install the JARs for Hadoop. By default, JARs will be downloaded from Maven central. You may
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do not have an internet connection
 you can download the JARs manually.
 
-Edit the file ``geomesa-fs_${VERSION}/conf/dependencies.sh`` to set the version of Hadoop
+Edit the file ``geomesa-fs_{{scala_binary_version}}-{{release}}/conf/dependencies.sh`` to set the version of Hadoop
 to match the target environment, and then run the script:
 
 .. code-block:: bash

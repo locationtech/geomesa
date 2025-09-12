@@ -3,15 +3,6 @@
 Installation
 ------------
 
-.. note::
-
-    The examples below expect a version to be set in the environment:
-
-    .. parsed-literal::
-
-        $ export TAG="|release_version|"
-        $ export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 Get the Processors
 ~~~~~~~~~~~~~~~~~~
 
@@ -53,19 +44,19 @@ NiFi installation. There two common NAR files, and seven datastore-specific NAR 
 
 Common NAR files:
 
-* ``geomesa-datastore-services-api-nar_$VERSION.nar``
-* ``geomesa-datastore-services-nar_$VERSION_.nar``
+* ``geomesa-datastore-services-api-nar_{{scala_binary_version}}-{{release}}.nar``
+* ``geomesa-datastore-services-nar_{{scala_binary_version}}-{{release}}_.nar``
 
 Datastore NAR files:
 
-* ``geomesa-hbase2-nar_$VERSION.nar`` - HBase 2.x
-* ``geomesa-accumulo20-nar_$VERSION.nar`` - Accumulo 2.0
-* ``geomesa-accumulo21-nar_$VERSION.nar`` - Accumulo 2.1
-* ``geomesa-gt-nar_$VERSION.nar`` - PostGIS
-* ``geomesa-kafka-nar_$VERSION.nar`` Kafka
-* ``geomesa-redis-nar_$VERSION.nar`` Redis
-* ``geomesa-fs-nar_$VERSION.nar`` Hadoop
-* ``geomesa-lambda-nar_$VERSION.nar`` Kafka (lambda architecture)
+* ``geomesa-hbase2-nar_{{scala_binary_version}}-{{release}}.nar`` - HBase 2.x
+* ``geomesa-accumulo20-nar_{{scala_binary_version}}-{{release}}.nar`` - Accumulo 2.0
+* ``geomesa-accumulo21-nar_{{scala_binary_version}}-{{release}}.nar`` - Accumulo 2.1
+* ``geomesa-gt-nar_{{scala_binary_version}}-{{release}}.nar`` - PostGIS
+* ``geomesa-kafka-nar_{{scala_binary_version}}-{{release}}.nar`` Kafka
+* ``geomesa-redis-nar_{{scala_binary_version}}-{{release}}.nar`` Redis
+* ``geomesa-fs-nar_{{scala_binary_version}}-{{release}}.nar`` Hadoop
+* ``geomesa-lambda-nar_{{scala_binary_version}}-{{release}}.nar`` Kafka (lambda architecture)
 
 The common NAR files are required for all datastores. The datastore-specific NARs can be installed as needed.
 
@@ -79,7 +70,7 @@ If you downloaded the NARs from GitHub:
 .. code-block:: bash
 
     $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
-    $ for nar in $NARS; do wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$TAG/$nar_$VERSION.nar"; done
+    $ for nar in $NARS; do wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-{{release}}/$nar_{{scala_binary_version}}-{{release}}.nar"; done
     $ mv *.nar $NIFI_HOME/extensions/
 
 Or, to install the NARs after building from source:
@@ -87,4 +78,4 @@ Or, to install the NARs after building from source:
 .. code-block:: bash
 
     $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
-    $ for nar in $NARS; do find . -name $nar_$VERSION.nar -exec cp {} $NIFI_HOME/extensions/ \;; done
+    $ for nar in $NARS; do find . -name $nar_{{scala_binary_version}}-{{release}}.nar -exec cp {} $NIFI_HOME/extensions/ \;; done

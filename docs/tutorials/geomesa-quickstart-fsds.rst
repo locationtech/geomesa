@@ -29,8 +29,8 @@ Prerequisites
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <https://adoptium.net/temurin/releases/>`__ JDK 1.8
--  Apache `Maven <https://maven.apache.org/>`__ |maven_version|
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  Apache `Maven <https://maven.apache.org/>`__ {{maven_required_version}}
 -  a GitHub client
 
 Download and Build the Tutorial
@@ -65,7 +65,7 @@ On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart/target/geomesa-tutorials-fsds-quickstart-$VERSION.jar \
+    $ java -cp geomesa-tutorials-fsds/geomesa-tutorials-fsds-quickstart/target/geomesa-tutorials-fsds-quickstart-{{release}}.jar \
         org.geomesa.example.fsds.FileSystemQuickStart \
         --fs.path /tmp/fsds/                          \
         --fs.encoding parquet
@@ -216,7 +216,7 @@ Visualize Data With GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
-download and install version |geoserver_version|. Then follow the instructions in
+download and install version {{geoserver_version}}. Then follow the instructions in
 :ref:`install_fsds_geoserver` to enable GeoMesa.
 
 Register the GeoMesa Store with GeoServer
