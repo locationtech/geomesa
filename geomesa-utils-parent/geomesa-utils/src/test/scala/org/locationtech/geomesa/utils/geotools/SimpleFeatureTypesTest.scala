@@ -60,20 +60,20 @@ class SimpleFeatureTypesTest extends Specification {
       }
       "encode an sft properly with geomesa user data" >> {
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
-        encoded must contain("geomesa.index.dtg='dtg'")
-        encoded must contain("geomesa.table.sharing='true'")
-        encoded must not(contain("hello="))
+        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true'"
       }
       "encode an sft properly with specified user data" >> {
         import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
         sft.setUserDataPrefixes(Seq("hello"))
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
-        encoded must contain("geomesa.user-data.prefix='hello'")
-        encoded must contain("geomesa.index.dtg='dtg'")
-        encoded must contain("geomesa.table.sharing='true'")
-        encoded must contain("hello='goodbye'")
+        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;" +
+          "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.user-data.prefix='hello',hello='goodbye'"
+      }
+      "encode an sft and preserve spaces in user data" >> {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
+        sft.getUserData.get("geomesa.foo") mustEqual "1 day"
+        val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+        SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
       }
     }
 
@@ -664,13 +664,5 @@ class SimpleFeatureTypesTest extends Specification {
         "geomesa.table.sharing.prefix" -> "\u0001"
       )
     }
-
-    "preserve spaces in user data" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
-      sft.getUserData.get("geomesa.foo") mustEqual "1 day"
-      val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-      SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
-    }
   }
-
 }

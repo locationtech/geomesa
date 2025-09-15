@@ -138,13 +138,18 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
           // set the enabled indices
           preSchemaCreate(sft)
 
+          // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
+          val encodedAttributes = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+          // validate we can read out the encoded sft - invalid user data keys can break the parsing
+          try { SimpleFeatureTypes.createType("", encodedAttributes) } catch {
+            case NonFatal(e) => throw new IllegalArgumentException("Invalid schema:", e)
+          }
+          val metadataMap = Map(
+            AttributesKey      -> encodedAttributes,
+            StatsGenerationKey -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
+          )
           try {
             // write out the metadata to the catalog table
-            // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
-            val metadataMap = Map(
-              AttributesKey      -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-              StatsGenerationKey -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
-            )
             metadata.insert(sft.getTypeName, metadataMap)
 
             // reload the sft so that we have any default metadata,
@@ -252,6 +257,12 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
       // validation and normalization of the schema
       preSchemaUpdate(sft, previousSft)
 
+      val encodedAttributes = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+      // validate we can read out the encoded sft - invalid user data keys can break the parsing
+      try { SimpleFeatureTypes.createType("", encodedAttributes) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Invalid schema:", e)
+      }
+
       // if all is well, update the metadata - first back it up
       if (FastConverter.convertOrElse[java.lang.Boolean](sft.getUserData.get(Configs.UpdateBackupMetadata), true)) {
         metadata.backup(typeName.getLocalPart)
@@ -265,7 +276,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         }
       }
       // now insert the new spec string
-      metadata.insert(sft.getTypeName, AttributesKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+      metadata.insert(sft.getTypeName, AttributesKey, encodedAttributes)
 
       onSchemaUpdated(sft, previousSft)
     } finally {
