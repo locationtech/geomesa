@@ -20,8 +20,12 @@ import scala.util.Try
  */
 package object jts extends DataFrameFunctions.Library with SpatialEncoders {
 
-  lazy val SedonaGeometryUDT: Try[UserDefinedType[Geometry]] =
-    Try(Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT").newInstance().asInstanceOf[UserDefinedType[Geometry]])
+  lazy val SedonaGeometryUDT: Try[UserDefinedType[Geometry]] = Try {
+    Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT")
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[UserDefinedType[Geometry]]
+  }
 
   def useSedonaSerialization: Boolean =
     sys.props.get("geomesa.use.sedona").forall(_.toBoolean) && SedonaGeometryUDT.isSuccess

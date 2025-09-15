@@ -107,6 +107,7 @@ The following dependencies have been upgraded:
 * nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
 * postgresql ``42.7.2`` -> ``42.7.7``
+* sedona ``1.5.0`` -> ``1.8.0``
 
 Switch to Micrometer Metrics
 ----------------------------

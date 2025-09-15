@@ -145,8 +145,8 @@
         <kafka.version>3.9.0</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
-        <sedona.version>1.5.0</sedona.version>
-        <sedona.spark.version>3.4</sedona.spark.version>
+        <sedona.version>1.8.0</sedona.version>
+        <sedona.spark.version>3.5</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
         <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
         <snappy.java.version>1.1.10.5</snappy.java.version>
