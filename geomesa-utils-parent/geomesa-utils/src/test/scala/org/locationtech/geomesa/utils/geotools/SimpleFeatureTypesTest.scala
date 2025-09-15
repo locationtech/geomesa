@@ -362,16 +362,16 @@ class SimpleFeatureTypesTest extends Specification {
 
     "return meaningful error messages" >> {
       Try(SimpleFeatureTypes.createType("test", null)) must
-          beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec string: null"))
+          beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec: null"))
       val failures = Seq(
-        ("foo:Strong", "7. Expected attribute type binding"),
-        ("foo:String,*bar:String", "16. Expected geometry type binding"),
-        ("foo:String,bar:String;;", "22. Expected one of: specification, feature type option, end of spec"),
-        ("foo:String,bar,baz:String", "14. Expected one of: attribute name, attribute, attribute type binding, geometry type binding"),
-        ("foo:String:bar,baz:String", "14. Expected attribute option")
+        ("foo:Strong", "7 - expected attribute type binding"),
+        ("foo:String,*bar:String", "16 - expected geometry type binding"),
+        ("foo:String,bar:String;;", "22 - expected one of: specification, feature type option, end of spec"),
+        ("foo:String,bar,baz:String", "14 - expected one of: attribute name, attribute, attribute type binding, geometry type binding"),
+        ("foo:String:bar,baz:String", "14 - expected attribute option")
       )
       forall(failures) { case (spec, message) =>
-        val pattern = Pattern.quote(s"Invalid spec string at index $message.")
+        val pattern = Pattern.quote(s"Invalid spec at index $message\n$spec\n") + " *\\^"
         val result = Try(SimpleFeatureTypes.createType("test", spec))
         result must beAFailedTry.withThrowable[IllegalArgumentException](pattern)
       }
