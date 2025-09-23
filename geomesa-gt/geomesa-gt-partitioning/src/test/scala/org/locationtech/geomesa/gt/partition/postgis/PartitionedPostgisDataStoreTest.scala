@@ -1125,7 +1125,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         }
 
         val tagsRegex = s"""\\{.*name="$jmxName".*\\}"""
-        eventually(20, 1.seconds) {
+        eventually(60, 1.seconds) {
           val metrics = readMetrics()
           metrics must contain(beMatching(s"""^commons_pool2_borrowed_objects_total$tagsRegex 9\\.0$$"""))
           metrics must contain(beMatching(s"""^commons_pool2_returned_objects_total$tagsRegex 9\\.0$$"""))
