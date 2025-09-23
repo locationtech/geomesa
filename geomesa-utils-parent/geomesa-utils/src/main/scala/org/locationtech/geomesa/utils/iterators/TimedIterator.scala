@@ -10,8 +10,6 @@ package org.locationtech.geomesa.utils.iterators
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-import java.util.concurrent.TimeUnit
-
 /**
  * Class for gathering timing metrics on an iterator
  *
