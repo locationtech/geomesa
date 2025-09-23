@@ -49,7 +49,7 @@ class AccumuloDataStoreMetricsTest extends Specification with TestWithFeatureTyp
 
     "expose jvm metrics" in {
       val metrics = readMetrics()
-      metrics must contain(beMatching(s"""^jvm_buffer_memory_used_bytes\\{.*\\} [1-9][0-9.]+$$"""))
+      metrics must contain(beMatching(s"""^jvm_buffer_memory_used_bytes\\{.*\\} (0E[0-9.]+|[1-9][0-9.E]+)$$"""))
     }
 
     "expose metrics on write times" in {
