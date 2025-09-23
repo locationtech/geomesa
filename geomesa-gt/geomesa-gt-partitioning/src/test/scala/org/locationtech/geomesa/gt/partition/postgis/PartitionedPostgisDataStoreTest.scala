@@ -28,6 +28,7 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisD
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures.{DropAgedOffPartitions, PartitionMaintenance, RollWriteAheadLog}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables.{PartitionTablespacesTable, PrimaryKeyTable, SequenceTable, UserDataTable}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.{PartitionedPostgisDialect, PartitionedPostgisPsDialect, TableConfig, TypeInfo}
+import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs
@@ -39,11 +40,15 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
 
 import java.io.{ByteArrayInputStream, IOException, SequenceInputStream}
+import java.net.{ServerSocket, URL}
 import java.sql.Connection
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.logging.{Handler, Level, LogRecord}
 import java.util.{Collections, Locale}
+import javax.sql.DataSource
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.duration.DurationInt
+import scala.io.{Codec, Source}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -83,6 +88,8 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     builder.buildFeature(s"fid$i")
   }
 
+  lazy val metricsPort = getFreePort
+
   lazy val params = Map(
     "dbtype" -> PartitionedPostgisDataStoreParams.DbType.sample,
     "host" -> host,
@@ -91,7 +98,9 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     "user" -> "postgres",
     "passwd" -> Option(container).fold("postgres")(_.password),
     "Batch insert size" -> "10",
-    "preparedStatements" -> "true"
+    "preparedStatements" -> "true",
+    "geomesa.metrics.registry" -> "prometheus",
+    "geomesa.metrics.registry.config" -> s"port = $metricsPort",
   )
 
   var container: PostgisContainer = _
@@ -1073,6 +1082,60 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
         ds.dispose()
       }
     }
+
+    "support metrics" in {
+      val sft = SimpleFeatureTypes.renameSft(this.sft, "metrics")
+
+      val ds = DataStoreFinder.getDataStore(params.asJava)
+      ds must not(beNull)
+
+      def readMetrics(): Seq[String] = {
+        val metrics = WithClose(Source.fromURL(new URL(s"http://localhost:$metricsPort/metrics"))(Codec.UTF8))(_.getLines().toList)
+        logger.whenDebugEnabled(metrics.foreach(m => logger.debug(m)))
+        metrics
+      }
+
+      try {
+        ds must beAnInstanceOf[JDBCDataStore]
+        val dataSource = ds.asInstanceOf[JDBCDataStore].getDataSource.unwrap(classOf[DataSource])
+        dataSource must beAnInstanceOf[MetricsDataSource]
+        val jmxName = dataSource.asInstanceOf[MetricsDataSource].jmxName
+
+        ds.getTypeNames.toSeq must not(contain(sft.getTypeName))
+        ds.createSchema(sft)
+
+        val schema = Try(ds.getSchema(sft.getTypeName)).getOrElse(null)
+        schema must not(beNull)
+        schema.getUserData.asScala must containAllOf(sft.getUserData.asScala.toSeq)
+        logger.debug(s"Schema: ${SimpleFeatureTypes.encodeType(schema)}")
+
+        // write some data
+        WithClose(new DefaultTransaction()) { tx =>
+          WithClose(ds.getFeatureWriterAppend(sft.getTypeName, tx)) { writer =>
+            features.foreach { feature =>
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
+            }
+          }
+          tx.commit()
+        }
+
+        // read some data
+        WithClose(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)) { reader =>
+          SelfClosingIterator(reader).toList
+        }
+
+        val tagsRegex = s"""\\{.*name="$jmxName".*\\}"""
+        eventually(20, 1.seconds) {
+          val metrics = readMetrics()
+          metrics must contain(beMatching(s"""^commons_pool2_borrowed_objects_total$tagsRegex 9\\.0$$"""))
+          metrics must contain(beMatching(s"""^commons_pool2_returned_objects_total$tagsRegex 9\\.0$$"""))
+          metrics must contain(beMatching(s"""^commons_pool2_created_objects_total$tagsRegex 1\\.0$$"""))
+          metrics must contain(beMatching(s"""^postgres_rows_inserted_total\\{application="geomesa",database="postgres"\\} \\d+\\.0$$"""))
+        }
+      } finally {
+        ds.dispose()
+      }
+    }
   }
 
   def compFromDb(sf: SimpleFeature): Seq[Any] = {
@@ -1096,7 +1159,7 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
     }
   }
 
-  def isTableLoggedQuery(tableName: String, schemaName: String): String =
+  def isTableLoggedQuery(tableName: String, schemaName: String): String = {
     s"""
        |SELECT
        |    n.nspname AS schema_name,
@@ -1115,4 +1178,12 @@ class PartitionedPostgisDataStoreTest extends Specification with BeforeAfterAll 
        |    c.relname = '$tableName'
        |    AND n.nspname = '$schemaName';
        |""".stripMargin
+  }
+
+  private def getFreePort: Int = {
+    val socket = new ServerSocket(0)
+    try { socket.getLocalPort } finally {
+      socket.close()
+    }
+  }
 }

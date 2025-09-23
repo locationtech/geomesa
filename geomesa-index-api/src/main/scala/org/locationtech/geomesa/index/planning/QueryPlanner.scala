@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.{Metrics, Timer}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -23,15 +24,17 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
-import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection, SortingSimpleFeatureIterator}
+import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
+import org.locationtech.geomesa.utils.iterators.{ExceptionalIterator, TimedIterator}
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 
+import java.time.Duration
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.collection.JavaConverters._
 
 /**
@@ -58,47 +61,55 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     getQueryPlans(sft, configureQuery(sft, query), query.getFilter, index, output).toList // toList forces evaluation of entire iterator
 
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryPlanResult[DS] = {
+    val start = System.nanoTime()
     val query = configureQuery(sft, original)
     val plans = getQueryPlans(sft, query, original.getFilter, None, explain)
-    new QueryPlanResult(query.getHints.getReturnSft, query.getHints, plans, run(query, plans))
+    val planCreateTime = System.nanoTime() - start
+    new QueryPlanResult(query.getHints.getReturnSft, query.getHints, plans, run(query, plans, planCreateTime))
   }
 
-  private def run(query: Query, plans: Seq[QueryPlan[DS]])(): CloseableIterator[SimpleFeature] = {
-    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
+  private def run(query: Query, plans: Seq[QueryPlan[DS]], planCreationTime: Long)(): CloseableIterator[SimpleFeature] = {
+    val start = System.nanoTime()
+    try {
+      var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
 
-    if (!query.getHints.isSkipReduce) {
-      plans.headOption.flatMap(_.reducer).foreach { reducer =>
-        require(plans.tail.forall(_.reducer.contains(reducer)), "Reduce must be the same in all query plans")
-        iterator = reducer.apply(iterator)
+      if (!query.getHints.isSkipReduce) {
+        plans.headOption.flatMap(_.reducer).foreach { reducer =>
+          require(plans.tail.forall(_.reducer.contains(reducer)), "Reduce must be the same in all query plans")
+          iterator = reducer.apply(iterator)
+        }
       }
-    }
 
-    plans.headOption.flatMap(_.sort).foreach { sort =>
-      require(plans.tail.forall(_.sort.contains(sort)), "Sort must be the same in all query plans")
-      iterator = new SortingSimpleFeatureIterator(iterator, sort)
-    }
-
-    plans.headOption.flatMap(_.maxFeatures).foreach { maxFeatures =>
-      require(plans.tail.forall(_.maxFeatures.contains(maxFeatures)),
-        "Max features must be the same in all query plans")
-      if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
-        // bin queries pack multiple records into each feature
-        // to count the records, we have to count the total bytes coming back, instead of the number of features
-        val label = query.getHints.getBinLabelField.isDefined
-        iterator = new BinaryOutputEncoder.FeatureLimitingIterator(iterator, maxFeatures, label)
-      } else {
-        iterator = iterator.take(maxFeatures)
+      plans.headOption.flatMap(_.sort).foreach { sort =>
+        require(plans.tail.forall(_.sort.contains(sort)), "Sort must be the same in all query plans")
+        iterator = new SortingSimpleFeatureIterator(iterator, sort)
       }
-    }
 
-    plans.headOption.flatMap(_.projection).foreach { projection =>
-      require(plans.tail.forall(_.projection.contains(projection)), "Projection must be the same in all query plans")
-      val project = Reprojection(query.getHints.getReturnSft, projection)
-      iterator = iterator.map(project.apply)
-    }
+      plans.headOption.flatMap(_.maxFeatures).foreach { maxFeatures =>
+        require(plans.tail.forall(_.maxFeatures.contains(maxFeatures)),
+          "Max features must be the same in all query plans")
+        if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
+          // bin queries pack multiple records into each feature
+          // to count the records, we have to count the total bytes coming back, instead of the number of features
+          val label = query.getHints.getBinLabelField.isDefined
+          iterator = new BinaryOutputEncoder.FeatureLimitingIterator(iterator, maxFeatures, label)
+        } else {
+          iterator = iterator.take(maxFeatures)
+        }
+      }
 
-    // wrap in an exceptional iterator to prevent geoserver from suppressing any exceptions
-    ExceptionalIterator(iterator)
+      plans.headOption.flatMap(_.projection).foreach { projection =>
+        require(plans.tail.forall(_.projection.contains(projection)), "Projection must be the same in all query plans")
+        val project = Reprojection(query.getHints.getReturnSft, projection)
+        iterator = iterator.map(project.apply)
+      }
+
+      val timer = Timers.scanning(query.getTypeName)
+      // wrap in an exceptional iterator to prevent geoserver from suppressing any exceptions
+      ExceptionalIterator(new TimedIterator(iterator, timer.record(_, TimeUnit.NANOSECONDS)))
+    } finally {
+      Timers.planning(query.getTypeName).record((System.nanoTime() - start) + planCreationTime, TimeUnit.NANOSECONDS)
+    }
   }
 
   /**
@@ -157,6 +168,37 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
         }
       }
     }
+  }
+
+  /**
+   * Holder for per-instance cached timers
+   */
+  private object Timers {
+
+    private val scanTimers = new ConcurrentHashMap[String, Timer]()
+    private val planTimers = new ConcurrentHashMap[String, Timer]()
+
+    def scanning(typeName: String): Timer =
+      scanTimers.computeIfAbsent(typeName, _ =>
+        Timer.builder("geomesa.query.execution")
+          .tags(ds.tags(typeName))
+          .description("Time spent executing a query")
+          .publishPercentileHistogram()
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofMinutes(5))
+          .register(Metrics.globalRegistry)
+      )
+
+    def planning(typeName: String): Timer =
+      planTimers.computeIfAbsent(typeName, _ =>
+        Timer.builder("geomesa.query.planning")
+          .tags(ds.tags(typeName))
+          .description("Time spent planning a query")
+          .publishPercentileHistogram()
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(1))
+          .register(Metrics.globalRegistry)
+      )
   }
 }
 

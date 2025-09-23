@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.data.{FeatureListener, SimpleFeatureSource}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -46,11 +47,11 @@ object KafkaFeatureCache extends LazyLogging {
    * @param views layer view config
    * @return
    */
-  def apply(sft: SimpleFeatureType, config: IndexConfig, views: Seq[LayerView] = Seq.empty): KafkaFeatureCache = {
+  def apply(sft: SimpleFeatureType, config: IndexConfig, views: Seq[LayerView] = Seq.empty, tags: Tags = Tags.empty()): KafkaFeatureCache = {
     if (config.expiry == ImmediatelyExpireConfig) {
       new NoOpFeatureCache(views.map(v => KafkaFeatureCacheView.empty(v.viewSft)))
     } else {
-      new KafkaFeatureCacheImpl(sft, config, views)
+      new KafkaFeatureCacheImpl(sft, config, views, tags)
     }
   }
 

@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, MetricsConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
@@ -215,6 +215,7 @@ object TestGeoMesaDataStore {
     override val catalog: String = "test"
     override val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
     override val audit: Option[AuditWriter] = None
+    override val metrics: Option[MetricsConfig] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {
       override val threads: Int = 1

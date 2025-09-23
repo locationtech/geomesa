@@ -8,13 +8,18 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import com.typesafe.config.Config
 import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
+import org.locationtech.geomesa.metrics.micrometer.RegistryFactory
+import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
+import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
 
+import java.io.Closeable
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
 
@@ -78,6 +83,15 @@ object GeoMesaDataStoreFactory {
       readWrite = ReadWriteFlag.ReadUpdate
     )
 
+  val MetricsRegistryParam = new MetricsRegistryParam()
+
+  val MetricsRegistryConfigParam =
+    new GeoMesaParam[Config](
+      "geomesa.metrics.registry.config",
+      "Customize the configuration passed to `geomesa.metrics.registry`",
+      largeText = true,
+    )
+
   val GenerateStatsParam =
     new GeoMesaParam[java.lang.Boolean](
       "geomesa.stats.enable",
@@ -109,6 +123,26 @@ object GeoMesaDataStoreFactory {
     def audit: Option[AuditWriter]
     def generateStats: Boolean
     def queries: DataStoreQueryConfig
+    def metrics: Option[MetricsConfig]
+  }
+
+  /**
+   * Holder for a registry and optional config
+   *
+   * @param registry registry
+   * @param conf registry conf
+   */
+  case class MetricsConfig(registry: RegistryFactory, conf: Option[Config]) {
+
+    /**
+     * Register with the given registry
+     *
+     * @return
+     */
+    def register(): Closeable = conf match {
+      case None    => registry.register()
+      case Some(c) => registry.register(c)
+    }
   }
 
   trait DataStoreQueryConfig {
@@ -128,10 +162,12 @@ object GeoMesaDataStoreFactory {
 
     protected def looseBBoxDefault = true
 
-    val AuditQueriesParam  = GeoMesaDataStoreFactory.AuditQueriesParam
-    val GenerateStatsParam = GeoMesaDataStoreFactory.GenerateStatsParam
-    val QueryThreadsParam  = GeoMesaDataStoreFactory.QueryThreadsParam
-    val QueryTimeoutParam  = GeoMesaDataStoreFactory.QueryTimeoutParam
+    val AuditQueriesParam           = GeoMesaDataStoreFactory.AuditQueriesParam
+    val MetricsRegistryParam        = GeoMesaDataStoreFactory.MetricsRegistryParam
+    val MetricsRegistryConfigParam  = GeoMesaDataStoreFactory.MetricsRegistryConfigParam
+    val GenerateStatsParam          = GeoMesaDataStoreFactory.GenerateStatsParam
+    val QueryThreadsParam           = GeoMesaDataStoreFactory.QueryThreadsParam
+    val QueryTimeoutParam           = GeoMesaDataStoreFactory.QueryTimeoutParam
     val PartitionParallelScansParam = GeoMesaDataStoreFactory.PartitionParallelScansParam
 
     val LooseBBoxParam =
@@ -143,5 +179,31 @@ object GeoMesaDataStoreFactory {
     def Description: String
     def ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]]
     def canProcess(params: java.util.Map[String, _]): Boolean
+  }
+
+  class MetricsRegistryParam extends
+      GeoMesaParam[String](
+        "geomesa.metrics.registry",
+        "Specify the type of registry used to publish metrics. See " +
+          "https://www.geomesa.org/documentation/stable/user/appendix/metrics.html",
+        default = "none",
+        enumerations = Seq("none", RegistryFactory.Prometheus, RegistryFactory.Cloudwatch),
+      ) {
+
+    /**
+     * Get the registry
+     *
+     * @param params params
+     * @return
+     */
+    def lookupRegistry(params: java.util.Map[String, _]): Option[MetricsConfig] = {
+      val registry = lookup(params) match {
+        case "none" => None
+        case RegistryFactory.Prometheus => Some(PrometheusFactory)
+        case RegistryFactory.Cloudwatch => Some(CloudwatchFactory)
+        case r => throw new IllegalArgumentException(s"Unknown registry type, expected one of 'none', 'prometheus' or 'cloudwatch': $r")
+      }
+      registry.map(r => MetricsConfig(r, GeoMesaDataStoreFactory.MetricsRegistryConfigParam.lookupOpt(params)))
+    }
   }
 }

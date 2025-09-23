@@ -5,9 +5,9 @@ Accumulo Data Store Parameters
 
 Use the following parameters for an Accumulo data store (required parameters are marked with ``*``):
 
-====================================== ======= ==========================================================================
+====================================== ======= ===================================================================================
 Parameter                              Type    Description
-====================================== ======= ==========================================================================
+====================================== ======= ===================================================================================
 ``accumulo.catalog *``                 String  The name of the GeoMesa catalog table, including the Accumulo namespace
                                                (e.g. "myNamespace.myCatalog")
 ``accumulo.instance.name``             String  The name of the Accumulo instance
@@ -20,26 +20,24 @@ Parameter                              Type    Description
                                                queries via Accumulo
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
-``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a
-                                               ``<catalog>_queries`` table
+``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
                                                timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``              Integer The number of threads to use per query
-``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return
-                                               extraneous results
+``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
+``geomesa.metrics.registry``           String  Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                               ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``    String  Override the default registry config. See :ref:`geomesa_metrics` for configuration
+                                               details.
 ``accumulo.query.record-threads``      Integer The number of threads to use for record retrieval
 ``accumulo.write.threads``             Integer The number of threads to use for writing records
 ``geomesa.stats.enable``               Boolean Toggle collection of statistics for newly created feature types
-``accumulo.remote.arrow.enable``       Boolean Process Arrow encoding in Accumulo tablets servers as a
-                                               distributed call
-``accumulo.remote.bin.enable``         Boolean Process binary encoding in Accumulo tablets servers as a
-                                               distributed call
-``accumulo.remote.density.enable``     Boolean Process heatmap encoding in Accumulo tablets servers as a
-                                               distributed call
-``accumulo.remote.stats.enable``       Boolean Process statistical calculations in Accumulo tablets servers as a
-                                               distributed call
+``accumulo.remote.arrow.enable``       Boolean Process Arrow encoding in Accumulo tablets servers as a distributed call
+``accumulo.remote.bin.enable``         Boolean Process binary encoding in Accumulo tablets servers as a distributed call
+``accumulo.remote.density.enable``     Boolean Process heatmap encoding in Accumulo tablets servers as a distributed call
+``accumulo.remote.stats.enable``       Boolean Process statistical calculations in Accumulo tablets servers as a distributed call
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
-====================================== ======= ==========================================================================
+====================================== ======= ===================================================================================
 
 .. note::
 

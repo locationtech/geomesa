@@ -19,6 +19,10 @@ Parameter                            Type    Description
                                              timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
 ``geomesa.query.threads``            Integer The number of threads to use per query
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
+``geomesa.metrics.registry``         String  Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                             ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``  String  Override the default registry config. See :ref:`geomesa_metrics` for configuration
+                                             details.
 ``geomesa.stats.enable``             Boolean Toggle collection of statistics (currently not implemented)
 ==================================== ======= ========================================================================================
 
