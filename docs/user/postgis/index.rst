@@ -7,7 +7,7 @@ GeoMesa provides an extension to the standard GeoTools PostGIS data store for be
 of time series data. The GeoMesa extension leverages PostgreSQL's native partitioning to support
 efficient spatio-temporal queries against large data sets.
 
-.. info::
+.. note::
 
     GeoMesa currently supports PostgreSQL {{postgres_supported_versions}}.
 

@@ -1,7 +1,7 @@
 Installing Partitioned PostGIS
 ==============================
 
-.. info::
+.. note::
 
     GeoMesa currently supports PostgreSQL {{postgres_supported_versions}}.
 
