@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.process.analytic
 
+import org.eclipse.imagen.RasterFactory
 import org.geotools.api.coverage.grid.GridGeometry
 import org.geotools.api.data.Query
 import org.geotools.api.filter.Filter
@@ -26,7 +27,7 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.image.DataBuffer
-import javax.media.jai.RasterFactory
+//import javax.media.jai.RasterFactory
 
 /**
  * Stripped down version of org.geotools.process.vector.HeatmapProcess

@@ -28,11 +28,11 @@
             <artifactId>gt-process</artifactId>
         </dependency>
 
-        <dependency>
-            <!-- 'works with' due to license issues -->
+        <!--<dependency>
+            &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- test dependencies -->
         <dependency>
