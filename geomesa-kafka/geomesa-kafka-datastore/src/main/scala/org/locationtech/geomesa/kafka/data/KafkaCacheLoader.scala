@@ -185,6 +185,10 @@ object KafkaCacheLoader extends LazyLogging {
      * Handles initial loaded 'from-beginning' without indexing features in the spatial index. Will still
      * trigger message events.
      *
+     * Since the entire consumer group is in this process, we shouldn't usually get rebalance events after the initial assignment.
+     * However, it can still occur if the number of partitions is administratively altered. Note that we don't try to
+     * re-read the topic if a partition is revoked and then reassigned.
+     *
      * @param readBack initial load read back
      */
     private class InitialLoader(readBack: scala.concurrent.duration.Duration)
@@ -200,15 +204,13 @@ object KafkaCacheLoader extends LazyLogging {
       private val clears = Metrics.counter(s"$MetricsPrefix.readback.clears", tags)
 
       // track the offsets that we want to read to
-      private val offsets = new ConcurrentHashMap[Int, Long]()
+      private val offsets = new ConcurrentHashMap[Int, java.lang.Long]()
       private val assignment = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean]())
       @volatile
       private var done: Boolean = false
       private var latch: CountDownLatch = _
       @volatile
       private var submission: Future[_] = _
-
-      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
       override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
         logger.debug(s"Partitions assigned: ${topicPartitions.asScala.mkString(", ")}")
@@ -255,6 +257,18 @@ object KafkaCacheLoader extends LazyLogging {
                 KafkaConsumerVersions.resume(consumer, tp)
               }
             }
+          }
+        }
+      }
+
+      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+        logger.debug(s"Partitions revoked: ${topicPartitions.asScala.mkString(", ")}")
+        topicPartitions.asScala.foreach { tp =>
+          if (offsets.remove(tp.partition) != null) {
+            latch.countDown()
+            logger.info(
+              s"Stopping initial load due to revocation of assignment for [$topic:${tp.partition}], " +
+                s"${latch.getCount} partitions remaining")
           }
         }
       }
@@ -348,8 +362,7 @@ object KafkaCacheLoader extends LazyLogging {
       private def checkComplete(consumer: Consumer[Array[Byte], Array[Byte]], tp: TopicPartition): Unit = {
         val position = consumer.position(tp)
         // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
-        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue)) {
-          offsets.remove(tp.partition)
+        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue) && offsets.remove(tp.partition) != null) {
           latch.countDown()
           logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
         }
@@ -364,7 +377,6 @@ object KafkaCacheLoader extends LazyLogging {
        */
       private class InitialLoaderConsumerRunnable(id: String, consumer: Consumer[Array[Byte], Array[Byte]], handler: ConsumerErrorHandler)
           extends ConsumerRunnable(id, consumer, handler) {
-
         override protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
           try { super.processPoll(result) } finally {
             result.partitions().asScala.foreach(checkComplete(consumer, _))
