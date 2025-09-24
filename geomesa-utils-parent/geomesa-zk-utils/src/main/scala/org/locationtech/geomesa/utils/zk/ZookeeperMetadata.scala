@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.zk
 
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 import java.nio.charset.StandardCharsets
 
@@ -69,7 +70,10 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
     }
   }
 
-  override def close(): Unit = client.close()
+  override def close(): Unit = {
+    CloseWithLogging(client)
+    super.close()
+  }
 
   private def toPath(row: Array[Byte], withSlash: Boolean = true): String = {
     val string = new String(row, StandardCharsets.UTF_8) // TODO escape?
