@@ -88,6 +88,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.datasyslab</groupId>
+            <artifactId>s2-geometry-library</artifactId>
+            <version>${s2.datasyslab.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <scope>test</scope>
