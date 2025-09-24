@@ -240,6 +240,7 @@
         <!-- some min supported versions, for libraries that have fairly wide compatibility -->
         <hadoop.min.version>2.8</hadoop.min.version>
         <kafka.min.version>2.0</kafka.min.version>
+        <postgres.min.version>15</postgres.min.version>
         <redis.min.version>5.0</redis.min.version>
     </properties>
 

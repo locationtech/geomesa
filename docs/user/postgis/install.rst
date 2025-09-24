@@ -1,6 +1,14 @@
 Installing Partitioned PostGIS
 ==============================
 
+.. note::
+
+    GeoMesa currently supports PostgreSQL {{postgres_supported_versions}}.
+
+.. warning::
+
+    When using PostgreSQL 17, PostGIS must be version 3.5.2 or later.
+
 The partitioned PostGIS data store is bundled with the ``geomesa-gt`` command-line tools. See :ref:`gt_tools` for
 installation instructions.
 
