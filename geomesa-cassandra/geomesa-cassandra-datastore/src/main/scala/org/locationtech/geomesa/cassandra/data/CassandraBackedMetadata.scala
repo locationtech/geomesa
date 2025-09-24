@@ -21,6 +21,8 @@ import scala.collection.JavaConverters._
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
     extends TableBasedMetadata[T] {
 
+  // note: session gets closed by datastore dispose
+
   override protected def checkIfTableExists: Boolean = {
     val m = session.getCluster.getMetadata
     val km = m.getKeyspace(session.getLoggedKeyspace)
@@ -80,6 +82,4 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     val values = session.execute(select).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
     CloseableIterator(values)
   }
-
-  override def close(): Unit = {} // session gets closed by datastore dispose
 }
