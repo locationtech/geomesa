@@ -24,10 +24,13 @@ jobs:
       - name: Check for pom.xml changes
         id: pom_changes
         run: |
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            echo "Always running dash for direct push (main, long-term branches, and tags)"
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "Always running scheduled dash check"
             pomChanged="true"
-          else
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Always running manually triggered dash check"
+            pomChanged="true"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             pomChanged="false"
             # get the changed files: https://stackoverflow.com/a/74268200/7809538
             IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only HEAD^1 HEAD && printf '\0' )
@@ -38,6 +41,9 @@ jobs:
                 pomChanged="true"
               fi
             done
+          else
+            echo "Skipping dash check for branch (main, long-term branches, and tags)"
+            pomChanged="false"
           fi
           echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
