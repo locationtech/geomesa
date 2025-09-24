@@ -20,6 +20,7 @@ hbase_version_full = '${hbase.version.recommended}'
 hbase_version = hbase_version_full[:hbase_version_full.rindex('.')]
 kafka_min_version = '${kafka.min.version}'
 micrometer_version = '${micrometer.version}'
+postgres_min_version = '${postgres.min.version}'
 prometheus_version = '${prometheus.version}'
 redis_min_version = '${redis.min.version}'
 spark_version_full = '${spark.version}'

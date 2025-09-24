@@ -44,6 +44,7 @@ ultimate_replacements = {
   "{{kafka_required_version}}": target.versions.kafka_min_version + " or later",
   "{{maven_required_version}}": target.versions.maven_min_version + " or later",
   "{{micrometer_version}}": target.versions.micrometer_version,
+  "{{postgres_supported_versions}}": "versions " + target.versions.postgres_min_version + " and later",
   "{{prometheus_version}}": target.versions.prometheus_version,
   "{{redis_supported_versions}}": "versions " + target.versions.redis_min_version + " and later",
   "{{redis_required_version}}": target.versions.redis_min_version + " or later",

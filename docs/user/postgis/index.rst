@@ -9,7 +9,7 @@ efficient spatio-temporal queries against large data sets.
 
 .. info::
 
-    GeoMesa currently supports PostgreSQL 15, 16 and 17.
+    GeoMesa currently supports PostgreSQL {{postgres_supported_versions}}.
 
 .. warning::
 
