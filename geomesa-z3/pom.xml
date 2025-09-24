@@ -13,8 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.sgr</groupId>
-            <artifactId>s2-geometry-library-java</artifactId>
+            <groupId>org.datasyslab</groupId>
+            <artifactId>s2-geometry-library</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
