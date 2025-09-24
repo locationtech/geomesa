@@ -103,11 +103,10 @@ The following dependencies have been upgraded:
 * geotools ``33.1`` -> ``33.2``
 * hadoop ``3.4.1`` -> ``3.4.2``
 * jackson ``2.17.2`` -> ``2.19.0``
-* micrometer ``1.13.4`` -> ``1.15.4``
+* micrometer ``1.13.4`` -> ``1.15.3``
 * nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
 * postgresql ``42.7.2`` -> ``42.7.7``
-* prometheus ``1.3.1`` -> ``1.4.1``
 
 Switch to Micrometer Metrics
 ----------------------------
