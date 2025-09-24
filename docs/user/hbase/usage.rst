@@ -36,8 +36,12 @@ Parameter                                    Type    Description
 ``hbase.coprocessor.stats.enable``           Boolean Disable coprocessor scans for stat queries, and use local processing instead
 ``hbase.coprocessor.yield.partial.results``  Boolean Toggle coprocessors yielding partial results
 ``hbase.coprocessor.scan.parallel``          Boolean Toggle extremely parallel coprocessor scans (bounded by RPC threads)
-``geomesa.stats.enable``                     Boolean Toggle collection of statistics (currently not implemented)
+``geomesa.metrics.registry``                 String  Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                                     ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``          String  Override the default registry config. See :ref:`geomesa_metrics` for configuration
+                                                     details.
 ``geomesa.partition.scan.parallel``          Boolean For partitioned schemas, execute scans in parallel instead of sequentially
+``geomesa.stats.enable``                     Boolean Toggle collection of statistics (currently not implemented)
 ===========================================  ======= ========================================================================================
 
 .. note::

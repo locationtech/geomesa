@@ -1,3 +1,5 @@
+.. _postgis_index_page:
+
 Partitioned PostGIS Data Store
 ==============================
 

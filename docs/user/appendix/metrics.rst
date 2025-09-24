@@ -7,63 +7,208 @@ GeoMesa has initial support for `Micrometer <https://docs.micrometer.io/micromet
 metrics can integrate with either Prometheus or Cloudwatch. Creating registries is idempotent, as long as the
 configuration does not change.
 
+Most GeoMesa data stores support the parameters ``geomesa.metrics.registry`` and ``geomesa.metrics.registry.config``, which are
+used to start up a registry for publishing metrics. Configuration is described below.
+
 When enabled, various GeoMesa components will publish metrics, including the :ref:`kafka_index` and :ref:`converters`.
 
-If the provided registries are not sufficient, any Micrometer registry can be
-`added to the global registry <https://docs.micrometer.io/micrometer/reference/concepts/registry.html#_global_registry>`__
-programmatically.
+Prometheus Registry
+-------------------
 
-Standard Usage
---------------
+The Prometheus registry can be configured through the following environment variables:
+
++--------------------------------------+---------+----------------------------------------------+
+| Environment Variable                 | Default | Description                                  |
++======================================+=========+==============================================+
+| ``RENAME_PROMETHEUS_METRICS``        | true    | `Rename`__ metrics                           |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_APPLICATION_NAME``         | geomesa | Add a tag for ``application`` to all metrics |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_PORT``                     | 9090    | Set the port used to host metrics            |
++--------------------------------------+---------+----------------------------------------------+
+
+__ https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
+
+Instead of environment variables, the registry can be fully configured using using the data store parameter
+``geomesa.metrics.registry.config``, which takes `Lightbend Config <https://github.com/lightbend/config/tree/main>`__:
+
+::
+
+    # port used to serve metrics - not used if push-gateway is defined
+    port = 9090
+    # tags applied to all metrics, may be any key-value string pairs
+    common-tags = { "application" = "my-app" }
+    # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
+    rename = false
+    # additional config - can also be done via sys props, see https://prometheus.github.io/client_java/config/config/
+    properties = {}
+    # optional - enable pushgateway for short-lived jobs, instead of the standard metrics server for scraping
+    push-gateway = {
+      host = "localhost:9091"
+      job = "my-job"
+      scheme = "http"
+      format = "PROMETHEUS_PROTOBUF" # or PROMETHEUS_TEXT
+    }
+
+If using Pushgateway, the following dependency is required:
+
+.. code-block:: xml
+
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-exporter-pushgateway</artifactId>
+      <version>{{prometheus_version}}</version>
+    </dependency>
+
+Cloudwatch Registry
+-------------------
+
+The Cloudwatch registry can be configured through the following environment variables:
+
++--------------------------------------+---------+----------------------------------------------+
+| Environment Variable                 | Default | Description                                  |
++======================================+=========+==============================================+
+| ``METRICS_NAMESPACE``                | geomesa | Cloudwatch namespace                         |
++--------------------------------------+---------+----------------------------------------------+
+
+Instead of environment variables, the registry can be fully configured using using the data store parameter
+``geomesa.metrics.registry.config``, which takes `Lightbend Config <https://github.com/lightbend/config/tree/main>`__:
+
+::
+
+    # cloudwatch namespace
+    namespace = "geomesa"
+    # properties for the cloudwatch client
+    properties = {}
+
+For Cloudwatch, the following dependency is required:
+
+.. code-block:: xml
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-cloudwatch2</artifactId>
+      <version>{{micrometer_version}}</version>
+    </dependency>
+
+Instrumentations
+----------------
+
+When adding a registry, additional JVM metrics can be exposed with the following environment variables:
+
++--------------------------------------+---------+----------------------------------------------+
+| Environment Variable                 | Default | Description                                  |
++======================================+=========+==============================================+
+| ``METRICS_INSTRUMENTATIONS_ENABLED`` | true    | Enable all JVM instrumentations              |
++--------------------------------------+---------+----------------------------------------------+
+
+Individual instrumentations can be enabled or disabled through the following environment variables:
+
++--------------------------------------+---------+----------------------------------------------+
+| Environment Variable                 | Default | Description                                  |
++======================================+=========+==============================================+
+| ``METRICS_INSTRUMENT_CLASSLOADER``   |         | Enable metrics on JVM class loading          |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_MEMORY``        |         | Enable metrics on JVM memory usage           |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_GC``            |         | Enable metrics on JVM garbage collection     |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_PROCESSOR``     |         | Enable metrics on processor usage            |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_THREADS``       |         | Enable metrics on JVM thread usage           |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_COMMONS_POOL``  |         | Enable metrics on Apache commons-pool pools  |
++--------------------------------------+---------+----------------------------------------------+
+| ``METRICS_INSTRUMENT_POSTGRES``      |         | Enable metrics on PostgreSQL                 |
++--------------------------------------+---------+----------------------------------------------+
+
+Or, when using ``geomesa.metrics.registry.config``, use the following keys:
+
+::
+
+    # tags are key-value string pairs added to metrics from the given instrumentation
+    classloader  = { enabled = true, tags = {} }
+    memory       = { enabled = true, tags = {} }
+    gc           = { enabled = true, tags = {} }
+    processor    = { enabled = true, tags = {} }
+    threads      = { enabled = true, tags = {} }
+    commons-pool = { enabled = true, tags = {} }
+    postgres     = { enabled = true, tags = {} }
+
+.. note::
+
+    PostgreSQL metrics are only available in the :ref:`postgis_index_page`.
+
+Standalone Usage
+----------------
+
+Registries can also be managed programmatically. This allows for greater flexibility and usage outside the normal GeoMesa
+workflows. Configuration can be managed as detailed above.
 
 Prometheus
 ^^^^^^^^^^
 
-A variety of JVM and application metrics can be exposed through Prometheus, using the following call:
+To create a Prometheus registry, use the following call:
 
 .. tabs::
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup;
+        import com.typesafe.config.ConfigFactory;
+        import io.micrometer.core.instrument.MeterRegistry;
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory;
 
-        PrometheusSetup.configure();
+        // configuration is read from environment variables
+        MeterRegistry registry = PrometheusFactory.apply();
+        // or, alternatively pass in a configuration
+        MeterRegistry registry2 = PrometheusFactory.apply(ConfigFactory.load("my-metrics-config"));
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
+        import com.typesafe.config.ConfigFactory
+        import io.micrometer.core.instrument.MeterRegistry
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 
-        PrometheusSetup.configure()
+        // configuration is read from environment variables
+        val registry: MeterRegistry = PrometheusFactory()
+        // or, alternatively pass in a configuration
+        val registry2: MeterRegistry = PrometheusFactory(ConfigFactory.load("my-metrics-config"))
 
-To start a Prometheus registry and attach it to the global registry, without enabling JVM metrics, use the following call:
+To idempotently create a Prometheus registry and attach it to the global registry, use the following call:
 
 .. tabs::
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup;
+        import com.typesafe.config.ConfigFactory;
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory;
 
         // call close() on the result to shut down the server
-        // this call uses environment variables to configure the registry (see below)
-        Closeable registry = PrometheusSetup.register();
+        // this call uses environment variables to configure the registry
+        Closeable registry = PrometheusFactory.register();
         // alternatively, use the method that accepts configuration directly
         int port = 9090;
         String applicationTag = "myApp";
         boolean renameMetrics = true;
-        Closeable registry2 = PrometheusSetup.register(port, applicationTag, renameMetrics);
+        Closeable registry2 = PrometheusFactory.register(port, applicationTag, renameMetrics);
+        // or, for full control pass in a configuration
+        Closeable registry3 = PrometheusFactory.register(ConfigFactory.load("my-metrics-config"));
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
+        import com.typesafe.config.ConfigFactory
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 
         // call close() on the result to shut down the server
-        // this call uses environment variables to configure the registry (see below)
-        val registry: Closeable = PrometheusSetup.register()
+        // this call uses environment variables to configure the registry
+        val registry: Closeable = PrometheusFactory.register()
         // alternatively, use the method that accepts configuration directly
         val port = 9090
         val applicationTag = "myApp"
         val renameMetrics = true
-        val registry2: Closeable = PrometheusSetup.register(port, applicationTag, renameMetrics)
+        val registry2: Closeable = PrometheusFactory.register(port, applicationTag, renameMetrics)
+        // or, for full control pass in a configuration
+        val registry3: Closeable = PrometheusFactory.register(ConfigFactory.load("my-metrics-config"))
 
 For Pushgateway, use:
 
@@ -71,7 +216,7 @@ For Pushgateway, use:
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup;
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory;
         import io.prometheus.metrics.exporter.pushgateway.Format;
         import io.prometheus.metrics.exporter.pushgateway.Scheme;
 
@@ -82,11 +227,11 @@ For Pushgateway, use:
         String applicationTag = "myApp";
         boolean renameMetrics = true;
         // call close() on the result to send metrics to the gateway
-        Closeable registry = PrometheusSetup.registerPushGateway(host, job, scheme, format, applicationTag, renameMetrics);
+        Closeable registry = PrometheusFactory.registerPushGateway(host, job, scheme, format, applicationTag, renameMetrics);
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
+        import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
         import io.prometheus.metrics.exporter.pushgateway.{Format, Scheme}
 
         val host = "pushgateway:9091"
@@ -96,240 +241,66 @@ For Pushgateway, use:
         val applicationTag = "myApp"
         val renameMetrics = true
         // call close() on the result to send metrics to the gateway
-        val registry: Closeable = PrometheusSetup.registerPushGateway(host, job, scheme, format, applicationTag, renameMetrics)
-
-The following dependencies are required:
-
-.. code-block:: xml
-
-    <dependency>
-      <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-metrics-micrometer_2.12</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
-      <version>{{micrometer_version}}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.prometheus</groupId>
-      <artifactId>prometheus-metrics-exporter-httpserver</artifactId>
-      <version>{{prometheus_version}}</version>
-    </dependency>
-
-To customize behavior, the following environment variables are supported:
-
-+-------------------------------------+---------+----------------------------------------------+
-| Environment Variable                | Default | Description                                  |
-+=====================================+=========+==============================================+
-| ``METRICS_ENABLED``                 | true    | Enable metrics                               |
-+-------------------------------------+---------+----------------------------------------------+
-| ``RENAME_PROMETHEUS_METRICS``       | true    | `Rename`__ metrics                           |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_APPLICATION_NAME``        |         | Add a tag for ``application`` to all metrics |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_PORT``                    | 9090    | Set the port used to host metrics            |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_CLASSLOADER``  | true    | Enable metrics on JVM class loading          |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_MEMORY``       | true    | Enable metrics on JVM memory usage           |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_GC``           | true    | Enable metrics on JVM garbage collection     |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_PROCESSOR``    | true    | Enable metrics on processor usage            |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_THREADS``      | true    | Enable metrics on JVM thread usage           |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_COMMONS_POOL`` | true    | Enable metrics on Apache commons-pool pools  |
-+-------------------------------------+---------+----------------------------------------------+
-
-__ https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
-
-For advanced configuration, see below.
+        val registry: Closeable = PrometheusFactory.registerPushGateway(host, job, scheme, format, applicationTag, renameMetrics)
 
 Cloudwatch
 ^^^^^^^^^^
 
-A variety of JVM and application metrics can be exposed through Cloudwatch, using the following call:
+To create a Cloudwatch registry, use the following call:
 
 .. tabs::
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup;
+        import com.typesafe.config.ConfigFactory;
+        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory;
 
-        CloudwatchSetup.configure();
+        // configuration is read from environment variables
+        MeterRegistry registry = CloudwatchFactory.apply();
+        // or, alternatively pass in a configuration
+        MeterRegistry registry2 = CloudwatchFactory.apply(ConfigFactory.load("my-metrics-config"));
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
+        import com.typesafe.config.ConfigFactory
+        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
 
-        CloudwatchSetup.configure()
+        // configuration is read from environment variables
+        val registry: MeterRegistry = CloudwatchFactory()
+        // or, alternatively pass in a configuration
+        val registry2: MeterRegistry = CloudwatchFactory(ConfigFactory.load("my-metrics-config"))
 
-To start a Cloudwatch registry and attach it to the global registry, without enabling JVM metrics, use the following call:
+To idempotently start a Cloudwatch registry and attach it to the global registry, use the following call:
 
 .. tabs::
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup;
+        import com.typesafe.config.ConfigFactory;
+        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory;
 
         // call close() on the result to shut down the server
         // this call uses environment variables to configure the registry (see below)
-        Closeable registry = CloudwatchSetup.register();
+        Closeable registry = CloudwatchFactory.register();
+        // or, for full control pass in a configuration
+        Closeable registry2 = CloudwatchFactory.register(ConfigFactory.load("my-metrics-config"));
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
+        import com.typesafe.config.ConfigFactory
+        import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
 
         // call close() on the result to shut down the server
         // this call uses environment variables to configure the registry (see below)
-        val registry: Closeable = CloudwatchSetup.register()
-
-The following dependencies are required:
-
-.. code-block:: xml
-
-    <dependency>
-      <groupId>org.locationtech.geomesa</groupId>
-      <artifactId>geomesa-metrics-micrometer_2.12</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-cloudwatch2</artifactId>
-      <version>{{micrometer_version}}</version>
-    </dependency>
-
-The following environment variables are supported:
-
-+-------------------------------------+---------+----------------------------------------------+
-| Environment Variable                | Default | Description                                  |
-+=====================================+=========+==============================================+
-| ``METRICS_ENABLED``                 | true    | Enable metrics                               |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_NAMESPACE``               | geomesa | Cloudwatch namespace                         |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_CLASSLOADER``  | true    | Enable metrics on JVM class loading          |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_MEMORY``       | true    | Enable metrics on JVM memory usage           |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_GC``           | true    | Enable metrics on JVM garbage collection     |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_PROCESSOR``    | true    | Enable metrics on processor usage            |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_THREADS``      | true    | Enable metrics on JVM thread usage           |
-+-------------------------------------+---------+----------------------------------------------+
-| ``METRICS_INSTRUMENT_COMMONS_POOL`` | true    | Enable metrics on Apache commons-pool pools  |
-+-------------------------------------+---------+----------------------------------------------+
-
-For advanced configuration, see below.
-
-Advanced Setup
---------------
-
-For advanced configuration, metric implementations can be configured at runtime through
-`Lightbend Config <https://github.com/lightbend/config/tree/main>`__, and enabled as follows:
-
-.. tabs::
-
-    .. code-tab:: java
-
-        import org.locationtech.geomesa.metrics.micrometer.MicrometerSetup;
-
-        MicrometerSetup.configure();
-
-    .. code-tab:: scala
-
-        import org.locationtech.geomesa.metrics.micrometer.MicrometerSetup
-
-        MicrometerSetup.configure()
-
-Configuration should be under the key ``geomesa.metrics``, and takes the following config:
-
-::
-
-    geomesa.metrics = {
-      registries = {
-        # see below for registry configs
-      }
-      instrumentations = {
-        # jvm classloader metrics
-        classloader = {
-            enabled = false
-            tags = {}
-        }
-        # jvm memory usage metrics
-        memory = {
-          enabled = false
-          tags = {}
-        }
-         # jvm garbage collection metrics
-        gc = {
-          enabled = false
-          tags = {}
-        }
-         # jvm processor usage metrics
-        processor = {
-          enabled = false
-          tags = {}
-        }
-        # jvm thread usage metrics
-        threads = {
-          enabled = false
-          tags = {}
-        }
-        # apache commons-pool/dbcp metrics
-        commons-pool = {
-          enabled = false
-          tags = {}
-        }
-      }
-    }
-
-Prometheus Registry
-^^^^^^^^^^^^^^^^^^^
-
-::
-
-    # note: the top-level key here is only for uniqueness - it can be any string
-    "prometheus" = {
-      type = "prometheus"
-      enabled = true
-      # use prometheus "standard" names - see https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_the_prometheus_rename_filter
-      rename = false
-      common-tags = { "application" = "my-app" }
-      # port used to serve metrics - not used if push-gateway is defined
-      port = 9090
-      # additional config can also be done via sys props - see https://prometheus.github.io/client_java/config/config/
-      properties = {}
-      # optional - enable pushgateway for short-lived jobs, instead of the standard metrics server for scraping
-      push-gateway = {
-        host = "localhost:9091"
-        job = "my-job"
-        scheme = "http"
-        format = "PROMETHEUS_PROTOBUF" # or PROMETHEUS_TEXT
-      }
-    }
-
-Cloudwatch Registry
-^^^^^^^^^^^^^^^^^^^
-
-::
-
-    # note: the top-level key here is only for uniqueness - it can be any string
-    "cloudwatch" = {
-      type = "cloudwatch"
-      enabled = true
-      namespace = "geomesa"
-      # properties for the cloudwatch client
-      properties = {}
-    }
+        val registry: Closeable = CloudwatchFactory.register()
+        // or, for full control pass in a configuration
+        val registry2: Closeable = CloudwatchFactory.register(ConfigFactory.load("my-metrics-config"))
 
 Apache Commons DBCP2
 --------------------
 
 GeoMesa provides a metrics-enabled DataSource that can be used in place of an Apache DBCP2 ``BasicDataSource`` for connection
-pooling. First, ensure that ``commons-pool`` metrics are enabled (above), then use the data source as follows:
+pooling. First, ensure that the ``commons-pool`` instrumentation is enabled (above), then use the data source as follows:
 
 .. tabs::
 
@@ -339,28 +310,14 @@ pooling. First, ensure that ``commons-pool`` metrics are enabled (above), then u
 
         MetricsDataSource dataSource = new MetricsDataSource();
 
-        dataSource.setUrl("jdbc:postgresql://postgres/postgres");
-        dataSource.setUsername("postgres");
-        dataSource.setPassword("postgres");
-
-        // set pooling parameters as desired
-        dataSource.setMaxTotal(10);
-
-        // allows micrometer to instrument this data source
-        dataSource.registerJmx();
-
     .. code-tab:: scala
 
         import org.locationtech.geomesa.metrics.micrometer.dbcp2.MetricsDataSource
 
         val dataSource = new MetricsDataSource()
 
-        dataSource.setUrl("jdbc:postgresql://postgres/postgres")
-        dataSource.setUsername("postgres")
-        dataSource.setPassword("postgres")
+Custom Registries
+-----------------
 
-        // set pooling parameters as desired
-        dataSource.setMaxTotal(10)
-
-        // allows micrometer to instrument this data source
-        dataSource.registerJmx()
+If the provided registries are not sufficient, metrics can be exposed by programmatically adding any Micrometer registry to the
+`global registry <https://docs.micrometer.io/micrometer/reference/concepts/registry.html#_global_registry>`__.

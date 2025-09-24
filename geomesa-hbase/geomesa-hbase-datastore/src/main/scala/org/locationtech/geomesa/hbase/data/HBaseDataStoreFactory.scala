@@ -22,7 +22,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorCon
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, MetricsConfig}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -45,6 +45,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(new AuditLogger("hbase", AuditProvider.Loader.loadOrNone(params)))
     }
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
     val auths = if (!EnableSecurityParam.lookup(params)) { NoAuthsProvider } else {
       HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params)
     }
@@ -76,6 +77,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       coprocessors = coprocessors,
       authProvider = auths,
       audit = audit,
+      metrics = metrics,
       namespace = NamespaceParam.lookupOpt(params)
     )
 
@@ -158,6 +160,8 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      MetricsRegistryParam,
+      MetricsRegistryConfigParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
@@ -180,6 +184,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       coprocessors: CoprocessorConfig,
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
+      metrics: Option[MetricsConfig],
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig
 

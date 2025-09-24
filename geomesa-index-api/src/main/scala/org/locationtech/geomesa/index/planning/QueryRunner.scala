@@ -15,8 +15,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -57,6 +57,7 @@ trait QueryRunner {
     * @param sft simple feature type associated with the query
     */
   protected[geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+    import org.locationtech.geomesa.filter.{andFilters, ff, orFilters}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -120,7 +121,7 @@ trait QueryRunner {
     * @param hints query hints, which have been configured using @see configureQuery
     * @return simple feature that will be returned from a query using the hints
     */
-  protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
+  protected[geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isBinQuery) {
       BinaryOutputEncoder.BinEncodedSft

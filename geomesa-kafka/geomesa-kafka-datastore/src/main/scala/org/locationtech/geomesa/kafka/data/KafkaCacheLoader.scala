@@ -9,14 +9,14 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{DistributionSummary, Metrics}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tags}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
 import org.apache.kafka.common.TopicPartition
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{ExpiryTimeConfig, MetricsPrefix}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
@@ -42,6 +42,8 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 }
 
 object KafkaCacheLoader extends LazyLogging {
+
+  private val MetricsPrefix = s"${KafkaDataStore.MetricsPrefix}.consumer"
 
   /**
    * Object for tracking the initial load status of data stores
@@ -102,6 +104,7 @@ object KafkaCacheLoader extends LazyLogging {
       serializer: GeoMessageSerializer,
       initialLoad: Option[scala.concurrent.duration.Duration],
       initialLoadConfig: ExpiryTimeConfig,
+      tags: Tags,
     ) extends ThreadedConsumer(consumers, frequency, offsetCommitInterval) with KafkaCacheLoader {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -110,15 +113,14 @@ object KafkaCacheLoader extends LazyLogging {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    private val tags = KafkaDataStore.tags(sft)
-    private val updates = Metrics.counter(s"$MetricsPrefix.read.updates", tags)
-    private val deletes = Metrics.counter(s"$MetricsPrefix.read.deletes", tags)
-    private val clears = Metrics.counter(s"$MetricsPrefix.read.clears", tags)
+    private val updates = Metrics.counter(s"$MetricsPrefix.updates", tags)
+    private val deletes = Metrics.counter(s"$MetricsPrefix.deletes", tags)
+    private val clears = Metrics.counter(s"$MetricsPrefix.clears", tags)
     private val dtgMetrics = sft.getDtgIndex.map { i =>
-      val last = Metrics.gauge(s"$MetricsPrefix.read.dtg.latest", tags, new AtomicLong())
+      val last = Metrics.gauge(s"$MetricsPrefix.dtg.latest", tags, new AtomicLong())
       val latency =
         DistributionSummary
-          .builder(s"$MetricsPrefix.read.dtg.latency")
+          .builder(s"$MetricsPrefix.dtg.latency")
           .baseUnit("milliseconds")
           .tags(tags)
           .publishPercentileHistogram()

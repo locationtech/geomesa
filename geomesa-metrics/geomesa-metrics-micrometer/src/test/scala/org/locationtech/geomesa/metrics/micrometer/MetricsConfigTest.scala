@@ -20,8 +20,7 @@ class MetricsConfigTest extends Specification {
   "MetricsConfig" should {
     "parse configs" in {
       val reg =
-        """
-           |{
+        """{
            |  type = "prometheus"
            |  enabled = false
            |  rename = true
@@ -29,37 +28,29 @@ class MetricsConfigTest extends Specification {
            |  port = 9090
            |}
            |""".stripMargin
+      val instr =
+        """{
+          |  classloader  = { enabled = true, tags = {} }
+          |  memory       = { enabled = true, tags = {} }
+          |  gc           = { enabled = false, tags = {} }
+          |  processor    = { enabled = true, tags = { "processor" = "foo" } }
+          |  threads      = { enabled = true, tags = {} }
+          |}
+          |""".stripMargin
       val conf = ConfigFactory.parseString(
         s"""{
            |  enabled = true
-           |  instrumentations = {
-           |    classloader  = { enabled = true, tags = {} }
-           |    memory       = { enabled = true, tags = {} }
-           |    gc           = { enabled = false, tags = {} }
-           |    processor    = { enabled = true, tags = { "processor" = "foo" } }
-           |    threads      = { enabled = true, tags = {} }
-           |  }
+           |  instrumentations = $instr
            |  registries = {
            |    prometheus = $reg
            |  }
            |}
            |""".stripMargin)
       val config = MetricsConfig(conf)
-      config.instrumentations.classloader.enabled must beTrue
-      config.instrumentations.classloader.tags must beEmpty
-      config.instrumentations.memory.enabled must beTrue
-      config.instrumentations.memory.tags must beEmpty
-      config.instrumentations.gc.enabled must beFalse
-      config.instrumentations.gc.tags must beEmpty
-      config.instrumentations.processor.enabled must beTrue
-      config.instrumentations.processor.tags mustEqual Map("processor" -> "foo")
-      config.instrumentations.threads.enabled must beTrue
-      config.instrumentations.threads.tags must beEmpty
-      config.instrumentations.commonsPool.enabled must beFalse
-      config.instrumentations.commonsPool.tags must beEmpty
       config.registries must haveSize(1)
       config.registries.get("prometheus") must beSome
       config.registries("prometheus") mustEqual ConfigFactory.parseString(reg)
+      config.instrumentations mustEqual ConfigFactory.parseString(instr)
     }
 
     "parse deprecated configs" in {
@@ -73,37 +64,29 @@ class MetricsConfigTest extends Specification {
           |  port = 9090
           |}
           |""".stripMargin
+      val instr =
+        """{
+          |  classloader  = { enabled = true, tags = {} }
+          |  memory       = { enabled = true, tags = {} }
+          |  gc           = { enabled = false, tags = {} }
+          |  processor    = { enabled = true, tags = { "processor" = "foo" } }
+          |  threads      = { enabled = true, tags = {} }
+          |}
+          |""".stripMargin
       val conf = ConfigFactory.parseString(
         s"""{
            |  enabled = true
-           |  instrumentations = {
-           |    classloader  = { enabled = true, tags = {} }
-           |    memory       = { enabled = true, tags = {} }
-           |    gc           = { enabled = false, tags = {} }
-           |    processor    = { enabled = true, tags = { "processor" = "foo" } }
-           |    threads      = { enabled = true, tags = {} }
-           |  }
+           |  instrumentations = $instr
            |  registries = [
            |    $reg
            |  ]
            |}
            |""".stripMargin)
       val config = MetricsConfig(conf)
-      config.instrumentations.classloader.enabled must beTrue
-      config.instrumentations.classloader.tags must beEmpty
-      config.instrumentations.memory.enabled must beTrue
-      config.instrumentations.memory.tags must beEmpty
-      config.instrumentations.gc.enabled must beFalse
-      config.instrumentations.gc.tags must beEmpty
-      config.instrumentations.processor.enabled must beTrue
-      config.instrumentations.processor.tags mustEqual Map("processor" -> "foo")
-      config.instrumentations.threads.enabled must beTrue
-      config.instrumentations.threads.tags must beEmpty
-      config.instrumentations.commonsPool.enabled must beFalse
-      config.instrumentations.commonsPool.tags must beEmpty
       config.registries must haveSize(1)
       config.registries.get("0") must beSome
       config.registries("0") mustEqual ConfigFactory.parseString(reg)
+      config.instrumentations mustEqual ConfigFactory.parseString(instr)
     }
   }
 }
