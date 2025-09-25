@@ -45,7 +45,7 @@ object GaugeUtils {
    */
   def timeGauge(name: String, tags: java.lang.Iterable[Tag], timeUnit: TimeUnit = TimeUnit.MILLISECONDS): AtomicLong = {
     val time = new AtomicLong()
-    TimeGauge.builder(name, () => time.get, timeUnit).tags(addUidTag(name, tags)).register(Metrics.globalRegistry)
+    TimeGauge.builder(name, () => Long.box(time.get), timeUnit).tags(addUidTag(name, tags)).register(Metrics.globalRegistry)
     time
   }
 

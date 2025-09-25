@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.index
 
 import com.github.benmanes.caffeine.cache.Ticker
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -17,6 +18,7 @@ import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledEx
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, IndexResolution, IngestTimeConfig, NeverExpireConfig}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.metrics.MetricsTags
 import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -49,6 +51,9 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
   val track4v0 = track("track4", "POINT (null null)")
 
+  // ensure the tags we use here match KafkaDataStore otherwise it can cause errors in registering metrics
+  private val tags = Tags.of("store", "test", "catalog", "test").and(MetricsTags.typeNameTag("test"))
+
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
   def caches(expiry: Option[(Duration, ScheduledExecutorService, Ticker)] = None) = {
@@ -57,8 +62,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       case Some((e, es, t)) => IndexConfig(IngestTimeConfig(e), res, Seq.empty, Seq.empty, lazyDeserialization = true, Some((es, t)))
     }
     Seq(
-      KafkaFeatureCache(sft, config),
-      KafkaFeatureCache(sft, config.copy(cqAttributes = Seq(("geom", CQIndexType.GEOMETRY))))
+      KafkaFeatureCache(sft, config, tags = tags),
+      KafkaFeatureCache(sft, config.copy(cqAttributes = Seq(("geom", CQIndexType.GEOMETRY))), tags = tags)
     )
   }
 
