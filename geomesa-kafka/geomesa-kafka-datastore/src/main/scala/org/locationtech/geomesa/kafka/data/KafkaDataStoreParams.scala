@@ -165,7 +165,8 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Type of serialization to use. Must be one of 'kryo', 'avro', or 'avro-native'",
       default = SerializationTypes.Types.head,
       enumerations = SerializationTypes.Types,
-      supportsNiFiExpressions = true
+      supportsNiFiExpressions = true,
+      readWrite = ReadWriteFlag.WriteOnly
     )
 
   object SerializationTypes {

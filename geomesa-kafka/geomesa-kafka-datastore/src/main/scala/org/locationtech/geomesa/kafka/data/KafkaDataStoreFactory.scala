@@ -114,7 +114,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.CacheExpiry,
       KafkaDataStoreParams.DynamicCacheExpiry,
       KafkaDataStoreParams.EventTime,
-      KafkaDataStoreParams.SerializationType,
       KafkaDataStoreParams.CqEngineIndices,
       KafkaDataStoreParams.IndexResolutionX,
       KafkaDataStoreParams.IndexResolutionY,
