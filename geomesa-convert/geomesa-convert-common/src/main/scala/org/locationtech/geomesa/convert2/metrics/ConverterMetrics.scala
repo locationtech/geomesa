@@ -13,7 +13,6 @@ import com.typesafe.config.Config
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.locationtech.geomesa.metrics.micrometer.MetricsTags
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
@@ -109,14 +108,6 @@ object ConverterMetrics {
     val prefix = MetricsNamePrefix.get
     if (prefix.isEmpty) { name } else { s"$prefix.$name" }
   }
-
-  /**
-   * Gets a type name tag for a feature type
-   *
-   * @param sft simple feature type
-   * @return
-   */
-  def typeNameTag(sft: SimpleFeatureType): Tags = MetricsTags.typeNameTag(sft.getTypeName)
 
   /**
    * Gets the converter name as a tag

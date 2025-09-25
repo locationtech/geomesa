@@ -23,12 +23,13 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.LatencyMetrics
 
 import java.io.Closeable
 import java.time.Duration
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future}
-import java.util.{Collections, Date}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -116,19 +117,7 @@ object KafkaCacheLoader extends LazyLogging {
     private val updates = Metrics.counter(s"$MetricsPrefix.updates", tags)
     private val deletes = Metrics.counter(s"$MetricsPrefix.deletes", tags)
     private val clears = Metrics.counter(s"$MetricsPrefix.clears", tags)
-    private val dtgMetrics = sft.getDtgIndex.map { i =>
-      val last = Metrics.gauge(s"$MetricsPrefix.dtg.latest", tags, new AtomicLong())
-      val latency =
-        DistributionSummary
-          .builder(s"$MetricsPrefix.dtg.latency")
-          .baseUnit("milliseconds")
-          .tags(tags)
-          .publishPercentileHistogram()
-          .minimumExpectedValue(1d)
-          .maximumExpectedValue(24 * 60 * 60 * 1000d) // 1 day
-          .register(Metrics.globalRegistry)
-      DateMetrics(i, last, latency)
-    }
+    private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, MetricsPrefix, tags))
 
     // for the initial load, don't bother spatially indexing until we have the final state
     private val initialLoader = initialLoad.map(readBack => new InitialLoader(readBack))
@@ -161,13 +150,7 @@ object KafkaCacheLoader extends LazyLogging {
           cache.fireChange(timestamp, m.feature)
           cache.put(m.feature)
           updates.increment()
-          dtgMetrics.foreach { case DateMetrics(index, dtg, latency) =>
-            val date = m.feature.getAttribute(index).asInstanceOf[Date]
-            if (date != null) {
-              dtg.updateAndGet(prev => Math.max(prev, date.getTime))
-              latency.record(System.currentTimeMillis() - date.getTime)
-            }
-          }
+          latency.foreach(_.apply(m.feature))
 
         case m: Delete =>
           cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull)
