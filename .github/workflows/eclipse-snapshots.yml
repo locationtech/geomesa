@@ -47,7 +47,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
-        run: ./build/mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
+        run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa

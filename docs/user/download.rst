@@ -107,13 +107,11 @@ To build, change to the source directory and use Maven:
 
     $ mvn clean install
 
-The full build takes quite a while. To speed it up, you may skip tests and use multiple threads. GeoMesa also
-provides the script ``build/mvn``, which is a wrapper around Maven that downloads and runs
-`Zinc <https://github.com/typesafehub/zinc>`__, a fast incremental compiler:
+The full build takes quite a while. To speed it up, you may skip tests and use multiple threads:
 
 .. code-block:: bash
 
-    $ build/mvn clean install -T8 -DskipTests
+    $ mvn clean install -T8 -DskipTests
 
 Upgrading
 ---------

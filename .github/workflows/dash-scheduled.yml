@@ -31,7 +31,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
-        run: ./build/mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
+        run: mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
       - name: Collect artifacts
         run: |
           mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
