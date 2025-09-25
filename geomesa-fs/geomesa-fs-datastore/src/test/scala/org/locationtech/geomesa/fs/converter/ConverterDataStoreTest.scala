@@ -172,13 +172,10 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
           types must haveSize(1)
           types.head mustEqual "fs-test"
 
-          var i = 0
-          while (i < 5) {
-            i += 1
+          foreach(Range(0, 5)) { _ =>
             val count = try {
               val q = new Query("fs-test", Filter.INCLUDE)
-              val iter = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT))
-              try { iter.length } finally { iter.close() }
+              WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length)
             } catch {
               case _: RuntimeException => -1
             }
@@ -188,7 +185,6 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
               count mustEqual multiplier * 12
             }
           }
-          ok
         }
       }
     }
