@@ -15,6 +15,7 @@ import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedB
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, LayerView}
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
+import org.locationtech.geomesa.metrics.micrometer.utils.GaugeUtils
 
 import java.util.concurrent._
 
@@ -33,7 +34,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig, layerVi
 
   // keeps location and expiry keyed by feature ID (we need a way to retrieve a feature based on ID for
   // update/delete operations). to reduce contention, we never iterate over this map
-  private val state = Metrics.gaugeMapSize(s"$MetricsPrefix.size", tags, new ConcurrentHashMap[String, FeatureState]())
+  private val state = GaugeUtils.mapSizeGauge(s"$MetricsPrefix.size", tags, new ConcurrentHashMap[String, FeatureState]())
 
   private val support = createSupport(sft)
 

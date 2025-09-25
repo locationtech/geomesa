@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert2
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{Metrics, TimeGauge, Timer}
+import io.micrometer.core.instrument.{Metrics, Timer}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, StatefulEvaluationContext, Stats}
@@ -24,13 +24,12 @@ import org.locationtech.geomesa.convert2.validators.{IdValidatorFactory, SimpleF
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.{LatencyMetrics, MetricsTags}
 
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.time.Duration
-import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -135,14 +134,32 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   private val metrics = ConverterMetrics(sft, options.reporters)
 
   private val tags = config match {
-    case ConverterName(name) => ConverterMetrics.typeNameTag(sft).and(ConverterMetrics.converterNameTag(name))
-    case _                   => ConverterMetrics.typeNameTag(sft)
+    case ConverterName(name) => MetricsTags.typeNameTag(sft).and(ConverterMetrics.converterNameTag(name))
+    case _                   => MetricsTags.typeNameTag(sft)
   }
 
   private val validators =
     SimpleFeatureValidator(sft, (if (idIndex != -1) { Seq(IdValidatorFactory.Name) } else { Seq.empty }) ++ options.validators, tags)
 
   private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
+
+  private val parseTimer =
+    Timer.builder(ConverterMetrics.name("parse"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(10))
+      .register(Metrics.globalRegistry)
+
+  private val convertTimer =
+    Timer.builder(ConverterMetrics.name("conversion"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(2))
+      .register(Metrics.globalRegistry)
+
+  private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, ConverterMetrics.MetricsNamePrefix.get, tags))
 
   override def targetSft: SimpleFeatureType = sft
 
@@ -155,13 +172,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val parseTimer =
-      Timer.builder(ConverterMetrics.name("parse.duration"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(10))
-        .register(Metrics.globalRegistry)
     val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, parseTimer), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
@@ -170,32 +180,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val duration =
-      Timer.builder(ConverterMetrics.name("conversion.duration"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(2))
-        .register(Metrics.globalRegistry)
-    val dtgMetrics = sft.getDtgIndex.map { i =>
-      val date = new AtomicLong(0)
-      TimeGauge.builder(ConverterMetrics.name("dtg.last"), () => Long.box(date.get), TimeUnit.MILLISECONDS)
-        .tags(tags)
-        .register(Metrics.globalRegistry)
-      val latency =
-        Timer.builder(ConverterMetrics.name("dtg.latency"))
-          .tags(tags)
-          .publishPercentileHistogram()
-          .minimumExpectedValue(Duration.ofMillis(1))
-          .maximumExpectedValue(Duration.ofHours(24)) // latency may vary widely, but histograms require a min/max expected value
-          .register(Metrics.globalRegistry)
-      (i, date, latency)
-    }
-
     this.values(values, ec).flatMap { raw =>
       val start = System.nanoTime()
-      try { convert(raw.asInstanceOf[Array[AnyRef]], ec, dtgMetrics) } finally {
-        duration.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+      try { convert(raw.asInstanceOf[Array[AnyRef]], ec) } finally {
+        convertTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
       }
     }
   }
@@ -233,11 +221,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     * @param ec evaluation context
     * @return
     */
-  private def convert(
-      rawValues: Array[AnyRef],
-      ec: EvaluationContext,
-      dtgMetrics: Option[(Int, AtomicLong, Timer)]): CloseableIterator[SimpleFeature] = {
-
+  private def convert(rawValues: Array[AnyRef], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val result = ec.evaluate(rawValues).right.flatMap { values =>
       val sf = new ScalaSimpleFeature(sft, "")
 
@@ -272,13 +256,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     result match {
       case Right(feature) =>
         ec.stats.success()
-        dtgMetrics.foreach { case (index, dtg, latency) =>
-          val date = feature.getAttribute(index).asInstanceOf[Date]
-          if (date != null) {
-            dtg.set(date.getTime)
-            latency.record(System.currentTimeMillis() - date.getTime, TimeUnit.MILLISECONDS)
-          }
-        }
+        latency.foreach(_.apply(feature))
         CloseableIterator.single(feature)
 
       case Left(error) =>

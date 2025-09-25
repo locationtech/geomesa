@@ -6,11 +6,20 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.metrics.micrometer
+package org.locationtech.geomesa.utils.metrics
 
 import io.micrometer.core.instrument.Tags
+import org.geotools.api.feature.simple.SimpleFeatureType
 
 object MetricsTags {
+
+  /**
+   * Gets a tag for identifying a feature type by name
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  def typeNameTag(sft: SimpleFeatureType): Tags = typeNameTag(sft.getTypeName)
 
   /**
    * Gets a tag for identifying a feature type by name

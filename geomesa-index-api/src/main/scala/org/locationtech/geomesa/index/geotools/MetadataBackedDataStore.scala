@@ -24,7 +24,6 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.DistributedLocking
-import org.locationtech.geomesa.metrics.micrometer.MetricsTags
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -33,6 +32,7 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.{Closeable, IOException}
 import java.time.{Instant, ZoneOffset}
