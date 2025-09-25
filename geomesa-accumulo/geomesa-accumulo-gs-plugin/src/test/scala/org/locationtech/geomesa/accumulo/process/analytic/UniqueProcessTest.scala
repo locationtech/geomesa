@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.analytic
+package org.locationtech.geomesa.accumulo.process.analytic
 
 import org.geotools.data.util.NullProgressListener
 import org.geotools.feature.simple.SimpleFeatureBuilder
@@ -14,6 +14,7 @@ import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.process.analytic.UniqueProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification

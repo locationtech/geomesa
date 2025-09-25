@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.tube
+package org.locationtech.geomesa.accumulo.process.tube
 
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.process.tube.{NoGapFill, TubeSelectProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -158,7 +159,6 @@ class TubeSelectProcessTest extends TestWithMultipleSfts {
       // this time we use 112km which is just over 1 degree so we should pick up additional features
       // but with buffer overlap since the features in the collection are 1 degrees apart
       val results = ts.execute(tubeFeatures, features, null, 112L, 1000L, 0.0, 5, null)
-
 
       forall(SelfClosingIterator(results.features()).toList) { sf =>
         sf.getAttribute("type") mustEqual "b"

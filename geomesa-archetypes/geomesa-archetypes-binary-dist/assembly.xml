@@ -15,7 +15,6 @@
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-distributed-runtime*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-${tools.module}-spark*</exclude>
         <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
-        <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
         <exclude>org.locationtech.geomesa:docs</exclude>
         <exclude>com.google.guava:guava</exclude>
       </excludes>

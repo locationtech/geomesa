@@ -25,14 +25,8 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-process</artifactId>
+            <artifactId>gt-process-feature</artifactId>
         </dependency>
-
-        <!--<dependency>
-            &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>-->
 
         <!-- test dependencies -->
         <dependency>

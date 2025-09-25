@@ -6,13 +6,14 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.transform
+package org.locationtech.geomesa.accumulo.process.transform
 
 import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.process.transform.BinConversionProcess
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.jts.geom.Point

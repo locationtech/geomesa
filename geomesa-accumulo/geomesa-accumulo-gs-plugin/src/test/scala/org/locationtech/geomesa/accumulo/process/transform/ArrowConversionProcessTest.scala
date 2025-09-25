@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.transform
+package org.locationtech.geomesa.accumulo.process.transform
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.api.filter.Filter
@@ -16,11 +16,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.process.transform.ArrowConversionProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
-import java.io.ByteArrayInputStream
 import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])

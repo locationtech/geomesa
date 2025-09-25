@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.tube
+package org.locationtech.geomesa.accumulo.process.tube
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeature
@@ -15,6 +15,7 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.process.tube.NoGapFill
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.GeometryCollection
@@ -24,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TubeBinTest extends Specification with LazyLogging {
 
-  import TubeBuilder.DefaultDtgField
+  import org.locationtech.geomesa.process.tube.TubeBuilder.DefaultDtgField
 
   import scala.collection.JavaConverters._
 

@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.query
+package org.locationtech.geomesa.accumulo.process.query
 
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -98,7 +99,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
       // create lineBuffer SFC
       val lineSft = createNewSchema("*geom:LineString:srid=4326,dtg:Date")
       addFeature(ScalaSimpleFeature.create(lineSft, "query", "LINESTRING (-45 0, -90 45)", "2014-06-07T12:00:00.000Z"))
-      val queryLine = ds.getFeatureSource(lineSft.getTypeName).getFeatures
+      val queryLine = ds.getFeatureSource(lineSft.getTypeName).getFeatures()
 
       // create the data store
       val sftPoints = createNewSchema("*geom:Point:srid=4326,dtg:Date")

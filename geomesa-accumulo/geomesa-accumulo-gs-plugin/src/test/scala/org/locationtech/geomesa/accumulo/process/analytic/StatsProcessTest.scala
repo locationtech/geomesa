@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.analytic
+package org.locationtech.geomesa.accumulo.process.analytic
 
 import org.geotools.api.data.Query
 import org.geotools.api.filter.Filter
@@ -16,6 +16,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.process.analytic.StatsProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
@@ -51,7 +52,7 @@ class StatsProcessTest extends Specification with TestWithFeatureType {
       minMaxStat.bounds mustEqual (0, 298)
     }
 
-    "work with the IteratotStackCount stat" in {
+    "work with the IteratorStackCount stat" in {
       val results = statsIteratorProcess.execute(fs.getFeatures(query), "IteratorStackCount()", encode = true)
       val sf = results.features().next
 
