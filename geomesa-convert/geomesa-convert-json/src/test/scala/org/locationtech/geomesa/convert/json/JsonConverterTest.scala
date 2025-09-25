@@ -1468,7 +1468,7 @@ class JsonConverterTest extends Specification {
         val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
         meters must haveLength(7)
         meters.map(_.getId.getName) must containTheSameElementsAs(
-          Seq("success", "failure", "parse.duration", "conversion.duration", "validator.id.null", "validator.geom.null",
+          Seq("success", "failure", "parse", "conversion", "validator.id.null", "validator.geom.null",
             "validator.geom.bounds.invalid").map(n => s"geomesa.convert.$n")
         )
         foreach(meters)(_.getId.getTag("converter.name") mustEqual "metrics-test")

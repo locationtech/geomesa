@@ -152,7 +152,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
       .register(Metrics.globalRegistry)
 
   private val convertTimer =
-    Timer.builder(ConverterMetrics.name("convert"))
+    Timer.builder(ConverterMetrics.name("conversion"))
       .tags(tags)
       .publishPercentileHistogram()
       .minimumExpectedValue(Duration.ofNanos(1))
