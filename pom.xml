@@ -193,8 +193,7 @@
         <maven.site.plugin.version>3.21.0</maven.site.plugin.version>
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
-        <!-- note: we use an older version that still supports using zinc compile server -->
-        <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
+        <scala.maven.plugin.version>4.9.6</scala.maven.plugin.version>
         <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version> <!-- note: requires java 17+ when building site -->
 
         <!-- maven properties -->
@@ -252,25 +251,6 @@
             <properties>
                 <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens} ${maven.test.debug}</maven.test.jvmargs>
             </properties>
-        </profile>
-
-        <profile>
-            <!-- for using a zinc compile server -->
-            <id>zinc</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>net.alchim31.maven</groupId>
-                            <artifactId>scala-maven-plugin</artifactId>
-                            <configuration>
-                                <recompileMode>incremental</recompileMode>
-                                <useZincServer>true</useZincServer>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
         </profile>
 
         <profile>
@@ -408,9 +388,6 @@
 
         <profile>
             <id>site</id>
-            <properties>
-                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -439,9 +416,6 @@
         <profile>
             <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
             <id>bloop</id>
-            <properties>
-                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>jdk.tools</groupId>
