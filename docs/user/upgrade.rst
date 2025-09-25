@@ -90,6 +90,12 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 6.0.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+ ???
+ java version 17
+
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
