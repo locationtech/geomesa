@@ -36,11 +36,11 @@ object FastConverter extends StrictLogging {
       new CacheLoader[(Class[_], Class[_]), Array[Converter]]() {
         override def load(key: (Class[_], Class[_])): Array[Converter] = {
           val (from, to) = key
-          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
+          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray/*.filter {
             // exclude jai-related factories as it's not usually on the classpath
             case _: InterpolationConverterFactory => false
             case _ => true
-          }
+          }*/
           logger.debug(s"Loaded ${factories.length} converter factories: ${factories.map(_.getClass.getName).mkString(", ")}")
           val converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
           logger.debug(

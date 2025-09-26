@@ -546,7 +546,8 @@ object OrcAttributeWriter {
   trait SetVectorDate extends SetVectorValue[java.util.Date, TimestampColumnVector] {
     override def setValue(value: java.util.Date, row: Int): Unit = {
       if (value != null) {
-        vector.time(row) = value.getTime
+        vector.getScratchTimestamp.setTime(value.getTime)
+        vector.setFromScratchTimestamp(row)
       } else {
         vector.noNulls = false
         vector.isNull(row) = true

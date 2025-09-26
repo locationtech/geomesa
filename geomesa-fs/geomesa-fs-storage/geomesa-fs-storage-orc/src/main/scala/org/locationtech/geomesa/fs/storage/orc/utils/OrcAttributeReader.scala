@@ -455,7 +455,7 @@ object OrcAttributeReader {
   trait GetVectorDate extends GetVectorValue[TimestampColumnVector] {
     override def getValue(row: Int): AnyRef = {
       if (vector.noNulls || !vector.isNull(row)) {
-        new java.util.Date(vector.time(row))
+        new java.util.Date(vector.asScratchTimestamp(row).toInstant.toEpochMilli)
       } else {
         null
       }

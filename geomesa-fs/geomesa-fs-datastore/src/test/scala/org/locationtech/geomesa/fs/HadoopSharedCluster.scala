@@ -25,7 +25,7 @@ object HadoopSharedCluster extends StrictLogging {
 
   val ImageName =
     DockerImageName.parse("ghcr.io/geomesa/accumulo-uno")
-        .withTag(sys.props.getOrElse("accumulo.docker.tag", "2.1.3"))
+        .withTag(sys.props.getOrElse("accumulo.docker.tag", "2.1.4-jdk17"))
 
   lazy val Container: HadoopContainer = tryContainer.get
 
