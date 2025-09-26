@@ -136,7 +136,7 @@
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.4.2</hadoop.version>
         <spark.version>3.5.5</spark.version>
-        <hbase.version>2.6.1-hadoop3</hbase.version>
+        <hbase.version>2.6.3-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
         <protobuf.version>3.25.6</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
@@ -211,10 +211,10 @@
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.accumulo.docker.tag>2.1.4</test.accumulo.docker.tag>
+        <test.accumulo.docker.tag>2.1.4-jdk17</test.accumulo.docker.tag>
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
-        <test.hbase.docker.tag>2.6.2</test.hbase.docker.tag>
+        <test.hbase.docker.tag>2.6.3-jdk17</test.hbase.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
@@ -3009,7 +3009,7 @@
                         <!-- Turn off 'useIncrementalCompilation' to keep this plugin
                              from recompiling Java files that the scala-maven-plugin
                              already compiled -->
-                        <useIncrementalCompilation>false</useIncrementalCompilation>
+                        <!--<useIncrementalCompilation>false</useIncrementalCompilation>-->
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
                     </configuration>
