@@ -74,34 +74,45 @@
     </dependencies>
 
     <build>
-      <pluginManagement>
-          <plugins>
-              <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>binary-assembly</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>geomesa-${tools.module}_${scala.binary.version}-${project.version}</finalName>
-                            <tarLongFileMode>posix</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-binary-dist/binary-release.xml</descriptor>
-                            </descriptors>
-                            <delimiters>
-                                <delimiter>%%</delimiter>
-                            </delimiters>
-                            <attach>false</attach>
-                        </configuration>
-                    </execution>
-                </executions>
-              </plugin>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>make-assembly</id>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                            <phase>package</phase>
+                            <configuration>
+                                <finalName>geomesa-${tools.module}_${scala.binary.version}-${project.version}</finalName>
+                                <tarLongFileMode>posix</tarLongFileMode>
+                                <descriptors>
+                                    <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-binary-dist/binary-release.xml</descriptor>
+                                </descriptors>
+                                <delimiters>
+                                    <delimiter>%%</delimiter>
+                                </delimiters>
+                                <attach>false</attach>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <!-- disable the assembly for this parent module -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <skipAssembly>true</skipAssembly>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 </project>
