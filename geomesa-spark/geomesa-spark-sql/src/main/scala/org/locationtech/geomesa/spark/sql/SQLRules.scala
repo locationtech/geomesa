@@ -15,7 +15,7 @@ import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.sedona_sql.UDT.{GeometryUDT => Sedona_GeometryUDT}
-import org.apache.spark.sql.sedona_sql.expressions.{ST_Contains => Sedona_ST_Contains, ST_Crosses => Sedona_ST_Crosses, ST_Equals => Sedona_ST_Equals, ST_Intersects => Sedona_ST_Intersects, ST_Overlaps => Sedona_ST_Overlaps, ST_Predicate => Sedona_ST_Predicate, ST_Touches => Sedona_ST_Touches, ST_Within => Sedona_ST_Within}
+import org.apache.spark.sql.sedona_sql.expressions.{ST_Predicate => Sedona_ST_Predicate}
 import org.apache.spark.sql.types.DataTypes
 import org.apache.spark.sql.{SQLContext, Strategy}
 import org.geotools.api.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
@@ -74,20 +74,21 @@ object SQLRules extends LazyLogging {
   }
 
   def sedonaExprToGTFilter(pred: Sedona_ST_Predicate): Option[GTFilter] = {
-    val left = pred.children.head
-    val right = pred.children.last
-    (sparkExprToGTExpr(left), sparkExprToGTExpr(right)) match {
-      case (Some(expr1), Some(expr2)) => pred match {
-        case Sedona_ST_Contains(_) => Some(ff.contains(expr1, expr2))
-        case Sedona_ST_Crosses(_) => Some(ff.crosses(expr1, expr2))
-        case Sedona_ST_Overlaps(_) => Some(ff.overlaps(expr1, expr2))
-        case Sedona_ST_Intersects(_) => Some(ff.intersects(expr1, expr2))
-        case Sedona_ST_Within(_) => Some(ff.within(expr1, expr2))
-        case Sedona_ST_Touches(_) => Some(ff.touches(expr1, expr2))
-        case Sedona_ST_Equals(_) => Some(ff.equal(expr1, expr2))
-        case _ => None
+    sparkExprToGTExpr(pred.children.head).flatMap { expr1 =>
+      sparkExprToGTExpr(pred.children.last).flatMap { expr2 =>
+        // sedona classes are private, so we have to match on the class name instead of the class itself
+        pred.getClass.getSimpleName match {
+          case "ST_Contains"   => Some(ff.contains(expr1, expr2))
+          case "ST_Crosses"    => Some(ff.crosses(expr1, expr2))
+          case "ST_Overlaps"   => Some(ff.overlaps(expr1, expr2))
+          case "ST_Intersects" => Some(ff.intersects(expr1, expr2))
+          case "ST_Within"     => Some(ff.within(expr1, expr2))
+          case "ST_Touches"    => Some(ff.touches(expr1, expr2))
+          case "ST_Equals"     => Some(ff.equal(expr1, expr2))
+          case "ST_Disjoint"   => Some(ff.disjoint(expr1, expr2))
+          case _ => None
+        }
       }
-      case _ => None
     }
   }
 

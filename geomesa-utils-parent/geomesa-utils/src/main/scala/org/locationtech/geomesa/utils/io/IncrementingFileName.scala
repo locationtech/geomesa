@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.utils.io
 
 import java.util.concurrent.atomic.AtomicInteger
-import javax.annotation.concurrent.ThreadSafe
 
 /**
   * Creates unique file names generated from a base name, by appending a sequence number
@@ -22,7 +21,6 @@ import javax.annotation.concurrent.ThreadSafe
   * @param path file name path
   * @param digits number of digits used to format the sequence number
   */
-@ThreadSafe
 class IncrementingFileName(path: String, digits: Int = 3) extends Iterator[String] {
 
   private val i = new AtomicInteger(0)

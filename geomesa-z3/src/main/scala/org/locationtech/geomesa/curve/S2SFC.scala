@@ -42,11 +42,13 @@ class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends 
       val hi = S2LatLng.fromDegrees(ymax, xmax)
       val rect = new S2LatLngRect(lo, hi)
 
-      val cover = new S2RegionCoverer()
-      cover.setMinLevel(minLevel)
-      cover.setMaxLevel(maxLevel)
-      cover.setLevelMod(levelMod)
-      cover.setMaxCells(maxCells)
+      val cover =
+        S2RegionCoverer.builder()
+          .setMinLevel(minLevel)
+          .setMaxLevel(maxLevel)
+          .setLevelMod(levelMod)
+          .setMaxCells(maxCells)
+          .build()
 
       val s2CellUnion = cover.getCovering(rect)
 

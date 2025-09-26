@@ -41,15 +41,8 @@
             <artifactId>mango-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.sgr</groupId>
-            <artifactId>s2-geometry-library-java</artifactId>
-            <version>1.0.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.datasyslab</groupId>
+            <artifactId>s2-geometry-library</artifactId>
         </dependency>
 
         <!-- pull in arrow for aggregating scan code, but don't make it a transitive dep -->

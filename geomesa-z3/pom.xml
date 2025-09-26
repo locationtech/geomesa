@@ -13,8 +13,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.sgr</groupId>
-            <artifactId>s2-geometry-library-java</artifactId>
+            <groupId>org.datasyslab</groupId>
+            <artifactId>s2-geometry-library</artifactId>
+        </dependency>
+        <!-- guava required for s2, but mark provided so we don't propagate it across our entire codebase -->
+        <!-- all end use cases (geoserver, CLI, etc) will already have guava available -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
