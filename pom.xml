@@ -136,7 +136,7 @@
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.4.2</hadoop.version>
         <spark.version>3.5.5</spark.version>
-        <hbase.version>2.6.1-hadoop3</hbase.version>
+        <hbase.version>2.6.3-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
         <protobuf.version>3.25.6</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
@@ -234,7 +234,7 @@
         <confluent.version.recommended>7.8.0</confluent.version.recommended>
         <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
         <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
-        <hbase.thirdparty.version.recommended>4.1.9</hbase.thirdparty.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.11</hbase.thirdparty.version.recommended>
         <zookeeper.version.recommended>${zookeeper.version}</zookeeper.version.recommended>
 
         <!-- some min supported versions, for libraries that have fairly wide compatibility -->

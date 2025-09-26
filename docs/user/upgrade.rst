@@ -102,6 +102,7 @@ The following dependencies have been upgraded:
 * commons-io ``2.16.1`` -> ``2.19.0``
 * geotools ``33.1`` -> ``33.2``
 * hadoop ``3.4.1`` -> ``3.4.2``
+* hbase ``2.6.1`` -> ``2.6.3``
 * jackson ``2.17.2`` -> ``2.19.0``
 * micrometer ``1.13.4`` -> ``1.15.3``
 * nifi ``2.4.0`` -> ``2.5.0``
