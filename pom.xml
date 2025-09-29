@@ -250,6 +250,7 @@
             <id>debug-tests</id>
             <properties>
                 <maven.test.debug>true</maven.test.debug>
+                <test.fork.count>1</test.fork.count> <!-- otherwise we get port conflicts -->
             </properties>
         </profile>
 
