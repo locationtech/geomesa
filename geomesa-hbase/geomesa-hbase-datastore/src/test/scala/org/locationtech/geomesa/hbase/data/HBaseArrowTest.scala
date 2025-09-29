@@ -10,7 +10,6 @@ package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.filter.FilterList
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
@@ -42,7 +41,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName
   )
 

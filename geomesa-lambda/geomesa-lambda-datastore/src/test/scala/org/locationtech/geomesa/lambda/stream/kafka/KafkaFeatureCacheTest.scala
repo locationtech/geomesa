@@ -62,7 +62,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           there was one(manager).setOffset("", 0, 0)
           cache.offsetChanged(0, 0)
           cache.all().toSeq must containTheSameElementsAs(Seq(two, three))
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList mustEqual Seq(one)
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(one) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList
           clock.tick = 4
           manager.getOffset("", 0) returns 0L
           manager.getOffset("", 1) returns -1L
@@ -73,8 +74,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           cache.offsetChanged(1, 0)
           cache.all() must beEmpty
           clock.tick = 4
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList must
-            containTheSameElementsAs(Seq(one, two, three))
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(one, two, three) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList.sortBy(_.getID)
         }
       }
     }

@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.collection.ListFeatureCollection
@@ -36,7 +35,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
 
   val typeName = "test_data"
   val params = Map(
-    ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
+    ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
     HBaseCatalogParam.getName -> getClass.getSimpleName)
 
   val durationStr = "4 seconds"

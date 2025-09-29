@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.filter.text.ecql.ECQL
@@ -44,7 +43,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConfigsParam.key          -> HBaseContainer.getInstance().getHBaseSiteXml,
+    HBaseDataStoreParams.ConfigsParam.key          -> HBaseCluster.hbaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.key     -> getClass.getSimpleName,
     HBaseDataStoreParams.StatsCoprocessorParam.key -> true
   )

@@ -242,20 +242,21 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
-      case Failure(_) => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
-      case Success((s, c)) => SimpleFeatureConverter(s, c)
+    SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
+      case Failure(_) => Seq.empty // empty json file
+      case Success((s, c)) =>
+        val converter = SimpleFeatureConverter(s, c)
+        val result = Seq.newBuilder[SimpleFeature]
+        val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+        WithClose(converter.process(new FileInputStream(file))) { features =>
+          features.foreach { f =>
+            val copy = new ScalaSimpleFeature(sft, f.getID)
+            names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
+            result += copy
+          }
+        }
+        result.result()
     }
-    val result = Seq.newBuilder[SimpleFeature]
-    val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
-    WithClose(converter.process(new FileInputStream(file))) { features =>
-      features.foreach { f =>
-        val copy = new ScalaSimpleFeature(sft, f.getID)
-        names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
-        result += copy
-      }
-    }
-    result.result()
   }
 
   def readLeaflet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {

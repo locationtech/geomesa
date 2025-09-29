@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
@@ -50,7 +49,7 @@ class HBasePartitioningTest extends Specification with LazyLogging {
       val spec = "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;"
 
       val params = Map(
-        ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]

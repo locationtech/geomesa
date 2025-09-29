@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -28,7 +27,7 @@ class HBaseAlterSchemaTest extends Specification {
   "HBaseDataStore" should {
     "update schemas" in {
       val params = Map(
-        ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       WithStore[HBaseDataStore](params) { ds =>

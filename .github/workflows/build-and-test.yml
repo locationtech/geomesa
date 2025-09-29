@@ -51,7 +51,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -T4
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T4
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
@@ -78,7 +78,7 @@ jobs:
       - name: Collect artifacts
         run: |
           mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
-          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -type d | tr '\n' ' ')
+          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -o -path '*/target/analysis' -type d | tr '\n' ' ')
       - name: Upload artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
@@ -246,6 +246,9 @@ jobs:
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: Generate autocomplete
+        # we need autocomplete files that are only in the tools modules, so user fail-never to pass over everything else
+        run: mvn 'org.codehaus.mojo:exec-maven-plugin:exec@generate-auto-complete' --fail-never $MAVEN_CLI_OPTS
       - name: Build assemblies
         run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts

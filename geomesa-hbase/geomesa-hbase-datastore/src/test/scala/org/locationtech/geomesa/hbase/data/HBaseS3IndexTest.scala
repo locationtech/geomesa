@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
@@ -40,7 +39,7 @@ class HBaseS3IndexTest extends Specification with LazyLogging {
       val typeName = "testS3"
 
       val params = Map(
-        ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
+        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName
       )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
