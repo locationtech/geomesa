@@ -76,12 +76,14 @@ class KafkaStoreTest extends LambdaContainerTest {
           store1.write(feature)
           store1.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
+            // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+            eventually(40, 100.millis)(Seq(feature) mustEqual SelfClosingIterator(store.read().iterator()).toSeq)
           }
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
+            // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+            eventually(40, 100.millis)(Seq(feature) mustEqual SelfClosingIterator(store.read().iterator()).toSeq)
           }
         }
       }
@@ -120,7 +122,8 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList mustEqual Seq(feature)
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(feature) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList
         }
       }
     }
@@ -169,7 +172,8 @@ class KafkaStoreTest extends LambdaContainerTest {
           // move the clock forward and run persistence
           clock.tick = 2000
           store1.persist()
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update2)
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(update2) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq
 
           store1.delete(update2)
           foreach(Seq(store1, store2)) { store =>
@@ -234,7 +238,8 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update1)
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(update1) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq
         }
       }
     }
