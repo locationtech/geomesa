@@ -168,7 +168,7 @@
         <!-- note: plugin versions are generally set to the latest available -->
         <maven.min.version>3.6.3</maven.min.version>
         <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
-        <central.publishing.maven.plugin.version>0.8.0</central.publishing.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.9.0</central.publishing.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.1</cyclonedx.maven.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
         <git.commit.id.plugin.version>4.9.10</git.commit.id.plugin.version>
@@ -233,7 +233,7 @@
         <confluent.version.recommended>7.8.0</confluent.version.recommended>
         <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
         <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
-        <hbase.thirdparty.version.recommended>4.1.9</hbase.thirdparty.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.11</hbase.thirdparty.version.recommended>
         <zookeeper.version.recommended>${zookeeper.version}</zookeeper.version.recommended>
 
         <!-- some min supported versions, for libraries that have fairly wide compatibility -->
