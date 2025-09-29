@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.process.query
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.QueryProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -21,7 +21,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class QueryProcessTest extends Specification with TestWithFeatureType {
+class QueryProcessTest extends Specification with TestWithDataStore {
 
   sequential
 

@@ -124,8 +124,8 @@
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <testcontainers.version>1.21.3</testcontainers.version>
-        <testcontainers.accumulo.version>1.4.1</testcontainers.accumulo.version>
-        <testcontainers.hbase.version>1.0.0</testcontainers.hbase.version>
+        <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
+        <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
@@ -3042,19 +3042,6 @@
                             </manifestEntries>
                         </archive>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <!-- binds to the default test-jar goal to exclude logging configs -->
-                            <id>default</id>
-                            <configuration>
-                                <excludes>
-                                    <exclude>log4j.properties</exclude>
-                                    <exclude>log4j.xml</exclude>
-                                    <exclude>logging.properties</exclude>
-                                </excludes>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -3545,7 +3532,6 @@
                         <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
                         </goals>
                         <configuration>
                             <!-- we need source jars for publishing to maven central, even if there are no sources -->

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -44,7 +45,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   val typeName = "HBaseDensityFilterTest"
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName,
     HBaseDataStoreParams.DensityCoprocessorParam.key -> true
   )

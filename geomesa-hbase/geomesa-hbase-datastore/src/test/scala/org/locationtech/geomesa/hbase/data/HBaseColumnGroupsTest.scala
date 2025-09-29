@@ -12,6 +12,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.util.Bytes
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -48,7 +49,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
   // note: using Seq.foreach, ok instead of foreach(Seq) shaves several seconds off the time to run this test
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName
   )
 

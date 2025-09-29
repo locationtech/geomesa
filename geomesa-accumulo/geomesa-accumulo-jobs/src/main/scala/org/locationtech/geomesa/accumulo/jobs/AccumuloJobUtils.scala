@@ -16,7 +16,6 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -60,53 +59,15 @@ object AccumuloJobUtils extends LazyLogging {
   /**
    * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
    */
-  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = {
-    // disable join plans
-    JoinIndex.AllowJoinPlans.set(false)
-
-    try {
-      lazy val fallbackIndex = {
-        val schema = ds.getSchema(query.getTypeName)
-        ds.manager.indices(schema, IndexMode.Read).headOption.getOrElse {
-          throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
-        }
-      }
-
-      val queryPlans = ds.getQueryPlan(query)
-
-      if (queryPlans.isEmpty) {
-        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity))
-      } else if (queryPlans.lengthCompare(1) > 0) {
-        // this query requires multiple scans, which we can't execute from some input formats
-        // instead, fall back to a full table scan
-        logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
-        val qps = ds.getQueryPlan(query, Some(fallbackIndex.identifier))
-        if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
-          logger.error("The query being executed requires multiple scans, which is not currently " +
-              "supported by GeoMesa. Your result set will be partially incomplete. " +
-              s"Query: ${filterToString(query.getFilter)}")
-        }
-        qps.head
-      } else {
-        val qp = queryPlans.head
-        if (qp.tables.lengthCompare(1) > 0) {
-          logger.error("The query being executed requires multiple scans, which is not currently " +
-              "supported by GeoMesa. Your result set will be partially incomplete. " +
-              s"Query: ${filterToString(query.getFilter)}")
-        }
-        qp
-      }
-    } finally {
-      // make sure we reset the thread locals
-      JoinIndex.AllowJoinPlans.remove()
-    }
-  }
+  @deprecated("Replaced by AccumuloDataStore.getSingleQueryPlan")
+  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = ds.getSingleQueryPlan(query)
 
   /**
     * Get a sequence of one or more query plans, which is guaranteed not to contain
     * a JoinPlan (return a fallback in this case). If we get multiple scan plans,
     * that's groovy.
     */
+  @deprecated("Deprecated with no replacement")
   def getMultipleQueryPlan(ds: AccumuloDataStore, query: Query): Seq[AccumuloQueryPlan] = {
     // disable join plans
     JoinIndex.AllowJoinPlans.set(false)

@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put, Scan}
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureSource, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
@@ -76,11 +77,11 @@ class HBaseBackCompatibilityTest extends Specification with AfterAll with LazyLo
 
   val path = "src/test/resources/data/" // note: if running through intellij, use an absolute path
 
-  lazy val params = Map(ConfigsParam.getName -> HBaseCluster.hbaseSiteXml, HBaseCatalogParam.getName -> name).asJava
+  lazy val params = Map(ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml, HBaseCatalogParam.getName -> name).asJava
 
   val connection = {
     val conf = new Configuration(HBaseConfiguration.create())
-    conf.addResource(new ByteArrayInputStream(HBaseCluster.hbaseSiteXml.getBytes(StandardCharsets.UTF_8)))
+    conf.addResource(new ByteArrayInputStream(HBaseContainer.getInstance().getHBaseSiteXml.getBytes(StandardCharsets.UTF_8)))
     ConnectionFactory.createConnection(conf)
   }
 

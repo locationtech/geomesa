@@ -10,9 +10,10 @@ package org.locationtech.geomesa.spark.accumulo
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.api.data.{Query, Transaction}
+import org.geomesa.testcontainers.AccumuloContainer
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -20,14 +21,21 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSparkProviderTest extends Specification with TestWithFeatureType with LazyLogging {
+class AccumuloSparkProviderTest extends Specification with LazyLogging {
 
   import org.locationtech.geomesa.filter.ff
 
   sequential
 
-  override lazy val sftName: String = "chicago"
-  override def spec: String = SparkSQLTestUtils.ChiSpec
+  lazy val dsParams = java.util.Map.of(
+    "accumulo.instance.name", AccumuloContainer.getInstance().getInstanceName,
+    "accumulo.zookeepers",    AccumuloContainer.getInstance().getZookeepers,
+    "accumulo.user",          AccumuloContainer.getInstance().getUsername,
+    "accumulo.password",      AccumuloContainer.getInstance().getPassword,
+    "accumulo.catalog",       "AccumuloSparkProviderTest"
+  )
+
+  lazy val ds = DataStoreFinder.getDataStore(dsParams)
 
   var spark: SparkSession = _
   var sc: SQLContext = _

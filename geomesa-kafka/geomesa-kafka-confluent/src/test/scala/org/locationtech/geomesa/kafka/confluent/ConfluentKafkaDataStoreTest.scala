@@ -45,7 +45,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
   lazy val producer: KafkaProducer[String, GenericRecord] = {
     val props = new Properties()
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers)
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     // note: serializer will register schemas with the registry automatically
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
@@ -58,7 +58,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
   def getStore(extraParams: Map[String, String] = Map.empty): KafkaDataStore = {
     val params = Map(
       "kafka.schema.registry.url" -> schemaRegistryUrl,
-      "kafka.brokers" -> brokers,
+      "kafka.brokers" -> kafka.getBootstrapServers,
       "kafka.topic.partitions" -> 1,
       "kafka.topic.replication" -> 1,
       "kafka.consumer.read-back" -> "Inf",
@@ -208,7 +208,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       // verify raw avro reads
       val consumer = {
         val props = new Properties()
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers)
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[KafkaAvroDeserializer].getName)
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")

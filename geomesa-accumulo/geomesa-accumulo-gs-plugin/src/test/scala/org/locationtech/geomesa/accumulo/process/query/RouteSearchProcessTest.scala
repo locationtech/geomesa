@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.process.query
 
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.RouteSearchProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -20,14 +20,15 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class RouteSearchProcessTest extends TestWithMultipleSfts {
+class RouteSearchProcessTest extends TestWithDataStore {
 
   sequential
+
+  override val spec: String = "track:String,heading:Double,dtg:Date,*geom:Point:srid=4326"
 
   val r = new Random(-10)
 
   val routeSft = createNewSchema("*geom:LineString:srid=4326")
-  val sft = createNewSchema("track:String,heading:Double,dtg:Date,*geom:Point:srid=4326")
 
   val process = new RouteSearchProcess
 

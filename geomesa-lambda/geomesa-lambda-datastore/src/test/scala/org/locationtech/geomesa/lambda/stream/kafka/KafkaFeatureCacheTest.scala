@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import org.geotools.data.memory.MemoryDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
-import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.PersistenceConfig
 import org.locationtech.geomesa.lambda.stream.OffsetManager
@@ -39,7 +39,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       implicit val clock: TestClock = new TestClock()
       val manager = mock[OffsetManager]
       manager.acquireLock(anyString, anyInt, anyLong) returns Some(mock[Closeable])
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         WithClose(new KafkaFeatureCache(ds, sft, manager, "", Some(PersistenceConfig(Duration(1, "ms"), 100)))) { cache =>
           cache.partitionAssigned(1, -1L)

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.process.query
 
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.JoinProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -18,9 +18,11 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JoinProcessTest extends Specification with TestWithMultipleSfts {
+class JoinProcessTest extends Specification with TestWithDataStore {
 
   sequential
+
+  override def spec: String = throw new UnsupportedOperationException()
 
   val sft1 = createNewSchema("track:String,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
   val sft2 = createNewSchema("track:String:index=join,dtg:Date,*geom:Point:srid=4326")

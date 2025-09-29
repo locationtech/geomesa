@@ -18,7 +18,7 @@ import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.Converters
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.process.tube.{NoGapFill, TubeSelectProcess}
@@ -31,9 +31,11 @@ import org.specs2.runner.JUnitRunner
 import java.util.{Collections, Date}
 
 @RunWith(classOf[JUnitRunner])
-class TubeSelectProcessTest extends TestWithMultipleSfts {
+class TubeSelectProcessTest extends TestWithDataStore {
 
   sequential
+
+  override def spec: String = throw new UnsupportedOperationException()
 
   lazy val sft1 = createNewSchema("type:String,*geom:Point:srid=4326,dtg:Date")
 

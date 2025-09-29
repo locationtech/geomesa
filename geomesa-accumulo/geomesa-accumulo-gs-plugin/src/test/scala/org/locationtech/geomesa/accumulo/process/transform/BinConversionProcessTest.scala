@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.process.transform
 import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.transform.BinConversionProcess
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
-class BinConversionProcessTest extends TestWithFeatureType {
+class BinConversionProcessTest extends TestWithDataStore {
 
   import scala.collection.JavaConverters._
 
@@ -53,7 +53,9 @@ class BinConversionProcessTest extends TestWithFeatureType {
   val lonlat2 = features.map(_.getAttribute("geom2").asInstanceOf[Point]).map(p => (p.getY.toFloat, p.getX.toFloat))
   val latlon2 = lonlat2.map(_.swap)
 
-  addFeatures(features)
+  step {
+    addFeatures(features)
+  }
 
   // converts to tuples that we can compare to zipped values
   def toTuples(value: EncodedValues): Any = value match {

@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data.{DataStoreFinder, Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -57,7 +58,7 @@ class HBaseVisibilityTest extends Specification with BeforeAfterAll with LazyLog
 
   private lazy val conf = {
     val conf = new Configuration(HBaseConfiguration.create())
-    conf.addResource(new ByteArrayInputStream(HBaseCluster.hbaseSiteXml.getBytes(StandardCharsets.UTF_8)))
+    conf.addResource(new ByteArrayInputStream(HBaseContainer.getInstance().getHBaseSiteXml.getBytes(StandardCharsets.UTF_8)))
     conf
   }
 

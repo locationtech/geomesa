@@ -13,7 +13,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.process.analytic.StatsProcess
@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
-class StatsProcessTest extends Specification with TestWithFeatureType {
+class StatsProcessTest extends Specification with TestWithDataStore {
 
   sequential
 

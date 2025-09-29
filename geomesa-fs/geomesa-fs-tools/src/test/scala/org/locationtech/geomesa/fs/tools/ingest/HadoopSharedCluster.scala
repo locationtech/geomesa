@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs
+package org.locationtech.geomesa.fs.tools.ingest
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.conf.Configuration

@@ -10,10 +10,10 @@ package org.locationtech.geomesa.lambda.stream.kafka
 
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.data.memory.MemoryDataStore
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
@@ -22,6 +22,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
+import org.testcontainers.containers.KafkaContainer
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,7 +35,9 @@ class KafkaStoreTest extends LambdaContainerTest {
 
   sequential
 
-  lazy val config = Map("bootstrap.servers" -> brokers)
+  lazy val config = Map("bootstrap.servers" -> kafka.getBootstrapServers)
+
+  lazy val zookeepers = s"${kafka.getHost}:${kafka.getMappedPort(KafkaContainer.ZOOKEEPER_PORT)}"
 
   lazy val namespaces = new AtomicInteger(0)
 
@@ -43,7 +46,7 @@ class KafkaStoreTest extends LambdaContainerTest {
   def createTopic(ns: String, sft: SimpleFeatureType): Unit = {
     val topic = LambdaDataStore.topic(sft, ns)
     val props = new Properties()
-    props.put("bootstrap.servers", brokers)
+    props.put("bootstrap.servers", kafka.getBootstrapServers)
     WithClose(AdminClient.create(props)) { admin =>
       admin.createTopics(Collections.singletonList(new NewTopic(topic, 2, 1.toShort))).all().get
     }
@@ -61,7 +64,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       feature.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
@@ -93,7 +96,7 @@ class KafkaStoreTest extends LambdaContainerTest {
 
       createTopic(ns, sft)
 
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
@@ -134,7 +137,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, feature2, update1, update2).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
@@ -196,7 +199,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, update1).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {

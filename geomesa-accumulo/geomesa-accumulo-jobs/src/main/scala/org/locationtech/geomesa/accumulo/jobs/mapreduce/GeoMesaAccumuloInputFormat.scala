@@ -23,7 +23,6 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams, AccumuloQueryPlan}
-import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat.{GeoMesaRecordReader, GroupedSplit}
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -116,7 +115,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     // get the query plan to set up the iterators, ranges, etc
     val plan = WithStore[AccumuloDataStore](params) { ds =>
       require(ds != null, "Invalid data store parameters")
-      AccumuloJobUtils.getSingleQueryPlan(ds, query)
+      ds.getSingleQueryPlan(query)
     }
     configure(conf, params, plan)
   }
