@@ -29,6 +29,7 @@
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
+        <module>geomesa-fs-storage</module>
         <module>geomesa-gt</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
@@ -51,14 +52,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- java/scala -->
-        <jdk.version>11</jdk.version>
-        <scala.version>2.12.19</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+        <jdk.version>17</jdk.version>
+        <scala.version>2.12.20</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
         <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <!-- geotools -->
-        <gt.version>33.2</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <gt.version>34-M0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
         <geoserver.version>2.27.2</geoserver.version>
         <jts.version>1.20.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
@@ -124,8 +125,8 @@
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <testcontainers.version>1.21.3</testcontainers.version>
-        <testcontainers.accumulo.version>1.4.1</testcontainers.accumulo.version>
-        <testcontainers.hbase.version>1.0.0</testcontainers.hbase.version>
+        <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
+        <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
@@ -193,8 +194,7 @@
         <maven.site.plugin.version>3.21.0</maven.site.plugin.version>
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
-        <!-- note: we use an older version that still supports using zinc compile server -->
-        <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
+        <scala.maven.plugin.version>4.9.6</scala.maven.plugin.version>
         <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version> <!-- note: requires java 17+ when building site -->
 
         <!-- maven properties -->
@@ -206,16 +206,16 @@
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
-        <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
+        <maven.test.debug/>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
         <test.fork.count>2</test.fork.count>
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.accumulo.docker.tag>2.1.4</test.accumulo.docker.tag>
+        <test.accumulo.docker.tag>2.1.4-jdk17</test.accumulo.docker.tag>
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
-        <test.hbase.docker.tag>2.6.2</test.hbase.docker.tag>
+        <test.hbase.docker.tag>2.6.3-jdk17</test.hbase.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
@@ -250,27 +250,9 @@
             <!-- for remote debugging tests -->
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens} ${maven.test.debug}</maven.test.jvmargs>
+                <maven.test.debug>true</maven.test.debug>
+                <test.fork.count>1</test.fork.count> <!-- otherwise we get port conflicts -->
             </properties>
-        </profile>
-
-        <profile>
-            <!-- for using a zinc compile server -->
-            <id>zinc</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>net.alchim31.maven</groupId>
-                            <artifactId>scala-maven-plugin</artifactId>
-                            <configuration>
-                                <recompileMode>incremental</recompileMode>
-                                <useZincServer>true</useZincServer>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
         </profile>
 
         <profile>
@@ -408,9 +390,6 @@
 
         <profile>
             <id>site</id>
-            <properties>
-                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -439,9 +418,6 @@
         <profile>
             <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
             <id>bloop</id>
-            <properties>
-                <scala.maven.plugin.version>4.9.5</scala.maven.plugin.version>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>jdk.tools</groupId>
@@ -959,12 +935,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-                <classifier>data</classifier>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2471,6 +2441,7 @@
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
+                <scope>provided</scope>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.jms</groupId>
@@ -2509,7 +2480,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
@@ -2771,7 +2741,7 @@
             </dependency>
 
             <!-- dependencies excluded due to license issues -->
-            <dependency>
+            <!--<dependency>
                 <groupId>javax.media</groupId>
                 <artifactId>jai_core</artifactId>
                 <version>1.1.3</version>
@@ -2788,7 +2758,7 @@
                 <artifactId>jai_imageio</artifactId>
                 <version>1.1</version>
                 <scope>provided</scope>
-            </dependency>
+            </dependency>-->
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
@@ -3049,7 +3019,7 @@
                         <!-- Turn off 'useIncrementalCompilation' to keep this plugin
                              from recompiling Java files that the scala-maven-plugin
                              already compiled -->
-                        <useIncrementalCompilation>false</useIncrementalCompilation>
+                        <!--<useIncrementalCompilation>false</useIncrementalCompilation>-->
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
                     </configuration>
@@ -3088,19 +3058,6 @@
                             </manifestEntries>
                         </archive>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <!-- binds to the default test-jar goal to exclude logging configs -->
-                            <id>default</id>
-                            <configuration>
-                                <excludes>
-                                    <exclude>log4j.properties</exclude>
-                                    <exclude>log4j.xml</exclude>
-                                    <exclude>logging.properties</exclude>
-                                </excludes>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -3216,6 +3173,7 @@
                             <exclude>${test.excludes}</exclude>
                         </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
+                        <debugForkedProcess>${maven.test.debug}</debugForkedProcess>
                         <systemPropertyVariables>
                             <java.awt.headless>true</java.awt.headless>
                             <user.timezone>UTC</user.timezone>
@@ -3591,7 +3549,6 @@
                         <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
                         </goals>
                         <configuration>
                             <!-- we need source jars for publishing to maven central, even if there are no sources -->

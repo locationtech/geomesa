@@ -8,19 +8,6 @@ available data sources. These converters are bundled with the command-line tools
 in the GeoMesa binary distributions, in individual directories under ``conf/sfts``,
 which are included by the ``conf/reference.conf`` file.
 
-These prepackaged converters can also be obtained in a JAR that can be placed on the classpath
-of your project. This JAR may be obtained via Maven or SBT by requesting the ``geomesa-tools_2.12``
-artifact with the ``data`` classifier. For example, for Maven add the following to your POM:
-
-.. code-block:: xml
-
-    <dependency>
-        <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-tools_2.12</artifactId>
-        <version>${geomesa.version}</version>
-        <classifier>data</classifier>
-    </dependency>
-
 .. note::
 
     The examples in the sections below are often specific to the GeoMesa Accumulo distribution,

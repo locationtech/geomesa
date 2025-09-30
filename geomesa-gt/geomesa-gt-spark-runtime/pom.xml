@@ -81,6 +81,15 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>skip-spark-runtimes</id>
+            <properties>
+                <maven.shade.skip>true</maven.shade.skip>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -88,6 +97,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>spark-runtime</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>

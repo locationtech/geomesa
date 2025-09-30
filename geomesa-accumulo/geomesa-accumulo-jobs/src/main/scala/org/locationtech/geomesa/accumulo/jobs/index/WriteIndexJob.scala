@@ -105,7 +105,7 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
               allIndices.map(_.identifier).sorted.mkString(", "))
         }
       }
-      val plan = AccumuloJobUtils.getSingleQueryPlan(dsIn, new Query(sft.getTypeName, ECQL.toFilter(filter)))
+      val plan = dsIn.getSingleQueryPlan(new Query(sft.getTypeName, ECQL.toFilter(filter)))
       (sft, indices.map(_.identifier), plan)
     }
 
