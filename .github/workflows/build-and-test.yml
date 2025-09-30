@@ -121,6 +121,8 @@ jobs:
             selector: -f geomesa-features
           - name: fs
             selector: -f geomesa-fs
+          - name: fs-storage
+            selector: -f geomesa-fs-storage
           - name: gt-pg15
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16
@@ -307,21 +309,21 @@ jobs:
         docs:
           - name: 1
             selector: "-pl geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,\
-                       geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       geomesa-features/geomesa-feature-common,geomesa-fs-storage/geomesa-fs-storage-common,\
                        geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,\
                        geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,\
-                       geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                       geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs-storage/geomesa-fs-storage-orc,\
                        geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,\
                        geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,\
                        geomesa-cassandra/geomesa-cassandra-datastore"
           - name: 2
             selector: "-pl '!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
-                       !geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       !geomesa-features/geomesa-feature-common,!geomesa-fs-storage/geomesa-fs-storage-common,\
                        !geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,\
                        !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,\
-                       !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                       !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs-storage/geomesa-fs-storage-orc,\
                        !geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,\
                        !geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,\
                        !geomesa-cassandra/geomesa-cassandra-datastore'"
