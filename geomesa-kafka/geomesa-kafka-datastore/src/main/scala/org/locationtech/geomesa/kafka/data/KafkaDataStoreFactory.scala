@@ -8,12 +8,8 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.dropwizard.{DropwizardConfig, DropwizardMeterRegistry}
-import io.micrometer.core.instrument.util.HierarchicalNameMapper
-import io.micrometer.core.instrument.{Clock, Metrics}
 import org.apache.commons.lang3.StringUtils
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.DataStoreFactorySpi
@@ -27,15 +23,11 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, SerializationType}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
-import org.locationtech.geomesa.metrics.core.{GeoMesaMetrics, ReporterFactory}
-import org.locationtech.geomesa.metrics.micrometer.MicrometerSetup
-import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
-import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
+import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
-import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
@@ -122,7 +114,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.CacheExpiry,
       KafkaDataStoreParams.DynamicCacheExpiry,
       KafkaDataStoreParams.EventTime,
-      KafkaDataStoreParams.SerializationType,
       KafkaDataStoreParams.CqEngineIndices,
       KafkaDataStoreParams.IndexResolutionX,
       KafkaDataStoreParams.IndexResolutionY,
@@ -132,6 +123,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.LazyFeatures,
       KafkaDataStoreParams.LayerViews,
       KafkaDataStoreParams.MetricsRegistry,
+      KafkaDataStoreParams.MetricsRegistryConfig,
       KafkaDataStoreParams.MetricsReporters,
       KafkaDataStoreParams.AuditQueries,
       KafkaDataStoreParams.LooseBBox,
@@ -237,14 +229,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val layerViews = parseLayerViewConfig(params)
 
-    val registrySetup = MetricsRegistry.lookup(params) match {
-      case "none" => None
-      case PrometheusSetup.name => Some(PrometheusSetup)
-      case CloudwatchSetup.name => Some(CloudwatchSetup)
-      case r => throw new IllegalArgumentException(s"Unknown registry type, expected one of 'none', 'prometheus' or 'cloudwatch': $r")
-    }
+    val metrics = MetricsRegistry.lookupRegistry(params)
 
-    val metrics = MetricsReporters.lookupOpt(params).filter(_ != MetricsReporters.default).map { conf =>
+    val gmMetrics = MetricsReporters.lookupOpt(params).filter(_ != MetricsReporters.default).map { conf =>
       logger.warn(
         s"Using deprecated '${MetricsReporters.key}' Dropwizard reporters, please switch " +
           s"to '${MetricsRegistry.key}' Micrometer registries instead")
@@ -265,7 +252,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
-      indices, looseBBox, layerViews, authProvider, audit, metrics, registrySetup, ns)
+      indices, looseBBox, layerViews, authProvider, audit, gmMetrics, metrics, ns)
   }
 
   def buildSerializer(params: java.util.Map[String, _]): GeoMessageSerializerFactory = {

@@ -35,7 +35,7 @@ object ExitingExecutor {
     executor
   }
 
-  class DaemonThreadFactory(underlying: ThreadFactory) extends ThreadFactory {
+  private class DaemonThreadFactory(underlying: ThreadFactory) extends ThreadFactory {
     override def newThread(r: Runnable): Thread = {
       val thread = underlying.newThread(r)
       thread.setDaemon(true)

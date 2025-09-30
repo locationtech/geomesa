@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.Ticker
+import com.typesafe.config.Config
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
-import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
-import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
@@ -166,7 +165,8 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Type of serialization to use. Must be one of 'kryo', 'avro', or 'avro-native'",
       default = SerializationTypes.Types.head,
       enumerations = SerializationTypes.Types,
-      supportsNiFiExpressions = true
+      supportsNiFiExpressions = true,
+      readWrite = ReadWriteFlag.WriteOnly
     )
 
   object SerializationTypes {
@@ -203,16 +203,6 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Provide multiple views of a single layer via TypeSafe configuration",
       largeText = true,
       readWrite = ReadWriteFlag.ReadOnly
-    )
-
-  val MetricsRegistry =
-    new GeoMesaParam[String](
-      "kafka.metrics.registry",
-      "Specify the type of registry used to publish metrics. See " +
-        "https://www.geomesa.org/documentation/stable/user/appendix/metrics.html",
-      default = "none",
-      enumerations = Seq("none", PrometheusSetup.name, CloudwatchSetup.name),
-      readWrite = ReadWriteFlag.ReadOnly,
     )
 
   // TODO these should really be per-feature, not per datastore...
@@ -312,6 +302,8 @@ object KafkaDataStoreParams extends NamespaceParams {
 
   val LooseBBox: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.LooseBBoxParam
   val AuditQueries: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.AuditQueriesParam
+  val MetricsRegistry: GeoMesaDataStoreFactory.MetricsRegistryParam = GeoMesaDataStoreFactory.MetricsRegistryParam
+  val MetricsRegistryConfig: GeoMesaParam[Config] = GeoMesaDataStoreFactory.MetricsRegistryConfigParam
   val Authorizations: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
 
   val ExecutorTicker =

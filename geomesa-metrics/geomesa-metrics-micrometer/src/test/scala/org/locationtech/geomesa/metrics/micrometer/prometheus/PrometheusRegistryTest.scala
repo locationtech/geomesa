@@ -41,8 +41,8 @@ class PrometheusRegistryTest extends Specification {
   "Prometheus registry" should {
     "expose metrics over http" in {
       val port = getFreePort
-      val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port }")
-      val registry = MicrometerSetup.createRegistry(conf)
+      val conf = ConfigFactory.parseString(s"{ port = $port }")
+      val registry = PrometheusFactory(conf)
       try {
         registry must beAnInstanceOf[PrometheusMeterRegistry]
         registry.counter("foo").increment(10)
@@ -60,7 +60,7 @@ class PrometheusRegistryTest extends Specification {
           reader.close()
         }
 
-        metrics must contain("foo_total 10.0")
+        metrics must contain("""foo_total{application="geomesa"} 10.0""")
       } finally {
         registry.close()
       }
@@ -68,7 +68,7 @@ class PrometheusRegistryTest extends Specification {
 
     "expose global metrics over http" in {
       val port = getFreePort
-      val registration = PrometheusSetup.register(port)
+      val registration = PrometheusFactory.register(port)
       try {
         val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "")
         Metrics.counter(id).increment(10)
@@ -94,8 +94,8 @@ class PrometheusRegistryTest extends Specification {
 
     "expose metrics over http with custom tags" in {
       val port = getFreePort
-      val conf = ConfigFactory.parseString(s"{ type = prometheus, port = $port, common-tags = { foo = bar }}")
-      val registry = MicrometerSetup.createRegistry(conf)
+      val conf = ConfigFactory.parseString(s"{ port = $port, common-tags = null, common-tags = { foo = bar }}")
+      val registry = PrometheusFactory(conf)
       try {
         registry must beAnInstanceOf[PrometheusMeterRegistry]
         registry.counter("foo").increment(10)
@@ -126,8 +126,8 @@ class PrometheusRegistryTest extends Specification {
       try {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
-        val conf = ConfigFactory.parseString(s"""{ type = prometheus, push-gateway = { host = "localhost:$port", job = job1, format = prometheus_text }}""")
-        val registry = MicrometerSetup.createRegistry(conf)
+        val conf = ConfigFactory.parseString(s"""{ push-gateway = { host = "localhost:$port", job = job1, format = prometheus_text }}""")
+        val registry = PrometheusFactory(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)
@@ -137,10 +137,10 @@ class PrometheusRegistryTest extends Specification {
         handler.requests.keys must contain("/metrics/job/job1")
         val job1 = handler.requests("/metrics/job/job1")
         job1.contentType must beSome(PrometheusTextFormatWriter.CONTENT_TYPE)
-        job1.body must contain("foo_total 10")
+        job1.body must contain("""foo_total{application="geomesa"} 10.0""")
 
         val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "")
-        val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2", format = Format.PROMETHEUS_TEXT)
+        val registration = PrometheusFactory.registerPushGateway(s"localhost:$port", "job2", format = Format.PROMETHEUS_TEXT)
         try {
           Metrics.counter(id).increment(10)
         } finally {
@@ -162,8 +162,8 @@ class PrometheusRegistryTest extends Specification {
       try {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
-        val conf = ConfigFactory.parseString(s"""{ type = prometheus, push-gateway = { host = "localhost:$port", job = job1 }}""")
-        val registry = MicrometerSetup.createRegistry(conf)
+        val conf = ConfigFactory.parseString(s"""{ push-gateway = { host = "localhost:$port", job = job1 }}""")
+        val registry = PrometheusFactory(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)
@@ -177,7 +177,7 @@ class PrometheusRegistryTest extends Specification {
         job1.body must contain("foo_total")
 
         val id = "foo" + UUID.randomUUID().toString.replaceAll("-", "").replaceAll("10", "x") // so we don't match on the uuid, below
-        val registration = PrometheusSetup.registerPushGateway(s"localhost:$port", "job2")
+        val registration = PrometheusFactory.registerPushGateway(s"localhost:$port", "job2")
         try {
           Metrics.counter(id).increment(10)
         } finally {
@@ -201,9 +201,8 @@ class PrometheusRegistryTest extends Specification {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
         val conf =
-          ConfigFactory.parseString(
-            s"""{ type = prometheus,  common-tags = { blu = baz }, push-gateway = { host = "localhost:$port", job = job1 }}""")
-        val registry = MicrometerSetup.createRegistry(conf)
+          ConfigFactory.parseString(s"""{ common-tags = { blu = baz }, push-gateway = { host = "localhost:$port", job = job1 }}""")
+        val registry = PrometheusFactory(conf)
         try {
           registry must beAnInstanceOf[PrometheusMeterRegistry]
           registry.counter("foo").increment(10)

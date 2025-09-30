@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -31,6 +32,7 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.{Closeable, IOException}
 import java.time.{Instant, ZoneOffset}
@@ -49,6 +51,16 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
   protected [geomesa] val interceptors: QueryInterceptorFactory = QueryInterceptorFactory(this)
+
+  // common metrics tags for this data store
+  private val tags: Tags = {
+    val storeTag = {
+      val name = getClass.getSimpleName.toLowerCase(Locale.US)
+      val i = name.lastIndexOf("datastore")
+      if (i > 0) { name.substring(0, i) } else { name }
+    }
+    Tags.of("store", storeTag, "catalog", config.catalog)
+  }
 
   // hooks to allow extended functionality
 
@@ -421,6 +433,14 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   }
 
   // end methods from org.geotools.api.data.DataStore
+
+  /**
+   * Get metrics tags for a given type name + this store
+   *
+   * @param typeName type name
+   * @return
+   */
+  def tags(typeName: String): Tags = tags.and(MetricsTags.typeNameTag(typeName))
 
   /**
    * Validate a call to updateSchema, throwing errors on failed validation

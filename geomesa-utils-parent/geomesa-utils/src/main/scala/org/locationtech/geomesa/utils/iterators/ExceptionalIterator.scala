@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * @param delegate delegate iterator
  * @tparam T type bounds
  */
-class ExceptionalIterator[T](val delegate: Iterator[T]) extends Iterator[T] {
+class ExceptionalIterator[T](delegate: Iterator[T]) extends Iterator[T] {
 
   private var _suppressed: Throwable = _
 

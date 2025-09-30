@@ -58,7 +58,7 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     }
   }
 
-  override protected def createTable(): Unit = {
+  override protected def createTable(): Unit = synchronized {
     val newTopic =
       new NewTopic(config.catalog, 1, config.topics.replication.toShort)
           .configs(Collections.singletonMap(CleanupPolicyConfig, CompactCleanupPolicy))
@@ -100,7 +100,10 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     }
   }
 
-  override def close(): Unit = CloseWithLogging(Seq(producer, consumer))
+  override def close(): Unit = {
+    CloseWithLogging(Seq(producer, consumer))
+    super.close()
+  }
 
   /**
    * Ensure that the topic has a cleanup policy of 'compact', so that feature types aren't aged off

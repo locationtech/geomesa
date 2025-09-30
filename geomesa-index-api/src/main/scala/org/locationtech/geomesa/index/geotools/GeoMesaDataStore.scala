@@ -42,17 +42,19 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
-  * Abstract base class for data store implementations on top of distributed databases
-  *
-  * @param config common datastore configuration options - subclasses can extend this
-  * @tparam DS type of this data store
-  */
+ * Abstract base class for data store implementations on top of distributed databases
+ *
+ * @param config common datastore configuration options - subclasses can extend this
+ * @tparam DS type of this data store
+ */
 abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats {
 
   this: DS =>
 
   import scala.collection.JavaConverters._
+
+  private val registry = config.metrics.map(_.register())
 
   val queryPlanner: QueryPlanner[DS] = new QueryPlanner(this)
 
@@ -409,6 +411,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     Try(GeoMesaDataStore.liveStores.get(VersionKey(config.catalog, getClass)).remove(this))
     CloseWithLogging(stats)
     CloseWithLogging(config.audit)
+    CloseWithLogging(registry)
     super.dispose()
   }
 

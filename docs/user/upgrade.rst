@@ -102,12 +102,15 @@ The following dependencies have been upgraded:
 * commons-io ``2.16.1`` -> ``2.19.0``
 * geotools ``33.1`` -> ``33.2``
 * hadoop ``3.4.1`` -> ``3.4.2``
+* hbase ``2.6.1`` -> ``2.6.3``
 * jackson ``2.17.2`` -> ``2.19.0``
 * micrometer ``1.13.4`` -> ``1.15.4``
 * nifi ``2.4.0`` -> ``2.5.0``
 * orc ``1.9.6`` -> ``1.9.7``
 * postgresql ``42.7.2`` -> ``42.7.7``
 * prometheus ``1.3.1`` -> ``1.4.1``
+* s2-geometry ``io.sgr:1.0.1`` -> ``org.datasyslab:20250620-rc1``
+* sedona ``1.5.0`` -> ``1.8.0``
 
 Switch to Micrometer Metrics
 ----------------------------
@@ -115,7 +118,11 @@ Switch to Micrometer Metrics
 GeoMesa has transitioned from Dropwizard metrics to :ref:`geomesa_metrics`. As a result, the configuration for
 :ref:`kafka_index` metrics and converter :ref:`converter_metrics` has also changed. Existing Dropwizard configurations
 have been deprecated, but will continue to work until they are removed in the next major release. However, metric
-names and formats may change slightly due to the difference in Micrometer's implementation.
+names and formats may change due to the difference in Micrometer's implementation.
+
+The ``MicrometerSetup`` class introduced in GeoMesa 5.3 has been deprecated. In most scenarios, the data store parameters
+``geomesa.metrics.registry`` and ``geomesa.metrics.registry.config`` can be used instead. For programmatic usage,
+``PrometheusRegistry`` and ``CloudwatchRegistry`` can be invoked directly. See :ref:`geomesa_metrics` for details.
 
 Partitioned PostGIS Table Changes
 ---------------------------------
@@ -145,6 +152,7 @@ Deprecated Classes
 The following classes have been deprecated and will be removed in the next major release:
 
 * ``org.locationtech.geomesa.features.SerializationOption.SerializationOptions``
+* ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
 
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++

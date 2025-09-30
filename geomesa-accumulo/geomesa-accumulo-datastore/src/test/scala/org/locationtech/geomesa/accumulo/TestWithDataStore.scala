@@ -37,13 +37,15 @@ trait TestWithDataStore extends Specification {
     AccumuloDataStoreParams.UserParam.key         -> AccumuloContainer.user,
     AccumuloDataStoreParams.PasswordParam.key     -> AccumuloContainer.password,
     AccumuloDataStoreParams.CatalogParam.key      -> catalog
-  )
+  ) ++ extraParams
 
   lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
   lazy val root  = AccumuloContainer.Users.root
   lazy val admin = AccumuloContainer.Users.admin
   lazy val user  = AccumuloContainer.Users.user
+
+  def extraParams: Map[String, String] = Map.empty
 
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
     ds.delete()

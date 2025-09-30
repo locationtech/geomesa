@@ -9,26 +9,27 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{DistributionSummary, Metrics}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tags}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
 import org.apache.kafka.common.TopicPartition
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{ExpiryTimeConfig, MetricsPrefix}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.LatencyMetrics
 
 import java.io.Closeable
 import java.time.Duration
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future}
-import java.util.{Collections, Date}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -42,6 +43,8 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 }
 
 object KafkaCacheLoader extends LazyLogging {
+
+  private val MetricsPrefix = s"${KafkaDataStore.MetricsPrefix}.consumer"
 
   /**
    * Object for tracking the initial load status of data stores
@@ -102,6 +105,7 @@ object KafkaCacheLoader extends LazyLogging {
       serializer: GeoMessageSerializer,
       initialLoad: Option[scala.concurrent.duration.Duration],
       initialLoadConfig: ExpiryTimeConfig,
+      tags: Tags,
     ) extends ThreadedConsumer(consumers, frequency, offsetCommitInterval) with KafkaCacheLoader {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -110,23 +114,10 @@ object KafkaCacheLoader extends LazyLogging {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    private val tags = KafkaDataStore.tags(sft)
-    private val updates = Metrics.counter(s"$MetricsPrefix.read.updates", tags)
-    private val deletes = Metrics.counter(s"$MetricsPrefix.read.deletes", tags)
-    private val clears = Metrics.counter(s"$MetricsPrefix.read.clears", tags)
-    private val dtgMetrics = sft.getDtgIndex.map { i =>
-      val last = Metrics.gauge(s"$MetricsPrefix.read.dtg.latest", tags, new AtomicLong())
-      val latency =
-        DistributionSummary
-          .builder(s"$MetricsPrefix.read.dtg.latency")
-          .baseUnit("milliseconds")
-          .tags(tags)
-          .publishPercentileHistogram()
-          .minimumExpectedValue(1d)
-          .maximumExpectedValue(24 * 60 * 60 * 1000d) // 1 day
-          .register(Metrics.globalRegistry)
-      DateMetrics(i, last, latency)
-    }
+    private val updates = Metrics.counter(s"$MetricsPrefix.updates", tags)
+    private val deletes = Metrics.counter(s"$MetricsPrefix.deletes", tags)
+    private val clears = Metrics.counter(s"$MetricsPrefix.clears", tags)
+    private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, MetricsPrefix, tags))
 
     // for the initial load, don't bother spatially indexing until we have the final state
     private val initialLoader = initialLoad.map(readBack => new InitialLoader(readBack))
@@ -159,13 +150,7 @@ object KafkaCacheLoader extends LazyLogging {
           cache.fireChange(timestamp, m.feature)
           cache.put(m.feature)
           updates.increment()
-          dtgMetrics.foreach { case DateMetrics(index, dtg, latency) =>
-            val date = m.feature.getAttribute(index).asInstanceOf[Date]
-            if (date != null) {
-              dtg.updateAndGet(prev => Math.max(prev, date.getTime))
-              latency.record(System.currentTimeMillis() - date.getTime)
-            }
-          }
+          latency.foreach(_.apply(m.feature))
 
         case m: Delete =>
           cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull)
@@ -185,6 +170,10 @@ object KafkaCacheLoader extends LazyLogging {
      * Handles initial loaded 'from-beginning' without indexing features in the spatial index. Will still
      * trigger message events.
      *
+     * Since the entire consumer group is in this process, we shouldn't usually get rebalance events after the initial assignment.
+     * However, it can still occur if the number of partitions is administratively altered. Note that we don't try to
+     * re-read the topic if a partition is revoked and then reassigned.
+     *
      * @param readBack initial load read back
      */
     private class InitialLoader(readBack: scala.concurrent.duration.Duration)
@@ -200,15 +189,13 @@ object KafkaCacheLoader extends LazyLogging {
       private val clears = Metrics.counter(s"$MetricsPrefix.readback.clears", tags)
 
       // track the offsets that we want to read to
-      private val offsets = new ConcurrentHashMap[Int, Long]()
+      private val offsets = new ConcurrentHashMap[Int, java.lang.Long]()
       private val assignment = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean]())
       @volatile
       private var done: Boolean = false
       private var latch: CountDownLatch = _
       @volatile
       private var submission: Future[_] = _
-
-      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
       override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
         logger.debug(s"Partitions assigned: ${topicPartitions.asScala.mkString(", ")}")
@@ -255,6 +242,18 @@ object KafkaCacheLoader extends LazyLogging {
                 KafkaConsumerVersions.resume(consumer, tp)
               }
             }
+          }
+        }
+      }
+
+      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+        logger.debug(s"Partitions revoked: ${topicPartitions.asScala.mkString(", ")}")
+        topicPartitions.asScala.foreach { tp =>
+          if (offsets.remove(tp.partition) != null) {
+            latch.countDown()
+            logger.info(
+              s"Stopping initial load due to revocation of assignment for [$topic:${tp.partition}], " +
+                s"${latch.getCount} partitions remaining")
           }
         }
       }
@@ -348,8 +347,7 @@ object KafkaCacheLoader extends LazyLogging {
       private def checkComplete(consumer: Consumer[Array[Byte], Array[Byte]], tp: TopicPartition): Unit = {
         val position = consumer.position(tp)
         // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
-        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue)) {
-          offsets.remove(tp.partition)
+        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue) && offsets.remove(tp.partition) != null) {
           latch.countDown()
           logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
         }
@@ -364,7 +362,6 @@ object KafkaCacheLoader extends LazyLogging {
        */
       private class InitialLoaderConsumerRunnable(id: String, consumer: Consumer[Array[Byte], Array[Byte]], handler: ConsumerErrorHandler)
           extends ConsumerRunnable(id, consumer, handler) {
-
         override protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
           try { super.processPoll(result) } finally {
             result.partitions().asScala.foreach(checkComplete(consumer, _))

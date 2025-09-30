@@ -20,6 +20,7 @@ import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.InputStream
 import java.time.Duration
@@ -32,7 +33,23 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
     delegates: Seq[(Predicate, ParsingConverter[T])]
   ) extends SimpleFeatureConverter with LazyLogging {
 
-  private val tags = ConverterMetrics.typeNameTag(sft)
+  private val tags = MetricsTags.typeNameTag(sft)
+
+  private val routingTimer =
+    Timer.builder(ConverterMetrics.name("predicate.eval"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(2))
+      .register(Metrics.globalRegistry)
+
+  private val parseTimer =
+    Timer.builder(ConverterMetrics.name("parse"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(10))
+      .register(Metrics.globalRegistry)
 
   protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[T]
 
@@ -73,36 +90,21 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
       }
     }
 
-    val routing =
-      Timer.builder(ConverterMetrics.name("predicate.eval"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(2))
-        .register(Metrics.globalRegistry)
-
     def eval(element: T): CloseableIterator[SimpleFeature] = {
       val start = System.nanoTime()
       args(0) = element
       val converted = predicates.collectFirst { case p if matches(p.predicate) =>
-        routing.record(System.nanoTime() - start, TimeUnit.NANOSECONDS) // note: invoke before executing the conversion
+        routingTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS) // note: invoke before executing the conversion
         p.context.line = ec.line // update the line in the sub context
         p.converter.convert(CloseableIterator.single(element), p.context)
       }
       converted.getOrElse {
-        routing.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+        routingTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
         ec.stats.failure()
         CloseableIterator.empty
       }
     }
 
-    val parseTimer =
-      Timer.builder(ConverterMetrics.name("parse"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(10))
-        .register(Metrics.globalRegistry)
     new ErrorHandlingIterator(parse(is, ec), errorMode, ec, parseTimer).flatMap(eval)
   }
 

@@ -18,6 +18,9 @@ Parameter                               Type     Description
                                                  for more information. Setting this timeout may help prevent abandoned queries from slowing down database operations.
 ``read_access_roles``                   String   A comma-separated list of roles that should be granted read-only access to any new schemas. These roles must already exist in the
                                                  database.
+``geomesa.metrics.registry``            String   Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                                 ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``     String   Override the default registry config. See :ref:`geomesa_metrics` for configuration details.
 ======================================= ======== ===================================================================================================================================
 
 Programmatic Access

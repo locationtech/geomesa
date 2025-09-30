@@ -29,6 +29,8 @@ class RedisBackedMetadata[T](connection: Pool[_ <: CloseableJedisCommands], tabl
 
   import scala.collection.JavaConverters._
 
+  // note: connection pool gets closed by the owning data store
+
   val key: Array[Byte] = table.getBytes(StandardCharsets.UTF_8)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
@@ -62,6 +64,4 @@ class RedisBackedMetadata[T](connection: Pool[_ <: CloseableJedisCommands], tabl
   override protected def checkIfTableExists: Boolean = true
 
   override protected def createTable(): Unit = {}
-
-  override def close(): Unit = {}
 }

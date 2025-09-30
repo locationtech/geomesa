@@ -56,9 +56,9 @@ Parameter                                    Type    Description
 ``kafka.serialization.lazy``                 Boolean Use lazy deserialization of features. This may improve processing load at
                                                      the expense of slightly slower query times
 ``kafka.layer.views``                        String  Additional views on existing schemas to expose as layers. See :ref:`kafka_layer_views` for details
-``kafka.metrics.registry``                   String  Specify the type of registry used to publish metrics. Must be one of ``none``, ``prometheus``
-                                                     (to invoke ``PrometheusSetup``), or ``cloudwatch`` (to invoke ``CloudwatchSetup``). See
-                                                     :ref:`geomesa_metrics` for details on the different options.
+``geomesa.metrics.registry``                 String  Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                                     ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``          String  Override the default registry config. See :ref:`geomesa_metrics` for configuration details.
 ``geomesa.query.loose-bounding-box``         Boolean Use loose bounding boxes, which offer improved performance but are not exact
 ``geomesa.query.audit``                      Boolean Audit incoming queries. By default audits are written to a log file
 ``geomesa.security.auths``                   String  Default authorizations used to query data, comma-separated

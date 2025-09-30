@@ -70,7 +70,7 @@ trait KeyValueStoreMetadata[T] extends TableBasedMetadata[T] {
     *
     * @param rows rows
     */
-  protected def delete(rows: Seq[Array[Byte]])
+  protected def delete(rows: Seq[Array[Byte]]): Unit
 
   /**
     * Reads a value from the underlying table
