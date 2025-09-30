@@ -56,6 +56,7 @@ env:
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
+  MAVEN_SPARK_COMPILE_ARGS: package -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T1.5C
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
 
@@ -248,10 +249,12 @@ jobs:
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Find Spark runtime modules
-        run: export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
+        run: |
+          export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
+          echo $PROJECT_LIST
       - name: Build Spark runtimes
         # build the spark runtime jars, they are slow so we do them here in a parallel job
-        run: mvn package -pl "$PROJECT_LIST" $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_SPARK_COMPILE_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
       - name: Run Spark tests
         run: mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
       - name: Remove geomesa artifacts
