@@ -220,6 +220,7 @@ jobs:
       - name: Integration Tests
         run: |
           export IT_MODULES="$(find . -path '*/src/test/*' -name '*IT.scala' -o -name '*IT.java' | sed 's|\(.*\)src/test.*|\1|' | sort -u | tr '\n' ',')"
+          echo $IT_MODULES
           mvn $MAVEN_IT_ARGS $MAVEN_CLI_OPTS -pl "$IT_MODULES"
       - name: Remove geomesa artifacts
         if: success() || failure()
@@ -248,14 +249,11 @@ jobs:
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
-      - name: Find Spark runtime modules
-        run: |
-          export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
-          echo $PROJECT_LIST
       - name: Build Spark runtimes
         # build the spark runtime jars, they are slow so we do them here in a parallel job
         run: |
-          echo mvn $MAVEN_SPARK_COMPILE_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
+          export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
+          echo $PROJECT_LIST
           mvn $MAVEN_SPARK_COMPILE_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
       - name: Run Spark tests
         run: |
