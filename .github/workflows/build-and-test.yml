@@ -51,7 +51,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2C
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T1.5C
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
@@ -105,7 +105,8 @@ jobs:
           - name: accumulo-ds-3
             selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ inputs.accumulo-test-splits-1 }}, ${{ inputs.accumulo-test-splits-2 }}"
           - name: accumulo-other
-            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }},-:geomesa-accumulo-distributed-runtime_${{ inputs.scala-version }}
           - name: arrow
             selector: -f geomesa-arrow
           - name: cassandra
@@ -125,7 +126,8 @@ jobs:
           - name: gt-pg17
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
           - name: hbase
-            selector: -f geomesa-hbase
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ inputs.scala-version }}
           - name: kafka
             selector: -f geomesa-kafka
           - name: lambda
