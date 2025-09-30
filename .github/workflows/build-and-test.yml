@@ -127,9 +127,12 @@ jobs:
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=16-3.5
           - name: gt-pg17
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
-          - name: hbase
+          - name: hbase-ds
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ inputs.scala-version }}
+            selector: -pl :geomesa-hbase-datastore_${{ inputs.scala-version }}
+          - name: hbase-other
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ inputs.scala-version }},-:geomesa-hbase-datastore_${{ inputs.scala-version }}
           - name: kafka
             selector: -f geomesa-kafka
           - name: lambda
