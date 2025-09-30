@@ -51,7 +51,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T1.5C
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2C
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true

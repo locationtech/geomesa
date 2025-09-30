@@ -13,7 +13,6 @@ import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 import org.geomesa.testcontainers.AccumuloContainer
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

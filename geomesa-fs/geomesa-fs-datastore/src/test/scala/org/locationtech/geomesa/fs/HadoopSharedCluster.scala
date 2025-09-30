@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets
  */
 object HadoopSharedCluster extends StrictLogging {
 
-  lazy val Container: HadoopContainer = org.geomesa.testcontainers.HadoopContainer.getInstance()
+  lazy val Container: HadoopContainer = HadoopContainer.getInstance()
 
   lazy val ContainerConfiguration: Configuration = {
     val conf = new Configuration(false)
