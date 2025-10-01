@@ -10,6 +10,11 @@
     <artifactId>geomesa-feature-all_2.12</artifactId>
     <name>GeoMesa Features All</name>
 
+    <properties>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
