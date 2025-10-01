@@ -31,8 +31,8 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
 import java.util.Collections

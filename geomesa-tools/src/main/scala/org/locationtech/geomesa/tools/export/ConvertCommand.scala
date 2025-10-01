@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 
 class ConvertCommand extends Command with MethodProfiling with LazyLogging {

@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.utils.conversions
 
-import scala.reflect.ClassTag
-
 object ScalaImplicits {
 
   implicit class RichIterator[T](val iter: Iterator[T]) extends AnyVal {
@@ -18,21 +16,6 @@ object ScalaImplicits {
     def mapWithIndex[B](f: (T, Int) => B): Iterator[B] = {
       var i = -1
       iter.map { v => i += 1; f(v, i) }
-    }
-  }
-
-  implicit class RichArray[T](val array: Array[T]) extends AnyVal {
-    def foreachIndex[U](f: (T, Int) => U): Unit = {
-      var i = 0
-      while (i < array.length) {
-        f(array(i), i)
-        i += 1
-      }
-    }
-
-    def mapWithIndex[B](f: (T, Int) => B)(implicit ct: ClassTag[B]): Array[B] = {
-      var i = -1
-      array.map { v => i += 1; f(v, i) }
     }
   }
 }

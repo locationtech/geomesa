@@ -13,7 +13,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
+import org.locationtech.geomesa.utils.index.{SpatialIndex, WrappedQuadtree}
 import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -27,7 +27,7 @@ class SpatialIndexSupportTest extends Specification {
 
   val sis = new SpatialIndexSupport() {
     override val sft: SimpleFeatureType = _sft
-    override val index: SpatialIndex[SimpleFeature] = new SynchronizedQuadtree[SimpleFeature]
+    override val index: SpatialIndex[SimpleFeature] = new WrappedQuadtree[SimpleFeature]
   }
 
   step {

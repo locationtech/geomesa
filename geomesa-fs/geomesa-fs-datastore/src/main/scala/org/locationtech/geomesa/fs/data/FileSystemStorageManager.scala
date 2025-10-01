@@ -15,7 +15,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.control.NonFatal

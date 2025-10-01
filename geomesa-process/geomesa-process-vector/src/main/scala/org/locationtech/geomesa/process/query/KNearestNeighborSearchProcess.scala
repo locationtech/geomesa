@@ -28,7 +28,6 @@ import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess.KNNV
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
-import org.locationtech.geomesa.utils.geometry.DistanceCalculator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
@@ -320,7 +319,7 @@ object KNearestNeighborSearchProcess {
       private var i: Int = 0
     ) extends LazyLogging {
 
-    private val calculator = new DistanceCalculator()
+    private val calculator = new GeodeticCalculator()
 
     // tracks the index of our current farthest value
     private var fi = if (i < k) { 0 } else { farthest }
@@ -341,7 +340,11 @@ object KNearestNeighborSearchProcess {
     def visit(feature: SimpleFeature): Option[Double] = {
       feature.getDefaultGeometry match {
         case p: Point =>
-          val meters = calculator.meters(query, p)
+          val meters = {
+            calculator.setStartingGeographicPoint(query.getX, query.getY)
+            calculator.setDestinationGeographicPoint(p.getX, p.getY)
+            calculator.getOrthodromicDistance
+          }
           if (meters > threshold) {
             Some(meters)
           } else {

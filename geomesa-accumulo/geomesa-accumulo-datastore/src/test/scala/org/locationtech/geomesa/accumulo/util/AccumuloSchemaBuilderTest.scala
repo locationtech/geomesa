@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.util
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

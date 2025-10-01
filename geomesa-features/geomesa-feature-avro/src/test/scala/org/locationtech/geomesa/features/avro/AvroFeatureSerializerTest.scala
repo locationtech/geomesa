@@ -11,9 +11,10 @@ package org.locationtech.geomesa.features.avro
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification

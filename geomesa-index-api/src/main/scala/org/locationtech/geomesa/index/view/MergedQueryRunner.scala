@@ -28,7 +28,7 @@ import org.locationtech.geomesa.index.view.MergedQueryRunner.Queryable
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
+import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
 
 /**
  * Query runner for merging results from multiple stores

@@ -458,8 +458,6 @@ object DeltaWriter extends StrictLogging {
       batchSize: Int,
       threadedBatches: Array[Array[Array[Byte]]]): CloseableIterator[Array[Byte]] = {
 
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
-
     val dictionaries = mergedDictionaries.dictionaries
 
     val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
@@ -478,7 +476,9 @@ object DeltaWriter extends StrictLogging {
     val cleanup = ArrayBuffer.empty[SimpleFeatureVector]
     cleanup.sizeHint(threadedBatches.foldLeft(0)((sum, a) => sum + a.length))
 
-    threadedBatches.foreachIndex { case (batches, batchIndex) =>
+    var batchIndex = -1
+    threadedBatches.foreach { batches =>
+      batchIndex += 1
       val mappings = mergedDictionaries.mappings.map { case (f, m) => (f, m(batchIndex)) }
       logger.trace(s"loading ${batches.length} batch(es) from a single thread")
 
@@ -629,7 +629,6 @@ object DeltaWriter extends StrictLogging {
       dictionaryFields: Seq[String],
       deltas: Array[Array[Array[Byte]]],
       encoding: SimpleFeatureEncoding): MergedDictionaries = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 
     val allocator = ArrowAllocator(s"merge-dictionaries:${sft.getTypeName}")
 
@@ -705,7 +704,9 @@ object DeltaWriter extends StrictLogging {
         val off = Array.ofDim[Int](offsets.length)
         System.arraycopy(offsets, 0, off, 0, offsets.length)
 
-        val transfers = vectors.mapWithIndex { case (v, j) =>
+        var j = -1
+        val transfers = vectors.map { v =>
+          j += 1
           offsets(j) += v.getValueCount // note: side-effect in map - update our offsets for the next batch
           v.vector.makeTransferPair(dictionaries(j).vector)
         }
@@ -749,9 +750,11 @@ object DeltaWriter extends StrictLogging {
     // dictionary(batch(mapping))
     val mappings = Array.fill(results.length)(Array.fill(allMerges.length)(new java.util.HashMap[Integer, Integer]()))
 
-    results.foreachIndex { case (result, i) =>
+    var resultIndex = -1
+    results.foreach { result =>
+      resultIndex += 1
       allMerges.foreach { merger =>
-        if (merger.setCurrent(i)) {
+        if (merger.setCurrent(resultIndex)) {
           queue.add(merger)
         }
       }
@@ -765,10 +768,10 @@ object DeltaWriter extends StrictLogging {
           count += 1
         }
         // update the dictionary mapping from the per-thread to the global dictionary
-        logger.trace(s"remap ${merger.value} ${merger.batch} ${merger.mappings(i)} ${merger.index} -> ${count - 1}")
+        logger.trace(s"remap ${merger.value} ${merger.batch} ${merger.mappings(resultIndex)} ${merger.index} -> ${count - 1}")
         val remap = merger.remap
         if (remap != null) {
-          mappings(i)(merger.batch).put(remap, count - 1)
+          mappings(resultIndex)(merger.batch).put(remap, count - 1)
         }
         if (merger.advance()) {
           queue.add(merger)
@@ -783,11 +786,14 @@ object DeltaWriter extends StrictLogging {
     val mappingsBuilder = Map.newBuilder[String, Array[java.util.Map[Integer, Integer]]]
     mappingsBuilder.sizeHint(dictionaryFields.length)
 
-    vectorMetadata.foreachIndex { case ((name, bindings, _, _, _), i) =>
-      logger.trace("merged dictionary: " + Seq.tabulate(results(i).getValueCount)(results(i).apply).mkString(","))
-      val enc = new DictionaryEncoding(i, true, new ArrowType.Int(32, true))
-      dictionaryBuilder += name -> ArrowDictionary.create(enc, results(i).vector, bindings, encoding)
-      mappingsBuilder += name -> mappings(i).asInstanceOf[Array[java.util.Map[Integer, Integer]]]
+    var vectorMetadataIndex = -1
+    vectorMetadata.foreach { case (name, bindings, _, _, _) =>
+      vectorMetadataIndex += 1
+      logger.trace(
+        s"merged dictionary: ${Seq.tabulate(results(vectorMetadataIndex).getValueCount)(results(vectorMetadataIndex).apply).mkString(",")}")
+      val enc = new DictionaryEncoding(vectorMetadataIndex, true, new ArrowType.Int(32, true))
+      dictionaryBuilder += name -> ArrowDictionary.create(enc, results(vectorMetadataIndex).vector, bindings, encoding)
+      mappingsBuilder += name -> mappings(vectorMetadataIndex).asInstanceOf[Array[java.util.Map[Integer, Integer]]]
     }
 
     val dictionaryMap = dictionaryBuilder.result()

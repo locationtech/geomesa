@@ -18,7 +18,7 @@ import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSche
 import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
 import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentCommand, VersionCommand}
 import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.io.File
 import java.nio.charset.StandardCharsets
