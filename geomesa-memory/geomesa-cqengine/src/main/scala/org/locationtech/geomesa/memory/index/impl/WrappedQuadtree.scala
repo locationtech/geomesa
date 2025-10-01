@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import org.locationtech.jts.index.quadtree.Quadtree
 
@@ -15,14 +15,10 @@ import scala.collection.JavaConverters._
 /**
  * Spatial index wrapper for un-synchronized quad tree
  */
-class WrappedQuadtree[T] extends WrapperIndex[T,Quadtree](
-  indexBuider = () => new Quadtree()
-
-) with Serializable {
+class WrappedQuadtree[T] extends WrapperIndex[T,Quadtree](() => new Quadtree()) with Serializable {
 
   override def query(): Iterator[T] =
     index.queryAll().iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)
 
   override def size(): Int = index.size()
-
 }

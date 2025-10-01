@@ -6,14 +6,11 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import org.locationtech.jts.index.strtree.STRtree
 
-class WrappedSTRtree[T](nodeCapacity:Int = 10) extends WrapperIndex[T,STRtree](
-  indexBuider = () => new STRtree(nodeCapacity)
-) with Serializable {
-
+class WrappedSTRtree[T](nodeCapacity:Int = 10) extends WrapperIndex[T,STRtree](() => new STRtree(nodeCapacity))
+    with Serializable {
   override def size(): Int = index.size()
-
 }

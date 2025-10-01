@@ -6,9 +6,11 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import com.typesafe.scalalogging.StrictLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.memory.index.{SimpleFeatureSpatialIndex, SpatialIndex}
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
@@ -190,6 +192,21 @@ class SizeSeparatedBucketIndex[T](sizes: Seq[(Double, Double)] = SizeSeparatedBu
 }
 
 object SizeSeparatedBucketIndex {
+
   // TODO https://geomesa.atlassian.net/browse/GEOMESA-2322 these are somewhat arbitrary
   val DefaultTiers: Seq[(Double, Double)] = Seq((1, 1), (4, 4), (32, 32), (360, 180))
+
+  def apply(
+      sft: SimpleFeatureType,
+      tiers: Seq[(Double, Double)],
+      xBucketMultiplier: Double,
+      yBucketMultiplier: Double): SimpleFeatureSpatialIndex =
+    new SimpleFeatureSizeSeparatedBucketIndex(sft, tiers, xBucketMultiplier, yBucketMultiplier)
+
+  private class SimpleFeatureSizeSeparatedBucketIndex(
+      val sft: SimpleFeatureType,
+      tiers: Seq[(Double, Double)],
+      xBucketMultiplier: Double,
+      yBucketMultiplier: Double
+    ) extends SizeSeparatedBucketIndex[SimpleFeature](tiers, xBucketMultiplier, yBucketMultiplier) with SimpleFeatureSpatialIndex
 }

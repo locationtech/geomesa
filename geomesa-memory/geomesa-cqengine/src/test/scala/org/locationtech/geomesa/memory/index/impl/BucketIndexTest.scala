@@ -6,12 +6,15 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.DataUtilities
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.locationtech.jts.geom.{Envelope, Point}
+import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -129,6 +132,17 @@ class BucketIndexTest extends Specification with LazyLogging {
       }
       results3 must haveLength(4)
       results3 must containTheSameElementsAs(for (x <- -10 to -9; y <- 9 to 10) yield s"POINT($x $y)")
+    }
+
+    "support geotools filters" in {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326,geom2:Point:srid=4326")
+      val f1 = DataUtilities.parse(sft, "one", "one", "POINT(48.9 80)", "POINT(38.9 80)")
+      val f2 = DataUtilities.parse(sft, "two", "two", "POINT(49.5 80)", "POINT(39.5 80)")
+      val index = BucketIndex(sft, 360, 180)
+      index.insert(f1.getDefaultGeometry.asInstanceOf[Geometry], f1.getID, f1)
+      index.insert(f2.getDefaultGeometry.asInstanceOf[Geometry], f2.getID, f2)
+      index.query(ECQL.toFilter("bbox(geom, 49.0, 79.0, 51.0, 81.0)")).toList mustEqual List(f2)
+      index.query(ECQL.toFilter("bbox(geom2, 38.0, 79.0, 39.0, 81.0)")).toList mustEqual List(f1)
     }
   }
 }

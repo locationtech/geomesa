@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith

@@ -6,9 +6,11 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.memory.index.{SimpleFeatureSpatialIndex, SpatialIndex}
 import org.locationtech.geomesa.utils.geotools.GridSnap
 import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 
@@ -102,7 +104,7 @@ class BucketIndex[T](
   /**
     * Iterator over a range of buckets
     */
-  class BucketIterator private [BucketIndex] (mini: Int, maxi: Int, minj: Int, maxj: Int) extends Iterator[T] {
+  private class BucketIterator(mini: Int, maxi: Int, minj: Int, maxj: Int) extends Iterator[T] {
 
     private var i = mini
     private var j = minj
@@ -123,5 +125,16 @@ class BucketIndex[T](
     }
 
     override def next(): T = iter.next()
+  }
+}
+
+object BucketIndex {
+
+  def apply(sft: SimpleFeatureType, xBuckets: Int, yBuckets: Int): SimpleFeatureSpatialIndex =
+    new SimpleFeatureBucketIndex(sft, xBuckets, yBuckets)
+
+  private class SimpleFeatureBucketIndex(val sft: SimpleFeatureType, xBuckets: Int, yBuckets: Int)
+      extends BucketIndex[SimpleFeature](xBuckets, yBuckets) with SimpleFeatureSpatialIndex {
+    override def toString: String = s"BucketIndex[${sft.getTypeName}:${xBuckets}x$yBuckets]"
   }
 }

@@ -6,34 +6,34 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.filter.index
+package org.locationtech.geomesa.memory.index
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.utils.index.SpatialIndex
 
-trait SpatialIndexSupport {
+/**
+ * Mix-in support for querying with a geotools filter
+ */
+trait SimpleFeatureSpatialIndex extends SpatialIndex[SimpleFeature] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   def sft: SimpleFeatureType
 
-  def index: SpatialIndex[SimpleFeature]
-
   /**
-    * Query based on a geotools filter
-    *
-    * @param filter filter
-    * @return
-    */
+   * Query based on a geotools filter
+   *
+   * @param filter filter
+   * @return
+   */
   def query(filter: Filter): Iterator[SimpleFeature] = {
-    if (filter == Filter.INCLUDE) { index.query() } else {
+    if (filter == Filter.INCLUDE) { query() } else {
       val geometries = FilterHelper.extractGeometries(filter, sft.getGeomField, intersect = false)
-      if (geometries.isEmpty) { index.query().filter(filter.evaluate) } else {
+      if (geometries.isEmpty) { query().filter(filter.evaluate) } else {
         val env = geometries.values.head.getEnvelopeInternal
         geometries.values.tail.foreach(g => env.expandToInclude(g.getEnvelopeInternal))
-        index.query(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).filter(filter.evaluate)
+        query(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY).filter(filter.evaluate)
       }
     }
   }

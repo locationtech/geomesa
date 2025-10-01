@@ -6,16 +6,17 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.index
+package org.locationtech.geomesa.memory.index.impl
 
+import org.locationtech.geomesa.memory.index.SpatialIndex
 import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.locationtech.jts.index.{SpatialIndex => JSTSpatialIndex}
 
 import scala.collection.JavaConverters._
 
-class WrapperIndex[T, Index <: JSTSpatialIndex](val indexBuider : () => Index) extends SpatialIndex[T] with Serializable {
+class WrapperIndex[T, Index <: JSTSpatialIndex](val indexBuilder: () => Index) extends SpatialIndex[T] with Serializable {
 
-  protected var index = indexBuider()
+  protected var index: Index = indexBuilder()
 
   override def insert(geom: Geometry, key: String, value: T): Unit = index.insert(geom.getEnvelopeInternal, (key, value))
 
@@ -35,13 +36,11 @@ class WrapperIndex[T, Index <: JSTSpatialIndex](val indexBuider : () => Index) e
   override def query(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Iterator[T] =
     index.query(new Envelope(xmin, xmax, ymin, ymax)).iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)
 
-  override def query(): Iterator[T] = {
-    query(-180,-90,180,90)
-  }
+  override def query(): Iterator[T] = query(-180,-90,180,90)
 
   override def size(): Int = query().size
 
-  override def clear(): Unit = index = indexBuider()
+  override def clear(): Unit = index = indexBuilder()
 }
 
 
