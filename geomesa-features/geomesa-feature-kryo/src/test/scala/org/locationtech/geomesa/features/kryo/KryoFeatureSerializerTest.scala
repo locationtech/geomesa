@@ -15,7 +15,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.jts.geom.Geometry
@@ -303,7 +302,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
         ScalaSimpleFeature.create(sft, i.toString, i.toString, "POINT(-110 30)", "2012-01-02T05:06:07.000Z")
       }
       features.zip(Seq("test&usa", "admin&user", "", null, "test", "user")).foreach { case (f, v) =>
-        f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, v)
+        f.getUserData.put("geomesa.feature.visibility", v)
       }
 
       // in this case the encoded user data will be ignored

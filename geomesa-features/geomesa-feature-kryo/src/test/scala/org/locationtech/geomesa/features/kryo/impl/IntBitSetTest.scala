@@ -6,11 +6,11 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.collection
+package org.locationtech.geomesa.features.kryo.impl
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.IntBitSet._
+import org.locationtech.geomesa.features.kryo.impl.IntBitSet._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

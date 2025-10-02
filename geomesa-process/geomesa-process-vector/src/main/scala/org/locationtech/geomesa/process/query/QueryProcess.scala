@@ -20,8 +20,8 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
+import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.GeoMesaProcess
 
 @DescribeProcess(
   title = "Geomesa Query",

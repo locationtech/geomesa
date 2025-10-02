@@ -6,11 +6,12 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.process
+package org.locationtech.geomesa.index
 
-import org.geotools.process.vector.VectorProcess
+import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.feature.visitor.AbstractCalcResult
 
-/**
-  * Marker trait for dynamic loading of processes
-  */
-trait GeoMesaProcess extends VectorProcess
+package object process {
+
+  case class FeatureResult(results: SimpleFeatureCollection) extends AbstractCalcResult
+}

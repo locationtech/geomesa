@@ -22,6 +22,10 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-stats_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
@@ -47,13 +51,6 @@
         <dependency>
             <groupId>org.datasyslab</groupId>
             <artifactId>s2-geometry-library</artifactId>
-        </dependency>
-
-        <!-- pull in arrow for aggregating scan code, but don't make it a transitive dep -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- test dependencies -->

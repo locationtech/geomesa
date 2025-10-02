@@ -23,9 +23,9 @@ import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.ff
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
-import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
+import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess.KNNVisitor
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}

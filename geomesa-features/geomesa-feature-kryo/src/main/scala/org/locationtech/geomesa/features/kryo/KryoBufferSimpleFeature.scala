@@ -20,11 +20,10 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature._
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoLongReader
-import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureDeserializationV2, NonMutatingInput}
+import org.locationtech.geomesa.features.kryo.impl.{IntBitSet, KryoFeatureDeserialization, KryoFeatureDeserializationV2, NonMutatingInput}
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
-import org.locationtech.geomesa.utils.collection.IntBitSet
-import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, RenameTransform, Transforms}
 import org.locationtech.geomesa.utils.geotools.Transform
+import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, RenameTransform, Transforms}
 import org.locationtech.jts.geom.Geometry
 
 class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature {

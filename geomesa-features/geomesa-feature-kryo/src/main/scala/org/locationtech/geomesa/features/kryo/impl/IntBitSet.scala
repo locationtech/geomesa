@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.collection
+package org.locationtech.geomesa.features.kryo.impl
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 

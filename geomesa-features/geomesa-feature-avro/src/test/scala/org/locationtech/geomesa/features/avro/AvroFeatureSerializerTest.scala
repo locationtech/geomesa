@@ -13,7 +13,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.jts.geom.Geometry
@@ -49,7 +48,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
   }
   val basicFeaturesWithVis = basicFeatures.zip(Seq("test&usa", "admin&user", "", null, "test", "user")).map { case (f, v) =>
     val withVis = ScalaSimpleFeature.copy(f)
-    withVis.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, v)
+    withVis.getUserData.put("geomesa.feature.visibility", v)
     withVis
   }
 
