@@ -28,16 +28,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-avro_${scala.binary.version}</artifactId>
         </dependency>
-
-        <!-- test dependencies -->
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
     </dependencies>
 
 </project>

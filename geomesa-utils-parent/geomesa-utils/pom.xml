@@ -94,10 +94,6 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-xml_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
