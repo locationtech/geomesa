@@ -8,37 +8,39 @@
 
 package org.locationtech.geomesa.kafka.confluent
 
-import org.locationtech.geomesa.kafka.KafkaContainerTest
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.kafka.confluent.ConfluentContainerTest.SchemaRegistryContainer
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.GenericContainer
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.containers.{GenericContainer, KafkaContainer, Network}
 import org.testcontainers.utility.DockerImageName
 
-class ConfluentContainerTest extends KafkaContainerTest {
+class ConfluentContainerTest extends SpecificationWithJUnit with BeforeAfterAll with LazyLogging {
 
-  private var container: SchemaRegistryContainer = _
+  private val network = Network.newNetwork()
+
+  val kafka: KafkaContainer =
+    new KafkaContainer(ConfluentContainerTest.KafkaImage)
+      .withNetwork(network)
+      .withNetworkAliases("kafka")
+      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
+
+  private val container =
+    new SchemaRegistryContainer("kafka:9092")
+      .withNetwork(network)
+      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
 
   lazy val schemaRegistryUrl: String = s"http://${container.getHost}:${container.getFirstMappedPort}"
 
   override def beforeAll(): Unit = {
-    super.beforeAll()
-    container =
-      new SchemaRegistryContainer("kafka:9092")
-          .withNetwork(network)
-          .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
+    kafka.start()
     container.start()
   }
 
-  override def afterAll(): Unit = {
-    try {
-      if (container != null) {
-        container.stop()
-      }
-    } finally {
-      super.afterAll()
-    }
-  }
+  override def afterAll(): Unit = CloseWithLogging(Seq(container, kafka))
 }
 
 object ConfluentContainerTest {
@@ -46,6 +48,10 @@ object ConfluentContainerTest {
   val SchemaRegistryImage =
     DockerImageName.parse("confluentinc/cp-schema-registry")
         .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
+
+  val KafkaImage =
+    DockerImageName.parse("confluentinc/cp-kafka")
+      .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
 
   class SchemaRegistryContainer(brokers: String, name: DockerImageName) extends GenericContainer[SchemaRegistryContainer](name) {
 

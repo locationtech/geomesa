@@ -24,9 +24,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
-import org.locationtech.geomesa.index.InMemoryMetadata
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.metadata.TableBasedMetadata
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, TableBasedMetadata}
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
@@ -34,12 +33,12 @@ import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchRe
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
 import org.locationtech.jts.geom.Point
 import org.mockito.ArgumentMatchers
@@ -137,8 +136,9 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         CloseQuietly(orig.metrics)
         orig.copy(metrics = Some(metrics))
       }
+      val metadata = mock[GeoMesaMetadata[String]]
       val serializer = new GeoMessageSerializerFactory(SerializationType.KRYO)
-      new KafkaDataStore(config, new InMemoryMetadata[String](), serializer).dispose()
+      new KafkaDataStore(config, metadata, serializer).dispose()
 
       there was one(reporter).close()
     }
@@ -1159,7 +1159,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
       val ds = getStore(path, 0)
       try {
-        ds.getTypeNames()
+        ds.getTypeNames
         //Verify the compaction policy
         WithClose(AdminClient.create(props)) { admin =>
           val configs =

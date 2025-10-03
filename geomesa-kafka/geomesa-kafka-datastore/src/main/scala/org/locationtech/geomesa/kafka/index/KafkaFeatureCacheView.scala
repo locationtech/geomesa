@@ -10,10 +10,11 @@ package org.locationtech.geomesa.kafka.index
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.filter.index.SpatialIndexSupport
+import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
+import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.LayerView
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache.EmptyFeatureCache
+import org.locationtech.geomesa.memory.index.SimpleFeatureSpatialIndex
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.jts.geom.Geometry
 
@@ -33,7 +34,7 @@ object KafkaFeatureCacheView {
    * @param index spatial index to use
    * @return
    */
-  def apply(view: LayerView, index: SpatialIndexSupport): KafkaFeatureCacheView = {
+  def apply(view: LayerView, index: SimpleFeatureSpatialIndex): KafkaFeatureCacheView = {
     (view.filter, view.transform) match {
       case (Some(f), None)    => new KafkaFeatureCacheFilterView(view.viewSft, index, f)
       case (None, Some(t))    => new KafkaFeatureCacheTransformView(view.viewSft, index, t.toArray)
@@ -55,40 +56,53 @@ object KafkaFeatureCacheView {
    *
    * @param sft view feature type
    */
-  class KafkaFeatureCacheEmptyView(val sft: SimpleFeatureType)
+  private class KafkaFeatureCacheEmptyView(val sft: SimpleFeatureType)
     extends EmptyFeatureCache(Seq.empty) with KafkaFeatureCacheView
 
   /**
    * View that filters input records based on a CQL predicate
    *
    * @param sft view feature type
-   * @param support spatial index
+   * @param spatialIndex spatial index
    * @param filter filter
    */
-  class KafkaFeatureCacheFilterView(
+  private class KafkaFeatureCacheFilterView(
       sft: SimpleFeatureType,
-      support: SpatialIndexSupport,
+      spatialIndex: SimpleFeatureSpatialIndex,
       filter: Filter
-    ) extends BaseFeatureCacheView(sft, support) {
+    ) extends BaseFeatureCacheView(sft, spatialIndex) {
     override def put(feature: SimpleFeature): Unit = {
       if (filter.evaluate(feature)) {
-        super.put(ScalaSimpleFeature.wrap(sft, feature))
+        super.put(new WrappedSimpleFeature(sft, feature))
       }
     }
+  }
+
+  /**
+   * Simple re-typing of a simple feature, with all attributes the same
+   *
+   * @param sft simple feature type
+   * @param wrapped wrapped feature
+   */
+  private class WrappedSimpleFeature(sft: SimpleFeatureType, wrapped: SimpleFeature)
+      extends AbstractImmutableSimpleFeature(sft) {
+    this.id = wrapped.getID // set id in constructor
+    override def getAttribute(i: Int): AnyRef = wrapped.getAttribute(i)
+    override def getUserData: java.util.Map[AnyRef, AnyRef] = wrapped.getUserData
   }
 
   /**
    * View that transforms input records to a new feature type
    *
    * @param sft view feature type
-   * @param support spatial index
+   * @param spatialIndex spatial index
    * @param transforms transform definitions
    */
-  class KafkaFeatureCacheTransformView(
+  private class KafkaFeatureCacheTransformView(
       sft: SimpleFeatureType,
-      support: SpatialIndexSupport,
+      spatialIndex: SimpleFeatureSpatialIndex,
       transforms: Array[Transform]
-    ) extends BaseFeatureCacheView(sft, support) {
+    ) extends BaseFeatureCacheView(sft, spatialIndex) {
     override def put(feature: SimpleFeature): Unit = super.put(new TransformSimpleFeature(sft, transforms, feature))
   }
 
@@ -96,16 +110,16 @@ object KafkaFeatureCacheView {
    * View that both filters and transforms input records
    *
    * @param sft view feature type
-   * @param support spatial index
+   * @param spatialIndex spatial index
    * @param filter filter
    * @param transforms transform definitions
    */
-  class KafkaFeatureCacheFilterTransformView(
+  private class KafkaFeatureCacheFilterTransformView(
       sft: SimpleFeatureType,
-      support: SpatialIndexSupport,
+      spatialIndex: SimpleFeatureSpatialIndex,
       filter: Filter,
       transforms: Array[Transform]
-    ) extends BaseFeatureCacheView(sft, support) {
+    ) extends BaseFeatureCacheView(sft, spatialIndex) {
     override def put(feature: SimpleFeature): Unit = {
       if (filter.evaluate(feature)) {
         super.put(new TransformSimpleFeature(sft, transforms, feature))
@@ -117,9 +131,9 @@ object KafkaFeatureCacheView {
    * Base view implementation
    *
    * @param sft view feature type
-   * @param support spatial index
+   * @param spatialIndex spatial index
    */
-  abstract class BaseFeatureCacheView(val sft: SimpleFeatureType, support: SpatialIndexSupport)
+  private abstract class BaseFeatureCacheView(val sft: SimpleFeatureType, spatialIndex: SimpleFeatureSpatialIndex)
     extends KafkaFeatureCacheView {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -129,19 +143,19 @@ object KafkaFeatureCacheView {
 
     override def put(feature: SimpleFeature): Unit = {
       idMap.put(feature.getID, feature)
-      support.index.insert(feature.getAttribute(geomIndex).asInstanceOf[Geometry], feature.getID, feature)
+      spatialIndex.insert(feature.getAttribute(geomIndex).asInstanceOf[Geometry], feature.getID, feature)
     }
 
     override def remove(id: String): Unit = {
       val feature = idMap.remove(id)
       if (feature != null) {
-        support.index.remove(feature.getAttribute(geomIndex).asInstanceOf[Geometry], id)
+        spatialIndex.remove(feature.getAttribute(geomIndex).asInstanceOf[Geometry], id)
       }
     }
 
     override def clear(): Unit = {
       idMap.clear()
-      support.index.clear()
+      spatialIndex.clear()
     }
 
     override def size(): Int = idMap.size()
@@ -151,7 +165,7 @@ object KafkaFeatureCacheView {
 
     override def query(id: String): Option[SimpleFeature] = Option(idMap.get(id))
 
-    override def query(filter: Filter): Iterator[SimpleFeature] = support.query(filter)
+    override def query(filter: Filter): Iterator[SimpleFeature] = spatialIndex.query(filter)
 
     override def close(): Unit = {}
   }
