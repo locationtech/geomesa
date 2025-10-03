@@ -10,7 +10,8 @@ package org.locationtech.geomesa.kafka.index
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
+import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.LayerView
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache.EmptyFeatureCache
 import org.locationtech.geomesa.memory.index.SimpleFeatureSpatialIndex
@@ -72,9 +73,22 @@ object KafkaFeatureCacheView {
     ) extends BaseFeatureCacheView(sft, spatialIndex) {
     override def put(feature: SimpleFeature): Unit = {
       if (filter.evaluate(feature)) {
-        super.put(ScalaSimpleFeature.wrap(sft, feature))
+        super.put(new WrappedSimpleFeature(sft, feature))
       }
     }
+  }
+
+  /**
+   * Simple re-typing of a simple feature, with all attributes the same
+   *
+   * @param sft simple feature type
+   * @param wrapped wrapped feature
+   */
+  private class WrappedSimpleFeature(sft: SimpleFeatureType, wrapped: SimpleFeature)
+      extends AbstractImmutableSimpleFeature(sft) {
+    this.id = wrapped.getID // set id in constructor
+    override def getAttribute(i: Int): AnyRef = wrapped.getAttribute(i)
+    override def getUserData: java.util.Map[AnyRef, AnyRef] = wrapped.getUserData
   }
 
   /**

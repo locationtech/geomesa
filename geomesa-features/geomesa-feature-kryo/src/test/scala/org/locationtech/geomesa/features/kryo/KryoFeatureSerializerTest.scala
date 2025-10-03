@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.features.kryo
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.codec.binary.Base64
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
@@ -24,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
 import java.util
-import java.util.{Collections, Date, UUID}
+import java.util.{Base64, Collections, Date, UUID}
 import scala.util.{Failure, Try}
 
 @RunWith(classOf[JUnitRunner])
@@ -516,7 +515,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       // base64 encoded bytes from version 2 of the kryo feature serializer
       val version2SerializedBase64 = "AgAAAC9mYWtlaeQBAAABO/iOtAABCANARoAAAAAAAEBIgAAAAAAAf/gAAAAAAAALFAAAAAFvcmcuZ2V" +
         "vdG9vbHMuZmFjdG9yeS5IaW50cyRLZflVU0VfUFJPVklERURfRknEamF2YS5sYW5nLkJvb2xlYe4B"
-      val version2Bytes = Base64.decodeBase64(version2SerializedBase64)
+      val version2Bytes = Base64.getDecoder.decode(version2SerializedBase64)
 
       val deserialized = serializer.deserialize(version2Bytes)
 
