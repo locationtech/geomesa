@@ -57,7 +57,7 @@ Alternatively, it may be set in the ``geomesa-env.sh`` script:
 
 .. code-block:: bash
 
-    setvar CUSTOM_JAVA_OPTS "${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
+    export CUSTOM_JAVA_OPTS="${JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=hdfs://path/to/geomesa-runtime.jar"
 
 A third option is to use the ``geomesa-site.xml`` configuration file:
 
