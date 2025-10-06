@@ -52,6 +52,15 @@
         <include>README.md</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.outputDirectory}</directory>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0644</fileMode>
+      <includes>
+        <include>git.properties</include>
+      </includes>
+    </fileSet>
 
     <!-- gs-plugin - have to specify as a file since it's not attached -->
     <fileSet>
@@ -161,12 +170,6 @@
     <file>
       <source>../../geomesa-utils-parent/geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
       <destName>geomesa-site.xml.template</destName>
-      <outputDirectory>conf</outputDirectory>
-    </file>
-    <!-- autocomplete -->
-    <file>
-      <source>../geomesa-${tools.module}-tools/target/autocomplete.sh</source>
-      <destName>autocomplete.sh</destName>
       <outputDirectory>conf</outputDirectory>
     </file>
   </files>

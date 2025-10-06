@@ -291,9 +291,6 @@ jobs:
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
-      - name: Generate autocomplete
-        # we need autocomplete files that are only in the tools modules, so user fail-never to pass over everything else
-        run: mvn 'org.codehaus.mojo:exec-maven-plugin:exec@generate-auto-complete' --fail-never $MAVEN_CLI_OPTS
       - name: Build assemblies
         run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts

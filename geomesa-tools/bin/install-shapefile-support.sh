@@ -14,14 +14,10 @@ jline_version="2.12.1"
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
 export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "$(dirname "$0")"/.. || exit; pwd)}"
-export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
+export GEOMESA_CONF_DIR="${$%%tools.dist.name%%_HOME}/conf"
 
-if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
-  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
-else
-  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
-  exit 1
-fi
+source "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+source "${GEOMESA_CONF_DIR}/functions.sh"
 
 install_dir="${%%tools.dist.name%%_HOME}/lib"
 

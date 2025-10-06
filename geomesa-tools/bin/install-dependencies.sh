@@ -13,23 +13,13 @@
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
 export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "$(dirname "$0")"/.. || exit; pwd)}"
-export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
+export GEOMESA_CONF_DIR="${$%%tools.dist.name%%_HOME}/conf"
 export GEOMESA_DEPENDENCIES="${GEOMESA_DEPENDENCIES:-dependencies.sh}"
 
-if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
-  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
-else
-  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
-  exit 1
-fi
-
-if [[ -f "${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}" ]]; then
-  echo >&2 "Reading dependencies from ${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
-  . "${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
-else
-  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}', aborting script"
-  exit 2
-fi
+source "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+source "${GEOMESA_CONF_DIR}/functions.sh"
+echo >&2 "Reading dependencies from ${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
+source "${GEOMESA_CONF_DIR}/${GEOMESA_DEPENDENCIES}"
 
 function download_dependencies() {
   local install_dir="${%%tools.dist.name%%_HOME}/lib"
