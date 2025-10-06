@@ -29,11 +29,16 @@ object Prompt {
     console
   }
 
-  def confirm(msg: String,
-              confirmStrings: List[String] = List("yes", "y"))
-             (implicit console: SystemConsole = SystemConsole): Boolean = {
+  def confirm(
+      msg: String,
+      confirmStrings: List[String] = List("yes", "y"),
+      default: String = "")
+     (implicit console: SystemConsole = SystemConsole): Boolean = {
     print(msg)
-    val response = console.readLine().toLowerCase.trim
+    var response = console.readLine().toLowerCase.trim
+    if (response.isEmpty) {
+      response = default
+    }
     confirmStrings.map(_.toLowerCase).contains(response)
   }
 

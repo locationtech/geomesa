@@ -9,20 +9,23 @@
 package org.locationtech.geomesa.tools.help
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
 import org.locationtech.geomesa.tools.help.HelpCommand.HelpParameters
+import org.locationtech.geomesa.tools.status.AutoCompleteCommand
 import org.locationtech.geomesa.tools.{Command, Runner}
+
+import java.io.File
 
 class HelpCommand(runner: Runner, jc: JCommander) extends Command {
 
   override val name: String = "help"
   override val params = new HelpParameters
 
+  // noinspection ScalaDeprecation
   override def execute(): Unit = {
     if (params.autocompleteInfo != null) {
-      val autocompleteInfo = AutocompleteInfo(params.autocompleteInfo.get(0), params.autocompleteInfo.get(1))
-      runner.autocompleteUsage(jc, autocompleteInfo)
-      Command.output.info(s"Wrote Autocomplete function to ${autocompleteInfo.path}.")
+      val autocomplete = new AutoCompleteCommand(runner, jc)
+      autocomplete.params.file = new File(params.autocompleteInfo.get(0))
+      autocomplete.execute()
     } else if (params.command == null || params.command.isEmpty) {
       Command.output.info(s"${runner.usage(jc)}\nTo see help for a specific command type: ${runner.name} help <command-name>\n")
     } else {
@@ -37,9 +40,8 @@ object HelpCommand {
     @Parameter(description = "Help for a specific command", required = false)
     var command: java.util.List[String] = _
 
-    @Parameter(names = Array("--autocomplete-function"), description = "Generates and outputs a bash function for " +
-      "autocompleting GeoMesa commandline commands and their parameters. First value is output path, second is command name",
-      required = false, hidden = true)
+    @deprecated
+    @Parameter(names = Array("--autocomplete-function"), required = false, hidden = true)
     var autocompleteInfo: java.util.List[String] = _
   }
 }

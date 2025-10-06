@@ -154,6 +154,13 @@ The following classes have been deprecated and will be removed in the next major
 * ``org.locationtech.geomesa.features.SerializationOption.SerializationOptions``
 * ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
 
+Deprecated Features
+-------------------
+
+The following features have been deprecated and will be removed in the next major release:
+
+* Setting the ``GEOMESA_LIB`` environment variable will no longer be supported in the GeoMesa CLI tools
+
 Version 5.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
