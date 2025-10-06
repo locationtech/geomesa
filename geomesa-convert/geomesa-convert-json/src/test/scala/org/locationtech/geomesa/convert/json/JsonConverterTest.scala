@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert.json
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.micrometer.core.instrument.{Counter, Metrics}
+import io.micrometer.core.instrument.{Counter, Metrics, Tag, Tags}
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
@@ -1466,20 +1466,31 @@ class JsonConverterTest extends Specification {
         }
 
         val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
-        meters must haveLength(7)
-        meters.map(_.getId.getName) must containTheSameElementsAs(
-          Seq("success", "failure", "parse", "conversion", "validator.id.null", "validator.geom.null",
-            "validator.geom.bounds.invalid").map(n => s"geomesa.convert.$n")
-        )
+        meters must haveLength(9)
+        meters.map(_.getId.getName).distinct.sorted mustEqual
+          Seq("geomesa.converter.convert", "geomesa.converter.count", "geomesa.converter.parse", "geomesa.converter.validate")
         foreach(meters)(_.getId.getTag("converter.name") mustEqual "metrics-test")
 
-        def getCounter(name: String): Option[Double] = meters.collectFirst { case c: Counter if c.getId.getName == name => c.count() }
+        def getCounter(name: String, tags: Tags): Option[Counter] = {
+          meters.collectFirst {
+            case c: Counter if c.getId.getName == name && tags.asScala.forall(t => c.getId.getTag(t.getKey) == t.getValue) => c
+          }
+        }
+        val countPass = getCounter("geomesa.converter.count", Tags.of("result", "success")).orNull
+        val countFail = getCounter("geomesa.converter.count", Tags.of("result", "failure")).orNull
+        val validateNullGeom = getCounter("geomesa.converter.validate", Tags.of("result", "fail", "attribute", "geom", "reason", "null")).orNull
+        val validateBoundsGeom = getCounter("geomesa.converter.validate", Tags.of("result", "fail", "attribute", "geom", "reason", "invalid.bounds")).orNull
+
+        countPass must not(beNull)
+        countFail must not(beNull)
+        validateNullGeom must not(beNull)
+        validateBoundsGeom must not(beNull)
 
         eventually {
-          getCounter("geomesa.convert.failure") must beSome(2d)
-          getCounter("geomesa.convert.success") must beSome(2d)
-          getCounter("geomesa.convert.validator.geom.null") must beSome(0d)
-          getCounter("geomesa.convert.validator.geom.bounds.invalid") must beSome(1d)
+          countPass.count() mustEqual 2d
+          countFail.count() mustEqual 2d
+          validateNullGeom.count() mustEqual 0d
+          validateBoundsGeom.count() mustEqual 1d
         }
       } finally {
         Metrics.removeRegistry(registry)

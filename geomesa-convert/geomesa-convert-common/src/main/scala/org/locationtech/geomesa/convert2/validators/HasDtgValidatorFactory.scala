@@ -23,7 +23,7 @@ class HasDtgValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
     val i = sft.getDtgIndex.getOrElse(-1)
-    if (i == -1) { NoValidator } else { new NullValidator(i, Errors.DateNull, counter("dtg.null", tags)) }
+    if (i == -1) { NoValidator } else { new NullValidator("dtg", Attribute(sft, i), "date is null", tags) }
   }
 }
 

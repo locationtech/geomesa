@@ -54,8 +54,8 @@ class AccumuloDataStoreMetricsTest extends Specification with TestWithFeatureTyp
 
     "expose metrics on write times" in {
       val metrics = readMetrics()
-      metrics must contain(beMatching(s"""^geomesa_write_appends_seconds_count\\{.*catalog="$catalog".*store="accumulo".*\\} 5$$"""))
-      metrics must contain(beMatching(s"""^geomesa_write_flushes_seconds_count\\{.*catalog="$catalog".*store="accumulo".*\\} 1$$"""))
+      metrics must contain(beMatching(s"""^geomesa_write_seconds_count\\{.*catalog="$catalog".*op="append".*store="accumulo".*\\} 5$$"""))
+      metrics must contain(beMatching(s"""^geomesa_write_seconds_count\\{.*catalog="$catalog".*op="flush".*store="accumulo".*\\} 1$$"""))
     }
 
     "expose metrics on query times" in {

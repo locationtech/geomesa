@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tags}
+import io.micrometer.core.instrument.{Metrics, Tags}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
 import org.apache.kafka.common.TopicPartition
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -114,9 +114,9 @@ object KafkaCacheLoader extends LazyLogging {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    private val updates = Metrics.counter(s"$MetricsPrefix.updates", tags)
-    private val deletes = Metrics.counter(s"$MetricsPrefix.deletes", tags)
-    private val clears = Metrics.counter(s"$MetricsPrefix.clears", tags)
+    private val updates = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "update"))
+    private val deletes = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "delete"))
+    private val clears = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "clear"))
     private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, MetricsPrefix, tags))
 
     // for the initial load, don't bother spatially indexing until we have the final state
@@ -184,9 +184,9 @@ object KafkaCacheLoader extends LazyLogging {
       private val cache = KafkaFeatureCache.nonIndexing(sft, initialLoadConfig)
       private val toLoad = KafkaCacheLoaderImpl.this
 
-      private val updates = Metrics.counter(s"$MetricsPrefix.readback.updates", tags)
-      private val deletes = Metrics.counter(s"$MetricsPrefix.readback.deletes", tags)
-      private val clears = Metrics.counter(s"$MetricsPrefix.readback.clears", tags)
+      private val updates = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "update"))
+      private val deletes = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "delete"))
+      private val clears = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "clear"))
 
       // track the offsets that we want to read to
       private val offsets = new ConcurrentHashMap[Int, java.lang.Long]()
@@ -370,7 +370,5 @@ object KafkaCacheLoader extends LazyLogging {
       }
     }
   }
-
-  private case class DateMetrics(i: Int, last: AtomicLong, latency: DistributionSummary)
 }
 

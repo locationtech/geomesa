@@ -23,7 +23,7 @@ class HasGeoValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
     val i = sft.getGeomIndex
-    if (i == -1) { NoValidator } else { new NullValidator(i, Errors.GeomNull, counter("geom.null", tags)) }
+    if (i == -1) { NoValidator } else { new NullValidator("geom", Attribute(sft, i), "geometry is null", tags) }
   }
 }
 
