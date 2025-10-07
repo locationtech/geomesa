@@ -41,29 +41,10 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends FastSettableFeatu
   protected def flushables(): Seq[Flushable]
   protected def closeables(): Seq[Closeable]
 
-  private val appendTimer =
-    Timer.builder("geomesa.write.appends")
-      .tags(ds.tags(sft.getTypeName))
-      .description("Time spent writing features inserts")
-      .register(Metrics.globalRegistry)
-
-  private val updateTimer =
-    Timer.builder("geomesa.write.updates")
-      .tags(ds.tags(sft.getTypeName))
-      .description("Time spent writing feature updates")
-      .register(Metrics.globalRegistry)
-
-  private val deleteTimer =
-    Timer.builder("geomesa.write.deletes")
-      .tags(ds.tags(sft.getTypeName))
-      .description("Time spent writing features deletes")
-      .register(Metrics.globalRegistry)
-
-  private val flushTimer =
-    Timer.builder("geomesa.write.flushes")
-      .tags(ds.tags(sft.getTypeName))
-      .description("Time spent on explicit flushes of pending writes to the backing database")
-      .register(Metrics.globalRegistry)
+  private val appendTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "append")
+  private val updateTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "update")
+  private val deleteTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "delete")
+  private val flushTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "flush")
 
   protected val statUpdater: StatUpdater = ds.stats.writer.updater(sft)
 
@@ -265,6 +246,22 @@ object GeoMesaFeatureWriter extends LazyLogging {
             copy
         }
     }
+  }
+
+  /**
+   * Gets a timer
+   *
+   * @param ds datastore
+   * @param sft sft
+   * @param operation operation tag
+   * @tparam DS datastore type
+   * @return
+   */
+  private def writeTimer[DS <: GeoMesaDataStore[DS]](ds: DS, sft: SimpleFeatureType, operation: String): Timer = {
+    Timer.builder("geomesa.write")
+      .tags(ds.tags(sft.getTypeName).and("op", operation))
+      .description("Time spent writing features")
+      .register(Metrics.globalRegistry)
   }
 
   /**

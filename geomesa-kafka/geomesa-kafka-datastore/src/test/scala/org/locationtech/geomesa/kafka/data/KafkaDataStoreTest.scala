@@ -313,15 +313,16 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
 
         val metrics = WithClose(Source.fromURL(new URL(s"http://localhost:$port/metrics"))(Codec.UTF8))(_.getLines().toList)
-        val tagsRegex = s"""\\{.*catalog="${producer.config.catalog}".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
-        metrics must contain(beMatching(s"""^geomesa_kafka_index_size$tagsRegex 1\\.0$$"""))
-        metrics must contain(beMatching(s"""^geomesa_kafka_index_expirations_total$tagsRegex 0\\.0$$"""))
+        val indexTagsRegex = s"""\\{.*catalog="${producer.config.catalog}".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
+        metrics must contain(beMatching(s"""^geomesa_kafka_index_size$indexTagsRegex 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_index_expirations_total$indexTagsRegex 0\\.0$$"""))
+        def msgTagsRegex(op: String) = s"""\\{.*catalog="${producer.config.catalog}".*op="$op".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
         // may have been between 2-4 reads, due to timing around initial loading
-        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_updates_total$tagsRegex [2-4]\\.0$$"""))
-        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_deletes_total$tagsRegex 1\\.0$$"""))
-        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_dtg_latest_seconds$tagsRegex 1\\.4833152E9$$"""))
-        metrics must contain(beMatching(s"""^geomesa_kafka_producer_deletes_total$tagsRegex 1\\.0$$"""))
-        metrics must contain(beMatching(s"""^geomesa_kafka_producer_writes_total$tagsRegex 4\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_consumed_total${msgTagsRegex("update")} [2-4]\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_consumed_total${msgTagsRegex("delete")} 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_dtg_latest_seconds$indexTagsRegex 1\\.4833152E9$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_producer_produced_total${msgTagsRegex("delete")} 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_producer_produced_total${msgTagsRegex("update")} 4\\.0$$"""))
       } finally {
         consumer.dispose()
         producer.dispose()

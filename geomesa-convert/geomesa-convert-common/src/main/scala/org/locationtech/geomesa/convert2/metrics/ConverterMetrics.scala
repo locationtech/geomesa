@@ -96,10 +96,10 @@ object ConverterMetrics {
   @deprecated("replaced with micrometer/MetricsNamePrefix")
   val MetricsPrefix: SystemProperty = SystemProperty("geomesa.convert.validators.prefix")
 
-  val MetricsNamePrefix: SystemProperty = SystemProperty("geomesa.convert.metrics.prefix", "geomesa.convert")
+  val MetricsNamePrefix: SystemProperty = SystemProperty("geomesa.convert.metrics.prefix", "geomesa.converter")
 
   /**
-   * Gets a standard name for a converter-based metric, i.e. prefixing it with `geomesa.convert`
+   * Gets a standard name for a converter-based metric, i.e. prefixing it with `geomesa.converter`
    *
    * @param name short name
    * @return
