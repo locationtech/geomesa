@@ -136,6 +136,12 @@ Deprecated Support for Accumulo 2.0
 Support for Accumulo 2.0 has been deprecated, and will be removed in the next major release. Users should
 upgrade to Accumulo 2.1.
 
+Deprecated Support for NiFi 1.x
+-------------------------------
+
+Support for NiFi 1.x has been deprecated, and will be removed in the next major release. Users should
+upgrade to NiFi 2.6.0.
+
 Deprecated Modules
 ------------------
 
