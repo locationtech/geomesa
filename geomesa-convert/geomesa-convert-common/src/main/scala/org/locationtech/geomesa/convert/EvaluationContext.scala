@@ -210,8 +210,10 @@ object EvaluationContext extends LazyLogging {
      * @param tags tags to apply to any metrics
      * @return
      */
-    def apply(tags: Tags = Tags.empty()): Stats =
-      MicrometerStats(Metrics.counter(ConverterMetrics.name("success"), tags), Metrics.counter(ConverterMetrics.name("failure"), tags))
+    def apply(tags: Tags = Tags.empty()): Stats = {
+      val name = ConverterMetrics.name("count")
+      MicrometerStats(Metrics.counter(name, tags.and("result", "success")), Metrics.counter(name, tags.and("result", "failure")))
+    }
 
     /**
      * Wraps dropwizard counters, for back-compatibility

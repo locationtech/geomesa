@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{Counter, Metrics, Tags}
+import io.micrometer.core.instrument.{Metrics, Tags}
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.apache.kafka.common.TopicPartition
@@ -51,17 +51,8 @@ object KafkaFeatureWriter {
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
-    private val writeCounter =
-      Counter.builder(s"$MetricsPrefix.writes")
-        .description("Count of feature writes")
-        .tags(tags)
-        .register(Metrics.globalRegistry)
-
-    private val clearCounter =
-      Counter.builder(s"$MetricsPrefix.clears")
-        .description("Count of feature clears")
-        .tags(tags)
-        .register(Metrics.globalRegistry)
+    private val writeCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "update"))
+    private val clearCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "clear"))
 
     override def getFeatureType: SimpleFeatureType = sft
 
@@ -125,11 +116,7 @@ object KafkaFeatureWriter {
       case _ => throw new UnsupportedOperationException("Only modify by ID is supported")
     }
 
-    private val deleteCounter =
-      Counter.builder(s"$MetricsPrefix.deletes")
-        .description("Count of feature deletions")
-        .tags(tags)
-        .register(Metrics.globalRegistry)
+    private val deleteCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "delete"))
 
     override def hasNext: Boolean = ids.hasNext
 
