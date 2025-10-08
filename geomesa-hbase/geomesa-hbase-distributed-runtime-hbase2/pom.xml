@@ -55,7 +55,7 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <id>geomesa-hbase-distributed-runtime</id>
+                        <id>distributed-runtime</id>
                         <goals>
                             <goal>shade</goal>
                         </goals>
