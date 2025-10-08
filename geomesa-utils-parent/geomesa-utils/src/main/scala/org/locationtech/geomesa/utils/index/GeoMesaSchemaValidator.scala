@@ -17,7 +17,6 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.Seq
 
 object GeoMesaSchemaValidator {
 

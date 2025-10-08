@@ -14,7 +14,6 @@ import org.apache.hadoop.hbase.Cell
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{Filter, FilterBase}
 import org.locationtech.geomesa.index.filters.Z2Filter
-import org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 class Z2HBaseFilter(filter: Z2Filter, offset: Int, bytes: Array[Byte]) extends FilterBase {

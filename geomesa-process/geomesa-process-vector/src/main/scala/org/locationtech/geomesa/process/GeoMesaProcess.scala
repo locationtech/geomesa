@@ -8,13 +8,9 @@
 
 package org.locationtech.geomesa.process
 
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.feature.visitor.AbstractCalcResult
 import org.geotools.process.vector.VectorProcess
 
 /**
   * Marker trait for dynamic loading of processes
   */
 trait GeoMesaProcess extends VectorProcess
-
-case class FeatureResult(results: SimpleFeatureCollection) extends AbstractCalcResult

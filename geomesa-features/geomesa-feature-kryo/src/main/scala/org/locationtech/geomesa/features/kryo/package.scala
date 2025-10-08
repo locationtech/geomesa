@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.utils.collection.IntBitSet
+import org.locationtech.geomesa.features.kryo.impl.IntBitSet
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.concurrent.duration.Duration

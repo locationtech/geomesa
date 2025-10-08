@@ -22,7 +22,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.TestConfigLoader
-import org.locationtech.geomesa.process.analytic.DensityProcess
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodedValues}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -349,26 +348,23 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
     }
 
     "query multiple data stores through density process" in {
-      val process = new DensityProcess()
-      val radiusPixels = 10
-      val envelope = new ReferencedEnvelope(44, 46, 52, 59, CRS_EPSG_4326)
-      val width = 480
-      val height = 360
+      // code copied from DensityProcess.invertQuery, but we don't want to pull in that dependency here
+      val pixels = 10
+      // buffered output
+      val outputWidth = 480 + 2 * pixels
+      val outputHeight = 360 + 2 * pixels
 
-      val query = process.invertQuery(
-        radiusPixels,
-        null,
-        null,
-        envelope,
-        width,
-        height,
-        new Query(sftName, defaultFilter),
-        null
-      )
+      // slightly buffer the envelope so it's covered with our default filter
+      val envelope = new ReferencedEnvelope(43.9, 46.1, 51.9, 59.1, CRS_EPSG_4326)
+
+      val query = new Query(sftName, defaultFilter)
+      query.getHints.put(QueryHints.DENSITY_BBOX, envelope)
+      query.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
+      query.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
 
       // we run the decode logic from density process as we don't have coverage/jai on the classpath in order to run the whole thing
       val points = scala.collection.mutable.Map.empty[(Double, Double), Double]
-      val decode = DensityScan.decodeResult(envelope, width, height)
+      val decode = DensityScan.decodeResult(envelope, outputWidth, outputHeight)
       WithClose(mergedDs.getFeatureSource(sftName).getFeatures(query).features()) { features =>
         while (features.hasNext) {
           val pts = decode(features.next())

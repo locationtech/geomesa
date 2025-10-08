@@ -14,7 +14,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.index.audit.AuditReader
 import org.locationtech.geomesa.index.audit.AuditedEvent.QueryEvent
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.time.ZonedDateTime
 
@@ -31,8 +31,8 @@ class AccumuloAuditReader(client: AccumuloClient, table: String, authProvider: A
 
   def this(ds: AccumuloDataStore) = this(ds.connector, ds.config.auditWriter.table, ds.config.authProvider)
 
-  private val tableExists: MaybeSynchronized[Boolean] =
-    if (client.tableOperations().exists(table)) { new NotSynchronized(true) } else { new IsSynchronized(false) }
+  @volatile
+  private var tableExists: Boolean = client.tableOperations().exists(table)
 
   override def getQueryEvents(typeName: String, dates: (ZonedDateTime, ZonedDateTime)): CloseableIterator[QueryEvent] = {
     if (!checkTable) { CloseableIterator.empty } else {
@@ -44,10 +44,10 @@ class AccumuloAuditReader(client: AccumuloClient, table: String, authProvider: A
   override def close(): Unit = {}
 
   private def checkTable: Boolean = {
-    if (tableExists.get) {
+    if (tableExists) {
       true
     } else if (client.tableOperations().exists(table)) {
-      tableExists.set(true, false)
+      tableExists = true
       true
     } else {
       false

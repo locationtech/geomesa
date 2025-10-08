@@ -10,11 +10,11 @@ package org.locationtech.geomesa.spark.fs
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.geomesa.testcontainers.HadoopContainer
 import org.geotools.api.data.{DataStore, DataStoreFinder, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.HadoopSharedCluster
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -35,8 +35,8 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
   var spark: SparkSession = _
   var sc: SQLContext = _
 
-  lazy val path = s"${HadoopSharedCluster.Container.getHdfsUrl}/${getClass.getSimpleName}/"
-  lazy val params = Map("fs.path" -> path, "fs.config.xml" -> HadoopSharedCluster.ContainerConfig)
+  lazy val path = s"${HadoopContainer.getInstance().getHdfsUrl}/${getClass.getSimpleName}/"
+  lazy val params = Map("fs.path" -> path, "fs.config.xml" -> HadoopContainer.getInstance().getConfigurationXml)
   lazy val ds: DataStore = DataStoreFinder.getDataStore(params.asJava)
 
   val formats = Seq("orc", "parquet")

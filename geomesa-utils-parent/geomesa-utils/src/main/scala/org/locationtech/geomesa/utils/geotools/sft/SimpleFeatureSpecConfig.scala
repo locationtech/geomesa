@@ -119,7 +119,7 @@ object SimpleFeatureSpecConfig {
   private def parse(conf: Config): (Option[String], SimpleFeatureSpec) = {
     import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
 
-    val name = conf.getStringOpt(TypeNamePath)
+    val name = if (conf.hasPath(TypeNamePath)) { Option(conf.getString(TypeNamePath)) } else { None }
     val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField).toSeq
     val opts = {
       val userDataConfig = conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty)

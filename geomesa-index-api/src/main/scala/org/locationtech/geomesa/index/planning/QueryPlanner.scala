@@ -31,7 +31,8 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.iterators.{ExceptionalIterator, TimedIterator}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
+import org.locationtech.geomesa.utils.stats.StatParser
 
 import java.time.Duration
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
