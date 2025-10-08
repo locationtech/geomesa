@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>5.4.0-SNAPSHOT</version>
+    <version>5.4.0</version>
 
     <licenses>
         <license>
@@ -426,7 +426,7 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <mkdir dir="${project.build.directory}/site/apidocs"/>
+                                        <mkdir dir="${project.build.directory}/site/apidocs" />
                                     </target>
                                 </configuration>
                             </execution>
@@ -3753,7 +3753,7 @@
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
-        <tag>HEAD</tag>
+        <tag>geomesa-5.4.0</tag>
     </scm>
 
     <issueManagement>
