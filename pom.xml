@@ -353,6 +353,10 @@
                         <version>${central.publishing.maven.plugin.version}</version>
                         <extensions>true</extensions>
                         <configuration>
+                            <autoPublish>true</autoPublish>
+                            <deploymentName>geomesa-${project.version}</deploymentName>
+                            <!-- handles non-scala duplicate modules between 2.12/2.13 -->
+                            <ignorePublishedComponents>true</ignorePublishedComponents>
                             <!-- used to lookup credentials in ~/.m2/settings.xml -->
                             <publishingServerId>sonatype</publishingServerId>
                         </configuration>
