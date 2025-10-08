@@ -25,8 +25,6 @@ specifying the input source:
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter and SFT definitions        |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterMetricsRegistry``  | Reference to :ref:`nifi_metrics` for publishing metrics                                 |
-+-------------------------------+-----------------------------------------------------------------------------------------+
 
 Additionally, the ``PutGeoMesa`` processor accepts additional configuration:
 
