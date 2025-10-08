@@ -23,25 +23,25 @@ package object validators {
    * @return
    */
   def successCounter(validator: String, attribute: String, tags: Tags): Counter =
-    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, "pass", "")))
+    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, "pass")))
 
   /**
    * Create a counter for failed validations
    *
    * @param validator validator name
    * @param attribute attribute name
-   * @param reason reason tag
+   * @param result result tag
    * @param tags common tags
    * @return
    */
-  def failureCounter(validator: String, attribute: String, reason: String, tags: Tags): Counter =
-    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, "fail", reason)))
+  def failureCounter(validator: String, attribute: String, result: String, tags: Tags): Counter =
+    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, result)))
 
   /**
    * Standardized tags
    */
-  private def tags(validator: String, attribute: String, result: String, reason: String): Tags =
-    Tags.of("validator", validator, "attribute", attribute, "result", result, "reason", reason)
+  private def tags(validator: String, attribute: String, result: String): Tags =
+    Tags.of("validator", validator, "attribute", attribute, "result", result)
 
   /**
    * Holder for an attribute name + index
