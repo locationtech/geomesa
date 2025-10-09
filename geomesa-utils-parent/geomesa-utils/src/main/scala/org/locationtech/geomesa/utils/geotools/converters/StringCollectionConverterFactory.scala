@@ -62,7 +62,7 @@ object StringCollectionConverterFactory {
     *
     * @param listType type of list elements
     */
-  class StringToListConverter(listType: Class[_]) extends Converter {
+  private class StringToListConverter(listType: Class[_]) extends Converter {
 
     override def convert[T](source: scala.Any, target: Class[T]): T = {
       val string = source.toString.trim
@@ -71,7 +71,7 @@ object StringCollectionConverterFactory {
       // geomesa looks like: value1,value2
       val isToString = string.startsWith("[") && string.endsWith("]")
       val stripped = if (isToString) string.substring(1, string.length - 1) else string
-      if (string.isEmpty) {
+      if (stripped.isEmpty) {
         new java.util.ArrayList[Any](0).asInstanceOf[T]
       } else {
         val result = new java.util.ArrayList[Any]
@@ -101,7 +101,7 @@ object StringCollectionConverterFactory {
     * @param keyType map key type
     * @param valueType map value type
     */
-  class StringToMapConverter(keyType: Class[_], valueType: Class[_]) extends Converter {
+  private class StringToMapConverter(keyType: Class[_], valueType: Class[_]) extends Converter {
 
     override def convert[T](source: scala.Any, target: Class[T]): T = {
       val string = source.toString.trim
