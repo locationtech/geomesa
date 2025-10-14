@@ -142,7 +142,7 @@
         <protobuf.version>3.25.6</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
         <cassandra.driver.version>3.11.5</cassandra.driver.version>
         <cassandra.version>3.11.19</cassandra.version>
-        <kafka.version>3.9.0</kafka.version> <!-- needs to align with confluent version -->
+        <kafka.version>3.9.1</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
         <sedona.version>1.8.0</sedona.version>
@@ -216,6 +216,7 @@
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <test.hbase.docker.tag>2.6.2</test.hbase.docker.tag>
+        <test.kafka.docker.tag>3.9.1</test.kafka.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
@@ -3231,6 +3232,7 @@
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
@@ -3260,6 +3262,7 @@
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
                             <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>

@@ -90,6 +90,16 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 5.5.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* kafka ``3.9.0`` -> ``3.9.1``
+
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
