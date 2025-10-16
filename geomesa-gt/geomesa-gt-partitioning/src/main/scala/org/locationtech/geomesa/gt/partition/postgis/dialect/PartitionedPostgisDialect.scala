@@ -18,7 +18,7 @@ import org.geotools.geometry.jts._
 import org.geotools.jdbc.JDBCDataStore
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
+import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.{SftUserData, getIndexedColumns}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.filter.SplitFilterVisitor
 import org.locationtech.geomesa.gt.partition.postgis.dialect.functions.{LogCleaner, TruncateToPartition, TruncateToTenMinutes}
 import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
@@ -218,7 +218,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
     // populate flags on indexed attributes
     getIndexedColumns(cx, sft.getTypeName).foreach { attribute =>
-      Option(sft.getDescriptor(attribute)).foreach(_.getUserData.put(AttributeOptions.OptIndex, "true"))
+      Try(sft.getDescriptor(attribute)).foreach(_.getUserData.put(AttributeOptions.OptIndex, "true"))
     }
   }
 
@@ -355,40 +355,9 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
       "text"
     }
   }
-
-  /**
-   * Gets a list of indexed columns for the given type
-   *
-   * @param cx connection
-   * @param typeName feature type name
-   * @return
-   */
-  private def getIndexedColumns(cx: Connection, typeName: String): Seq[String] = {
-    val attributesWithIndicesSql =
-      s"""select distinct(att.attname) as indexed_attribute_name
-         |from pg_class obj
-         |join pg_index idx on idx.indrelid = obj.oid
-         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
-         |join pg_views v on v.viewname = ?
-         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
-         |order by att.attname;""".stripMargin
-    try {
-      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
-        statement.setString(1, typeName)
-        statement.setString(2, typeName)
-        WithClose(statement.executeQuery()) { rs =>
-          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
-        }
-      }
-    } catch {
-      case NonFatal(e) =>
-        logger.warn(s"Error loading attributes with indices for schema $typeName:", e)
-        Seq.empty
-    }
-  }
 }
 
-object PartitionedPostgisDialect extends Conversions {
+object PartitionedPostgisDialect extends Conversions with StrictLogging {
 
   private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
 
@@ -489,5 +458,34 @@ object PartitionedPostgisDialect extends Conversions {
             .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
     def getCoordinateDimensions: Option[Int] =
       Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
+  }
+
+  /**
+   * Get a list of indexed columns for the given SimpleFeatureType
+   *
+   * @param cx connection
+   * @param typeName feature type name
+   * @return a sequence of SimpleFeatureType attribute names which have an index
+   */
+  def getIndexedColumns(cx: Connection, typeName: String): List[String] = {
+    val attributesWithIndicesSql =
+      s"""select distinct(att.attname) as indexed_attribute_name
+         |from pg_class obj
+         |join pg_index idx on idx.indrelid = obj.oid
+         |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
+         |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
+         |order by att.attname;""".stripMargin
+    try {
+      WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
+        statement.setString(1, typeName)
+        WithClose(statement.executeQuery()) { rs =>
+          Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
+        }
+      }
+    } catch {
+      case NonFatal(e) =>
+        logger.warn(s"Error loading attributes with indices for schema $typeName:", e)
+        List.empty
+    }
   }
 }
