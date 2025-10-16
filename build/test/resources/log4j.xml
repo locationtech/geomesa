@@ -85,6 +85,10 @@
     <category name="org.apache.kafka">
         <priority value="error"/>
     </category>
+    <!-- testcontainers output -->
+    <category name="kafka">
+        <priority value="error"/>
+    </category>
     <category name="io.confluent">
         <priority value="error"/>
     </category>

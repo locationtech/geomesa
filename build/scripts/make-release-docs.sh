@@ -37,7 +37,7 @@ if ! [[ $(which virtualenv) ]]; then
   exit 1
 fi
 
-TAG="$(git tag | grep '^geomesa-' | sort -r | head -n 1)"
+TAG="$(git tag --list 'geomesa-*' --sort=-creatordate | head -n 1)"
 RELEASE="${TAG#geomesa-}"
 read -r -p "Enter the release version (default $RELEASE): " REL
 if [[ -n "$REL" ]]; then

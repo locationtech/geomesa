@@ -41,7 +41,7 @@ object CqlValidatorFactory {
     private val attributes = FilterHelper.propertyNames(filter).sorted.mkString(",")
 
     private val success = successCounter("cql", attributes, tags)
-    private val failure = failureCounter("cql", attributes, "filter", tags)
+    private val failure = failureCounter("cql", attributes, "filtered", tags)
     private val error = s"failed filter: $ecql"
 
     override def validate(sf: SimpleFeature): String = {
