@@ -23,10 +23,8 @@
             <artifactId>guava</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.typesafe.scala-logging</groupId>
-            <artifactId>scala-logging_${scala.binary.version}</artifactId>
-        </dependency>
+
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
@@ -34,6 +32,11 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

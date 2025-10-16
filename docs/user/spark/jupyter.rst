@@ -95,10 +95,8 @@ GeoMesa:
     You may wish to change ``--spark_opts`` to specify the number and configuration of your executors; otherwise the
     values in ``$SPARK_HOME/conf/spark-defaults.conf`` or ``$SPARK_OPTS`` will be used.
 
-You may also consider adding ``geomesa-tools_{{scala_binary_version}}-{{release}}-data.jar`` to include prepackaged converters for
-publicly available data sources (as described in :ref:`prepackaged_converters`),
-``geomesa-spark-jupyter-leaflet_{{scala_binary_version}}-{{release}}.jar`` to include an interface for the `Leaflet`_ spatial visualization
-library (see :ref:`jupyter_leaflet`, below).
+You may also consider adding ``geomesa-spark-jupyter-leaflet_{{scala_binary_version}}-{{release}}.jar`` to include an interface
+for the `Leaflet`_ spatial visualization library (see :ref:`jupyter_leaflet`, below).
 
 Running Jupyter
 ---------------

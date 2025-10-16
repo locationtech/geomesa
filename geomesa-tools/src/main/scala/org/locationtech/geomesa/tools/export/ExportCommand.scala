@@ -39,8 +39,8 @@ import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, P
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, PathUtils, WithClose}
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.io._
 import java.util.Collections

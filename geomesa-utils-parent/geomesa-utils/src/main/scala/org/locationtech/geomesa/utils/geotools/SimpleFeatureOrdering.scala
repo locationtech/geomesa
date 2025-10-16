@@ -10,7 +10,6 @@ package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.sort.{SortBy, SortOrder}
-import org.locationtech.geomesa.utils.collection.TieredOrdering
 
 /**
   * Ordering for simple features
@@ -58,7 +57,7 @@ object SimpleFeatureOrdering {
     if (sortBy.lengthCompare(1) == 0) {
       apply(sft, sortBy.head._1, sortBy.head._2)
     } else {
-      TieredOrdering(sortBy.map { case (field, reverse) => apply(sft, field, reverse) })
+      new TieredOrdering(sortBy.map { case (field, reverse) => apply(sft, field, reverse) })
     }
   }
 
@@ -85,7 +84,7 @@ object SimpleFeatureOrdering {
     if (sortBy.length == 1) {
       apply(sft, sortBy.head)
     } else {
-      TieredOrdering(sortBy.map(apply(sft, _)))
+      new TieredOrdering(sortBy.map(apply(sft, _)))
     }
   }
 
@@ -98,6 +97,18 @@ object SimpleFeatureOrdering {
   private class SimpleFeatureOrdering(i: Int, delegate: Ordering[AnyRef]) extends Ordering[SimpleFeature] {
     override def compare(x: SimpleFeature, y: SimpleFeature): Int =
       delegate.compare(x.getAttribute(i), y.getAttribute(i))
+  }
+
+  private class TieredOrdering[T](orderings: Seq[Ordering[T]]) extends Ordering[T] {
+    override def compare(x: T, y: T): Int = {
+      orderings.foreach { o =>
+        val i = o.compare(x, y)
+        if (i != 0) {
+          return i
+        }
+      }
+      0
+    }
   }
 }
 

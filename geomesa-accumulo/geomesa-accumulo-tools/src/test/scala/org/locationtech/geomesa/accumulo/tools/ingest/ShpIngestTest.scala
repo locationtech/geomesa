@@ -8,13 +8,13 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
+import org.geomesa.testcontainers.AccumuloContainer
 import org.geotools.api.data.Transaction
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.Command.CommandException
@@ -49,10 +49,10 @@ class ShpIngestTest extends Specification {
 
   def createCommand(file: String): AccumuloIngestCommand = {
     val command = new AccumuloIngestCommand()
-    command.params.user        = AccumuloContainer.user
-    command.params.instance    = AccumuloContainer.instanceName
-    command.params.zookeepers  = AccumuloContainer.zookeepers
-    command.params.password    = AccumuloContainer.password
+    command.params.user        = AccumuloContainer.getInstance().getUsername
+    command.params.instance    = AccumuloContainer.getInstance().getInstanceName
+    command.params.zookeepers  = AccumuloContainer.getInstance().getZookeepers
+    command.params.password    = AccumuloContainer.getInstance().getPassword
     command.params.catalog     = s"gm.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)

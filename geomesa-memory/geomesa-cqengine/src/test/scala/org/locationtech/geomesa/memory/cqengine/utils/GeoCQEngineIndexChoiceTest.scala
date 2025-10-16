@@ -15,8 +15,9 @@ import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.index.param.STRtreeIndexParam
 import org.locationtech.geomesa.memory.cqengine.index.{AbstractGeoIndex, GeoIndexType}
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
+import org.locationtech.geomesa.memory.index.SpatialIndex
+import org.locationtech.geomesa.memory.index.impl.{BucketIndex, WrappedQuadtree, WrappedSTRtree}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex, WrappedQuadtree, WrappedSTRtree}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

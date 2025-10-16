@@ -90,8 +90,54 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
-Version 5.5.0 Upgrade Guide
+Version 6.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
+
+ ???
+ java version 17
+
+ deprecated
+ org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan
+ org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan
+ geomesa-process-wps
+
+removed
+org/locationtech/geomesa/utils/collection/AtomicBitSet
+org.locationtech.geomesa.utils.stats.AutoLoggingTimings
+org.locationtech.geomesa.utils.stats.NoOpTimings
+org.locationtech.geomesa.utils.stats.ThreadSafeTimingsImpl
+org.locationtech.geomesa.utils.io.ByteBuffers
+org.locationtech.geomesa.utils.collection.ConcurrentHashSet
+org.locationtech.geomesa.utils.stats.CountingInputStream
+org.locationtech.geomesa.utils.geohash.CoveringGeoHashes
+org.locationtech.geomesa.utils.cache.FilePersistence
+org.locationtech.geomesa.utils.geohash.VincentyModel
+org.locationtech.geomesa.utils.geohash.GeomDistance
+org.locationtech.geomesa.utils.text.ObjectPoolFactory
+org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
+org.locationtech.geomesa.utils.collection.TieredOrdering
+org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
+org.locationtech.geomesa.utils.geometry.DistanceCalculator
+org.locationtech.geomesa.utils.collection.MaybeSynchronized
+org.locationtech.geomesa.utils.index.SynchronizedQuadtree
+org.locationtech.geomesa.utils.iterators.PlaybackIterator
+SpatialIndexSupport
+
+org.locationtech.geomesa.utils.geohash.BoundingBox <some methods>
+org.locationtech.geomesa.utils.geohash.GeoHash <some methods>
+org.locationtech.geomesa.utils.geohash.GeohashUtils <some methods>
+
+
+moved
+
+IncrementingFileName (moved to geomesa-tools)
+SimplePlaybackIterator (moved to org.locationtech.geomesa.kafka.tools)
+org.locationtech.geomesa.utils.iterators.SortedMergeIterator (moved to org.locationtech.geomesa.index.view)
+ NonMutatingInput (moved to features-kryo)
+SizeSeparatedBucketIndex (moved to geomesa-cqengine)
+BucketIndex (moved to geomesa-cqengine)
+WrappedQuadTree (moved to geomesa-cqengine)
+WrappedSTRtree (moved to geomesa-cqengine)
 
 Dependency Version Upgrades
 ---------------------------
@@ -99,6 +145,13 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * kafka ``3.9.0`` -> ``3.9.1``
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated and will be removed in the next major release:
+
+* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

@@ -80,11 +80,10 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
     }
 
     "serialize user data when requested" >> {
-      import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
       val vis = "private&groupA"
-      sf.visibility = vis
+      sf.getUserData.put("geomesa.feature.visibility", vis)
 
       val userData = sf.getUserData
       userData.put(java.lang.Integer.valueOf(55), null)
@@ -104,7 +103,7 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
       there was 2.times(encoder).writeNull()
 
       // visibility data
-      there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
+      there was one(encoder).writeString("geomesa.feature.visibility")
       there was one(encoder).writeString(vis)
 
       // key = 55, value = null
@@ -117,11 +116,10 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
     }
 
     "use unmangled names when requested" >> {
-      import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
       val vis = "private&groupA"
-      sf.visibility = vis
+      sf.getUserData.put("geomesa.feature.visibility", vis)
 
       val userData = sf.getUserData
       userData.put(java.lang.Integer.valueOf(5), null)

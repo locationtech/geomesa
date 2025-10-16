@@ -14,7 +14,7 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractSchemaBuilder, AttributeBuilder, UserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
-import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality.Cardinality
 
 import scala.reflect.{ClassTag, classTag}
 
