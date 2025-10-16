@@ -6,6 +6,14 @@ Data Store Services
 GeoMesa processors require a ``DataStoreService`` to connect to the back-end data source. To use a controller services,
 first add one to the workspace and then configure its properties tab. The following data stores are available in GeoMesa:
 
+Most data stores support publishing metrics to a registry:
+
++-------------------------------+-----------------------------------------------------------------------------------------+
+| Property                      | Description                                                                             |
++===============================+=========================================================================================+
+| ``MetricsRegistry``           | Reference to :ref:`nifi_metrics` for publishing metrics                                 |
++-------------------------------+-----------------------------------------------------------------------------------------+
+
 HBase
 ~~~~~
 

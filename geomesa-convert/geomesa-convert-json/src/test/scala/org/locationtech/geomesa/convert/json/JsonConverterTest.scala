@@ -1478,8 +1478,8 @@ class JsonConverterTest extends Specification {
         }
         val countPass = getCounter("geomesa.converter.count", Tags.of("result", "success")).orNull
         val countFail = getCounter("geomesa.converter.count", Tags.of("result", "failure")).orNull
-        val validateNullGeom = getCounter("geomesa.converter.validate", Tags.of("result", "fail", "attribute", "geom", "reason", "null")).orNull
-        val validateBoundsGeom = getCounter("geomesa.converter.validate", Tags.of("result", "fail", "attribute", "geom", "reason", "invalid.bounds")).orNull
+        val validateNullGeom = getCounter("geomesa.converter.validate", Tags.of("result", "null", "attribute", "geom")).orNull
+        val validateBoundsGeom = getCounter("geomesa.converter.validate", Tags.of("result", "invalid.bounds", "attribute", "geom")).orNull
 
         countPass must not(beNull)
         countFail must not(beNull)

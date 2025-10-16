@@ -139,6 +139,20 @@ BucketIndex (moved to geomesa-cqengine)
 WrappedQuadTree (moved to geomesa-cqengine)
 WrappedSTRtree (moved to geomesa-cqengine)
 
+Dependency Version Upgrades
+---------------------------
+
+The following dependencies have been upgraded:
+
+* kafka ``3.9.0`` -> ``3.9.1``
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated and will be removed in the next major release:
+
+* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
+
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -154,7 +168,7 @@ The following dependencies have been upgraded:
 * hbase ``2.6.1`` -> ``2.6.3``
 * jackson ``2.17.2`` -> ``2.19.0``
 * micrometer ``1.13.4`` -> ``1.15.4``
-* nifi ``2.4.0`` -> ``2.5.0``
+* nifi ``2.4.0`` -> ``2.6.0``
 * orc ``1.9.6`` -> ``1.9.7``
 * postgresql ``42.7.2`` -> ``42.7.7``
 * prometheus ``1.3.1`` -> ``1.4.1``
@@ -185,6 +199,12 @@ Deprecated Support for Accumulo 2.0
 Support for Accumulo 2.0 has been deprecated, and will be removed in the next major release. Users should
 upgrade to Accumulo 2.1.
 
+Deprecated Support for NiFi 1.x
+-------------------------------
+
+Support for NiFi 1.x has been deprecated, and will be removed in the next major release. Users should
+upgrade to NiFi 2.6.0.
+
 Deprecated Modules
 ------------------
 
@@ -194,7 +214,6 @@ The following modules have been deprecated and will be removed in the next major
 * ``geomesa-metrics-cloudwatch``
 * ``geomesa-metrics-graphite``
 * ``geomesa-metrics-prometheus``
-* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 
 Deprecated Classes
 ------------------
