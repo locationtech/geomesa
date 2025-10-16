@@ -218,7 +218,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
     // populate flags on indexed attributes
     getIndexedColumns(cx, sft.getTypeName).foreach { attribute =>
-      Try(sft.getDescriptor(attribute)).foreach(_.getUserData.put(AttributeOptions.OptIndex, "true"))
+      Option(sft.getDescriptor(attribute)).foreach(_.getUserData.put(AttributeOptions.OptIndex, "true"))
     }
   }
 
