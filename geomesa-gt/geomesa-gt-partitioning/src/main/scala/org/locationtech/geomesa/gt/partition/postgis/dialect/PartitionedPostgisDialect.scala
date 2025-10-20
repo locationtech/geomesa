@@ -218,9 +218,10 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
 
     // populate flags on indexed attributes
     getIndexedColumns(cx, sft.getTypeName)
-      .recover { throwable =>
-        logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attributes with indices", throwable)
-        List.empty[String]
+      .recover {
+        case NonFatal(throwable) =>
+          logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attributes with indices", throwable)
+          List.empty
       }
       .get
       .foreach { attribute =>
