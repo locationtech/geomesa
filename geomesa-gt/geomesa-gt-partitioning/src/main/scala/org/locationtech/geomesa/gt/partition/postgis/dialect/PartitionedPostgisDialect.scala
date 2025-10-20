@@ -217,9 +217,18 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
     UserDataTable.read(cx, schemaName, sft.getTypeName).foreach { case (k, v) => sft.getUserData.put(k, v) }
 
     // populate flags on indexed attributes
-    getIndexedColumns(cx, sft.getTypeName).foreach { attribute =>
-      Try(sft.getDescriptor(attribute).getUserData.put(AttributeOptions.OptIndex, "true"))
-    }
+    getIndexedColumns(cx, sft.getTypeName)
+      .recover { throwable =>
+        logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attributes with indices", throwable)
+        List.empty
+      }
+      .get
+      .foreach { attribute =>
+        Try(sft.getDescriptor(attribute)).fold(
+          throwable => logger.warn(s"SimpleFeatureType: ${sft.getTypeName} could not load attribute descriptor by name: $attribute", throwable),
+          _.getUserData.put(AttributeOptions.OptIndex, "true")
+        )
+      }
   }
 
   override def preDropTable(schemaName: String, sft: SimpleFeatureType, cx: Connection): Unit = {
@@ -467,7 +476,7 @@ object PartitionedPostgisDialect extends Conversions with StrictLogging {
    * @param typeName feature type name
    * @return a sequence of SimpleFeatureType attribute names which have an index
    */
-  def getIndexedColumns(cx: Connection, typeName: String): List[String] = {
+  def getIndexedColumns(cx: Connection, typeName: String): Try[List[String]] = {
     val attributesWithIndicesSql =
       s"""select distinct(att.attname) as indexed_attribute_name
          |from pg_class obj
@@ -475,17 +484,13 @@ object PartitionedPostgisDialect extends Conversions with StrictLogging {
          |join pg_attribute att on att.attrelid = obj.oid and att.attnum = any(idx.indkey)
          |where obj.relname = concat(?, ${PartitionedTableSuffix.quoted})
          |order by att.attname;""".stripMargin
-    try {
+    Try {
       WithClose(cx.prepareStatement(attributesWithIndicesSql)) { statement =>
         statement.setString(1, typeName)
         WithClose(statement.executeQuery()) { rs =>
           Iterator.continually(rs).takeWhile(_.next()).map(_.getString(1)).toList
         }
       }
-    } catch {
-      case NonFatal(e) =>
-        logger.warn(s"Error loading attributes with indices for schema $typeName:", e)
-        List.empty
     }
   }
 }
