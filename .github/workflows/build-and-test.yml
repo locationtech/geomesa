@@ -1,68 +1,35 @@
-name: build-and-test
+name: build
 
 on:
-  workflow_call:
-    inputs:
-      scala-version:
-        required: false
-        type: string
-        default: "2.12"
-      # splitting up the tests in the accumulo-datastore module reduces the overall CI build time
-      # tests are defined here as an input b/c 'matrix' doesn't have access to most other contexts (like env)
-      accumulo-test-splits-1:
-        required: false
-        type: string
-        default: >-
-          AccumuloDataStoreTest,
-          AccumuloDataStoreQueryTest,
-          AccumuloDataStoreStatsTest,
-          AttributeIndexStrategyTest,
-          AccumuloDataStoreAlterSchemaTest,
-          ArrowBatchIteratorTest,
-          MultiIteratorTest,
-          AccumuloDataStoreTransformsTest,
-          ArrowDictionaryTest,
-          VisibilitiesTest
-      accumulo-test-splits-2:
-        required: false
-        type: string
-        default: >-
-          AccumuloDataStoreAttributeVisibilityTest,
-          AttributeIndexFilteringIteratorTest,
-          AccumuloPartitioningTest,
-          AccumuloFeatureReaderTest,
-          AccumuloDataStoreAtomicWriteTest,
-          AttributeIndexValuesTest,
-          TubeSelectProcessTest,
-          AccumuloDataStoreColumnGroupsTest,
-          ZIntervalTest,
-          S2IndexTest,
-          AccumuloFeatureWriterTest,
-          KryoLazyStatsIteratorTest,
-          AccumuloDataStoreSortTest,
-          AccumuloDataStoreUuidTest,
-          AccumuloDataStoreAuthTest,
-          LiveAccumuloDataStoreTest,
-          DensityIteratorTest,
-          S3IndexTest
+  push:
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+    tags:
+      - '**'
+  pull_request:
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
   JAVA_VERSION: 17
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true -T2
-  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T2
+  MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
-  MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true
-  MAVEN_SPARK_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
+  MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
 
 jobs:
   compile:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -71,10 +38,10 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ ${{ matrix.scala-version }} }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ ${{ matrix.scala-version }} }}
       - name: Build with Maven
         run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS
       - name: Collect artifacts
@@ -84,7 +51,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ ${{ matrix.scala-version }} }}
           retention-days: 1
           path: |
             m2-geomesa
@@ -99,16 +66,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        scala-version: [ "2.12", "2.13" ]
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-1 }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-2 }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-ds-3
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ inputs.accumulo-test-splits-1 }}, ${{ inputs.accumulo-test-splits-2 }}"
+            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }},-:geomesa-accumulo-distributed-runtime_${{ inputs.scala-version }}
+            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ matrix.scala-version }},-:geomesa-accumulo-distributed-runtime_${{ matrix.scala-version }}
           - name: arrow
             selector: -f geomesa-arrow
           - name: cassandra
@@ -131,10 +99,10 @@ jobs:
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
           - name: hbase-ds
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -pl :geomesa-hbase-datastore_${{ inputs.scala-version }}
+            selector: -pl :geomesa-hbase-datastore_${{ matrix.scala-version }}
           - name: hbase-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ inputs.scala-version }},-:geomesa-hbase-datastore_${{ inputs.scala-version }}
+            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ matrix.scala-version }},-:geomesa-hbase-datastore_${{ matrix.scala-version }}
           - name: kafka
             selector: -f geomesa-kafka
           - name: lambda
@@ -161,14 +129,14 @@ jobs:
         run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> $GITHUB_ENV
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ inputs.scala-version }}-${{ env.MOD_SELECTOR }}
+          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -201,6 +169,10 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -209,14 +181,14 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-it-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-it-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -233,6 +205,10 @@ jobs:
   spark:
     runs-on: ubuntu-latest
     needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -241,14 +217,14 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-spark-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-spark-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -259,7 +235,7 @@ jobs:
         run: |
           export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
           echo $PROJECT_LIST
-          mvn $MAVEN_SPARK_COMPILE_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
+          mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
       - name: Run Spark tests
         run: |
           echo mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
@@ -270,6 +246,10 @@ jobs:
   assembly:
     runs-on: ubuntu-latest
     needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -278,14 +258,14 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-assembly-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-assembly-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -303,6 +283,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        scala-version: [ "2.12", "2.13" ]
         docs:
           - name: 1
             selector: "-pl geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,\
@@ -332,14 +313,14 @@ jobs:
           java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -355,5 +336,9 @@ jobs:
   dash:
     needs: compile
     uses: ./.github/workflows/dash.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     with:
-      scala-version: ${{ inputs.scala-version }}
+      scala-version: ${{ matrix.scala-version }}
