@@ -26,6 +26,7 @@ env:
 
 jobs:
   compile:
+    name: ${{ matrix.scala-version }} / compile
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -61,7 +62,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   unit-tests:
-    name: unit-tests (${{ matrix.scala-version }}) / ${{ matrix.tests.name }}
+    name: ${{ matrix.scala-version }} / unit-tests / ${{ matrix.tests.name }}
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -168,6 +169,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   integration-tests:
+    name: ${{ matrix.scala-version }} / integration-tests
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -204,6 +206,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   spark:
+    name: ${{ matrix.scala-version }} / spark
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -245,6 +248,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   assembly:
+    name: ${{ matrix.scala-version }} / assembly
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -278,7 +282,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   javadocs:
-    name: javadocs (${{ matrix.scala-version }}) / ${{ matrix.docs.name }}
+    name: ${{ matrix.scala-version }} / javadocs / ${{ matrix.docs.name }}
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -334,7 +338,8 @@ jobs:
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  dash:
+  license-check:
+    name: ${{ matrix.scala-version }} / license-check
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -349,7 +354,8 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             pomChanged="false"
             # get the changed files
-            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only main && printf '\0' )
+            git fetch --depth=1 origin ${{ github.base_ref }}
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
             echo "Changed files:"
             for file in "${changedFiles[@]}"; do
               echo "  $file"
