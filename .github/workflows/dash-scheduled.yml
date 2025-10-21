@@ -13,7 +13,7 @@ env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
 
 jobs:
-  compile:
+  dash:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -32,28 +32,12 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
-        run: mvn clean install $MAVEN_CLI_OPTS -DskipTests -T4
-      - name: Collect artifacts
-        run: |
-          mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
-          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -o -path '*/target/analysis' -type d | tr '\n' ' ')
-      - name: Upload artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: classes-and-jars-${{ matrix.version }}
-          retention-days: 1
-          path: |
-            m2-geomesa
-            classes.tgz
+        run: mvn clean install -Dmaven.assembly.skip=true -Dmaven.source.skip -T4 $MAVEN_CLI_OPTS
+      - name: License check
+        run: mvn org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa $MAVEN_CLI_OPTS
+      - name: Show license
+        if: success() || failure()
+        run: cat target/dash/summary
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  dash:
-    needs: compile
-    strategy:
-      fail-fast: false
-      matrix:
-        version: [ "2.12", "2.13" ]
-    uses: ./.github/workflows/dash.yml
-    with:
-      scala-version: ${{ matrix.version }}

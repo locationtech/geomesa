@@ -22,6 +22,7 @@ env:
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
+  MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
   compile:
@@ -334,11 +335,71 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   dash:
+    runs-on: ubuntu-latest
     needs: compile
-    uses: ./.github/workflows/dash.yml
     strategy:
       fail-fast: false
       matrix:
         scala-version: [ "2.12", "2.13" ]
-    with:
-      scala-version: ${{ matrix.scala-version }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Check for pom.xml changes
+        id: pom_changes
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            pomChanged="false"
+            # get the changed files
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only main && printf '\0' )
+            echo "Changed files:"
+            for file in "${changedFiles[@]}"; do
+              echo "  $file"
+              if [[ $file =~ .*pom.xml ]]; then
+                pomChanged="true"
+              fi
+            done
+          else
+            echo "Skipping dash check for branch (main, long-term branches, and tags)"
+            pomChanged="false"
+          fi
+          echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-dash-${{ matrix.scala-version }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Download artifacts
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: classes-and-jars-${{ matrix.scala-version }}
+      - name: Install artifacts
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: License check
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
+      - name: Show license
+        if: success() || failure()
+        run: |
+          if [[ -f target/dash/summary ]]; then
+            cat target/dash/summary
+          else
+            echo "No pom changes detected - skipping license check"
+          fi
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: |
+          if [[ -d ~/.m2/repository/org/locationtech/geomesa ]]; then
+            rm -rf ~/.m2/repository/org/locationtech/geomesa
+          fi
