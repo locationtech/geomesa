@@ -69,14 +69,14 @@ jobs:
         scala-version: [ "2.12", "2.13" ]
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-ds-3
-            selector: -pl :geomesa-accumulo-datastore_${{ matrix.scala-version }} -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ matrix.scala-version }},-:geomesa-accumulo-distributed-runtime_${{ matrix.scala-version }}
+            selector: -f geomesa-accumulo -pl '!geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-accumulo/geomesa-accumulo-distributed-runtime'
           - name: arrow
             selector: -f geomesa-arrow
           - name: cassandra
@@ -99,10 +99,10 @@ jobs:
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
           - name: hbase-ds
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -pl :geomesa-hbase-datastore_${{ matrix.scala-version }}
+            selector: -pl geomesa-hbase/geomesa-hbase-datastore
           - name: hbase-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            selector: -f geomesa-hbase -pl -:geomesa-hbase-distributed-runtime-hbase2_${{ matrix.scala-version }},-:geomesa-hbase-datastore_${{ matrix.scala-version }}
+            selector: -f geomesa-hbase -pl '!geomesa-hbase/geomesa-hbase-datastore,!geomesa-hbase/geomesa-hbase-distributed-runtime-hbase2'
           - name: kafka
             selector: -f geomesa-kafka
           - name: lambda
