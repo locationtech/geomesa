@@ -34,7 +34,7 @@ class ConfluentContainerTest extends SpecificationWithJUnit with BeforeAfterAll 
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
 
   private val registry =
-    new SchemaRegistryContainer("kafka:9092")
+    new SchemaRegistryContainer(dockerNetworkBrokers)
       .withNetwork(network)
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("schema-registry")))
 
@@ -59,10 +59,7 @@ object ConfluentContainerTest {
     DockerImageName.parse("confluentinc/cp-schema-registry")
         .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
 
-  class SchemaRegistryContainer(brokers: String, name: DockerImageName) extends GenericContainer[SchemaRegistryContainer](name) {
-
-    def this(brokers: String) = this(brokers, SchemaRegistryImage)
-
+  class SchemaRegistryContainer(brokers: String) extends GenericContainer[SchemaRegistryContainer](SchemaRegistryImage) {
     withExposedPorts(8081)
     withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS", brokers)
     withEnv("SCHEMA_REGISTRY_HOST_NAME", "localhost")

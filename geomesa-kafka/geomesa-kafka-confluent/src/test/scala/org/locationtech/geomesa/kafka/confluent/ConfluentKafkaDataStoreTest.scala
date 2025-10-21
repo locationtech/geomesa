@@ -18,7 +18,6 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.geotools.api.data.{DataStoreFinder, Transaction}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 import org.locationtech.geomesa.kafka.confluent.SchemaParser._
@@ -29,7 +28,6 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
-import org.specs2.runner.JUnitRunner
 
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
@@ -37,7 +35,6 @@ import java.util.{Collections, Date, Properties}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-@RunWith(classOf[JUnitRunner])
 class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
   private val geomFactory = new GeometryFactory()
@@ -45,7 +42,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
   lazy val producer: KafkaProducer[String, GenericRecord] = {
     val props = new Properties()
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers)
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     // note: serializer will register schemas with the registry automatically
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
@@ -58,7 +55,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
   def getStore(extraParams: Map[String, String] = Map.empty): KafkaDataStore = {
     val params = Map(
       "kafka.schema.registry.url" -> schemaRegistryUrl,
-      "kafka.brokers" -> kafka.getBootstrapServers,
+      "kafka.brokers" -> brokers,
       "kafka.topic.partitions" -> 1,
       "kafka.topic.replication" -> 1,
       "kafka.consumer.read-back" -> "Inf",
@@ -208,7 +205,7 @@ class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
       // verify raw avro reads
       val consumer = {
         val props = new Properties()
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers)
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[KafkaAvroDeserializer].getName)
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
