@@ -90,9 +90,9 @@ jobs:
           - name: features
             selector: -f geomesa-features
           - name: fs
-            selector: -f geomesa-fs
+            selector: -f geomesa-fs -pl '!geomesa-fs-storage,!geomesa-fs-storage/geomesa-fs-storage-api,!geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-fs-storage/geomesa-fs-storage-convert,!geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-fs-storage/geomesa-fs-storage-parquet'
           - name: fs-storage
-            selector: -f geomesa-fs-storage
+            selector: -f geomesa-fs/geomesa-fs-storage
           - name: gt-pg15
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16

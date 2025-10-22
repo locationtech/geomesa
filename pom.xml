@@ -29,7 +29,6 @@
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
-        <module>geomesa-fs-storage</module>
         <module>geomesa-gt</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
