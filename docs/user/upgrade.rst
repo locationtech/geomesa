@@ -102,6 +102,8 @@ Version 5.5.0 Upgrade Guide
  org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan
  geomesa-process-wps
 
+org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory -> org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory
+
 Dependency Version Upgrades
 ---------------------------
 

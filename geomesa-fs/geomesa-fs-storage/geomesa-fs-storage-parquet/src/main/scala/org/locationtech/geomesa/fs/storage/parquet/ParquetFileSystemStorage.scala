@@ -16,20 +16,16 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.example.GroupReadSupport
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
+import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
-import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
-import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.util.Collections
 import scala.util.control.NonFatal
@@ -72,7 +68,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val conf = new Configuration(context.conf)
     StorageConfiguration.setSft(conf, readSft)
 
-    new ParquetPathReader(conf, readSft, parquetFilter, gtFilter, visFilter, readTransform)
+    new ParquetFileSystemReader(conf, readSft, parquetFilter, gtFilter, visFilter, readTransform)
   }
 }
 
@@ -82,35 +78,6 @@ object ParquetFileSystemStorage extends LazyLogging {
   val FileExtension = "parquet"
 
   val ParquetCompressionOpt = "parquet.compression"
-
-  class ParquetFileSystemWriter(
-      sft: SimpleFeatureType,
-      context: FileSystemContext,
-      file: Path,
-      observer: FileSystemObserver = NoOpObserver
-    ) extends FileSystemWriter {
-
-    private val conf = {
-      val conf = new Configuration(context.conf)
-      StorageConfiguration.setSft(conf, sft)
-      conf
-    }
-
-    private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
-
-    override def write(f: SimpleFeature): Unit = {
-      writer.write(f)
-      observer.write(f)
-    }
-    override def flush(): Unit = observer.flush()
-    override def close(): Unit = {
-      CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
-      PathCache.register(context.fs, file)
-      if (FileValidationEnabled.toBoolean.get) {
-        validateParquetFile(file)
-      }
-    }
-  }
 
   /**
    * Validate a file by reading it back

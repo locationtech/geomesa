@@ -202,31 +202,40 @@ Configuring Custom Observer Callbacks
 
 The FSDS provides a mechanism to add custom handling during file writing. Users can implement observer factories,
 which will be invoked for each new file that is created. Observer factories must extend the trait
-``FileSystemObserverFactory``:
+``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``:
 
 .. code-block:: scala
 
-  package org.locationtech.geomesa.fs.storage.common.observer
+    package org.locationtech.geomesa.fs.storage.api.observer
 
-  trait FileSystemObserverFactory extends Closeable {
+    import org.apache.hadoop.conf.Configuration
+    import org.apache.hadoop.fs.Path
+    import org.geotools.api.feature.simple.SimpleFeatureType
 
-    /**
-     * Called once after instantiating the factory
-     *
-     * @param conf hadoop configuration
-     * @param root root path
-     * @param sft simple feature type
-     */
-    def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit
+    import java.io.Closeable
 
     /**
-     * Create an observer for the given path
-     *
-     * @param path file path being written
-     * @return
+     * Factory for observing file writes
      */
-    def apply(path: Path): FileSystemObserver
-  }
+    trait FileSystemObserverFactory extends Closeable {
+
+      /**
+       * Called once after instantiating the factory
+       *
+       * @param conf hadoop configuration
+       * @param root root path
+       * @param sft simple feature type
+       */
+      def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit
+
+      /**
+       * Create an observer for the given path
+       *
+       * @param path file path being written
+       * @return
+       */
+      def apply(path: Path): FileSystemObserver
+    }
 
 .. note::
 

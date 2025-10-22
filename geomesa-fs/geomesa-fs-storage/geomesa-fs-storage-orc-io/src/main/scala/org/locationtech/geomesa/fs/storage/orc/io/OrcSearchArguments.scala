@@ -6,14 +6,13 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.orc.utils
+package org.locationtech.geomesa.fs.storage.orc.io
 
 import org.apache.orc.TypeDescription
 import org.apache.orc.storage.ql.io.sarg.{PredicateLeaf, SearchArgument, SearchArgumentFactory}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.jts.geom.{Geometry, Point}
 
 import java.sql.Timestamp
@@ -47,7 +46,7 @@ object OrcSearchArguments {
       } else {
         // count the columns before the property
         val offset = sft.getAttributeDescriptors.asScala.take(sft.indexOf(prop)).foldLeft(0) { (sum, d) =>
-          sum + OrcFileSystemStorage.fieldCount(d)
+          sum + SimpleFeatureTypeDescription.fieldCount(d)
         }
 
         val category = description.getChildren.get(offset).getCategory
@@ -127,8 +126,8 @@ object OrcSearchArguments {
   }
 
   private def addPoint(prop: String, bounds: Geometry): SearchArgument.Builder => Unit = {
-    val x = OrcFileSystemStorage.geometryXField(prop)
-    val y = OrcFileSystemStorage.geometryYField(prop)
+    val x = SimpleFeatureTypeDescription.geometryXField(prop)
+    val y = SimpleFeatureTypeDescription.geometryYField(prop)
     val envelope = bounds.getEnvelopeInternal
 
     arg => {

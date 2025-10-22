@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="org.apache.spark" level="error"/>
+    <Logger name="org.sparkproject" level="error"/>
+    <Logger name="org.apache.sedona.core.serde" level="warn"/>
+    <Logger name="org.apache.sedona.viz.core.Serde" level="warn"/>
+    <Logger name="org.apache.sedona.core.joinJudgement" level="warn"/>
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

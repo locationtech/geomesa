@@ -14,8 +14,8 @@ import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.fs.storage.api.FileSystemContext
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemWriter
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
+import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemWriter
+import org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemWriter
 import org.locationtech.geomesa.utils.io.PathUtils
 
 /**
