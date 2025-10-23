@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.column.ParquetProperties
+import org.apache.parquet.conf.ParquetConfiguration
 import org.apache.parquet.hadoop.api.WriteSupport
 import org.apache.parquet.hadoop.metadata.CompressionCodecName
 import org.apache.parquet.hadoop.{ParquetFileWriter, ParquetWriter}
@@ -39,6 +40,8 @@ object SimpleFeatureParquetWriter extends LazyLogging {
       extends ParquetWriter.Builder[SimpleFeature, Builder](file) {
     override def self(): Builder = this
     override protected def getWriteSupport(conf: Configuration): WriteSupport[SimpleFeature] =
-      new SimpleFeatureWriteSupport
+      new SimpleFeatureWriteSupport()
+    override protected def getWriteSupport(conf: ParquetConfiguration): WriteSupport[SimpleFeature] =
+      new SimpleFeatureWriteSupport()
   }
 }

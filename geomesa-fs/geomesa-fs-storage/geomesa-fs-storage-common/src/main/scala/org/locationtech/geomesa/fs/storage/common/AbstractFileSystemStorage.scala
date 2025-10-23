@@ -353,10 +353,11 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
+  private class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
     override protected def onClose(bounds: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
+      PathCache.register(context.fs, file)
     }
   }
 }

@@ -20,7 +20,6 @@ import org.apache.parquet.schema.Type.Repetition
 import org.apache.parquet.schema._
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.{BoundingBoxField, GeometryEncoding}
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
@@ -60,7 +59,6 @@ case class SimpleFeatureParquetSchema(
 
 object SimpleFeatureParquetSchema extends LazyLogging {
 
-  import StorageConfiguration.{SftNameKey, SftSpecKey}
   import StringSerialization.alphaNumericSafeString
 
   import scala.collection.JavaConverters._
@@ -76,6 +74,8 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   @deprecated("Track schema options separately with `GeometryEncodingKey` and `VisibilityEncodingKey`")
   val SchemaVersionKey = "geomesa.parquet.version"
 
+  val SftNameKey            = "geomesa.fs.sft.name"
+  val SftSpecKey            = "geomesa.fs.sft.spec"
   val GeometryEncodingKey   = "geomesa.parquet.geometries"
   val BBoxEncodingKey       = "geomesa.parquet.bounding-boxes"
   val VisibilityEncodingKey = "geomesa.fs.visibilities"
@@ -84,6 +84,18 @@ object SimpleFeatureParquetSchema extends LazyLogging {
   val GeometryColumnX: String = GeometrySchema.GeometryColumnX
   @deprecated("Moved to org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema")
   val GeometryColumnY: String = GeometrySchema.GeometryColumnY
+
+  /**
+   * Encodes the feature type in the conf
+   *
+   * @param conf conf
+   * @param sft feature type
+   */
+  def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
+    val name = Option(sft.getName.getNamespaceURI).map(ns => s"$ns:${sft.getTypeName}").getOrElse(sft.getTypeName)
+    conf.set(SftNameKey, name)
+    conf.set(SftSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+  }
 
   /**
     * Extract the simple feature type from a parquet read context. The read context

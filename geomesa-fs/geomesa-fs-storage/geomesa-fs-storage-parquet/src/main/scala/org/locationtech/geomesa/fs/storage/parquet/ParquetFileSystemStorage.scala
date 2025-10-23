@@ -16,15 +16,17 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.apache.parquet.hadoop.example.GroupReadSupport
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
+import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter}
+import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, FileValidationEnabled}
+import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
 
 import java.util.Collections
@@ -44,8 +46,17 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
       context.conf.get(AuthsParam.key, "").split(",").toSeq.filter(_.nonEmpty)
     )
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
-    new ParquetFileSystemWriter(metadata.sft, context, file, observer)
+  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
+    val conf = new Configuration(context.conf)
+    SimpleFeatureParquetSchema.setSft(conf, metadata.sft)
+    val observers =
+      if (FileValidationEnabled.toBoolean.get) {
+        CompositeObserver(Seq(observer, FileValidationObserver(file)))
+      } else {
+        observer
+      }
+    new ParquetFileSystemWriter(file, conf, observers)
+  }
 
   override protected def createReader(
       filter: Option[Filter],
@@ -84,22 +95,26 @@ object ParquetFileSystemStorage extends LazyLogging {
    *
    * @param file file to validate
    */
-  def validateParquetFile(file: Path): Unit = {
-    var reader: ParquetReader[Group] = null
-    try {
-      // read Parquet file content
-      reader = ParquetReader.builder(new GroupReadSupport(), file).build()
-      var record = reader.read()
-      while (record != null) {
-        // Process the record
-        record = reader.read()
-      }
-      logger.trace(s"$file is a valid Parquet file")
-    } catch {
-      case NonFatal(e) => throw new RuntimeException(s"Unable to validate $file: File may be corrupted", e)
-    } finally {
-      if (reader != null) {
-        reader.close()
+  case class FileValidationObserver(file: Path) extends FileSystemObserver {
+    override def apply(feature: SimpleFeature): Unit = {}
+    override def flush(): Unit = {}
+    override def close(): Unit = {
+      var reader: ParquetReader[Group] = null
+      try {
+        // read Parquet file content
+        reader = ParquetReader.builder(new GroupReadSupport(), file).build()
+        var record = reader.read()
+        while (record != null) {
+          // Process the record
+          record = reader.read()
+        }
+        logger.trace(s"$file is a valid Parquet file")
+      } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Unable to validate $file: File may be corrupted", e)
+      } finally {
+        if (reader != null) {
+          reader.close()
+        }
       }
     }
   }

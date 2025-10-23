@@ -47,12 +47,29 @@ object FileSystemObserverFactory {
     override def close(): Unit = {}
   }
 
+  object CompositeObserver {
+    def apply(observers: Seq[FileSystemObserver]): FileSystemObserver = {
+      val seq = observers.flatMap {
+        case NoOpObserver => Seq.empty
+        case o: CompositeObserver => o.observers
+        case o => Seq(o)
+      }
+      if (seq.isEmpty) {
+        NoOpObserver
+      } else if (seq.lengthCompare(1) == 0) {
+        seq.head
+      } else {
+        new CompositeObserver(seq)
+      }
+    }
+  }
+
   /**
    * Composite observer
    *
    * @param observers observers
    */
-  class CompositeObserver(observers: Seq[FileSystemObserver]) extends FileSystemObserver {
+  class CompositeObserver(val observers: Seq[FileSystemObserver]) extends FileSystemObserver {
 
     override def apply(feature: SimpleFeature): Unit = observers.foreach(_.apply(feature))
 

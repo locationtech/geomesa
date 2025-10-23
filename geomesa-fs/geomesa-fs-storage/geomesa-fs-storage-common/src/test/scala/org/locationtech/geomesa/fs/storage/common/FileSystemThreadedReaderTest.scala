@@ -12,8 +12,8 @@ import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import java.io.Closeable
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -34,7 +35,7 @@ class FileSystemThreadedReaderTest extends Specification {
       val feature = ScalaSimpleFeature.create(sft, "1", "name")
       val featureGate = new LinkedBlockingQueue[Boolean](1)
       val reader = new FileSystemPathReader() {
-        override def read(path: Path): CloseableIterator[SimpleFeature] = {
+        override def read(path: Path): Iterator[SimpleFeature] with Closeable = {
           featureGate.take()
           CloseableIterator.single(feature)
         }
