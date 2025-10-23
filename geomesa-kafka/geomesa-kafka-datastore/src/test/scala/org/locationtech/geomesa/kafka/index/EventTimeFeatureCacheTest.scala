@@ -18,7 +18,6 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.metrics.MetricsTags
 import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

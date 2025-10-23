@@ -21,7 +21,7 @@ env:
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
-  MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
+  MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
