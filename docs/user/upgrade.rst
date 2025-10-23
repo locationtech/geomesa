@@ -93,12 +93,30 @@ Compatibility Matrix
 Version 5.5.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+
+ ???
+ java version 17
+
+ deprecated
+ org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan
+ org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan
+ geomesa-process-wps
+
+org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory -> org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory
+
 Dependency Version Upgrades
 ---------------------------
 
 The following dependencies have been upgraded:
 
 * kafka ``3.9.0`` -> ``3.9.1``
+
+Deprecated Modules
+------------------
+
+The following modules have been deprecated and will be removed in the next major release:
+
+* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

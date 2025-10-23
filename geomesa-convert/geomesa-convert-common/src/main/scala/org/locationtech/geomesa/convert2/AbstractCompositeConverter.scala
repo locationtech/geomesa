@@ -18,9 +18,9 @@ import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.InputStream
 import java.time.Duration
@@ -33,7 +33,7 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
     delegates: Seq[(Predicate, ParsingConverter[T])]
   ) extends SimpleFeatureConverter with LazyLogging {
 
-  private val tags = MetricsTags.typeNameTag(sft)
+  private val tags = TagUtils.typeNameTag(sft.getTypeName)
 
   private val routingTimer =
     Timer.builder(ConverterMetrics.name("predicate.eval"))

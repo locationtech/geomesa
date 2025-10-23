@@ -11,24 +11,25 @@ package org.locationtech.geomesa.convert2
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{Metrics, Timer}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tag, Timer}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
-import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, addDependencies, topologicalOrder}
+import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, LatencyMetrics, addDependencies, topologicalOrder}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.validators.{IdValidatorFactory, SimpleFeatureValidator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.metrics.micrometer.utils.{GaugeUtils, TagUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.metrics.{LatencyMetrics, MetricsTags}
 
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.time.Duration
+import java.util.Date
 import java.util.concurrent.TimeUnit
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -134,8 +135,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   private val metrics = ConverterMetrics(sft, options.reporters)
 
   private val tags = config match {
-    case ConverterName(name) => MetricsTags.typeNameTag(sft).and(ConverterMetrics.converterNameTag(name))
-    case _                   => MetricsTags.typeNameTag(sft)
+    case ConverterName(name) => TagUtils.typeNameTag(sft.getTypeName).and(ConverterMetrics.converterNameTag(name))
+    case _                   => TagUtils.typeNameTag(sft.getTypeName)
   }
 
   private val validators =
@@ -159,7 +160,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
       .maximumExpectedValue(Duration.ofMillis(2))
       .register(Metrics.globalRegistry)
 
-  private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, ConverterMetrics.MetricsNamePrefix.get, tags))
+  private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, tags))
 
   override def targetSft: SimpleFeatureType = sft
 
@@ -352,6 +353,40 @@ object AbstractConverter {
     def default: BasicOptions = {
       val validators = SimpleFeatureValidator.default
       BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+    }
+  }
+
+
+  /**
+   * Latency metrics tracker
+   *
+   * @param dtgIndex index of the date attribute to track in the feature type
+   * @param tags metrics tags
+   */
+  private class LatencyMetrics(dtgIndex: Int, tags: java.lang.Iterable[Tag]) {
+
+    private val date = GaugeUtils.timeGauge(ConverterMetrics.name("dtg.latest"), tags)
+
+    private val latency =
+      DistributionSummary.builder(ConverterMetrics.name("dtg.latency"))
+        .tags(tags)
+        .publishPercentileHistogram()
+        .baseUnit("milliseconds")
+        .minimumExpectedValue(1d)
+        .maximumExpectedValue(Duration.ofDays(1).toMillis.toDouble)
+        .register(Metrics.globalRegistry)
+
+    /**
+     * Record latency for a feature
+     *
+     * @param feature feature
+     */
+    def apply(feature: SimpleFeature): Unit = {
+      val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      if (dtg != null) {
+        date.set(dtg.getTime)
+        latency.record(System.currentTimeMillis() - dtg.getTime)
+      }
     }
   }
 

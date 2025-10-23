@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.jobs.index
 
 import com.beust.jcommander.Parameter
-import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat
@@ -37,7 +36,6 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 
-import java.util.Properties
 import scala.util.control.NonFatal
 
 object AttributeIndexJob {
@@ -212,7 +210,7 @@ class AttributeIndexJob extends Tool {
       job.setMapOutputValueClass(classOf[Mutation])
       job.setNumReduceTasks(0)
 
-      val plan = AccumuloJobUtils.getSingleQueryPlan(ds, new Query(sft.getTypeName, Filter.INCLUDE))
+      val plan = ds.getSingleQueryPlan(new Query(sft.getTypeName, Filter.INCLUDE))
       GeoMesaAccumuloInputFormat.configure(job.getConfiguration, dsInParams.asJava, plan)
       GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, dsInParams)
       AttributeIndexJob.setAttributes(job.getConfiguration, attributes.toSeq)

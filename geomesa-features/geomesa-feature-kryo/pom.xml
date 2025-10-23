@@ -17,7 +17,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-process-feature</artifactId>
+            <artifactId>gt-main</artifactId>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>

@@ -16,7 +16,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.hadoop.HadoopDelegate.{HadoopFileHandle, HadoopTarHandle, HadoopZipHandle}

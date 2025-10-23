@@ -24,6 +24,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.DistributedLocking
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -32,7 +33,6 @@ import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypeComparator, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.{Closeable, IOException}
 import java.time.{Instant, ZoneOffset}
@@ -440,7 +440,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
    * @param typeName type name
    * @return
    */
-  def tags(typeName: String): Tags = tags.and(MetricsTags.typeNameTag(typeName))
+  def tags(typeName: String): Tags = tags.and(TagUtils.typeNameTag(typeName))
 
   /**
    * Validate a call to updateSchema, throwing errors on failed validation
