@@ -17,8 +17,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, IndexResolution, IngestTimeConfig, NeverExpireConfig}
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory, KafkaDataStoreParams}
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.metrics.MetricsTags
 import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -65,7 +65,7 @@ class KafkaFeatureCacheViewTest extends Specification with Mockito {
   val track3v0 = track("track3", "POINT (0 60)")
 
   // ensure the tags we use here match KafkaDataStore otherwise it can cause errors in registering metrics
-  private val tags = Tags.of("store", "test", "catalog", "test").and(MetricsTags.typeNameTag("test"))
+  private val tags = Tags.of("store", "test", "catalog", "test").and(TagUtils.typeNameTag("test"))
 
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 

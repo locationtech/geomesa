@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.metrics.MetricsTags
@@ -37,7 +38,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
   val res = IndexResolution(180, 90)
 
   // ensure the tags we use here match KafkaDataStore otherwise it can cause errors in registering metrics
-  private val tags = Tags.of("store", "test", "catalog", "test").and(MetricsTags.typeNameTag("test"))
+  private val tags = Tags.of("store", "test", "catalog", "test").and(TagUtils.typeNameTag("test"))
 
   "EventTimeFeatureCache" should {
     "order by event time" in {
