@@ -100,7 +100,10 @@ Version 5.5.0 Upgrade Guide
  deprecated
  org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan
  org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan
- geomesa-process-wps
+
+removed:
+geomesa-process-wps
+geomesa-zk-utils
 
 org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory -> org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory
 

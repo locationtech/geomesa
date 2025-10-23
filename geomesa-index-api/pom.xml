@@ -45,10 +45,21 @@
             <artifactId>s2-geometry-library</artifactId>
         </dependency>
 
+        <!-- provided dependencies -->
+
         <!-- pull in arrow for aggregating scan code, but don't make it a transitive dep -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
             <scope>provided</scope>
         </dependency>
 

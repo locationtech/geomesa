@@ -13,7 +13,6 @@
 
     <modules>
         <module>geomesa-process-vector</module>
-        <module>geomesa-process-wps</module>
     </modules>
 
 </project>

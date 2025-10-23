@@ -26,7 +26,6 @@ import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.TextTools
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
@@ -70,7 +69,7 @@ class DelimitedTextConverterFactory
       sft: Option[SimpleFeatureType]): Try[(SimpleFeatureType, Config)] = {
     // : Seq[List[String]]
     val rows = lines.flatMap { line =>
-      if (TextTools.isWhitespace(line)) { None } else {
+      if (line.isBlank) { None } else {
         Try(format.parse(new StringReader(line)).iterator().next.iterator.asScala.toList).toOption
       }
     }

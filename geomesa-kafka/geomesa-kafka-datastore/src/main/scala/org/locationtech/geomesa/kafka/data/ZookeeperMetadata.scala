@@ -6,8 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.zk
+package org.locationtech.geomesa.kafka.data
 
+import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -17,9 +19,15 @@ import java.nio.charset.StandardCharsets
 class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
-  import org.locationtech.geomesa.utils.zk.ZookeeperMetadata.Root
+  import org.locationtech.geomesa.kafka.data.ZookeeperMetadata.Root
 
-  private val client = CuratorHelper.client(zookeepers).namespace(namespace).build()
+  private val client =
+    CuratorFrameworkFactory.builder()
+      .connectString(zookeepers)
+      .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+      .dontUseContainerParents()
+      .namespace(namespace)
+      .build()
   client.start()
 
   override protected def checkIfTableExists: Boolean = true

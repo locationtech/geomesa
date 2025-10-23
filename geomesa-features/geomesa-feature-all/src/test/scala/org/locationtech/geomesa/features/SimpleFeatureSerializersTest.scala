@@ -12,7 +12,6 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
-import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
@@ -35,13 +34,11 @@ class SimpleFeatureSerializersTest extends Specification {
   }
 
   def getFeaturesWithVisibility: Seq[SimpleFeature] = {
-    import security._
-
     val features = getFeatures
     val visibilities = Seq("test&usa", "admin&user", "", null, "test", "user")
 
     features.zip(visibilities).map { case (sf, vis) =>
-      sf.visibility = vis
+      sf.getUserData.put("geomesa.feature.visibility", vis)
       sf
     }
 

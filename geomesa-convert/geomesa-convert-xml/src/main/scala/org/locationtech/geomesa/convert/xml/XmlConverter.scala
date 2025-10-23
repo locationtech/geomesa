@@ -20,7 +20,6 @@ import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.TextTools
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.{ErrorHandler, InputSource, SAXParseException}
 
@@ -116,7 +115,7 @@ object XmlConverter extends StrictLogging {
       val lines = IOUtils.lineIterator(bis, encoding)
       val elements = lines.asScala.flatMap { line =>
         ec.line += 1
-        if (TextTools.isWhitespace(line)) { Iterator.empty } else {
+        if (line.isBlank) { Iterator.empty } else {
           Iterator.single(parser.parse(new StringReader(line)))
         }
       }
