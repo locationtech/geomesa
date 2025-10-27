@@ -18,6 +18,7 @@ env:
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
   MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
   MAVEN_TEST_ARGS: test
+  MAVEN_SPARK_TEST_ARGS: test -Dtest.fork.count=2
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
@@ -239,7 +240,8 @@ jobs:
           export SPARK_RUNTIME_MODULES="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
           mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$SPARK_RUNTIME_MODULES"
       - name: Run Spark tests
-        run: mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
+        if: ${{ matrix.scala-version }} == "2.12" # there's no 2.13 spark docker container
+        run: mvn $MAVEN_SPARK_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
