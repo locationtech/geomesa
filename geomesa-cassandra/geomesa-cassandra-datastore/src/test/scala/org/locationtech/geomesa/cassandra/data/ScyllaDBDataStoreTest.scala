@@ -22,7 +22,7 @@ import org.testcontainers.utility.{DockerImageName, MountableFile}
  * to use ScyllaDB instead of Apache Cassandra.
  *
  * Note: Uses --reactor-backend=epoll for compatibility with Docker Desktop on Mac/Windows.
- * Requires ScyllaDB latest or 2025.3.2+ for best Docker compatibility.
+ * Requires ScyllaDB 2025.1.4+ for best Docker compatibility.
  */
 @RunWith(classOf[JUnitRunner])
 class ScyllaDBDataStoreTest extends CassandraDataStoreTest {
@@ -30,7 +30,7 @@ class ScyllaDBDataStoreTest extends CassandraDataStoreTest {
   override protected def createContainer(): CassandraContainer = {
     new CassandraContainer(
       DockerImageName.parse("scylladb/scylla")
-        .withTag(sys.props.getOrElse("scylladb.docker.tag", "2025.3.2"))
+        .withTag(sys.props.getOrElse("scylladb.docker.tag", "2025.1.4"))
         .asCompatibleSubstituteFor("cassandra")
     )
       .withCommand("--reactor-backend", "epoll", "--smp", "1")

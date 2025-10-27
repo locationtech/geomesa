@@ -33,14 +33,11 @@ Quick Example
 ScyllaDB-Specific Notes
 -----------------------
 
-Performance
+Differences with Cassandra
 ~~~~~~~~~~~
 
-ScyllaDB typically offers superior performance compared to Cassandra:
-
-* **Higher throughput**: Written in C++, handles more operations per second
-* **Lower latency**: Better tail latencies, especially under load
-* **Better resource utilization**: More efficient use of CPU and memory
+ScyllaDB is designed as a performance-focused alternative to Cassandra. For detailed comparisons
+and benchmarks, see ScyllaDB's `comparison documentation <https://www.scylladb.com/compare/scylladb-vs-apache-cassandra/>`_
 
 Compatibility
 ~~~~~~~~~~~~~

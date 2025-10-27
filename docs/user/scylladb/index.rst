@@ -3,7 +3,7 @@ ScyllaDB Data Store
 
 .. note::
 
-    GeoMesa currently supports ScyllaDB version |scylladb_version|.
+    GeoMesa currently supports ScyllaDB {{scylladb_supported_versions}}.
 
 The GeoMesa ScyllaDB Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `ScyllaDB`_.

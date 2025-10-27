@@ -14,6 +14,7 @@ accumulo_version_full = '${accumulo.version.recommended}'
 accumulo_version = accumulo_version_full[:accumulo_version_full.rindex('.')]
 cassandra_version_full = '${cassandra.server.version.recommended}'
 cassandra_version = cassandra_version_full[:cassandra_version_full.rindex('.')]
+scylladb_version = '${scylladb.version.recommended}'
 geoserver_version = '${geoserver.version}'
 hadoop_min_version = '${hadoop.min.version}'
 hbase_version_full = '${hbase.version.recommended}'
