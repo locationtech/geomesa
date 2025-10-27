@@ -49,6 +49,8 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
   lazy val sc: SQLContext = spark.sqlContext
   lazy val sparkContext: SparkContext = spark.sparkContext
 
+  skipped("spatial provider is not bundled in a runtime jar")
+
   "The ConverterSpatialRDDProvider" should {
     "read from local files" in {
       val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sparkContext, params, new Query("example-csv"))

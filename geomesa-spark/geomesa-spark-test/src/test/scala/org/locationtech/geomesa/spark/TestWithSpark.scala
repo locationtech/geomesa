@@ -111,7 +111,8 @@ trait TestWithSpark extends SpecificationWithJUnit with BeforeAfterAll with Stri
 
 object TestWithSpark {
 
-  val ImageName = DockerImageName.parse("apache/spark:3.5.7-scala2.12-java17-ubuntu") // TODO parameterize this
+  val ImageName =
+    DockerImageName.parse("apache/spark").withTag(sys.props.getOrElse("spark.docker.tag", "3.5.7-scala2.12-java17-ubuntu"))
 
   private def getFreePort: Int = {
     val socket = new ServerSocket(0)

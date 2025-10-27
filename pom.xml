@@ -135,7 +135,7 @@
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
         <hadoop.version>3.4.2</hadoop.version>
-        <spark.version>3.5.5</spark.version>
+        <spark.version>3.5.7</spark.version>
         <hbase.version>2.6.3-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
@@ -222,6 +222,7 @@
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
+        <test.spark.docker.tag>${spark.version}-scala${scala.binary.version}-java${jdk.version}-ubuntu</test.spark.docker.tag>
         <test.zookeeper.docker.tag>3.9.2</test.zookeeper.docker.tag>
 
         <!-- documentation/readme -->
@@ -2865,6 +2866,7 @@
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+                            <spark.docker.tag>${test.spark.docker.tag}</spark.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
                         </systemPropertyVariables>
                     </configuration>
@@ -2895,6 +2897,7 @@
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+                            <spark.docker.tag>${test.spark.docker.tag}</spark.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
                         </systemPropertyVariables>
                     </configuration>

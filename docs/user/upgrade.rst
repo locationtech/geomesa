@@ -113,6 +113,7 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * kafka ``3.9.0`` -> ``3.9.1``
+* spark ``3.5.5`` -> ``3.5.7``
 
 Deprecated Modules
 ------------------
