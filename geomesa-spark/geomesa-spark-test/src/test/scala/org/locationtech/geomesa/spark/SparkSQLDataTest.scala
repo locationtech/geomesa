@@ -128,9 +128,9 @@ class SparkSQLDataTest extends TestWithSpark {
         .load()
       logger.debug(dfPartitioned.schema.treeString)
 
-      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedAttrQuery")
 
-      spark.sql("select * from chicagoPartitionedWithQuery")
+      spark.sql("select * from chicagoPartitionedAttrQuery")
         .collect().map{ r=> r.get(0) } mustEqual Array("1", "2")
     }
 
@@ -144,9 +144,9 @@ class SparkSQLDataTest extends TestWithSpark {
         .load()
       logger.debug(dfPartitioned.schema.treeString)
 
-      dfPartitioned.createOrReplaceTempView("chicagoPartitionedWithQuery")
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedGeomQuery")
 
-      spark.sql("select * from chicagoPartitionedWithQuery")
+      spark.sql("select * from chicagoPartitionedGeomQuery")
         .collect().map{ r=> r.get(0) } mustEqual Array("1")
     }
 
@@ -161,8 +161,6 @@ class SparkSQLDataTest extends TestWithSpark {
         .load()
       logger.debug(dfPartitioned.schema.treeString)
 
-      dfPartitioned.createOrReplaceTempView("chicagoPartitioned")
-
       // Filter if features belonged to multiple partition envelopes
       // TODO: Better way
       val hashSet = new ju.HashSet[String]()
@@ -173,7 +171,17 @@ class SparkSQLDataTest extends TestWithSpark {
     }
 
     "handle projections on in-memory store" >> {
-      val r = sc.sql("select geom from chicagoIndexed where case_number = 1")
+      val dfIndexed = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("cache", "true")
+        .load()
+      logger.debug(dfIndexed.schema.treeString)
+
+      dfIndexed.createOrReplaceTempView("chicagoIndexedProj")
+
+      val r = sc.sql("select geom from chicagoIndexedProj where case_number = 1")
       val d = r.collect
       d.length mustEqual 1
 
@@ -183,7 +191,17 @@ class SparkSQLDataTest extends TestWithSpark {
     }
 
     "basic sql indexed" >> {
-      val r = sc.sql("select * from chicagoIndexed where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
+      val dfIndexed = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("cache", "true")
+        .load()
+      logger.debug(dfIndexed.schema.treeString)
+
+      dfIndexed.createOrReplaceTempView("chicagoIndexedBasic")
+
+      val r = sc.sql("select * from chicagoIndexedBasic where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
       val d = r.collect
 
       d.length mustEqual 1
@@ -191,7 +209,19 @@ class SparkSQLDataTest extends TestWithSpark {
     }
 
     "basic sql partitioned" >> {
-      val r = sc.sql("select * from chicagoPartitioned where st_equals(geom, st_geomFromWKT('POINT(-77 38)'))")
+      val dfPartitioned = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "chicago")
+        .option("cache", "true")
+        .option("spatial","true")
+        .option("strategy", "RTREE")
+        .load()
+      logger.debug(dfPartitioned.schema.treeString)
+
+      dfPartitioned.createOrReplaceTempView("chicagoPartitionedBasic")
+
+      val r = sc.sql("select * from chicagoPartitionedBasic where st_equals(geom, st_geomFromWKT('POINT(-77 38)'))")
       val d = r.collect
 
       d.length mustEqual 1

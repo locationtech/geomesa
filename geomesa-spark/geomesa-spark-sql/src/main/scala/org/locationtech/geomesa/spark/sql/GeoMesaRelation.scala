@@ -26,7 +26,8 @@ import org.locationtech.geomesa.spark.sql.GeoMesaRelation.{CachedRDD, IndexedRDD
 import org.locationtech.geomesa.spark.sql.GeoMesaSparkSQL.GEOMESA_SQL_FEATURE
 import org.locationtech.geomesa.spark.{GeoMesaSpark, SpatialRDD}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 
 import java.util.{Collections, Locale}
@@ -258,9 +259,11 @@ object GeoMesaRelation extends LazyLogging {
       partitioned match {
         case Some(p) =>
           val rdd = p.rdd.mapValues { iter =>
-            val engine = new GeoCQEngineDataStore(indexGeom)
+            val engine = GeoCQEngineDataStore.getStore(indexGeom)
             engine.createSchema(SimpleFeatureTypes.createType(typeName, encodedSft))
-            engine.namesToEngine.get(typeName).insert(iter)
+            WithClose(engine.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+              iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            }
             engine
           }
           p.rdd.unpersist() // make this call blocking?
@@ -269,9 +272,11 @@ object GeoMesaRelation extends LazyLogging {
 
         case None =>
           val rdd = rawRDD.mapPartitions { iter =>
-            val engine = new GeoCQEngineDataStore(indexGeom)
+            val engine = GeoCQEngineDataStore.getStore(indexGeom)
             engine.createSchema(SimpleFeatureTypes.createType(typeName, encodedSft))
-            engine.namesToEngine.get(typeName).insert(iter.toList)
+            WithClose(engine.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+              iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            }
             Iterator.single(engine)
           }
           rdd.persist(StorageLevel.MEMORY_ONLY)

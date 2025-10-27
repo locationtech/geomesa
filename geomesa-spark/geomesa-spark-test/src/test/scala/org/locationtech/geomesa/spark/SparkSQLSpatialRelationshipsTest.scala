@@ -13,6 +13,7 @@ import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
+import org.specs2.matcher.MatchResult
 
 import java.util.{Map => JMap}
 
@@ -101,20 +102,20 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
   "SQL spatial relationships" should {
 
     // DE-9IM comparisons
-    def testData(sql: String, expectedNames: Seq[String]) = {
+    def testData(sql: String, expectedNames: Seq[String]): MatchResult[Any] = {
       val r = sc.sql(sql)
       val d = r.collect()
       val column = d.map(row => row.getAs[String]("name")).toSeq
       column must containTheSameElementsAs(expectedNames)
     }
 
-    def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean) = {
+    def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean): MatchResult[Any] = {
      val sql = s"select $f(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
      val r = sc.sql(sql).collect()
      r.head.getBoolean(0) mustEqual expected
     }
 
-    "st_contains" >> {
+    "st_contains" in {
       testData(
         s"select * from points where st_contains(st_geomFromWKT('$boxRef'), geom)",
         Seq("int")
@@ -139,7 +140,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_contains(null, null)").collect.head(0) must beNull
     }
 
-    "st_covers" >> {
+    "st_covers" in {
       // planner optimizer rules should prevent this clause from being
       // pushed down to the GeoTools store ("covers" is not a CQL op);
       // should be evaluated at the Spark level instead
@@ -167,7 +168,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_covers(null, null)").collect.head(0) must beNull
     }
 
-    "st_crosses" >> {
+    "st_crosses" in {
       testData(
         s"select * from lines where st_crosses(st_geomFromWKT('$lineRef'), geom)",
         Seq("crosses")
@@ -179,7 +180,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_crosses(null, null)").collect.head(0) must beNull
     }
 
-    "st_disjoint" >> {
+    "st_disjoint" in {
       testData(
         s"select * from points where st_disjoint(st_geomFromWKT('$boxRef'), geom)",
         Seq("ext")
@@ -204,7 +205,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_disjoint(null, null)").collect.head(0) must beNull
     }
 
-    "st_equals" >> {
+    "st_equals" in {
       testData(
         s"select * from points where st_equals(st_geomFromWKT('POINT(0 0)'), geom)",
         Seq("corner")
@@ -227,7 +228,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_equals(null, null)").collect.head(0) must beNull
     }
 
-    "st_intersects" >> {
+    "st_intersects" in {
       testData(
         s"select * from points where st_intersects(st_geomFromWKT('$boxRef'), geom)",
         Seq("int", "edge", "corner")
@@ -252,7 +253,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_intersects(null, null)").collect.head(0) must beNull
     }
 
-    "st_overlaps" >> {
+    "st_overlaps" in {
       testData(
         s"select * from points where st_overlaps(st_geomFromWKT('$boxRef'), geom)",
         Seq()
@@ -276,7 +277,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_overlaps(null, null)").collect.head(0) must beNull
     }
 
-    "st_touches" >> {
+    "st_touches" in {
       testData(
         s"select * from points where st_touches(st_geomFromWKT('$boxRef'), geom)",
         Seq("edge", "corner")
@@ -300,7 +301,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_touches(null, null)").collect.head(0) must beNull
     }
 
-    "st_within" >> {
+    "st_within" in {
       // reversed expressions because st_contains(g1, g2) == st_within(g2, g1)
       testData(
         s"select * from points where st_within(geom, st_geomFromWKT('$boxRef'))",
@@ -325,7 +326,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_within(null, null)").collect.head(0) must beNull
     }
 
-    "st_relate" >> {
+    "st_relate" in {
       val l1 = "st_geomFromWKT('LINESTRING(1 2, 3 4)')"
       val l2 = "st_geomFromWKT('LINESTRING(5 6, 7 8)')"
 
@@ -340,7 +341,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
     }
 
     // other relationship functions
-    "st_area" >> {
+    "st_area" in {
       /* units of deg^2, which may not be that useful to anyone */
       val box1 = "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"
       val box2 = "POLYGON((0 50, 0 60, 10 60, 10 50, 0 50))"
@@ -364,7 +365,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_area(null)").collect.head(0) must beNull
     }
 
-    "st_centroid" >> {
+    "st_centroid" in {
       val r = sc.sql(s"select st_centroid(st_geomFromWKT('$boxRef'))")
       val d = r.collect()
       d.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
@@ -372,7 +373,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_centroid(null)").collect.head(0) must beNull
     }
 
-    "st_closestpoint" >> {
+    "st_closestpoint" in {
       val box1 = "st_geomFromWKT('POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))')"
       val pt1  = "st_geomFromWKT('POINT(15 5)')"
       val r = sc.sql(s"select st_closestpoint($box1, $pt1)").collect()
@@ -381,7 +382,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_closestpoint(null, null)").collect.head(0) must beNull
     }
 
-    "st_distance" >> {
+    "st_distance" in {
       val pt1 = "st_geomFromWKT('POINT(0 0)')"
       val pt2 = "st_geomFromWKT('POINT(10 0)')"
 
@@ -395,7 +396,7 @@ class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
       sc.sql("select st_distanceSpheroid(null, null)").collect.head(0) must beNull
     }
 
-    "st_length" >> {
+    "st_length" in {
       // length
       val r1 = sc.sql(
         s"select st_length(st_geomFromWKT('LINESTRING(0 0, 10 0)'))"

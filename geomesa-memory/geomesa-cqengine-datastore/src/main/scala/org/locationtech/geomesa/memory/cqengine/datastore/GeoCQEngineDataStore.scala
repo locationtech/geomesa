@@ -10,24 +10,33 @@ package org.locationtech.geomesa.memory.cqengine.datastore
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.api.data.Query
+import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
+import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureStore}
 import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 
 import java.util
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
 
-class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with LazyLogging {
+class GeoCQEngineDataStore(useGeoIndex: Boolean, namesToEngine: ConcurrentHashMap[String, GeoCQEngine])
+    extends ContentDataStore with LazyLogging {
 
   logger.debug(s"useGeoIndex=$useGeoIndex")
 
-  val namesToEngine = new java.util.concurrent.ConcurrentHashMap[String, GeoCQEngine]()
+  override def getFeatureSource(typeName: String, tx: Transaction): ContentFeatureStore =
+    super.getFeatureSource(typeName, tx).asInstanceOf[ContentFeatureStore]
+  override def getFeatureSource(typeName: Name, tx: Transaction): ContentFeatureStore =
+    super.getFeatureSource(typeName, tx).asInstanceOf[ContentFeatureStore]
+  override def getFeatureSource(typeName: Name): ContentFeatureStore =
+    super.getFeatureSource(typeName).asInstanceOf[ContentFeatureStore]
+  override def getFeatureSource(typeName: String): ContentFeatureStore =
+    super.getFeatureSource(typeName).asInstanceOf[ContentFeatureStore]
 
-  override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {
+  override def createFeatureSource(entry: ContentEntry): ContentFeatureStore = {
     val engine = namesToEngine.get(entry.getTypeName)
     if (engine != null) {
       new GeoCQEngineFeatureStore(engine, entry, Query.ALL)
@@ -39,22 +48,25 @@ class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with L
   override def createTypeNames(): util.List[Name] = { namesToEngine.keys().asScala.toList.map { new NameImpl(_).asInstanceOf[Name] }.asJava }
 
   override def createSchema(featureType: SimpleFeatureType): Unit = {
-    val geo = if (!useGeoIndex) { Seq.empty } else {
-      Seq((featureType.getGeometryDescriptor.getLocalName, CQIndexType.GEOMETRY))
-    }
-    val attributes = CQIndexType.getDefinedAttributes(featureType) ++ geo
-    namesToEngine.putIfAbsent(featureType.getTypeName, new GeoCQEngine(featureType, attributes))
+    namesToEngine.computeIfAbsent(featureType.getTypeName, _ => {
+      val geo = if (!useGeoIndex) { Seq.empty } else {
+        Seq((featureType.getGeometryDescriptor.getLocalName, CQIndexType.GEOMETRY))
+      }
+      val attributes = CQIndexType.getDefinedAttributes(featureType) ++ geo
+      new GeoCQEngine(featureType, attributes)
+    })
   }
 }
 
 object GeoCQEngineDataStore {
 
-  private val stores = Caffeine.newBuilder().build[(String, Boolean), GeoCQEngineDataStore](
-    new CacheLoader[(String, Boolean), GeoCQEngineDataStore]() {
-      override def load(key: (String, Boolean)): GeoCQEngineDataStore = new GeoCQEngineDataStore(useGeoIndex = key._2)
+  private val engines = Caffeine.newBuilder().build[(String, Boolean), ConcurrentHashMap[String, GeoCQEngine]](
+    new CacheLoader[(String, Boolean), ConcurrentHashMap[String, GeoCQEngine]]() {
+      override def load(key: (String, Boolean)): ConcurrentHashMap[String, GeoCQEngine] =
+        new ConcurrentHashMap[String, GeoCQEngine]()
     }
   )
 
   def getStore(useGeoIndex: Boolean = true, namespace: Option[String] = None): GeoCQEngineDataStore =
-    stores.get((namespace.getOrElse(""), useGeoIndex))
+    new GeoCQEngineDataStore(useGeoIndex, engines.get((namespace.getOrElse(""), useGeoIndex)))
 }
