@@ -103,14 +103,20 @@ io.prometheus:simpleclient_pushgateway	0.16.0	compile
 io.prometheus:simpleclient_tracer_common	0.16.0	compile
 io.prometheus:simpleclient_tracer_otel	0.16.0	compile
 io.prometheus:simpleclient_tracer_otel_agent	0.16.0	compile
+it.geosolutions.imageio-ext:imageio-ext-geocore	2.0.0	compile
+it.geosolutions.imageio-ext:imageio-ext-streams	2.0.0	compile
+it.geosolutions.imageio-ext:imageio-ext-tiff	2.0.0	compile
+it.geosolutions.imageio-ext:imageio-ext-utilities	2.0.0	compile
 it.geosolutions.jgridshift:jgridshift-core	1.3	compile
 it.unimi.dsi:fastutil	8.5.15	compile
 jakarta.annotation:jakarta.annotation-api	1.3.5	compile
 jakarta.inject:jakarta.inject-api	2.0.1	compile
 jakarta.transaction:jakarta.transaction-api	1.3.3	compile
+javax.activation:javax.activation-api	1.2.0	compile
 javax.annotation:javax.annotation-api	1.2	compile
 javax.annotation:javax.annotation-api	1.3.2	compile
 javax.measure:unit-api	2.2	compile
+javax.xml.bind:jaxb-api	2.4.0-b180830.0359	compile
 joda-time:joda-time	2.12.6	compile
 net.java.dev.jna:jna	5.14.0	compile
 net.java.dev.jna:jna-platform	5.14.0	compile
@@ -213,6 +219,7 @@ org.eclipse.imagen:mosaic	0.9.0	compile
 org.eclipse.imagen:nullop	0.9.0	compile
 org.eclipse.imagen:orderdither	0.9.0	compile
 org.eclipse.imagen:piecewise	0.9.0	compile
+org.eclipse.imagen:rendered-image-browser	0.9.0	compile
 org.eclipse.imagen:rescale	0.9.0	compile
 org.eclipse.imagen:rlookup	0.9.0	compile
 org.eclipse.imagen:scale	0.9.0	compile
@@ -346,6 +353,7 @@ org.jruby:jruby	9.4.5.0	test
 org.json4s:json4s-core_2.12	3.6.12	test
 org.mortbay.jetty:jetty	6.1.26	test
 org.slf4j:jul-to-slf4j	1.7.36	test
+org.slf4j:slf4j-reload4j	2.0.17	test
 org.specs2:specs2-core_2.12	4.20.5	test
 org.specs2:specs2-junit_2.12	4.20.5	test
 org.specs2:specs2-mock_2.12	4.20.5	test
