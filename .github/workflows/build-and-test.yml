@@ -240,7 +240,7 @@ jobs:
           export SPARK_RUNTIME_MODULES="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
           mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$SPARK_RUNTIME_MODULES"
       - name: Run Spark tests
-        if: ${{ matrix.scala-version }} == "2.12" # there's no 2.13 spark docker container
+        if: matrix.scala-version == '2.12' # there's no 2.13 spark docker container
         run: mvn $MAVEN_SPARK_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
       - name: Remove geomesa artifacts
         if: success() || failure()
