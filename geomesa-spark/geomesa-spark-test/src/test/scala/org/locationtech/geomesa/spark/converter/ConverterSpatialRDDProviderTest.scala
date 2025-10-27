@@ -49,10 +49,11 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
   lazy val sc: SQLContext = spark.sqlContext
   lazy val sparkContext: SparkContext = spark.sparkContext
 
-  skipped("spatial provider is not bundled in a runtime jar")
-
   "The ConverterSpatialRDDProvider" should {
+
     "read from local files" in {
+      skipped("spatial provider is not bundled in a runtime jar")
+
       val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sparkContext, params, new Query("example-csv"))
       rdd.count() mustEqual 3l
       rdd.collect.map(_.getAttribute("name").asInstanceOf[String]).toList must
@@ -60,6 +61,8 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
     }
 
     "read from local files with filtering" in {
+      skipped("spatial provider is not bundled in a runtime jar")
+
       val query = new Query("example-csv", ECQL.toFilter("name like 'H%'"))
       val rdd = GeoMesaSpark(params.asJava).rdd(new Configuration(), sparkContext, params, query)
       rdd.count() mustEqual 2l
@@ -68,6 +71,8 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
     }
 
     "read from a local file using Converter Name lookup" in {
+      skipped("spatial provider is not bundled in a runtime jar")
+
       val params = Map (
         InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
@@ -78,6 +83,8 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
     }
 
     "handle projections" in {
+      skipped("spatial provider is not bundled in a runtime jar")
+
       val params = Map (
         InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
@@ -90,6 +97,8 @@ class ConverterSpatialRDDProviderTest extends SpecificationWithJUnit {
     }
 
     "handle * projections" in {
+      skipped("spatial provider is not bundled in a runtime jar")
+
       val params = Map (
         InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
