@@ -178,6 +178,10 @@
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.gson</shadedPattern>
+                                </relocation>
+                                <relocation>
                                     <pattern>org.apache.commons.codec</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.org.apache.commons.codec</shadedPattern>
                                 </relocation>

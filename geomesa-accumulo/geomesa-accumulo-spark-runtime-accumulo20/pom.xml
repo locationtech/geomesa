@@ -211,6 +211,10 @@
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.gson</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>

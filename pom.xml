@@ -207,10 +207,12 @@
         <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
         <maven.test.debug/>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
-        <test.fork.count>2</test.fork.count>
+        <test.fork.count>1</test.fork.count>
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
+        <test.spark.worker.cores>2</test.spark.worker.cores>
+        <test.spark.worker.memory>1g</test.spark.worker.memory>
         <test.accumulo.docker.tag>2.1.4-jdk17</test.accumulo.docker.tag>
         <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->

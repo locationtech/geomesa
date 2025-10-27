@@ -17,8 +17,8 @@ env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
   MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
-  MAVEN_TEST_ARGS: test -Dtest.fork.count=1
-  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
+  MAVEN_TEST_ARGS: test
+  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
