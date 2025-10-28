@@ -39,10 +39,13 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
   sequential
 
-  val container =
+  protected def createContainer(): CassandraContainer = {
     new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "3.11.19")))
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("cassandra")))
       .withFileSystemBind(MountableFile.forClasspathResource("init.cql").getResolvedPath, "/init.cql", BindMode.READ_ONLY)
+  }
+
+  val container: CassandraContainer = createContainer()
 
   lazy val params: Map[String, String] = Map(
     Params.ContactPointParam.getName -> s"${container.getContactPoint.getHostString}:${container.getContactPoint.getPort}",

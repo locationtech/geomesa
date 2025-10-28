@@ -33,6 +33,8 @@ ultimate_replacements = {
   "{{accumulo_required_version}}": "2.0.1 or " + target.versions.accumulo_version,
   "{{cassandra_supported_versions}}": "version " + target.versions.cassandra_version,
   "{{cassandra_required_version}}": target.versions.cassandra_version,
+  "{{scylladb_supported_versions}}": "version " + target.versions.scylladb_version,
+  "{{scylladb_required_version}}": target.versions.scylladb_version,
   "{{geoserver_version}}": target.versions.geoserver_version,
   "{{hbase_supported_versions}}": "version " + target.versions.hbase_version,
   "{{hbase_required_version}}": target.versions.hbase_version,
