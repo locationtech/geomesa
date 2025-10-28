@@ -24,7 +24,7 @@ mapfile -t deps < <(
 
 # truncate everything after the opening dependencyManagement
 sed -i '/    <dependencyManagement>/q' "$POM"
-echo -e "        <dependencies>\n" >> "$POM"
+echo "        <dependencies>" >> "$POM"
 
 function printDependency() {
   local dep="$1"
@@ -56,21 +56,26 @@ function printDependency() {
   } | tee -a "$POM"
 }
 
+have_test_deps=""
+
 for dep in "${deps[@]}"; do
   if ! [[ $dep =~ .*tests.jar ]]; then
     printDependency "$dep"
+  else
+    have_test_deps="true"
   fi
 done
 
-echo -e "\n            <!-- test dependencies -->\n" | tee -a "$POM"
+if [[ -n "$have_test_deps" ]]; then
+  echo -e "\n            <!-- test dependencies -->\n" | tee -a "$POM"
 
-for dep in "${deps[@]}"; do
-  if [[ $dep =~ .*tests.jar ]]; then
-    printDependency "$dep"
-  fi
-done
+  for dep in "${deps[@]}"; do
+    if [[ $dep =~ .*tests.jar ]]; then
+      printDependency "$dep"
+    fi
+  done
+fi
 
-echo "
-        </dependencies>
+echo "        </dependencies>
     </dependencyManagement>
 </project>" >> "$POM"

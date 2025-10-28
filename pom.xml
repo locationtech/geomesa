@@ -53,7 +53,7 @@
         <!-- java/scala -->
         <jdk.version>17</jdk.version>
         <scala.version>2.12.20</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
-        <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
+        <scala.binary.version>2.12</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
@@ -254,7 +254,6 @@
             <id>debug-tests</id>
             <properties>
                 <maven.test.debug>true</maven.test.debug>
-                <test.fork.count>1</test.fork.count> <!-- otherwise we get port conflicts -->
             </properties>
         </profile>
 

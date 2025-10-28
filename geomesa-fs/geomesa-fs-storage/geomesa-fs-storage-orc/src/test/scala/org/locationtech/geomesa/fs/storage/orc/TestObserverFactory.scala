@@ -17,7 +17,6 @@ import org.locationtech.geomesa.fs.storage.orc.TestObserverFactory.TestObserver
 import java.util.Collections
 import scala.collection.mutable.ArrayBuffer
 
-// TODO add test on non-deprecated observers
 class TestObserverFactory extends FileSystemObserverFactory {
   override def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit = {}
   override def apply(path: Path): FileSystemObserver = {

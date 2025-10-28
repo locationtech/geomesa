@@ -110,9 +110,12 @@ The following dependencies have been upgraded:
 Deprecated Classes/Methods
 --------------------------
 
-* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan``
+* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan`` - moved to ``AccumuloDataStore``
 * ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan``
-* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - moved to ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - moved to
+``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+* ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - moved to
+``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
 
 Removed Classes/Methods
 -----------------------
@@ -124,6 +127,15 @@ The following modules have been removed:
 
 * ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 * ``geomesa-zk-utils``
+
+The following JAR classifiers are no longer published:
+
+* ``geomesa-accumulo-datastore:tests``
+* ``geomesa-fs-datastore:tests``
+* ``geomesa-hbase-datastore:tests``
+* ``geomesa-index-api:tests``
+* ``geomesa-kafka-datastore:tests``
+* ``geomesa-tools:data``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

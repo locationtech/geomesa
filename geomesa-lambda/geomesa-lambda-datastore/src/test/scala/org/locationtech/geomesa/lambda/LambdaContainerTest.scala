@@ -51,7 +51,6 @@ class LambdaContainerTest extends SpecificationWithJUnit with BeforeAfterAll wit
     "lambda.offset-manager"         -> offsetManager
   )
 
-
   override def beforeAll(): Unit = kafka.start()
 
   override def afterAll(): Unit = CloseWithLogging(kafka)

@@ -55,8 +55,6 @@ class OrcFileSystemWriter(
       case NonFatal(e) => CloseQuietly(Seq(writer, observer)).foreach(e.addSuppressed); throw e
     }
     CloseQuietly.raise(Seq(writer, observer))
-    // TODO move this up
-//    PathCache.register(context.fs, file)
   }
 
   private def flushBatch(): Unit = {

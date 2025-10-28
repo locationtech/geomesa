@@ -371,7 +371,6 @@ object KafkaCacheLoader extends LazyLogging {
     }
   }
 
-
   /**
    * Latency metrics tracker
    *
