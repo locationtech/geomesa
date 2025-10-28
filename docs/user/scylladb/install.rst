@@ -33,7 +33,7 @@ Once ScyllaDB is running, create a keyspace for GeoMesa. Connect using ``cqlsh``
 
 Then create a keyspace:
 
-.. code-block:: cql
+.. code-block:: bash
 
     CREATE KEYSPACE IF NOT EXISTS geomesa_scylla WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
