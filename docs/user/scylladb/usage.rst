@@ -34,7 +34,7 @@ ScyllaDB-Specific Notes
 -----------------------
 
 Differences with Cassandra
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ScyllaDB is designed as a performance-focused alternative to Cassandra. For detailed comparisons
 and benchmarks, see ScyllaDB's `comparison documentation <https://www.scylladb.com/compare/scylladb-vs-apache-cassandra/>`_
