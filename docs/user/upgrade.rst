@@ -113,9 +113,9 @@ Deprecated Classes/Methods
 * ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan`` - moved to ``AccumuloDataStore``
 * ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan``
 * ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - moved to
-``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+  ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - moved to
-``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
+  ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
 
 Removed Classes/Methods
 -----------------------
