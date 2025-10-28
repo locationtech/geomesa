@@ -111,7 +111,7 @@ The full build takes quite a while. To speed it up, you may skip tests and use m
 
 .. code-block:: bash
 
-    $ mvn clean install -T8 -DskipTests
+    $ mvn clean install -T8 -Dmaven.test.skip
 
 Upgrading
 ---------

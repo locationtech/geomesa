@@ -90,22 +90,13 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
-Version 5.5.0 Upgrade Guide
+Version 6.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Minimum Java Version
+--------------------
 
- ???
- java version 17
-
- deprecated
- org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan
- org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan
-
-removed:
-geomesa-process-wps
-geomesa-zk-utils
-
-org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory -> org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory
+With the latest versions of GeoTools/GeoServer, Java 17 is now the minimum required version. GeoMesa also supports Java 21.
 
 Dependency Version Upgrades
 ---------------------------
@@ -113,14 +104,26 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * kafka ``3.9.0`` -> ``3.9.1``
+* geotools ``33.2`` -> ``34.0``
 * spark ``3.5.5`` -> ``3.5.7``
 
-Deprecated Modules
-------------------
+Deprecated Classes/Methods
+--------------------------
 
-The following modules have been deprecated and will be removed in the next major release:
+* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan``
+* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan``
+* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - moved to ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+
+Removed Classes/Methods
+-----------------------
+
+Removed Modules
+---------------
+
+The following modules have been removed:
 
 * ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
+* ``geomesa-zk-utils``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
