@@ -259,7 +259,7 @@ object GeoMesaRelation extends LazyLogging {
       partitioned match {
         case Some(p) =>
           val rdd = p.rdd.mapValues { iter =>
-            val engine = GeoCQEngineDataStore.getStore(indexGeom)
+            val engine = new GeoCQEngineDataStore(indexGeom)
             engine.createSchema(SimpleFeatureTypes.createType(typeName, encodedSft))
             WithClose(engine.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
               iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
@@ -272,7 +272,7 @@ object GeoMesaRelation extends LazyLogging {
 
         case None =>
           val rdd = rawRDD.mapPartitions { iter =>
-            val engine = GeoCQEngineDataStore.getStore(indexGeom)
+            val engine = new GeoCQEngineDataStore(indexGeom)
             engine.createSchema(SimpleFeatureTypes.createType(typeName, encodedSft))
             WithClose(engine.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
               iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))

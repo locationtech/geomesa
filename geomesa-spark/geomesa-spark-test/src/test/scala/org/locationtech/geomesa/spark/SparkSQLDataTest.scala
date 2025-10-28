@@ -38,7 +38,7 @@ class SparkSQLDataTest extends TestWithSpark {
 
   import scala.collection.JavaConverters._
 
-  val dsParams: JMap[String, String] =
+  lazy val dsParams: JMap[String, String] =
     Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true").asJava
 
   val createPoint = JTSFactoryFinder.getGeometryFactory.createPoint(_: Coordinate)
@@ -60,12 +60,12 @@ class SparkSQLDataTest extends TestWithSpark {
 
   "sql data tests" should {
 
-    "not using sedona" >> {
+    "not using sedona" in {
       haveSedona must beFalse
       isUsingSedona must beFalse
     }
 
-    "ingest chicago" >> {
+    "ingest chicago" in {
       val df = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -88,7 +88,7 @@ class SparkSQLDataTest extends TestWithSpark {
       resGeom.getY mustEqual 9d
     }
 
-    "create indexed relation" >> {
+    "create indexed relation" in {
       val dfIndexed = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -102,7 +102,7 @@ class SparkSQLDataTest extends TestWithSpark {
       dfIndexed.collect.length mustEqual 3
     }
 
-    "create spatially partitioned relation with date query option" >> {
+    "create spatially partitioned relation with date query option" in {
       val dfPartitioned = spark.read
           .format("geomesa")
           .options(dsParams)
@@ -118,7 +118,7 @@ class SparkSQLDataTest extends TestWithSpark {
         .collect().map{ r=> r.get(0) } mustEqual Array("2", "3")
     }
 
-    "create spatially partitioned relation with attribute query option" >> {
+    "create spatially partitioned relation with attribute query option" in {
       val dfPartitioned = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -134,7 +134,7 @@ class SparkSQLDataTest extends TestWithSpark {
         .collect().map{ r=> r.get(0) } mustEqual Array("1", "2")
     }
 
-    "create spatially partitioned relation with spatial query option" >> {
+    "create spatially partitioned relation with spatial query option" in {
       val dfPartitioned = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -150,7 +150,7 @@ class SparkSQLDataTest extends TestWithSpark {
         .collect().map{ r=> r.get(0) } mustEqual Array("1")
     }
 
-    "create spatially partitioned relation" >> {
+    "create spatially partitioned relation" in {
       val dfPartitioned = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -170,7 +170,7 @@ class SparkSQLDataTest extends TestWithSpark {
       hashSet.size() mustEqual 3
     }
 
-    "handle projections on in-memory store" >> {
+    "handle projections on in-memory store" in {
       val dfIndexed = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -190,7 +190,7 @@ class SparkSQLDataTest extends TestWithSpark {
       row.fieldIndex("geom") mustEqual 0
     }
 
-    "basic sql indexed" >> {
+    "basic sql indexed" in {
       val dfIndexed = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -208,7 +208,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.head.getAs[Point]("geom") mustEqual createPoint(new Coordinate(-76.5, 38.5))
     }
 
-    "basic sql partitioned" >> {
+    "basic sql partitioned" in {
       val dfPartitioned = spark.read
         .format("geomesa")
         .options(dsParams)
@@ -228,7 +228,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.head.getAs[Point]("geom") mustEqual createPoint(new Coordinate(-77, 38))
     }
 
-    "basic sql 1" >> {
+    "basic sql 1" in {
       val r = sc.sql("select * from chicago where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
       val d = r.collect
 
@@ -237,28 +237,28 @@ class SparkSQLDataTest extends TestWithSpark {
     }
 
 
-    "basic sql 4" >> {
+    "basic sql 4" in {
       val r = sc.sql("select 1 + 1 > 4")
       val d = r.collect
 
       d.length mustEqual 1
     }
 
-    "basic sql 5" >> {
+    "basic sql 5" in {
       val r = sc.sql("select * from chicago where case_number = 1 and st_intersects(geom, st_makeBox2d(st_point(-77, 38), st_point(-76, 39)))")
       val d = r.collect
 
       d.length mustEqual 1
     }
 
-    "basic sql 6" >> {
+    "basic sql 6" in {
       val r = sc.sql("select st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), st_makeBox2d(st_point(-77, 38), st_point(-76, 39)))")
       val d = r.collect
 
       d.length mustEqual 1
     }
 
-    "pushdown spatial predicates" >> {
+    "pushdown spatial predicates" in {
       val pushdown = sc.sql("select geom from chicago where st_intersects(st_makeBox2d(st_point(-77, 38), st_point(-76, 39)), geom)")
       val pushdownPlan = pushdown.queryExecution.optimizedPlan
 
@@ -278,7 +278,7 @@ class SparkSQLDataTest extends TestWithSpark {
       noPushdownPlan.children.head.isInstanceOf[Filter] must beTrue // filter remains at top level
     }
 
-    "pushdown attribute filters" >> {
+    "pushdown attribute filters" in {
       val pushdown = sc.sql("select geom from chicago where case_number = 1")
       val pushdownPlan = pushdown.queryExecution.optimizedPlan
 
@@ -298,7 +298,7 @@ class SparkSQLDataTest extends TestWithSpark {
       noPushdownPlan.children.head must beAnInstanceOf[Filter] // filter remains at top level
     }
 
-    "pushdown attribute comparison filters" >> {
+    "pushdown attribute comparison filters" in {
       val pushdownLt = sc.sql("select case_number from chicago where case_number < 2")
       val pushdownLte = sc.sql("select case_number from chicago where case_number <= 2")
       val pushdownGt = sc.sql("select case_number from chicago where case_number > 2")
@@ -316,7 +316,7 @@ class SparkSQLDataTest extends TestWithSpark {
       pushdownGte.collect().map{ r=> r.get(0) } mustEqual Array(2, 3)
     }
 
-    "pushdown date attribute comparison filters" >> {
+    "pushdown date attribute comparison filters" in {
       val and = "select case_number from chicago where dtg > cast('2016-01-01T01:00:00Z' as timestamp) " +
           "and dtg < cast('2016-01-02T01:00:00Z' as timestamp)"
       val between = "select case_number from chicago where dtg between cast('2016-01-01T01:00:00Z' as timestamp) " +
@@ -329,7 +329,7 @@ class SparkSQLDataTest extends TestWithSpark {
       }
     }
 
-    "pushdown date attribute string filters" >> {
+    "pushdown date attribute string filters" in {
       val and = "select case_number from chicago where dtg > '2016-01-01T01:00:00Z' and dtg < '2016-01-02T01:00:00Z'"
       val between = "select case_number from chicago where dtg between '2016-01-01T01:00:00Z' and '2016-01-02T01:00:00Z'"
 
@@ -340,7 +340,7 @@ class SparkSQLDataTest extends TestWithSpark {
       }
     }
 
-    "pushdown spatio-temporal filters" >> {
+    "pushdown spatio-temporal filters" in {
       val sql = "select case_number from chicago where " +
           "st_intersects(geom, st_makeBox2d(st_point(-77.5, 37.9), st_point(-76.5, 38.1))) and " +
           "dtg between cast('2016-01-01T01:00:00Z' as timestamp) and cast('2016-01-03T01:00:00Z' as timestamp)"
@@ -351,28 +351,26 @@ class SparkSQLDataTest extends TestWithSpark {
       df.collect().map(_.get(0)) mustEqual Array(2)
     }
 
-    "preserve feature ID through dataframe ops" >> {
+    "preserve feature ID through dataframe ops" in {
       val sql = "select * from chicago where __fid__ = '1'"
       sc.sql(sql).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
       sc.sql(sql).withColumn("label", new Column(Literal(1))).collect().map(_.getAs[String]("__fid__")) mustEqual Array("1")
     }
 
-    "st_translate" >> {
-      "null" >> {
-        sc.sql("select st_translate(null, null, null)").collect.head(0) must beNull
-      }
-
-      "point" >> {
-        val r = sc.sql(
-          """
-          |select st_translate(st_geomFromWKT('POINT(0 0)'), 5, 12)
-        """.stripMargin)
-
-        r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
-      }
+    "st_translate null" in {
+      sc.sql("select st_translate(null, null, null)").collect.head(0) must beNull
     }
 
-    "where __fid__ equals" >> {
+    "st_translate point" in {
+      val r = sc.sql(
+        """
+        |select st_translate(st_geomFromWKT('POINT(0 0)'), 5, 12)
+      """.stripMargin)
+
+      r.collect().head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 12)")
+    }
+
+    "where __fid__ equals" in {
       val r = sc.sql("select * from chicago where __fid__ = '1'")
       val d = r.collect()
 
@@ -380,7 +378,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.head.getAs[Int]("case_number") mustEqual 1
     }
 
-    "where attr equals" >> {
+    "where attr equals" in {
       val r = sc.sql("select * from chicago where case_number = 2")
       val d = r.collect()
 
@@ -388,7 +386,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.head.getAs[Int]("case_number") mustEqual 2
     }
 
-    "where __fid__ in" >> {
+    "where __fid__ in" in {
       val r = sc.sql("select * from chicago where __fid__ in ('1', '2')")
       val d = r.collect()
 
@@ -396,7 +394,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(1, 2))
     }
 
-    "where attr in" >> {
+    "where attr in" in {
       val r = sc.sql("select * from chicago where case_number in (2, 3)")
       val d = r.collect()
 
@@ -404,7 +402,7 @@ class SparkSQLDataTest extends TestWithSpark {
       d.map(_.getAs[Int]("case_number")).toSeq must containTheSameElementsAs(Seq(2, 3))
     }
 
-    "sweepline join" >> {
+    "sweepline join" in {
 
       val gf = new GeometryFactory
 

@@ -22,8 +22,10 @@ import java.util
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConverters._
 
-class GeoCQEngineDataStore(useGeoIndex: Boolean, namesToEngine: ConcurrentHashMap[String, GeoCQEngine])
-    extends ContentDataStore with LazyLogging {
+class GeoCQEngineDataStore(
+    useGeoIndex: Boolean,
+    namesToEngine: ConcurrentHashMap[String, GeoCQEngine] = new ConcurrentHashMap[String, GeoCQEngine]()
+  ) extends ContentDataStore with LazyLogging {
 
   logger.debug(s"useGeoIndex=$useGeoIndex")
 
