@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.io.Closeable
 import java.time.{Clock, Instant, ZoneOffset, ZonedDateTime}
@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 import scala.util.control.NonFatal
 

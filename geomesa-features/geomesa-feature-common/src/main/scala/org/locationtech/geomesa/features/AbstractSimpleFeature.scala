@@ -17,7 +17,7 @@ import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.Geometry
 

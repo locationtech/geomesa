@@ -202,6 +202,7 @@
         <maven.scoverage.phase>package</maven.scoverage.phase>
         <maven.shade.skip>false</maven.shade.skip>
         <maven.assembly.skip>false</maven.assembly.skip>
+        <maven.empty.javadoc.phase>none</maven.empty.javadoc.phase>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
@@ -290,6 +291,25 @@
                                 <goals>
                                     <goal>doc-jar</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- for modules with no sources, use the regular jar plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>force-javadoc</id>
+                                <phase>${maven.empty.javadoc.phase}</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${project.build.directory}</classesDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -2696,6 +2716,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
+                        <!-- keep this plugin from re-compiling Java files that the scala-maven-plugin already compiled -->
+                        <useIncrementalCompilation>false</useIncrementalCompilation>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
                     </configuration>

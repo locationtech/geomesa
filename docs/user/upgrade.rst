@@ -120,6 +120,43 @@ Deprecated Classes/Methods
 Removed Classes/Methods
 -----------------------
 
+org/locationtech/geomesa/utils/collection/AtomicBitSet
+org.locationtech.geomesa.utils.stats.AutoLoggingTimings
+org.locationtech.geomesa.utils.stats.NoOpTimings
+org.locationtech.geomesa.utils.stats.ThreadSafeTimingsImpl
+org.locationtech.geomesa.utils.io.ByteBuffers
+org.locationtech.geomesa.utils.collection.ConcurrentHashSet
+org.locationtech.geomesa.utils.stats.CountingInputStream
+org.locationtech.geomesa.utils.geohash.CoveringGeoHashes
+org.locationtech.geomesa.utils.cache.FilePersistence
+org.locationtech.geomesa.utils.geohash.VincentyModel
+org.locationtech.geomesa.utils.geohash.GeomDistance
+org.locationtech.geomesa.utils.text.ObjectPoolFactory
+org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
+org.locationtech.geomesa.utils.collection.TieredOrdering
+org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
+org.locationtech.geomesa.utils.geometry.DistanceCalculator
+org.locationtech.geomesa.utils.collection.MaybeSynchronized
+org.locationtech.geomesa.utils.index.SynchronizedQuadtree
+org.locationtech.geomesa.utils.iterators.PlaybackIterator
+SpatialIndexSupport
+
+org.locationtech.geomesa.utils.geohash.BoundingBox <some methods>
+org.locationtech.geomesa.utils.geohash.GeoHash <some methods>
+org.locationtech.geomesa.utils.geohash.GeohashUtils <some methods>
+
+
+moved
+
+IncrementingFileName (moved to geomesa-tools)
+SimplePlaybackIterator (moved to org.locationtech.geomesa.kafka.tools)
+org.locationtech.geomesa.utils.iterators.SortedMergeIterator (moved to org.locationtech.geomesa.index.view)
+ NonMutatingInput (moved to features-kryo)
+SizeSeparatedBucketIndex (moved to geomesa-cqengine)
+BucketIndex (moved to geomesa-cqengine)
+WrappedQuadTree (moved to geomesa-cqengine)
+WrappedSTRtree (moved to geomesa-cqengine)
+
 Removed Modules
 ---------------
 

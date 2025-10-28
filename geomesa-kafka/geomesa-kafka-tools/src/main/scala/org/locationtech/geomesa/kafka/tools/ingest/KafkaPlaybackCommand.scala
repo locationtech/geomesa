@@ -20,7 +20,6 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator
 
 class KafkaPlaybackCommand extends IngestCommand[KafkaDataStore] with KafkaDataStoreCommand {
 

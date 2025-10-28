@@ -23,11 +23,11 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, SerializationType}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
 

@@ -57,11 +57,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-vector_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

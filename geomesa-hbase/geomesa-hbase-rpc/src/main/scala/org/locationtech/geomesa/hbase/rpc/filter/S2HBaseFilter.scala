@@ -14,7 +14,6 @@ import org.apache.hadoop.hbase.Cell
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{Filter, FilterBase}
 import org.locationtech.geomesa.index.filters.S2Filter
-import org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 /**

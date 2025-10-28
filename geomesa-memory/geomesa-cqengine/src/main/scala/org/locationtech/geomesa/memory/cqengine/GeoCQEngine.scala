@@ -25,7 +25,6 @@ import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
 import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
-import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
 import org.locationtech.jts.geom.Geometry
 
 import java.util.UUID
@@ -36,7 +35,7 @@ class GeoCQEngine(val sft: SimpleFeatureType,
                   enableFidIndex: Boolean = false,
                   geoIndexType: GeoIndexType = GeoIndexType.Bucket,
                   geoIndexParam: Option[_ <: GeoIndexParams] = Option.empty,
-                  dedupe: Boolean = true) extends SimpleFeatureIndex with LazyLogging {
+                  dedupe: Boolean = true) extends LazyLogging {
 
   protected val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
 
@@ -58,19 +57,39 @@ class GeoCQEngine(val sft: SimpleFeatureType,
 
   addIndices()
 
-  // methods from SimpleFeatureIndex
+  /**
+   * Insert a simple feature into the index
+   *
+   * @param feature feature
+   */
+  def insert(feature: SimpleFeature): Unit = cqcache.add(feature)
 
-  override def insert(feature: SimpleFeature): Unit = cqcache.add(feature)
+  /**
+   * Insert multiple features into the index
+   *
+   * @param features features
+   */
+  def insert(features: Iterable[SimpleFeature]): Unit = cqcache.addAll(features.asJavaCollection)
 
-  override def insert(features: Iterable[SimpleFeature]): Unit = cqcache.addAll(features.asJavaCollection)
-
-  override def update(feature: SimpleFeature): SimpleFeature = {
+  /**
+   * Update an existing feature
+   *
+   * @param feature new feature
+   * @return old feature, if any
+   */
+  def update(feature: SimpleFeature): SimpleFeature = {
     val existing = remove(feature.getID)
     cqcache.add(feature)
     existing
   }
 
-  override def remove(id: String): SimpleFeature = {
+  /**
+   * Remove an existing feature
+   *
+   * @param id feature ID
+   * @return removed feature, if any
+   */
+  def remove(id: String): SimpleFeature = {
     val existing = get(id)
     if (existing != null) {
       cqcache.remove(existing)
@@ -78,12 +97,24 @@ class GeoCQEngine(val sft: SimpleFeatureType,
     existing
   }
 
-  override def get(id: String): SimpleFeature = {
+  /**
+   * Return a feature by feature ID
+   *
+   * @param id feature id
+   * @return feature, if it exists
+   */
+  def get(id: String): SimpleFeature = {
     // if this gets used, set enableFidIndex=true
     cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).asScala.headOption.orNull
   }
 
-  override def query(filter: Filter): Iterator[SimpleFeature] = {
+  /**
+   * Query features
+   *
+   * @param filter filter
+   * @return
+   */
+  def query(filter: Filter): Iterator[SimpleFeature] = {
     val query = filter.accept(new CQEngineQueryVisitor(sft), null).asInstanceOf[Query[SimpleFeature]]
     val iter = if (dedupe) {
       val dedupeOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)

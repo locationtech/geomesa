@@ -32,7 +32,7 @@
             <artifactId>geomesa-fs-storage-api_${scala.binary.version}</artifactId>
         </dependency>
 
-        <!-- Test dependencies -->
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>

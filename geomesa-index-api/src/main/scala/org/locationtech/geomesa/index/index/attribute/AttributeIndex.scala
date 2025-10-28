@@ -17,8 +17,8 @@ import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpac
 import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 /**
   * Attribute index with configurable secondary index tiering. Each attribute has its own table
