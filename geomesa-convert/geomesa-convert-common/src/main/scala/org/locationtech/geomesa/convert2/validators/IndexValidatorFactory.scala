@@ -11,7 +11,6 @@ package org.locationtech.geomesa.convert2.validators
 import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -31,9 +30,6 @@ class IndexValidatorFactory extends SimpleFeatureValidatorFactory {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name: String = IndexValidatorFactory.Name
-
-  override def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator =
-    apply(sft, config, Tags.empty())
 
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
     val geom = sft.getGeomIndex
@@ -145,10 +141,6 @@ object IndexValidatorFactory extends LazyLogging {
 
   class ZIndexValidatorFactory extends IndexValidatorFactory {
     override val name = "z-index"
-    override def apply(
-        sft: SimpleFeatureType,
-        metrics: ConverterMetrics,
-        config: Option[String]): SimpleFeatureValidator = apply(sft, config, Tags.empty())
     override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
       logger.warn("'z-index' validator is deprecated, using 'index' instead")
       super.apply(sft, config, tags)

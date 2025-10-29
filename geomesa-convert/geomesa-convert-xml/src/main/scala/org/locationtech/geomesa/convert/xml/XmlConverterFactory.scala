@@ -38,12 +38,6 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
   override protected def withDefaults(conf: Config): Config =
     super.withDefaults(conf).withFallback(ConfigFactory.load("xml-converter-defaults"))
 
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
-
   /**
    * Infer a configuration and simple feature type from an input stream, if possible
    *
@@ -217,7 +211,6 @@ object XmlConverterFactory {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, XmlOptions] = {
@@ -237,7 +230,7 @@ object XmlConverterFactory {
       for {
         lineMode <- parse("line-mode", LineMode.values).right
       } yield {
-        XmlOptions(validators, reporters, parseMode, errorMode, lineMode, encoding)
+        XmlOptions(validators, parseMode, errorMode, lineMode, encoding)
       }
     }
 

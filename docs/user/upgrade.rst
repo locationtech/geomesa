@@ -96,7 +96,7 @@ Version 6.0.0 Upgrade Guide
 Minimum Java Version
 --------------------
 
-With the latest versions of GeoTools/GeoServer, Java 17 is now the minimum required version. GeoMesa also supports Java 21.
+With the latest versions of GeoTools and GeoServer, Java 17 is now the minimum required version.
 
 Dependency Version Upgrades
 ---------------------------
@@ -107,61 +107,15 @@ The following dependencies have been upgraded:
 * geotools ``33.2`` -> ``34.0``
 * spark ``3.5.5`` -> ``3.5.7``
 
-Deprecated Classes/Methods
---------------------------
-
-* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getSingleQueryPlan`` - moved to ``AccumuloDataStore``
-* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils.getMultipleQueryPlan``
-* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - moved to
-  ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
-* ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - moved to
-  ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
-
-Removed Classes/Methods
------------------------
-
-org/locationtech/geomesa/utils/collection/AtomicBitSet
-org.locationtech.geomesa.utils.stats.AutoLoggingTimings
-org.locationtech.geomesa.utils.stats.NoOpTimings
-org.locationtech.geomesa.utils.stats.ThreadSafeTimingsImpl
-org.locationtech.geomesa.utils.io.ByteBuffers
-org.locationtech.geomesa.utils.collection.ConcurrentHashSet
-org.locationtech.geomesa.utils.stats.CountingInputStream
-org.locationtech.geomesa.utils.geohash.CoveringGeoHashes
-org.locationtech.geomesa.utils.cache.FilePersistence
-org.locationtech.geomesa.utils.geohash.VincentyModel
-org.locationtech.geomesa.utils.geohash.GeomDistance
-org.locationtech.geomesa.utils.text.ObjectPoolFactory
-org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
-org.locationtech.geomesa.utils.collection.TieredOrdering
-org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
-org.locationtech.geomesa.utils.geometry.DistanceCalculator
-org.locationtech.geomesa.utils.collection.MaybeSynchronized
-org.locationtech.geomesa.utils.index.SynchronizedQuadtree
-org.locationtech.geomesa.utils.iterators.PlaybackIterator
-SpatialIndexSupport
-
-org.locationtech.geomesa.utils.geohash.BoundingBox <some methods>
-org.locationtech.geomesa.utils.geohash.GeoHash <some methods>
-org.locationtech.geomesa.utils.geohash.GeohashUtils <some methods>
-
-
-moved
-
-IncrementingFileName (moved to geomesa-tools)
-SimplePlaybackIterator (moved to org.locationtech.geomesa.kafka.tools)
-org.locationtech.geomesa.utils.iterators.SortedMergeIterator (moved to org.locationtech.geomesa.index.view)
- NonMutatingInput (moved to features-kryo)
-SizeSeparatedBucketIndex (moved to geomesa-cqengine)
-BucketIndex (moved to geomesa-cqengine)
-WrappedQuadTree (moved to geomesa-cqengine)
-WrappedSTRtree (moved to geomesa-cqengine)
-
 Removed Modules
 ---------------
 
 The following modules have been removed:
 
+* ``geomesa-metrics-core``
+* ``geomesa-metrics-cloudwatch``
+* ``geomesa-metrics-graphite``
+* ``geomesa-metrics-prometheus``
 * ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 * ``geomesa-zk-utils``
 
@@ -173,6 +127,61 @@ The following JAR classifiers are no longer published:
 * ``geomesa-index-api:tests``
 * ``geomesa-kafka-datastore:tests``
 * ``geomesa-tools:data``
+
+Deprecated Classes
+------------------
+
+* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - replaced with
+  ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+* ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - replaced with
+  ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
+
+Relocated Classes
+-----------------
+
+* ``org.locationtech.geomesa.utils.io.IncrementingFileName`` -> ``org.locationtech.geomesa.tools``
+* ``org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator`` -> ``org.locationtech.geomesa.kafka.tools``
+* ``org.locationtech.geomesa.utils.iterators.SortedMergeIterator`` -> ``org.locationtech.geomesa.index.view``
+* ``org.locationtech.geomesa.utils.kryo.NonMutatingInput`` -> ``org.locationtech.geomesa.features.kryo.impl``
+* ``org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.WrappedQuadTree`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.WrappedSTRtree`` -> ``org.locationtech.geomesa.memory.index.impl``
+
+Removed Classes
+---------------
+
+* ``org.locationtech.geomesa.convert2.metrics.ConverterMetrics``
+* ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
+* ``org.locationtech.geomesa.utils.cache.ByteArrayCacheKey``
+* ``org.locationtech.geomesa.utils.cache.FilePersistence``
+* ``org.locationtech.geomesa.utils.collection.AtomicBitSet``
+* ``org.locationtech.geomesa.utils.collection.ConcurrentHashSet``
+* ``org.locationtech.geomesa.utils.collection.MaybeSynchronized``
+* ``org.locationtech.geomesa.utils.collection.TieredOrdering``
+* ``org.locationtech.geomesa.utils.conversions.ScalaImplicits``
+* ``org.locationtech.geomesa.utils.geohash.CoveringGeoHashes``
+* ``org.locationtech.geomesa.utils.geohash.GeomDistance``
+* ``org.locationtech.geomesa.utils.geohash.VincentyModel``
+* ``org.locationtech.geomesa.utils.geometry.DistanceCalculator``
+* ``org.locationtech.geomesa.utils.index.SpatialIndexSupport``
+* ``org.locationtech.geomesa.utils.index.SynchronizedQuadtree``
+* ``org.locationtech.geomesa.utils.io.ByteBuffers``
+* ``org.locationtech.geomesa.utils.iterators.PlaybackIterator``
+* ``org.locationtech.geomesa.utils.stats.AutoLoggingTimings``
+* ``org.locationtech.geomesa.utils.stats.CountingInputStream``
+* ``org.locationtech.geomesa.utils.stats.NoOpTimings``
+* ``org.locationtech.geomesa.utils.stats.ThreadSafeTimingsImpl``
+* ``org.locationtech.geomesa.utils.text.ObjectPoolFactory``
+
+Removed Methods
+---------------
+
+* Various methods in ``org.locationtech.geomesa.utils.geohash.BoundingBox``
+* Various methods in ``org.locationtech.geomesa.utils.geohash.GeoHash``
+* Various methods in ``org.locationtech.geomesa.utils.geohash.GeohashUtils``
+* ``getSingleQueryPlan`` and ``getMultipleQueryPlan`` in ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils``
+* ``infer`` in ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

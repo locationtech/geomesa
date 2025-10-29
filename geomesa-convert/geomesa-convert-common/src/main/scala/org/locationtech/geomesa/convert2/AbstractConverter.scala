@@ -131,9 +131,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     builder.result
   }
 
-  // deprecated converter metrics
-  private val metrics = ConverterMetrics(sft, options.reporters)
-
   private val tags = config match {
     case ConverterName(name) => TagUtils.typeNameTag(sft.getTypeName).and(ConverterMetrics.converterNameTag(name))
     case _                   => TagUtils.typeNameTag(sft.getTypeName)
@@ -165,11 +162,11 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   override def targetSft: SimpleFeatureType = sft
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, Stats(tags))
+    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, Stats(tags))
 
   override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext = {
     val stats = Stats.wrap(success, failure, tags)
-    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, stats)
+    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, stats)
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
@@ -285,7 +282,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   override def close(): Unit = {
     CloseWithLogging(caches.values)
-    CloseWithLogging(metrics)
     CloseWithLogging(validators)
   }
 }
@@ -335,14 +331,12 @@ object AbstractConverter {
     * Basic converter options implementation, useful if a converter doesn't have additional options
     *
     * @param validators validator
-    * @param reporters metric reporters
     * @param parseMode parse mode
     * @param errorMode error mode
     * @param encoding file/stream encoding
     */
   case class BasicOptions(
       validators: Seq[String],
-      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
@@ -350,12 +344,8 @@ object AbstractConverter {
 
   object BasicOptions {
     // keep as a function to pick up system property changes
-    def default: BasicOptions = {
-      val validators = SimpleFeatureValidator.default
-      BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
-    }
+    def default: BasicOptions = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
   }
-
 
   /**
    * Latency metrics tracker

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import com.typesafe.config.{ConfigFactory, ConfigList, ConfigObject, ConfigRenderOptions}
+import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.lang3.StringUtils
 import org.geotools.api.data.DataAccessFactory.Param
@@ -17,14 +17,15 @@ import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, MetricsConfig}
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, SerializationType}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
+import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
+import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -123,7 +124,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.LayerViews,
       KafkaDataStoreParams.MetricsRegistry,
       KafkaDataStoreParams.MetricsRegistryConfig,
-      KafkaDataStoreParams.MetricsReporters,
       KafkaDataStoreParams.AuditQueries,
       KafkaDataStoreParams.LooseBBox,
       KafkaDataStoreParams.Authorizations
@@ -161,8 +161,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStore.ProducerConfig(props)
     }
     val clearOnStart = ClearOnStart.lookup(params)
-
-    val serialization = SerializationTypes.fromName(SerializationType.lookup(params))
 
     val indices = {
       val cqEngine = {
@@ -228,17 +226,13 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val layerViews = parseLayerViewConfig(params)
 
-    val metrics = MetricsRegistry.lookupRegistry(params)
-
-    val gmMetrics = MetricsReporters.lookupOpt(params).filter(_ != MetricsReporters.default).map { conf =>
-      logger.warn(
-        s"Using deprecated '${MetricsReporters.key}' Dropwizard reporters, please switch " +
-          s"to '${MetricsRegistry.key}' Micrometer registries instead")
-      // GeoMesaMetrics will register a dropwizard meter registry so that our metrics get propagated there
-      val config = ConfigFactory.parseString(conf).resolve()
-      val reporters =
-        if (config.hasPath("reporters")) { config.getConfigList("reporters").asScala } else { Seq(config) }
-      GeoMesaMetrics(catalog, reporters.toSeq)
+    val metrics = MetricsRegistry.lookupRegistry(params).orElse {
+      MetricsReporters.lookupOpt(params).filter(_ != MetricsReporters.default).flatMap { conf =>
+        logger.warn(
+          s"Using deprecated '${MetricsReporters.key}' Dropwizard reporters, please switch " +
+            s"to '${MetricsRegistry.key}' Micrometer registries instead")
+        parseDeprecatedMetrics(ConfigFactory.parseString(conf).resolve())
+      }
     }
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
@@ -250,8 +244,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
     }
 
-    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
-      indices, looseBBox, layerViews, authProvider, audit, gmMetrics, metrics, ns)
+    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics,
+      indices, looseBBox, layerViews, authProvider, audit, metrics, ns)
   }
 
   def buildSerializer(params: java.util.Map[String, _]): GeoMessageSerializerFactory = {
@@ -452,5 +446,42 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         case NonFatal(_) => brokers
       }
     }
+  }
+
+  private def parseDeprecatedMetrics(conf: Config): Option[MetricsConfig] = {
+    val reporters = if (conf.hasPath("reporters")) { conf.getConfigList("reporters").asScala } else { Seq(conf) }
+    val supported = reporters.flatMap { reporter =>
+      if (reporter.hasPath("type")) {
+        Option(reporter.getString("type")).flatMap {
+          case t if t.equalsIgnoreCase("prometheus") =>
+            // note: 'port' is the same config key used by the old geomesa-metrics
+            Some(MetricsConfig(PrometheusFactory, Some(reporter.withOnlyPath("port"))))
+
+          case t if t.equalsIgnoreCase("prometheus-pushgateway") =>
+            val config =
+              ConfigFactory.empty()
+                .withValue("push-gateway.host", reporter.getValue("gateway"))
+                .withValue("push-gateway.job", reporter.getValue("job-name"))
+            Some(MetricsConfig(PrometheusFactory, Some(config)))
+
+          case t if t.equalsIgnoreCase("cloudwatch") =>
+            // note: 'namespace' is the same config key used by the old geomesa-metrics
+            Some(MetricsConfig(CloudwatchFactory, Some(reporter.withOnlyPath("namespace"))))
+
+          case t =>
+            logger.warn(s"Ignoring unsupported metrics reporter of type $t")
+            None
+        }
+      } else {
+        logger.warn("Ignoring metrics reporter without 'type' field")
+        None
+      }
+    }
+    if (supported.lengthCompare(1) > 0) {
+      logger.warn(
+        s"Only one metric registry is supported at once, using ${supported.head.registry.name} " +
+          s"and ignoring ${supported.tail.map(_.registry.name).mkString(", ")}")
+    }
+    supported.headOption
   }
 }

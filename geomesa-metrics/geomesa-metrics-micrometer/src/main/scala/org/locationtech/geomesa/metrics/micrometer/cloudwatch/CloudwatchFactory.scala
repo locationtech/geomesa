@@ -10,17 +10,16 @@ package org.locationtech.geomesa.metrics.micrometer
 package cloudwatch
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry
 import io.micrometer.core.instrument.{Clock, MeterRegistry}
+import org.locationtech.geomesa.metrics.micrometer.RegistryFactory.BaseRegistryFactory
 import pureconfig.generic.semiauto.deriveReader
 import pureconfig.{ConfigReader, ConfigSource}
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient
 
-object CloudwatchFactory extends RegistryFactory(RegistryFactory.Cloudwatch) with LazyLogging {
+object CloudwatchFactory extends BaseRegistryFactory(RegistryFactory.Cloudwatch) {
 
   override protected def createRegistry(conf: Config): MeterRegistry = {
-    logger.info("Creating Cloudwatch registry")
     implicit val reader: ConfigReader[CloudwatchConfig] = deriveReader[CloudwatchConfig]
     val config = ConfigSource.fromConfig(conf).loadOrThrow[CloudwatchConfig]
     val props = Map("namespace" -> config.namespace) ++ config.properties

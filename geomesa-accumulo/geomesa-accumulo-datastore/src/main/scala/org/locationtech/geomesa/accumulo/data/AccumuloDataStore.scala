@@ -131,8 +131,6 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
   }
 
   override protected def loadIteratorVersions: Set[String] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     // just check the first table available
     val versions = getTypeNames.iterator.flatMap { typeName =>
       getAllIndexTableNames(typeName).iterator.flatMap { table =>
@@ -149,7 +147,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
         }
       }
     }
-    versions.headOption.toSet
+    versions.find(_ != null).toSet
   }
 
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {

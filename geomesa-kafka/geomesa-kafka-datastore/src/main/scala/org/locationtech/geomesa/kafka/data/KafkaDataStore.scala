@@ -19,7 +19,6 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySe
 import org.geotools.api.data.{Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.audit.AuditWriter
@@ -39,7 +38,6 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsum
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
@@ -336,7 +334,6 @@ class KafkaDataStore(
     CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
     CloseWithLogging(registry)
-    CloseWithLogging(config.metrics)
     caches.invalidateAll()
     super.dispose()
   }
@@ -514,15 +511,11 @@ object KafkaDataStore extends LazyLogging {
       producers: ProducerConfig,
       clearOnStart: Boolean,
       topics: TopicConfig,
-      @deprecated("unused")
-      serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
       layerViewsConfig: Map[String, Seq[LayerViewConfig]],
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
-      @deprecated("replaced with micrometer metrics")
-      metrics: Option[GeoMesaMetrics],
       metricsRegistry: Option[MetricsConfig],
       namespace: Option[String]) extends NamespaceConfig
 

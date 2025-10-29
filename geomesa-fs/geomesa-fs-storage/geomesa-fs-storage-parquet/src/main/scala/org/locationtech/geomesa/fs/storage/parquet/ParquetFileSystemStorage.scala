@@ -109,7 +109,7 @@ object ParquetFileSystemStorage extends LazyLogging {
           logger.trace(s"$file is a valid Parquet file")
         }
       } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Unable to validate $file: file may be corrupted", e)
+        case NonFatal(e) => throw new RuntimeException(s"File appears to be corrupted: $file", e)
       }
     }
   }

@@ -448,7 +448,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
     }
 
     "use custom file observers" in {
-      val userData = s"${StorageKeys.ObserversKey}=${classOf[NewTestObserverFactory].getName},${classOf[TestObserverFactory].getName}"
+      val userData = s"${StorageKeys.ObserversKey}='${classOf[NewTestObserverFactory].getName},${classOf[TestObserverFactory].getName}'"
       val sft = SimpleFeatureTypes.createType("parquet-test",
         s"*geom:Point:srid=4326,name:String,age:Int,dtg:Date;$userData")
 

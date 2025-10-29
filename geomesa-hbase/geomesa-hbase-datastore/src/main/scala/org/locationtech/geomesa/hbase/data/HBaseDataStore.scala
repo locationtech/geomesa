@@ -69,8 +69,6 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
   override def dispose(): Unit = try { super.dispose() } finally { con.close() }
 
   override protected def loadIteratorVersions: Set[String] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     // just check the first table available
     val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
       manager.indices(sft).iterator.flatMap { index =>
@@ -97,7 +95,7 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
         }
       }
     }
-    versions.headOption.toSet
+    versions.find(_ != null).toSet
   }
 
   override protected def transitionIndices(sft: SimpleFeatureType): Unit = {
