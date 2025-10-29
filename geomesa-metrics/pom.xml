@@ -13,11 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>geomesa-metrics-core</module>
-        <module>geomesa-metrics-cloudwatch</module>
-        <module>geomesa-metrics-graphite</module>
         <module>geomesa-metrics-micrometer</module>
-        <module>geomesa-metrics-prometheus</module>
     </modules>
 
 </project>

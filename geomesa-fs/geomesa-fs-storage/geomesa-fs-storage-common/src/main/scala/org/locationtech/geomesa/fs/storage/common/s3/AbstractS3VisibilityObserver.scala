@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.s3
 import org.apache.accumulo.access.AccessExpression
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.security.SecurityUtils
 
 import java.io.IOException
@@ -36,7 +36,7 @@ abstract class AbstractS3VisibilityObserver(path: Path) extends FileSystemObserv
       case e: Exception => throw new IOException("Error tagging object", e)
     }
   }
-  override def write(feature: SimpleFeature): Unit = {
+  override def apply(feature: SimpleFeature): Unit = {
     val vis = SecurityUtils.getVisibility(feature)
     if (vis != null) {
       visibilities.add(vis)

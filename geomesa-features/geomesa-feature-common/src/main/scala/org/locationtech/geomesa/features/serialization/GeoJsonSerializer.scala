@@ -11,7 +11,6 @@ package org.locationtech.geomesa.features.serialization
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.jts.geom.Geometry
 
@@ -137,7 +136,7 @@ object GeoJsonSerializer extends LazyLogging {
       case ObjectType.MAP      => new MapWriter(name, i, bindings(1), bindings(2))
 
       case _ =>
-        logger.warn(s"Dropping unsupported attribute '${SimpleFeatureTypes.encodeDescriptor(sft, descriptor)}'")
+        logger.warn(s"Dropping unsupported attribute '$name:${descriptor.getType.getBinding.getName}'")
         NoopWriter
     }
   }

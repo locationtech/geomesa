@@ -40,9 +40,6 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     super.createEvaluationContext(globalParams ++ shpParams)
 
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
-    super.createEvaluationContext(globalParams ++ shpParams, success, failure)
-
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     CloseWithLogging(is) // we don't use the input stream, just close it
 

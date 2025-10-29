@@ -448,11 +448,11 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
     }
 
     "use custom file observers" in {
-      val userData = s"${StorageKeys.ObserversKey}=${classOf[TestObserverFactory].getName}"
+      val userData = s"${StorageKeys.ObserversKey}='${classOf[NewTestObserverFactory].getName},${classOf[TestObserverFactory].getName}'"
       val sft = SimpleFeatureTypes.createType("parquet-test",
         s"*geom:Point:srid=4326,name:String,age:Int,dtg:Date;$userData")
 
-      val features = (0 until 10).map { i =>
+      val features = Seq.tabulate(10) { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(1, s"name$i")
@@ -478,10 +478,15 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             writer.write(f)
           }
 
+          NewTestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
+          forall(NewTestObserverFactory.observers)(_.closed must beFalse)
           TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           writers.foreach(_._2.close())
+          forall(NewTestObserverFactory.observers)(_.closed must beTrue)
+          NewTestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
+          NewTestObserverFactory.observers.clear()
           forall(TestObserverFactory.observers)(_.closed must beTrue)
           TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
           TestObserverFactory.observers.clear()
@@ -501,11 +506,15 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
             }
           }
 
+          NewTestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+          forall(NewTestObserverFactory.observers)(_.closed must beFalse)
           TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
           forall(TestObserverFactory.observers)(_.closed must beFalse)
 
           updater.close()
 
+          forall(NewTestObserverFactory.observers)(_.closed must beTrue)
+          NewTestObserverFactory.observers.flatMap(_.features) must haveLength(2)
           forall(TestObserverFactory.observers)(_.closed must beTrue)
           TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
         }

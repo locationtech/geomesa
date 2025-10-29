@@ -10,14 +10,10 @@ package org.locationtech.geomesa.convert2.validators
 
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
 class NoneValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override val name: String = NoneValidatorFactory.Name
-
-  override def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator =
-    NoValidator
 
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = NoValidator
 }

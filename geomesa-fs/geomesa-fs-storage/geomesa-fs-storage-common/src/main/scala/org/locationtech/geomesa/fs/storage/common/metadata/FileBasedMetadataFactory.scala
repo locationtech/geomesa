@@ -14,7 +14,7 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata.Config
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.concurrent.ConcurrentHashMap
 

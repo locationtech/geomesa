@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.PhaserUtils
 import org.locationtech.geomesa.utils.io.WithClose
@@ -256,10 +256,11 @@ object FileSystemThreadedReader extends StrictLogging {
     private var count = 0
 
     private val delegate = {
+      val iter = CloseableIterator.wrap(reader.read(path))
       if (mods.isEmpty) {
-        reader.read(path)
+        iter
       } else {
-        reader.read(path).filter { f => if (mods.contains(f.getID)) { count += 1; false } else { true } }
+        iter.filter { f => if (mods.contains(f.getID)) { count += 1; false } else { true } }
       }
     }
 
@@ -295,7 +296,7 @@ object FileSystemThreadedReader extends StrictLogging {
 
     private var count = 0
 
-    private val delegate = reader.read(path).filter { f => count += 1; mods.add(f.getID) }
+    private val delegate = CloseableIterator.wrap(reader.read(path)).filter { f => count += 1; mods.add(f.getID) }
 
     override def hasNext: Boolean = delegate.hasNext
 

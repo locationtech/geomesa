@@ -12,7 +12,9 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.{StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
+import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression.{FunctionExpression, Literal}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -539,27 +541,25 @@ class ExpressionTest extends Specification {
       }
     }
     "handle named values" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("baz", None),
         BasicField("foo", Some(Expression("$1"))),
         BasicField("bar", Some(Expression("capitalize($foo)")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "bar"))
       result must beRight
       result.right.get mustEqual Array("", "bar", "Bar")
     }
     "handle named values with spaces and dots" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("foo.bar", Some(Expression("$1"))),
         BasicField("foo bar", Some(Expression("$2"))),
         BasicField("dot", Some(Expression("${foo.bar}"))),
         BasicField("space", Some(Expression("${foo bar}")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "baz", "blu"))
       result must beRight
@@ -840,14 +840,13 @@ class ExpressionTest extends Specification {
       exp.apply(Array("", "18", null)) mustEqual null
     }
     "return null for non-existing fields" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("foo", Some(Expression("$1"))),
         BasicField("bar", Some(Expression("$2"))),
         BasicField("missing", Some(Expression("$b"))),
         BasicField("found", Some(Expression("$bar")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "5", "10"))
       result must beRight

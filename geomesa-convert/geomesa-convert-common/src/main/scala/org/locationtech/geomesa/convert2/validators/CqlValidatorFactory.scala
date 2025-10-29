@@ -22,9 +22,6 @@ class CqlValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override def name: String = CqlValidatorFactory.Name
 
-  override def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator =
-    apply(sft, config, Tags.empty())
-
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator = {
     val ecql = config.getOrElse(throw new IllegalArgumentException("No filter specified for CQL Validator"))
     val filter = FastFilterFactory.toFilter(sft, ecql)

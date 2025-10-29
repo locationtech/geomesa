@@ -67,6 +67,7 @@ object TextTools {
     * @param string string, not null
     * @return
     */
+  @deprecated("use String.isBlank")
   def isWhitespace(string: String): Boolean = {
     var i = 0
     while (i < string.length) {

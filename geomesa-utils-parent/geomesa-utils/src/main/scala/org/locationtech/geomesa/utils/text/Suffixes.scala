@@ -32,7 +32,6 @@ object Suffixes {
     def days(s: String): Try[Long]    = duration(s).map(_.toDays)
 
     // provide back compatibility with joda period parsing, which accepts 'm' for minutes
-    @deprecated("joda parsing")
     private def jodaMinute(s: String): Try[Duration] = {
       if (s == null) { Failure(new NullPointerException()) } else {
         val replaced = s.replaceAll("m", "min") // scala parsing requires 'min', 'mins', 'minute' or 'minutes'

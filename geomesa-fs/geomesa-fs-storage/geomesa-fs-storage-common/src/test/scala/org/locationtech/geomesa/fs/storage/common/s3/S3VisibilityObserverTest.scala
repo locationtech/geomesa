@@ -67,7 +67,7 @@ class S3VisibilityObserverTest extends Specification with Mockito {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
-        observer.write(feature(0, "user"))
+        observer(feature(0, "user"))
         observer.close()
 
         val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])
@@ -85,9 +85,9 @@ class S3VisibilityObserverTest extends Specification with Mockito {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
-        observer.write(feature(0, "user"))
-        observer.write(feature(1, "admin"))
-        observer.write(feature(2, "user"))
+        observer(feature(0, "user"))
+        observer(feature(1, "admin"))
+        observer(feature(2, "user"))
         observer.close()
 
         val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])
@@ -109,9 +109,9 @@ class S3VisibilityObserverTest extends Specification with Mockito {
       WithClose(new S3VisibilityObserverFactory) { factory =>
         val s3 = mockS3(factory)
         val observer = factory.apply(new Path("s3a://foo/bar/baz.json"))
-        observer.write(feature(0, "user&admin"))
-        observer.write(feature(1, "admin"))
-        observer.write(feature(2, "user"))
+        observer(feature(0, "user&admin"))
+        observer(feature(1, "admin"))
+        observer(feature(2, "user"))
         observer.close()
 
         val captor: ArgumentCaptor[PutObjectTaggingRequest] = ArgumentCaptor.forClass(classOf[PutObjectTaggingRequest])

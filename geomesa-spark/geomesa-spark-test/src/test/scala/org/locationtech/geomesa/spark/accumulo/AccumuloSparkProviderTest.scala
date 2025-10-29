@@ -8,47 +8,65 @@
 
 package org.locationtech.geomesa.spark.accumulo
 
-import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
-import org.geotools.api.data.{Query, Transaction}
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.spark.SparkSQLTestUtils
-import org.locationtech.geomesa.spark.sql.SQLTypes
+import org.apache.spark.sql.DataFrame
+import org.geomesa.testcontainers.AccumuloContainer
+import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
+import org.locationtech.geomesa.spark.{SparkSQLTestUtils, TestWithSpark}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
-@RunWith(classOf[JUnitRunner])
-class AccumuloSparkProviderTest extends Specification with TestWithFeatureType with LazyLogging {
+class AccumuloSparkProviderTest extends TestWithSpark {
 
   import org.locationtech.geomesa.filter.ff
 
-  sequential
+  import scala.collection.JavaConverters._
 
-  override lazy val sftName: String = "chicago"
-  override def spec: String = SparkSQLTestUtils.ChiSpec
+  private val accumulo =
+    new AccumuloContainer()
+      .withGeoMesaDistributedRuntime()
+      .withNetwork(network)
 
-  var spark: SparkSession = _
-  var sc: SQLContext = _
+  // these params will work in the spark executor, but not locally outside the docker network
+  lazy val sparkDsParams = {
+    val host = accumulo.execInContainer("hostname", "-s").getStdout.trim
+    logger.debug("Using host: {}", host)
+    Map(
+      "accumulo.instance.name" -> accumulo.getInstanceName,
+      "accumulo.zookeepers"    -> accumulo.getZookeepers.replace(accumulo.getHost, host),
+      "accumulo.user"          -> accumulo.getUsername,
+      "accumulo.password"      -> accumulo.getPassword,
+      "accumulo.catalog"       -> "AccumuloSparkProviderTest"
+    )
+  }
+
+  lazy val ds = {
+    val params = sparkDsParams + ("accumulo.zookeepers" -> accumulo.getZookeepers)
+    DataStoreFinder.getDataStore(params.asJava)
+  }
 
   var df: DataFrame = _
 
-  // before
-  step {
-    spark = SparkSQLTestUtils.createSparkSession()
-    sc = spark.sqlContext
-    SQLTypes.init(sc)
+  override def beforeAll(): Unit = {
+    accumulo.start()
+
     SparkSQLTestUtils.ingestChicago(ds)
 
+    // note: the host reach-back networking required for spark seems to mess up the accumulo networking unless accumulo starts first
+    super.beforeAll()
+
     df = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "chicago")
-        .load()
+      .format("geomesa")
+      .options(sparkDsParams)
+      .option("geomesa.feature", "chicago")
+      .load()
 
     logger.debug(df.schema.treeString)
     df.createOrReplaceTempView("chicago")
+  }
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    CloseWithLogging(ds, accumulo)
   }
 
   "sql data tests" should {
@@ -73,7 +91,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
     "write data and properly index" >> {
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .options(dsParams)
+        .options(sparkDsParams)
         .option("geomesa.feature", "chicago2")
         .save()
 
@@ -85,7 +103,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
     "handle reuse __fid__ on write if available" >> {
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .options(dsParams)
+        .options(sparkDsParams)
         .option("geomesa.feature", "fidOnWrite")
         .save()
       val filter = ff.equals(ff.property("case_number"), ff.literal(1))
@@ -98,6 +116,4 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
       results.head.getID must be equalTo origResults.head.getID
     }
   }
-
 }
-

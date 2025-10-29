@@ -179,10 +179,6 @@ object DateTimeScheme {
   def apply(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
     DateTimeScheme(DateTimeFormatter.ofPattern(format), format, stepUnit, step, dtg, dtgIndex)
 
-  @deprecated("Pattern is not correct when using this constructor")
-  def apply(formatter: DateTimeFormatter, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
-    DateTimeScheme(formatter, formatter.toString, stepUnit, step, dtg, dtgIndex)
-
   object Config {
     val DateTimeFormatOpt: String = "datetime-format"
     val StepUnitOpt      : String = "step-unit"

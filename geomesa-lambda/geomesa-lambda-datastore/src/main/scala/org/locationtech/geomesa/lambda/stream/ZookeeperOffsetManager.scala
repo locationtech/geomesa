@@ -9,14 +9,14 @@
 package org.locationtech.geomesa.lambda.stream
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.ZookeeperOffsetManager.CuratorOffsetListener
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.zk.CuratorHelper
 
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
@@ -28,7 +28,13 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
 
   import ZookeeperOffsetManager.offsetsPath
 
-  private val client = CuratorHelper.client(zookeepers).namespace(namespace).build()
+  private val client =
+    CuratorFrameworkFactory.builder()
+      .connectString(zookeepers)
+      .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+      .dontUseContainerParents()
+      .namespace(namespace)
+      .build()
   client.start()
 
   private val listeners = scala.collection.mutable.Map.empty[String, CuratorOffsetListener]

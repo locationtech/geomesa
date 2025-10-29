@@ -150,12 +150,6 @@ object KafkaStore {
     val Delete: Byte = 1
   }
 
-  @deprecated("Replaced with LambdaDataStore.topic")
-  def topic(ns: String, sft: SimpleFeatureType): String = LambdaDataStore.topic(sft, ns)
-
-  @deprecated("Does not return correct topic if topic is overridden in the feature type - replaced with LambdaDataStore.topic")
-  def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
-
   def producer(sft: SimpleFeatureType, connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
     val props = new Properties()

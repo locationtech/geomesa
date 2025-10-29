@@ -29,8 +29,8 @@ def ultimateReplace(app, docname, source):
 
 
 ultimate_replacements = {
-  "{{accumulo_supported_versions}}": "versions 2.0.1 and " + target.versions.accumulo_version,
-  "{{accumulo_required_version}}": "2.0.1 or " + target.versions.accumulo_version,
+  "{{accumulo_supported_versions}}": "version " + target.versions.accumulo_version,
+  "{{accumulo_required_version}}": target.versions.accumulo_version,
   "{{cassandra_supported_versions}}": "version " + target.versions.cassandra_version,
   "{{cassandra_required_version}}": target.versions.cassandra_version,
   "{{scylladb_supported_versions}}": "version " + target.versions.scylladb_version,
@@ -40,8 +40,8 @@ ultimate_replacements = {
   "{{hbase_required_version}}": target.versions.hbase_version,
   "{{hadoop_supported_versions}}": "versions " + target.versions.hadoop_min_version + " and later",
   "{{hadoop_required_version}}": target.versions.hadoop_min_version + " or later",
-  "{{java_supported_versions}}": "versions 11 and 17",
-  "{{java_required_version}}": "11 or 17",
+  "{{java_supported_versions}}": "versions 17 and 21",
+  "{{java_required_version}}": "17 or 21",
   "{{kafka_supported_versions}}": "versions " + target.versions.kafka_min_version + " and later",
   "{{kafka_required_version}}": target.versions.kafka_min_version + " or later",
   "{{maven_required_version}}": target.versions.maven_min_version + " or later",

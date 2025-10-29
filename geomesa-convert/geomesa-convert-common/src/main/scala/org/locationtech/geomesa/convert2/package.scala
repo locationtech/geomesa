@@ -87,8 +87,6 @@ package object convert2 {
 
   trait ConverterOptions {
     def validators: Seq[String]
-    @deprecated("Use micrometer global registry to manage reporters")
-    def reporters: Seq[Config]
     def parseMode: ParseMode
     def errorMode: ErrorMode
     def encoding: Charset

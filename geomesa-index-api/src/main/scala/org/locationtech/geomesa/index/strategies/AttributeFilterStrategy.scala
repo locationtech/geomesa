@@ -15,7 +15,7 @@ import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality
 
 import java.util.Date
 

@@ -10,7 +10,6 @@ package org.locationtech.geomesa.convert2.validators
 
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.validators.IdValidatorFactory.IdValidator
 
 /**
@@ -19,9 +18,6 @@ import org.locationtech.geomesa.convert2.validators.IdValidatorFactory.IdValidat
 class IdValidatorFactory extends SimpleFeatureValidatorFactory {
 
   override val name: String = IdValidatorFactory.Name
-
-  override def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator =
-    apply(sft, config, Tags.empty())
 
   override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator =
     new IdValidator(tags)

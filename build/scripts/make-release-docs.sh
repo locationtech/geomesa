@@ -26,8 +26,7 @@ if ! [[ -d "$WEBSITE_DIR" ]]; then
   exit 1
 fi
 
-# JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
-JAVA_VERSION=17 # although we normally build with 11, we need to build with 17+ for scoverage reports
+JAVA_VERSION="$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout -pl .)"
 if ! [[ $(java -version 2>&1 | head -n 1 | cut -d'"' -f2) =~ ^$JAVA_VERSION.* ]]; then
   echo "Error: invalid Java version - Java $JAVA_VERSION required"
   exit 1

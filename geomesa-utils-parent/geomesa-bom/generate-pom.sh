@@ -13,7 +13,7 @@ deps=()
 # mapfile reads the results into an array
 # we get the list of artifacts from `mvn clean install` (seems to be only way...)
 mapfile -t deps < <(
-  mvn clean install -DskipTests -Pzinc -B -T2C 2>&1 |
+  mvn clean install -Dmaven.test.skip -Dmaven.assembly.skip -B -T2C 2>&1 |
   grep Installing | # pull out installed artifacts only
   grep -v -e "\-sources\.jar$" -e "\.pom$" | # skip sources jars and poms
   sed 's|.*\.m2/repository/org/locationtech/geomesa/||' | # strip line prefix
@@ -24,7 +24,7 @@ mapfile -t deps < <(
 
 # truncate everything after the opening dependencyManagement
 sed -i '/    <dependencyManagement>/q' "$POM"
-echo -e "        <dependencies>\n" >> "$POM"
+echo "        <dependencies>" >> "$POM"
 
 function printDependency() {
   local dep="$1"
@@ -56,21 +56,26 @@ function printDependency() {
   } | tee -a "$POM"
 }
 
+have_test_deps=""
+
 for dep in "${deps[@]}"; do
   if ! [[ $dep =~ .*tests.jar ]]; then
     printDependency "$dep"
+  else
+    have_test_deps="true"
   fi
 done
 
-echo -e "\n            <!-- test dependencies -->\n" | tee -a "$POM"
+if [[ -n "$have_test_deps" ]]; then
+  echo -e "\n            <!-- test dependencies -->\n" | tee -a "$POM"
 
-for dep in "${deps[@]}"; do
-  if [[ $dep =~ .*tests.jar ]]; then
-    printDependency "$dep"
-  fi
-done
+  for dep in "${deps[@]}"; do
+    if [[ $dep =~ .*tests.jar ]]; then
+      printDependency "$dep"
+    fi
+  done
+fi
 
-echo "
-        </dependencies>
+echo "        </dependencies>
     </dependencyManagement>
 </project>" >> "$POM"

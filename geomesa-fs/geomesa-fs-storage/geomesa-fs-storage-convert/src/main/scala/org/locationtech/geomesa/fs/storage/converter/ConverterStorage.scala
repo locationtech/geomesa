@@ -12,12 +12,11 @@ import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.pathfilter.PathFiltering
 

@@ -29,7 +29,6 @@ import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInferenc
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.{ColumnMetadata, GeoParquetColumnEncoding, GeoParquetColumnType}
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding.GeoParquetNative
 import org.locationtech.geomesa.fs.storage.parquet.io.{GeoParquetMetadata, GeometrySchema, SimpleFeatureParquetSchema}
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -48,15 +47,9 @@ class ParquetConverterFactory
     *
     * @param is input
     * @param sft simple feature type, if known ahead of time
-    * @param path file path, if there is a file available
+    * @param hints hints, including the file path, if there is a file available
     * @return
     */
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.fold(Map.empty[String, AnyRef])(EvaluationContext.inputFileParam)).toOption
-
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
@@ -81,7 +74,7 @@ class ParquetConverterFactory
             val id = Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.FeatureIdField}')")
             val userData =
               if (parquet.hasVisibilities) {
-                Map(SecurityUtils.FEATURE_VISIBILITY -> Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.VisibilitiesField}')"))
+                Map("geomesa.feature.visibility" -> Expression(s"avroPath($$0, '/${SimpleFeatureParquetSchema.VisibilitiesField}')"))
               } else {
                 Map.empty[String, Expression]
               }

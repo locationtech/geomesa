@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.convert2.validators
 
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -22,7 +22,7 @@ class SimpleFeatureValidatorTest extends Specification {
 
   "SimpleFeatureValidator" should {
     "allow custom SPI loading" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom"), ConverterMetrics.empty)
+      val custom = SimpleFeatureValidator(sft, Seq("custom"))
       custom must not(beNull)
       custom.validate(null) must beNull
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -33,7 +33,7 @@ class SimpleFeatureValidatorTest extends Specification {
       }
     }
     "allow custom SPI loading with options" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom(foo,bar,baz)"), ConverterMetrics.empty)
+      val custom = SimpleFeatureValidator(sft, Seq("custom(foo,bar,baz)"))
       custom must not(beNull)
       custom.validate(null) mustEqual "foo,bar,baz"
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -59,9 +59,7 @@ object SimpleFeatureValidatorTest {
   // src/test/resources/META-INF/services/org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory
   class CustomValidatorFactory extends SimpleFeatureValidatorFactory {
     override def name: String = "custom"
-    override def apply(
-        sft: SimpleFeatureType,
-        metrics: ConverterMetrics,
-        config: Option[String]): SimpleFeatureValidator = new CustomValidator(config)
+    override def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator =
+      new CustomValidator(config)
   }
 }

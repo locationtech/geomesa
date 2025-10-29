@@ -13,10 +13,10 @@ import scala.Enumeration;
 
 public class SerializationOptions {
     public static scala.collection.immutable.Set<Enumeration.Value> withUserData() {
-        return SerializationOption.SerializationOptions$.MODULE$.withUserData();
+        return SerializationOption.builder().withUserData().build();
     }
 
     public static scala.collection.immutable.Set<Enumeration.Value> withoutId() {
-        return SerializationOption.SerializationOptions$.MODULE$.withoutId();
+        return SerializationOption.builder().withoutId().build();
     }
 }

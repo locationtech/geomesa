@@ -15,7 +15,6 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -194,7 +193,7 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
 
       val userData = sf.getUserData
 
-      userData.put(SecurityUtils.FEATURE_VISIBILITY, "USER|ADMIN")
+      userData.put("geomesa.feature.visibility", "USER|ADMIN")
       userData.put(null, java.lang.Integer.valueOf(5))
       userData.put(java.lang.Long.valueOf(10), "10")
       userData.put("null", null)

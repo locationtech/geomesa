@@ -37,9 +37,6 @@ package object io {
 
   object FormatVersion {
 
-    @deprecated("Replaced with DefaultVersion")
-    val LatestVersion = "18.3.0"
-
     // default format version, currently the only thing we care about here is whether it is before or after 0.15
     val DefaultVersion = "1.0.0"
 

@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.security
 
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.utils.text.TextTools
 
 /**
  * Checks for visibilities set in a feature's user data
@@ -19,7 +18,7 @@ trait VisibilityChecker {
   def requireVisibilities(feature: SimpleFeature): Unit = {
     try {
       val vis = feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY).asInstanceOf[String]
-      if (vis == null || TextTools.isWhitespace(vis)) {
+      if (vis == null || vis.isBlank) {
         throw new IllegalArgumentException("Feature does not have required visibility")
       }
     } catch {

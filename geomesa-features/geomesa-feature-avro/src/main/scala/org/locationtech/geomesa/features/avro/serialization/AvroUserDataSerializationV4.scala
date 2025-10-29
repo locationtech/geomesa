@@ -24,7 +24,7 @@ object AvroUserDataSerializationV4 extends LazyLogging {
   val NullMarkerString = "<null>"
 
   @deprecated("does not match declared schema")
-  def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+  private[serialization] def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     // may not be able to write all entries - must pre-filter to know correct count
     val filtered = map.asScala.filter { case (key, value) =>
       if (canSerialize(key)) {

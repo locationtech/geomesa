@@ -129,20 +129,6 @@ object FileSystemDelegate extends LazyLogging {
     def write(mode: CreateMode): OutputStream
 
     /**
-     * Open the file for writing
-     *
-     * @param mode write mode
-     * @param createParents create parent dirs as necessary
-     */
-    @deprecated("createParents is always true")
-    def write(mode: CreateMode, createParents: Boolean): OutputStream = {
-      if (!createParents) {
-        logger.warn("Call to write with createParents=false, which is not supported")
-      }
-      write(mode)
-    }
-
-    /**
       * Delete the file
       *
       * @param recursive if the file is a directory, recursively delete its contents

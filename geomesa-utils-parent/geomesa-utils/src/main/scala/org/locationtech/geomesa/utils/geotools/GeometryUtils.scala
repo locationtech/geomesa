@@ -155,8 +155,7 @@ object GeometryUtils extends LazyLogging {
     try {
       // use `maxBitResolution | 1` to ensure oddness, which is required by GeohashUtils
       val resolution = ResolutionRange(0, maxBitResolution | 1, 5)
-      val geohashes = GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution, relaxFit = true)
-      geohashes.map(gh => (gh.bbox.ll.getX, gh.bbox.ll.getY, gh.bbox.ur.getX, gh.bbox.ur.getY))
+      GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution)
     } catch {
       case NonFatal(e) =>
         logger.error("Error decomposing geometry, falling back to envelope bounds:", e)
