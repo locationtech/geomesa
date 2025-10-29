@@ -6,25 +6,21 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.index
+package org.locationtech.geomesa.features.kryo.serialization
 
-import org.apache.accumulo.core.data.Value
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom.Geometry
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.mutable.SpecificationWithJUnit
 
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Date, UUID}
 
-@RunWith(classOf[JUnitRunner])
-class IndexValueEncoderTest extends Specification {
+class IndexValueSerializerTest extends SpecificationWithJUnit {
 
   import scala.collection.JavaConverters._
 
@@ -40,7 +36,7 @@ class IndexValueEncoderTest extends Specification {
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
   def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
-    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName).toSeq
+    IndexValueSerializer.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName).toSeq
 
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
@@ -70,7 +66,7 @@ class IndexValueEncoderTest extends Specification {
       // inputs
       val entry = ScalaSimpleFeature.create(sft, id, geom, dt, null, null, null, null, null, null)
 
-      val encoder = IndexValueEncoder(sft)
+      val encoder = IndexValueSerializer(sft)
 
       // output
       val value = encoder.serialize(entry)
@@ -94,7 +90,7 @@ class IndexValueEncoderTest extends Specification {
 
       val entry = ScalaSimpleFeature.create(sft, id, geom, null, null, null, null, null, null, null)
 
-      val encoder = IndexValueEncoder(sft)
+      val encoder = IndexValueSerializer(sft)
 
       // output
       val value = encoder.serialize(entry)
@@ -123,7 +119,7 @@ class IndexValueEncoderTest extends Specification {
 
       val entry = ScalaSimpleFeature.create(sft, id, geom, dt, s, i, d, f, u, null)
 
-      val encoder = IndexValueEncoder(sft)
+      val encoder = IndexValueSerializer(sft)
 
       // output
       val value = encoder.serialize(entry)
@@ -156,7 +152,7 @@ class IndexValueEncoderTest extends Specification {
 
       val entry = ScalaSimpleFeature.create(sft, id, geom, null, null, i, d, f, null, null)
 
-      val encoder = IndexValueEncoder(sft)
+      val encoder = IndexValueSerializer(sft)
 
       // output
       val value = encoder.serialize(entry)
@@ -187,21 +183,20 @@ class IndexValueEncoderTest extends Specification {
   // 1.  ID
   // 2.  WKB-encoded geometry
   // 3.  start-date/time
-  def _encodeIndexValue(entry: SimpleFeature): Value = {
+  def _encodeIndexValue(entry: SimpleFeature): /*Value*/ Array[Byte] = {
     val encodedId = entry.getID.getBytes
     val encodedGeom = WKBUtils.write(entry.getDefaultGeometry.asInstanceOf[Geometry])
     // dtg prop is hard-coded here for convenience
     val encodedDtg = Option(entry.getAttribute("dtg").asInstanceOf[Date])
         .map(dtg => ByteBuffer.allocate(8).putLong(dtg.getTime).array()).getOrElse(Array[Byte]())
 
-    new Value(
-      ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
-          ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
-          encodedDtg)
+    ByteBuffer.allocate(4).putInt(encodedId.length).array() ++ encodedId ++
+        ByteBuffer.allocate(4).putInt(encodedGeom.length).array() ++ encodedGeom ++
+        encodedDtg
   }
 
-  def _decodeIndexValue(v: Value): _DecodedIndexValue = {
-    val buf = v.get()
+  def _decodeIndexValue(v: /*Value*/Array[Byte]): _DecodedIndexValue = {
+    val buf = v/*.get()*/
     val idLength = ByteBuffer.wrap(buf, 0, 4).getInt
     val (idPortion, geomDatePortion) = buf.drop(4).splitAt(idLength)
     val id = new String(idPortion)

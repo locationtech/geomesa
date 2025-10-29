@@ -9,21 +9,8 @@ affect the end user.
 Compatibility Across Versions
 +++++++++++++++++++++++++++++
 
-Semantic Versioning
--------------------
-
-Starting with 2.0.0, GeoMesa is adhering to `semantic versioning <https://semver.org/>`__. Essentially,
-releases are broken down into major, minor and patch versions. For a version number like 2.0.1, 2 is the major
-version, 2.0 is the minor version, and 2.0.1 is the patch version.
-
-Major version updates contain breaking public API changes. Minor version updates contain new or updated functionality
-that is backwards-compatible. Patch versions contain only backwards-compatible bug fixes. This delineation allows
-users to gauge the potential impact of updating versions.
-
-.. warning::
-
-  Versions prior to 2.0.0 do not follow semantic versioning, and each release should be
-  considered a major version change.
+GeoMesa adheres to `semantic versioning <https://semver.org/>`__. This allows users to gauge the potential impact of
+any given update.
 
 Compatibility
 -------------
@@ -38,9 +25,6 @@ fully supports data written with version 1.2.2 or later, and mostly supports dat
 
 Note that although later versions can read earlier data, the reverse is not necessarily true. Data written
 with a newer client may not be readable by an older client.
-
-Data written with 1.2.1 or earlier can be migrated to a newer data format. See :ref:`index_upgrades` for details
-(note that this functionality is currently only implemented for Accumulo).
 
 API Compatibility
 ^^^^^^^^^^^^^^^^^
@@ -68,27 +52,22 @@ Dependency compatibility refers to the ability to update GeoMesa without updatin
 (e.g. Accumulo, HBase, Hadoop, Spark, GeoServer, etc). Generally, GeoMesa supports a range of dependency versions
 (e.g. Accumulo 2.0 to 2.1). Spark versions are more tightly coupled, due to the use of private Spark APIs.
 
-Pre-Release Code
-^^^^^^^^^^^^^^^^
-
-GeoMesa sometimes provides modules in an alpha or beta state. Although they share the overall GeoMesa version number,
-such modules should be considered pre-1.0, and are not guaranteed to provide any forwards or backwards compatibility
-across versions. Pre-release modules will be clearly marked in the documentation.
-
 Compatibility Matrix
 --------------------
 
-+--------------+-------+-------+-------+
-|              | Major | Minor | Patch |
-+==============+=======+=======+=======+
-| Data         | Y     | Y     | Y     |
-+--------------+-------+-------+-------+
-| API          | N     | Y     | Y     |
-+--------------+-------+-------+-------+
-| Binary       | N     | N     | Y     |
-+--------------+-------+-------+-------+
-| Dependencies | N     | N     | Y     |
-+--------------+-------+-------+-------+
+.. |y| unicode:: U+2705
+.. |n| unicode:: U+274C
+
+.. csv-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 12,20,20,20,20
+   :class: centered-cells
+
+   "", "Data", "API", "Binary", "Dependencies"
+   "Patch", |y|, |y|, |y|, |y|
+   "Major", |y|, |n|, |n|, |n|
+   "Minor", |y|, |y|, |n|, |n|
 
 Version 6.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
@@ -97,6 +76,11 @@ Minimum Java Version
 --------------------
 
 With the latest versions of GeoTools and GeoServer, Java 17 is now the minimum required version.
+
+Accumulo Version Support
+------------------------
+
+GeoMesa no longer supports Accumulo 2.0. Users should upgrade to Accumulo 2.1.4.
 
 Dependency Version Upgrades
 ---------------------------
@@ -116,7 +100,7 @@ The following modules have been removed:
 * ``geomesa-metrics-cloudwatch``
 * ``geomesa-metrics-graphite``
 * ``geomesa-metrics-prometheus``
-* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
+* ``geomesa-process-wps``
 * ``geomesa-zk-utils``
 
 The following JAR classifiers are no longer published:
@@ -136,8 +120,19 @@ Deprecated Classes
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - replaced with
   ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
 
+Internal API Changes
+--------------------
+
+GeoMesa does not have a well-defined public API. This section details classes and methods that have been changed or removed,
+but are not meant to be publicly available.
+
+.. raw:: html
+
+   <details>
+   <summary><b>Click here to see all API changes</b></summary>
+
 Relocated Classes
------------------
+^^^^^^^^^^^^^^^^^
 
 * ``org.locationtech.geomesa.utils.io.IncrementingFileName`` -> ``org.locationtech.geomesa.tools``
 * ``org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator`` -> ``org.locationtech.geomesa.kafka.tools``
@@ -149,10 +144,15 @@ Relocated Classes
 * ``org.locationtech.geomesa.utils.index.WrappedSTRtree`` -> ``org.locationtech.geomesa.memory.index.impl``
 
 Removed Classes
----------------
+^^^^^^^^^^^^^^^
 
+* ``org.locationtech.geomesa.accumulo.index.IndexValueEncoder``
+* ``org.locationtech.geomesa.accumulo.util.TableUtils``
 * ``org.locationtech.geomesa.convert2.metrics.ConverterMetrics``
+* ``org.locationtech.geomesa.convert2.validators.IdValidator``
 * ``org.locationtech.geomesa.metrics.micrometer.MicrometerSetup``
+* ``org.locationtech.geomesa.security.VisibilityEvaluator``
+* ``org.locationtech.geomesa.tools.utils.StorageJobUtils``
 * ``org.locationtech.geomesa.utils.cache.ByteArrayCacheKey``
 * ``org.locationtech.geomesa.utils.cache.FilePersistence``
 * ``org.locationtech.geomesa.utils.collection.AtomicBitSet``
@@ -175,13 +175,37 @@ Removed Classes
 * ``org.locationtech.geomesa.utils.text.ObjectPoolFactory``
 
 Removed Methods
----------------
+^^^^^^^^^^^^^^^
 
-* Various methods in ``org.locationtech.geomesa.utils.geohash.BoundingBox``
-* Various methods in ``org.locationtech.geomesa.utils.geohash.GeoHash``
-* Various methods in ``org.locationtech.geomesa.utils.geohash.GeohashUtils``
-* ``getSingleQueryPlan`` and ``getMultipleQueryPlan`` in ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils``
-* ``infer`` in ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory``
+* ``org.locationtech.geomesa.utils.geohash.BoundingBox`` - various unused methods
+* ``org.locationtech.geomesa.utils.geohash.GeoHash`` - various unused methods
+* ``org.locationtech.geomesa.utils.geohash.GeohashUtils`` - various unused methods
+* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils#getMultipleQueryPlan``
+* ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils#getSingleQueryPlan``
+* ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory#infer(InputStream,Option[SimpleFeatureType],Option[String])``
+* ``org.locationtech.geomesa.convert.all.TypeAwareInference#infer(String,() => InputStream,Option[SimpleFeatureType],Option[String])``
+* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory`` - various system properties
+* ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties
+* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams.InstanceIdParam``
+* ``org.locationtech.geomesa.arrow.io.FormatVersion.LatestVersion``
+* ``org.locationtech.geomesa.convert.ConverterConfigLoader#rebaseConfig``
+* ``org.locationtech.geomesa.convert2.SimpleFeatureConverter#createEvaluationContext(Map,Counter,Counter)``
+* ``org.locationtech.geomesa.fs.data.FileSystemDataStore#this(FileContext)``
+* ``org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme#apply(DateTimeFormatter)``
+* ``org.locationtech.geomesa.index.planning.LocalQueryRunner#visible``
+* ``org.locationtech.geomesa.index.planning.QueryPlanner`` - "perThreadQueryHints"-related methods
+* ``org.locationtech.geomesa.kafka.data.KafkaDataStore#producer(KafkaDataStoreConfig)``
+* ``org.locationtech.geomesa.kafka.utils.GeoMessageSerializer#apply(SimpleFeatureType, SerializationType, Boolean)``
+* ``org.locationtech.geomesa.lambda.stream.kafka.KafkaStore#topic``
+* ``org.locationtech.geomesa.security#getAuthorizationsProvider``
+* ``org.locationtech.geomesa.utils.bin.BinaryOutputEncoder#encode(CloseableIterator,OutputStream,Boolean)``
+* ``org.locationtech.geomesa.utils.geotools.FeatureUtils#copyToWriter``
+* ``org.locationtech.geomesa.utils.io.CompressionUtils#compress(InputStream)``
+* ``org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle#write(CreateMode,Boolean)``
+
+.. raw:: html
+
+   </details>
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

@@ -272,8 +272,9 @@ div.admonition.warning, div.admonition.note {
   border-right: 2px solid #c9c9c9;
 }
 
-.wy-table-responsive th.head {
+.wy-table-responsive th.head, .wy-table-responsive th.stub {
   background-color: #c9c9c9 !important;
+  color: #000000;
 }
 
 .wy-table-responsive table td, .wy-table-responsive table th {
@@ -376,4 +377,8 @@ div.admonition.warning, div.admonition.note {
 .sphinx-tabs .sphinx-tab.ui.attached.segment {
   margin: 0;
   width: 100%;
+}
+
+.centered-cells th, .centered-cells td {
+  text-align: center;
 }

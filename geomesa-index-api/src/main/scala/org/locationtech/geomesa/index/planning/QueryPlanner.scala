@@ -26,7 +26,6 @@ import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
@@ -207,20 +206,10 @@ object QueryPlanner extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private[planning] val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
-
   object CostEvaluation extends Enumeration {
     type CostEvaluation = Value
     val Stats, Index = Value
   }
-
-  // threaded hints were used as a work-around with wfs output formats, but now we use GetFeatureCallback instead
-  @deprecated("Deprecated with no replacement")
-  def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
-  @deprecated("Deprecated with no replacement")
-  def getPerThreadQueryHints: Option[Map[AnyRef, AnyRef]] = threadedHints.get
-  @deprecated("Deprecated with no replacement")
-  def clearPerThreadQueryHints(): Unit = threadedHints.clear()
 
   /**
    * Checks for attribute transforms in the query and sets them as hints if found

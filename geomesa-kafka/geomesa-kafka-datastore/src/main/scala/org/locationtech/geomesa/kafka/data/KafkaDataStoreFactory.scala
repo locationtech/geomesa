@@ -237,10 +237,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    // noinspection ScalaDeprecation
-    Seq(CacheCleanup, CacheConsistency, CacheTicker).foreach { p =>
-      if (params.containsKey(p.key)) {
-        logger.warn(s"Parameter '${p.key}' is deprecated, and no longer has any effect")
+    Seq("kafka.cache.cleanup", "cleanUpCache", "kafka.cache.consistency", "consistencyCheck", "kafka.cache.ticker").foreach { p =>
+      if (params.containsKey(p)) {
+        logger.warn(s"Ignoring unsupported parameter: $p")
       }
     }
 

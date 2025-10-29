@@ -29,17 +29,6 @@ object KafkaDataStoreParams extends NamespaceParams {
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
   private val DeprecatedEarliest = ConvertedParam[Duration, java.lang.Boolean]("kafka.consumer.from-beginning", v => if (v) { Duration.Inf } else { null })
   private val DeprecatedExpiry = ConvertedParam[Duration, java.lang.Long]("expirationPeriod", v => Duration(v, "ms"))
-  private val DeprecatedConsistency = ConvertedParam[Duration, java.lang.Long]("consistencyCheck", v => Duration(v, "ms"))
-  // noinspection TypeAnnotation
-  private val DeprecatedCleanup = new DeprecatedParam[Duration] {
-    override val key = "cleanUpCache"
-    override def lookup(params: java.util.Map[String, _], required: Boolean): Duration = {
-      val param = new GeoMesaParam[java.lang.Boolean](key, default = false)
-      if (!param.lookup(params)) { Duration.Inf } else {
-        Duration(new GeoMesaParam[String]("cleanUpCachePeriod", default = "10s").lookup(params))
-      }
-    }
-  }
 
   val Brokers =
     new GeoMesaParam[String](
@@ -325,8 +314,12 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly,
     )
 
-  @deprecated val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = Boolean.box(false), deprecatedKeys = Seq("useCQCache"))
-  @deprecated val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s"), deprecatedParams = Seq(DeprecatedCleanup))
-  @deprecated val CacheConsistency = new GeoMesaParam[Duration]("kafka.cache.consistency", "Check the feature cache for consistency at this interval", deprecatedParams = Seq(DeprecatedConsistency))
-  @deprecated val CacheTicker      = new GeoMesaParam[AnyRef]("kafka.cache.ticker", "Ticker to use for expiring/cleaning feature cache")
+  @deprecated
+  val CqEngineCache =
+    new GeoMesaParam[java.lang.Boolean](
+      "kafka.cache.cqengine",
+      "Use CQEngine-based implementation of live feature cache",
+      default = Boolean.box(false),
+      deprecatedKeys = Seq("useCQCache"),
+    )
 }

@@ -33,9 +33,6 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams)), Stats(tags))
 
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
-    createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams, success, failure)), Stats.wrap(success, failure, tags))
-
   private def createEvaluationContext(contexts: Seq[EvaluationContext], theseStats: Stats): EvaluationContext = {
     val stats = new Stats() {
       override def success(i: Int): Long = theseStats.success(i) + contexts.map(_.stats.success(0)).sum

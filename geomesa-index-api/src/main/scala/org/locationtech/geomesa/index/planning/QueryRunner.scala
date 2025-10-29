@@ -69,13 +69,6 @@ trait QueryRunner {
       QueryRunner.logger.trace(s"Query rewritten by $interceptor to: $query")
     }
 
-    // set query hints - we need this in certain situations where we don't have access to the query directly
-    QueryPlanner.threadedHints.get.foreach { hints =>
-      hints.foreach { case (k, v) => query.getHints.put(k, v) }
-      // clear any configured hints so we don't process them again
-      QueryPlanner.threadedHints.clear()
-    }
-
     // handle any params passed in through geoserver
     ViewParams.setHints(query)
 
