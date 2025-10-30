@@ -386,3 +386,4 @@ object ProximitySearchProcessTest {
     "POINT (-49.583419244077589 0.909184629902795)"
   )
 }
+

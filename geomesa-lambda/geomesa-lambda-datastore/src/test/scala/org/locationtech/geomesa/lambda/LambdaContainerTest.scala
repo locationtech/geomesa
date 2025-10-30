@@ -15,8 +15,9 @@ import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.slf4j.LoggerFactory
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
-import org.testcontainers.containers.{KafkaContainer, Network}
+import org.testcontainers.kafka.KafkaContainer
 import org.testcontainers.utility.DockerImageName
 
 import java.time.{Clock, Instant, ZoneId, ZoneOffset}
@@ -25,10 +26,14 @@ class LambdaContainerTest extends SpecificationWithJUnit with BeforeAfterAll wit
 
   private val network = Network.newNetwork()
 
-  val kafka: KafkaContainer =
+  // listener for other containers in the docker network
+  val dockerNetworkBrokers = "kafka:19092"
+
+  private val kafka =
     new KafkaContainer(LambdaContainerTest.KafkaImage)
       .withNetwork(network)
       .withNetworkAliases("kafka")
+      .withListener(dockerNetworkBrokers)
       .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")))
 
   val sftName = getClass.getSimpleName
@@ -44,13 +49,11 @@ class LambdaContainerTest extends SpecificationWithJUnit with BeforeAfterAll wit
     // note the table needs to be different to prevent testing errors
     "lambda.accumulo.catalog"       -> sftName,
     "lambda.kafka.brokers"          -> kafka.getBootstrapServers,
-    "lambda.kafka.zookeepers"       -> s"${kafka.getHost}:${kafka.getMappedPort(KafkaContainer.ZOOKEEPER_PORT)}",
     "lambda.kafka.partitions"       -> 2,
     "lambda.expiry"                 -> "100ms",
     "lambda.clock"                  -> clock,
     "lambda.offset-manager"         -> offsetManager
   )
-
 
   override def beforeAll(): Unit = kafka.start()
 
@@ -60,8 +63,8 @@ class LambdaContainerTest extends SpecificationWithJUnit with BeforeAfterAll wit
 object LambdaContainerTest {
 
   val KafkaImage =
-    DockerImageName.parse("confluentinc/cp-kafka")
-      .withTag(sys.props.getOrElse("confluent.docker.tag", "7.6.0"))
+    DockerImageName.parse("apache/kafka-native")
+      .withTag(sys.props.getOrElse("kafka.docker.tag", "3.9.1"))
 
   class TestClock extends Clock with java.io.Serializable {
 
