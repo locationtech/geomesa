@@ -46,7 +46,7 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

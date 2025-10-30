@@ -8,119 +8,114 @@
 
 package org.locationtech.geomesa.spark
 
-import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.DataFrame
 import org.geotools.api.data.{DataStore, DataStoreFinder}
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Point
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.specs2.matcher.MatchResult
 
 import java.util.{Map => JMap}
 
-@RunWith(classOf[JUnitRunner])
-class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
+class SparkSQLSpatialRelationshipsTest extends TestWithSpark {
 
   import scala.collection.JavaConverters._
 
-  sequential
+  var ds: DataStore = _
+
+  var dfPoints: DataFrame = _
+  var dfLines: DataFrame = _
+  var dfBoxes: DataFrame = _
+
+  val geomFactory = JTSFactoryFinder.getGeometryFactory
+
+  // we turn off the geo-index on the CQEngine DataStore because
+  // BucketIndex doesn't do polygon <-> polygon comparisons properly;
+  // acceptable performance-wise because the test data set is small
+  val dsParams: JMap[String, String] = Map(
+    "namespace" -> getClass.getSimpleName,
+    "cqengine" -> "true",
+    "geotools" -> "true",
+    "useGeoIndex" -> "false").asJava
+
+  val pointRef = "POINT(0 0)"
+  val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
+  val lineRef  = "LINESTRING(0 10, 0 -10)"
+
+  val points = Map(
+    "int"    -> "POINT(5 5)",
+    "edge"   -> "POINT(0 5)",
+    "corner" -> "POINT(0 0)",
+    "ext"    -> "POINT(-5 0)")
+
+  val lines = Map(
+    "touches" -> "LINESTRING(0 0, 1 0)",
+    "crosses" -> "LINESTRING(-1 0, 1 0)",
+    "disjoint" -> "LINESTRING(1 0, 2 0)")
+
+  val boxes = Map(
+    "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
+    "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
+    "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
+    "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
+    "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
+    "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    ds = DataStoreFinder.getDataStore(dsParams)
+
+    SparkSQLTestUtils.ingestPoints(ds, "points", points)
+    dfPoints = spark.read
+      .format("geomesa")
+      .options(dsParams)
+      .option("geomesa.feature", "points")
+      .load()
+    logger.debug(dfPoints.schema.treeString)
+    dfPoints.createOrReplaceTempView("points")
+
+    SparkSQLTestUtils.ingestGeometries(ds, "lines", lines)
+    dfLines = spark.read
+      .format("geomesa")
+      .options(dsParams)
+      .option("geomesa.feature", "lines")
+      .load()
+    logger.debug(dfLines.schema.treeString)
+    dfLines.createOrReplaceTempView("lines")
+
+    SparkSQLTestUtils.ingestGeometries(ds, "boxes", boxes)
+    dfBoxes = spark.read
+      .format("geomesa")
+      .options(dsParams)
+      .option("geomesa.feature", "boxes")
+      .load()
+    logger.debug(dfBoxes.schema.treeString)
+    dfBoxes.createOrReplaceTempView("boxes")
+  }
+
+  override def afterAll(): Unit = {
+    ds.dispose()
+    super.afterAll()
+  }
 
   "SQL spatial relationships" should {
 
-    val geomFactory = JTSFactoryFinder.getGeometryFactory
-
-    // we turn off the geo-index on the CQEngine DataStore because
-    // BucketIndex doesn't do polygon <-> polygon comparisons properly;
-    // acceptable performance-wise because the test data set is small
-    val dsParams: JMap[String, String] = Map(
-      "namespace" -> getClass.getSimpleName,
-      "cqengine" -> "true",
-      "geotools" -> "true",
-      "useGeoIndex" -> "false").asJava
-    var ds: DataStore = null
-    var spark: SparkSession = null
-    var sc: SQLContext = null
-
-    var dfPoints: DataFrame = null
-    var dfLines: DataFrame = null
-    var dfBoxes: DataFrame = null
-
-    val pointRef = "POINT(0 0)"
-    val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
-    val lineRef  = "LINESTRING(0 10, 0 -10)"
-
-    val points = Map(
-      "int"    -> "POINT(5 5)",
-      "edge"   -> "POINT(0 5)",
-      "corner" -> "POINT(0 0)",
-      "ext"    -> "POINT(-5 0)")
-
-    val lines = Map(
-      "touches" -> "LINESTRING(0 0, 1 0)",
-      "crosses" -> "LINESTRING(-1 0, 1 0)",
-      "disjoint" -> "LINESTRING(1 0, 2 0)")
-
-    val boxes = Map(
-      "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
-      "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
-      "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
-      "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
-      "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
-      "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
-
-    // before
-    step {
-      ds = DataStoreFinder.getDataStore(dsParams)
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
-      SQLTypes.init(sc)
-
-      SparkSQLTestUtils.ingestPoints(ds, "points", points)
-      dfPoints = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "points")
-        .load()
-      logger.debug(dfPoints.schema.treeString)
-      dfPoints.createOrReplaceTempView("points")
-
-      SparkSQLTestUtils.ingestGeometries(ds, "lines", lines)
-      dfLines = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "lines")
-        .load()
-      logger.debug(dfLines.schema.treeString)
-      dfLines.createOrReplaceTempView("lines")
-
-      SparkSQLTestUtils.ingestGeometries(ds, "boxes", boxes)
-      dfBoxes = spark.read
-        .format("geomesa")
-        .options(dsParams)
-        .option("geomesa.feature", "boxes")
-        .load()
-      logger.debug(dfBoxes.schema.treeString)
-      dfBoxes.createOrReplaceTempView("boxes")
-    }
-
     // DE-9IM comparisons
-    def testData(sql: String, expectedNames: Seq[String]) = {
+    def testData(sql: String, expectedNames: Seq[String]): MatchResult[Any] = {
       val r = sc.sql(sql)
       val d = r.collect()
       val column = d.map(row => row.getAs[String]("name")).toSeq
       column must containTheSameElementsAs(expectedNames)
     }
 
-    def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean) = {
+    def testDirect(f: String, name: String, g1: String, g2: String, expected: Boolean): MatchResult[Any] = {
      val sql = s"select $f(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
      val r = sc.sql(sql).collect()
      r.head.getBoolean(0) mustEqual expected
     }
 
-    "st_contains" >> {
+    "st_contains" in {
       testData(
         s"select * from points where st_contains(st_geomFromWKT('$boxRef'), geom)",
         Seq("int")
@@ -145,7 +140,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_contains(null, null)").collect.head(0) must beNull
     }
 
-    "st_covers" >> {
+    "st_covers" in {
       // planner optimizer rules should prevent this clause from being
       // pushed down to the GeoTools store ("covers" is not a CQL op);
       // should be evaluated at the Spark level instead
@@ -173,7 +168,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_covers(null, null)").collect.head(0) must beNull
     }
 
-    "st_crosses" >> {
+    "st_crosses" in {
       testData(
         s"select * from lines where st_crosses(st_geomFromWKT('$lineRef'), geom)",
         Seq("crosses")
@@ -185,7 +180,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_crosses(null, null)").collect.head(0) must beNull
     }
 
-    "st_disjoint" >> {
+    "st_disjoint" in {
       testData(
         s"select * from points where st_disjoint(st_geomFromWKT('$boxRef'), geom)",
         Seq("ext")
@@ -210,7 +205,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_disjoint(null, null)").collect.head(0) must beNull
     }
 
-    "st_equals" >> {
+    "st_equals" in {
       testData(
         s"select * from points where st_equals(st_geomFromWKT('POINT(0 0)'), geom)",
         Seq("corner")
@@ -233,7 +228,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_equals(null, null)").collect.head(0) must beNull
     }
 
-    "st_intersects" >> {
+    "st_intersects" in {
       testData(
         s"select * from points where st_intersects(st_geomFromWKT('$boxRef'), geom)",
         Seq("int", "edge", "corner")
@@ -258,7 +253,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_intersects(null, null)").collect.head(0) must beNull
     }
 
-    "st_overlaps" >> {
+    "st_overlaps" in {
       testData(
         s"select * from points where st_overlaps(st_geomFromWKT('$boxRef'), geom)",
         Seq()
@@ -282,7 +277,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_overlaps(null, null)").collect.head(0) must beNull
     }
 
-    "st_touches" >> {
+    "st_touches" in {
       testData(
         s"select * from points where st_touches(st_geomFromWKT('$boxRef'), geom)",
         Seq("edge", "corner")
@@ -306,7 +301,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_touches(null, null)").collect.head(0) must beNull
     }
 
-    "st_within" >> {
+    "st_within" in {
       // reversed expressions because st_contains(g1, g2) == st_within(g2, g1)
       testData(
         s"select * from points where st_within(geom, st_geomFromWKT('$boxRef'))",
@@ -331,7 +326,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_within(null, null)").collect.head(0) must beNull
     }
 
-    "st_relate" >> {
+    "st_relate" in {
       val l1 = "st_geomFromWKT('LINESTRING(1 2, 3 4)')"
       val l2 = "st_geomFromWKT('LINESTRING(5 6, 7 8)')"
 
@@ -346,7 +341,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
     }
 
     // other relationship functions
-    "st_area" >> {
+    "st_area" in {
       /* units of deg^2, which may not be that useful to anyone */
       val box1 = "POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))"
       val box2 = "POLYGON((0 50, 0 60, 10 60, 10 50, 0 50))"
@@ -370,7 +365,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_area(null)").collect.head(0) must beNull
     }
 
-    "st_centroid" >> {
+    "st_centroid" in {
       val r = sc.sql(s"select st_centroid(st_geomFromWKT('$boxRef'))")
       val d = r.collect()
       d.head.getAs[Point](0) mustEqual WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
@@ -378,7 +373,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_centroid(null)").collect.head(0) must beNull
     }
 
-    "st_closestpoint" >> {
+    "st_closestpoint" in {
       val box1 = "st_geomFromWKT('POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))')"
       val pt1  = "st_geomFromWKT('POINT(15 5)')"
       val r = sc.sql(s"select st_closestpoint($box1, $pt1)").collect()
@@ -387,7 +382,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_closestpoint(null, null)").collect.head(0) must beNull
     }
 
-    "st_distance" >> {
+    "st_distance" in {
       val pt1 = "st_geomFromWKT('POINT(0 0)')"
       val pt2 = "st_geomFromWKT('POINT(10 0)')"
 
@@ -401,7 +396,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_distanceSpheroid(null, null)").collect.head(0) must beNull
     }
 
-    "st_length" >> {
+    "st_length" in {
       // length
       val r1 = sc.sql(
         s"select st_length(st_geomFromWKT('LINESTRING(0 0, 10 0)'))"
@@ -415,12 +410,6 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       r2.head.getAs[Double](0) mustEqual 40.0
 
       sc.sql("select st_length(null)").collect.head(0) must beNull
-    }
-
-    // after
-    step {
-      ds.dispose()
-      spark.stop()
     }
   }
 }

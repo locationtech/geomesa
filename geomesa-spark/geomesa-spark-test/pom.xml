@@ -15,6 +15,8 @@
     <properties>
         <!-- version used by spark - our json4s is shaded and relocated -->
         <json4s.version>3.6.12</json4s.version>
+        <!-- spark uses slf4j 2, only test scoped -->
+        <slf4j.version>2.0.17</slf4j.version>
         <maven.test.opens>
           --add-opens=java.base/java.nio=ALL-UNNAMED
           --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
@@ -36,6 +38,13 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- we're using reload4j -->
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j2-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -111,7 +120,10 @@
                         <systemPropertyVariables>
                             <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
                             <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
+                            <spark.worker.cores>${test.spark.worker.cores}</spark.worker.cores>
+                            <spark.worker.memory>${test.spark.worker.memory}</spark.worker.memory>
                         </systemPropertyVariables>
+                        <reuseForks>false</reuseForks> <!-- spark contexts interfere with each other if re-using forks -->
                     </configuration>
                 </plugin>
                 <plugin>
@@ -121,7 +133,10 @@
                         <systemPropertyVariables>
                             <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
                             <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
+                            <spark.worker.cores>${test.spark.worker.cores}</spark.worker.cores>
+                            <spark.worker.memory>${test.spark.worker.memory}</spark.worker.memory>
                         </systemPropertyVariables>
+                        <reuseForks>false</reuseForks>
                     </configuration>
                 </plugin>
             </plugins>

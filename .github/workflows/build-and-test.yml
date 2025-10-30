@@ -17,8 +17,9 @@ env:
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
   MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
-  MAVEN_TEST_ARGS: test -Dtest.fork.count=1
-  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
+  MAVEN_TEST_ARGS: test
+  MAVEN_SPARK_TEST_ARGS: test -Dtest.fork.count=2
+  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
@@ -200,7 +201,6 @@ jobs:
       - name: Integration Tests
         run: |
           export IT_MODULES="$(find . -path '*/src/test/*' -name '*IT.scala' -o -name '*IT.java' | sed 's|\(.*\)src/test.*|\1|' | sort -u | tr '\n' ',')"
-          echo $IT_MODULES
           mvn $MAVEN_IT_ARGS $MAVEN_CLI_OPTS -pl "$IT_MODULES"
       - name: Remove geomesa artifacts
         if: success() || failure()
@@ -237,13 +237,11 @@ jobs:
       - name: Build Spark runtimes
         # build the spark runtime jars, they are slow so we do them here in a parallel job
         run: |
-          export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
-          echo $PROJECT_LIST
-          mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
+          export SPARK_RUNTIME_MODULES="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
+          mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$SPARK_RUNTIME_MODULES"
       - name: Run Spark tests
-        run: |
-          echo mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
-          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
+        if: matrix.scala-version == '2.12' # there's no 2.13 spark docker container
+        run: mvn $MAVEN_SPARK_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
