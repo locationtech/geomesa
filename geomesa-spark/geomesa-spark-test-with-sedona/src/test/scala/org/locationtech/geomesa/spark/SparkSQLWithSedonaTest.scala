@@ -14,10 +14,10 @@ import org.apache.spark.sql.catalyst.plans.logical.Project
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.functions.{broadcast, expr}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.geotools.api.data.SimpleFeatureStore
-import org.geotools.api.data.DataStore
-import org.geotools.api.data.DataStoreFinder
-import org.geotools.data.{DataUtilities}
+import org.geotools.api.data.{DataStore, DataStoreFinder, SimpleFeatureStore}
+import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.filter.identity.FeatureId
+import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -27,14 +27,13 @@ import org.locationtech.geomesa.spark.jts.{geomLit, st_equals, st_intersects}
 import org.locationtech.geomesa.spark.sql.SQLTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory, Point}
-import org.geotools.api.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLWithSedonaIT extends Specification with LazyLogging {
+class SparkSQLWithSedonaTest extends Specification with LazyLogging {
   // This test should run with geomesa.use.sedona = true, please refer to pom.xml of this project for details
 
   import scala.collection.JavaConverters._
@@ -51,7 +50,7 @@ class SparkSQLWithSedonaIT extends Specification with LazyLogging {
   val random = new Random()
   random.setSeed(0)
 
-  private def generatePoints(gf: GeometryFactory, numPoints: Int) = {
+  private def generatePoints(gf: GeometryFactory, numPoints: Int): java.util.List[FeatureId] = {
     val sft = SimpleFeatureTypes.createType("points", "name:String,*geom:Point:srid=4326")
     ds.createSchema(sft)
     val features = (1 to numPoints).map { i =>
@@ -64,7 +63,7 @@ class SparkSQLWithSedonaIT extends Specification with LazyLogging {
     fs.addFeatures(DataUtilities.collection(features.asJava))
   }
 
-  private def generatePolys(gf: GeometryFactory, numPoints: Int) = {
+  private def generatePolys(gf: GeometryFactory, numPoints: Int): java.util.List[FeatureId] = {
     val sft = SimpleFeatureTypes.createType("polys", "name:String,*geom:Polygon:srid=4326")
     ds.createSchema(sft)
     val features = (1 to numPoints).map { i =>

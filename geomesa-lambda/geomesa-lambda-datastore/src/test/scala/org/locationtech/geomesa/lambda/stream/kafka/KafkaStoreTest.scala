@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.lambda.stream.kafka
 
 import org.apache.kafka.clients.admin.{AdminClient, NewTopic}
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geomesa.testcontainers.AccumuloContainer
+import org.geotools.api.data._
+import org.geotools.api.feature.`type`.Name
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.{Filter, Id}
 import org.geotools.util.factory.Hints
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
@@ -21,20 +23,21 @@ import org.locationtech.geomesa.lambda.{InMemoryOffsetManager, LambdaContainerTe
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.runner.JUnitRunner
 
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import java.util.{Collections, Properties}
 
-@RunWith(classOf[JUnitRunner])
 class KafkaStoreTest extends LambdaContainerTest {
 
+  import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential
 
-  lazy val config = Map("bootstrap.servers" -> brokers)
+  lazy val config = Map("bootstrap.servers" -> kafka.getBootstrapServers)
+
+  lazy val zookeepers = AccumuloContainer.getInstance().getZookeepers
 
   lazy val namespaces = new AtomicInteger(0)
 
@@ -43,7 +46,7 @@ class KafkaStoreTest extends LambdaContainerTest {
   def createTopic(ns: String, sft: SimpleFeatureType): Unit = {
     val topic = LambdaDataStore.topic(sft, ns)
     val props = new Properties()
-    props.put("bootstrap.servers", brokers)
+    props.put("bootstrap.servers", kafka.getBootstrapServers)
     WithClose(AdminClient.create(props)) { admin =>
       admin.createTopics(Collections.singletonList(new NewTopic(topic, 2, 1.toShort))).all().get
     }
@@ -61,8 +64,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       feature.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
-        ds.createSchema(sft)
+      WithClose(new DataStoreShell(sft)) { ds =>
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
@@ -73,12 +75,12 @@ class KafkaStoreTest extends LambdaContainerTest {
           store1.write(feature)
           store1.flush()
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(feature))
           }
         }
         WithClose(newStore(), newStore()) { (store1, store2) =>
           foreach(Seq(store1, store2)) { store =>
-            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEqualTo(Seq(feature)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(feature))
           }
         }
       }
@@ -93,8 +95,7 @@ class KafkaStoreTest extends LambdaContainerTest {
 
       createTopic(ns, sft)
 
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
-        ds.createSchema(sft)
+      WithClose(new DataStoreShell(sft)) { ds =>
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
@@ -117,7 +118,7 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList mustEqual Seq(feature)
+          ds.all() mustEqual Seq(feature)
         }
       }
     }
@@ -134,8 +135,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, feature2, update1, update2).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
-        ds.createSchema(sft)
+      WithClose(new DataStoreShell(sft)) { ds =>
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
@@ -166,14 +166,14 @@ class KafkaStoreTest extends LambdaContainerTest {
           // move the clock forward and run persistence
           clock.tick = 2000
           store1.persist()
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update2)
+          ds.all() mustEqual Seq(update2)
 
           store1.delete(update2)
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()).toSeq must beEmpty)
           }
           // verify the delete was persisted to the backing store
-          eventually(40, 100.millis)(SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty)
+          eventually(40, 100.millis)(ds.all() must beEmpty)
           // verify running persistence doesn't re-add the feature
           // move the clock forward and run persistence
           clock.tick = 4000
@@ -181,7 +181,7 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             SelfClosingIterator(store.read().iterator()) must beEmpty
           }
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty
+          ds.all() must beEmpty
         }
       }
     }
@@ -196,8 +196,7 @@ class KafkaStoreTest extends LambdaContainerTest {
       Seq(feature1, update1).foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true)))
 
       createTopic(ns, sft)
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
-        ds.createSchema(sft)
+      WithClose(new DataStoreShell(sft)) { ds =>
         val om = new InMemoryOffsetManager
         def newStore(): KafkaStore = {
           new KafkaStore(ds, sft, None, om,
@@ -220,7 +219,7 @@ class KafkaStoreTest extends LambdaContainerTest {
           // run persistence
           store1.persist()
           // ensure nothing was persisted
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq must beEmpty
+          ds.all() must beEmpty
           // ensure non-expired feature still comes back
           foreach(Seq(store1, store2)) { store =>
             SelfClosingIterator(store.read().iterator()).toSeq mustEqual Seq(update1)
@@ -231,9 +230,73 @@ class KafkaStoreTest extends LambdaContainerTest {
           foreach(Seq(store1, store2)) { store =>
             eventually(40, 100.millis)(SelfClosingIterator(store.read().iterator()) must beEmpty)
           }
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toSeq mustEqual Seq(update1)
+          ds.all() mustEqual Seq(update1)
         }
       }
     }
+  }
+
+  // shell class that only implements the methods used by KafkaStore, for testing
+  class DataStoreShell(sft: SimpleFeatureType) extends DataStore {
+
+    private val features = new ConcurrentHashMap[String, SimpleFeature]()
+
+    def all(): Seq[SimpleFeature] = features.values().asScala.toSeq
+
+    override def getTypeNames: Array[String] = Array(sft.getTypeName)
+    override def getSchema(typeName: String): SimpleFeatureType = sft
+    override def getSchema(name: Name): SimpleFeatureType = sft
+
+    override def getFeatureWriter(
+      typeName: String, filter: Filter, transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+      new SimpleFeatureWriter {
+        private val updates = filter match {
+          case ids: Id => ids.getIDs.iterator.asScala.flatMap(i => Option(features.get(i.toString)))
+          case _ => throw new UnsupportedOperationException("Only modify by ID is supported")
+        }
+        private var sf: SimpleFeature = _
+        override def getFeatureType: SimpleFeatureType = sft
+        override def hasNext: Boolean = updates.hasNext
+        override def next(): SimpleFeature = {
+          sf = updates.next()
+          sf
+        }
+        override def remove(): Unit = features.remove(sf.getID)
+        override def write(): Unit = {} // we passed in a live reference so should already be updated
+        override def close(): Unit = {}
+      }
+    }
+
+    override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+      new SimpleFeatureWriter {
+        private var sf: SimpleFeature = _
+        override def getFeatureType: SimpleFeatureType = sft
+        override def hasNext: Boolean = false
+        override def next(): SimpleFeature = {
+          sf = new ScalaSimpleFeature(sft, "")
+          sf
+        }
+        override def remove(): Unit = {}
+        override def write(): Unit = features.put(sf.getID, sf)
+        override def close(): Unit = {}
+      }
+    }
+
+    override def dispose(): Unit = {}
+
+    override def createSchema(featureType: SimpleFeatureType): Unit = throw new NotImplementedError()
+    override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit = throw new NotImplementedError()
+    override def removeSchema(typeName: String): Unit = throw new NotImplementedError()
+    override def getFeatureSource(typeName: String): SimpleFeatureSource = throw new NotImplementedError()
+    override def getFeatureSource(typeName: Name): SimpleFeatureSource = throw new NotImplementedError()
+    override def getFeatureReader(query: Query, transaction: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] =
+      throw new NotImplementedError()
+    override def getFeatureWriter(typeName: String, transaction: Transaction): FeatureWriter[SimpleFeatureType, SimpleFeature] =
+      throw new NotImplementedError()
+    override def getLockingManager: LockingManager = throw new NotImplementedError()
+    override def getInfo: ServiceInfo = throw new NotImplementedError()
+    override def updateSchema(typeName: Name, featureType: SimpleFeatureType): Unit = throw new NotImplementedError()
+    override def removeSchema(typeName: Name): Unit = throw new NotImplementedError()
+    override def getNames: java.util.List[Name] = throw new NotImplementedError()
   }
 }

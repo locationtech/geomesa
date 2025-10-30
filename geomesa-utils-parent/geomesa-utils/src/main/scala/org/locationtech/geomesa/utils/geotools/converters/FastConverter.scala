@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.geotools.converters
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.filter.expression.Expression
-import org.geotools.data.util.InterpolationConverterFactory
 import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty

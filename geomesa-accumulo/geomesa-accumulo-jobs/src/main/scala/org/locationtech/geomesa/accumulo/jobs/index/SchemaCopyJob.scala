@@ -110,7 +110,7 @@ class SchemaCopyJob extends Tool {
       require(dsIn != null, "The specified input data store could not be created - check your job parameters")
       val sft = dsIn.getSchema(featureIn)
       require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
-      val plan = AccumuloJobUtils.getSingleQueryPlan(dsIn, new Query(sft.getTypeName, ECQL.toFilter(filter)))
+      val plan = dsIn.getSingleQueryPlan(new Query(sft.getTypeName, ECQL.toFilter(filter)))
       (sft, plan)
     }
 

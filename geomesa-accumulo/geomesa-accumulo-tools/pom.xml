@@ -114,11 +114,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>

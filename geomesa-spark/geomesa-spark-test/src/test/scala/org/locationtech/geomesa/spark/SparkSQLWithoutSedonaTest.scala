@@ -22,7 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SparkSQLWithoutSedonaIT extends Specification {
+class SparkSQLWithoutSedonaTest extends Specification {
 
   import scala.collection.JavaConverters._
 

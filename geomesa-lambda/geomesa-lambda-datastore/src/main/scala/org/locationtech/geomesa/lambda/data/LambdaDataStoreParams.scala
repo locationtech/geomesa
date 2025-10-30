@@ -10,6 +10,7 @@ package org.locationtech.geomesa.lambda.data
 
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.{LambdaConfig, PersistenceConfig}
+import org.locationtech.geomesa.lambda.data.LambdaDataStoreFactory.Params
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -37,7 +38,6 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
     new GeoMesaParam[String](
       "lambda.kafka.zookeepers",
       "Kafka zookeepers",
-      optional = false,
       deprecatedKeys = Seq("kafka.zookeepers"),
       supportsNiFiExpressions = true)
 
@@ -129,7 +129,9 @@ object LambdaDataStoreParams extends GeoMesaDataStoreParams with SecurityParams 
     val consumerConfig = ConsumerOptsParam.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty) ++ bootstrap
     val producerConfig = ProducerOptsParam.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty) ++ bootstrap
 
-    val zk = ZookeepersParam.lookup(params)
+    val zk = ZookeepersParam.lookupOpt(params).orElse(Params.Accumulo.ZookeepersParam.lookupOpt(params)).getOrElse {
+      throw new IllegalArgumentException(s"Missing required key: ${ZookeepersParam.key}/${Params.Accumulo.ZookeepersParam.key}")
+    }
     val zkNamespace = s"gm_lambda_$namespace"
 
     val offsetCommitInterval = ConsumerOffsetCommitInterval.lookup(params)

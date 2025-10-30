@@ -11,8 +11,8 @@ package org.locationtech.geomesa.accumulo.tools.ingest
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.apache.commons.io.IOUtils
+import org.geomesa.testcontainers.AccumuloContainer
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.AccumuloContainer
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
@@ -30,10 +30,10 @@ class IngestCommandTest extends Specification {
 
   def baseArgs: Array[String] = Array(
     "ingest",
-    "--instance",      AccumuloContainer.instanceName,
-    "--zookeepers",    AccumuloContainer.zookeepers,
-    "--user",          AccumuloContainer.user,
-    "--password",      AccumuloContainer.password,
+    "--instance",      AccumuloContainer.getInstance().getInstanceName,
+    "--zookeepers",    AccumuloContainer.getInstance().getZookeepers,
+    "--user",          AccumuloContainer.getInstance().getUsername,
+    "--password",      AccumuloContainer.getInstance().getPassword,
     "--catalog",       s"gm.${getClass.getSimpleName}${sftCounter.getAndIncrement()}",
     "--compact-stats", "false"
   )
