@@ -13,7 +13,7 @@ import com.amazonaws.services.s3.AmazonS3
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.utils.io.CloseQuietly
 
 import java.io.IOException

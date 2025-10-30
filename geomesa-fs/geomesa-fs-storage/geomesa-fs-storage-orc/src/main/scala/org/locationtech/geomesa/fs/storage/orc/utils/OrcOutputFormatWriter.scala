@@ -12,7 +12,7 @@ import org.apache.hadoop.io._
 import org.apache.orc.TypeDescription
 import org.apache.orc.mapred.{OrcList, OrcMap, OrcStruct, OrcTimestamp}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.fs.storage.orc.io.SimpleFeatureTypeDescription
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -53,7 +53,7 @@ object OrcOutputFormatWriter {
       }
       builder += reader
       i += 1
-      col += OrcFileSystemStorage.fieldCount(descriptor)
+      col += SimpleFeatureTypeDescription.fieldCount(descriptor)
     }
 
     if (fid) {

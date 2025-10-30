@@ -128,6 +128,46 @@ Deprecated Classes
 
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - replaced with
   ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
+* ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - replaced with
+  ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+
+Internal API Changes
+--------------------
+
+GeoMesa does not have a well-defined public API. This section details classes and methods that have been changed or removed,
+but are not meant to be publicly available.
+
+.. raw:: html
+
+   <details>
+   <summary><b>Click here to see all API changes</b></summary>
+
+Relocated Classes
+^^^^^^^^^^^^^^^^^
+
+* ``org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader`` ->
+  ``org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader``
+* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
+* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage`` type description methods moved to ->
+  ``org.locationtech.geomesa.fs.storage.orc.io.SimpleFeatureTypeDescription``
+* ``org.locationtech.geomesa.fs.storage.orc.OrcFileSystemWriter`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
+* ``org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
+* ``org.locationtech.geomesa.fs.storage.orc.utils.OrcSearchArguments`` -> ``org.locationtech.geomesa.fs.storage.orc.io``
+* ``org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter`` ->
+  ``org.locationtech.geomesa.fs.storage.parquet.io``
+* ``org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader`` ->
+  ``org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader``
+* ``org.locationtech.geomesa.fs.storage.parquet.SimpleFeatureParquetWriter`` -> ``org.locationtech.geomesa.fs.storage.parquet.io``
+* ``org.locationtech.geomesa.utils.metrics.MetricsTags`` -> ``org.locationtech.geomesa.metrics.micrometer.utils.TagUtils``
+
+Removed Classes
+^^^^^^^^^^^^^^^
+
+* ``org.locationtech.geomesa.utils.metrics.LatencyMetrics``
+
+.. raw:: html
+
+   </details>
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

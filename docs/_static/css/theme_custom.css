@@ -62,6 +62,11 @@ a:hover {
   color: #6f91b8;
 }
 
+details summary {
+  cursor: pointer;
+  padding-bottom: 20px;
+}
+
 .rst-content tt.literal,.rst-content code.literal {
   color: #2a6ebb
 }

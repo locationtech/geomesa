@@ -6,10 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.`export`
+package org.locationtech.geomesa.fs.tools.ingest
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.fs.Path
 import org.geotools.api.data.{DataStore, Query, SimpleFeatureStore}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.memory.MemoryDataStore
@@ -20,7 +20,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadat
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorageFactory
-import org.locationtech.geomesa.tools.DataStoreRegistration
+import org.locationtech.geomesa.tools.`export`.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -70,20 +70,15 @@ class ExportToFsTest extends Specification {
       val file = new File(s"$out/2016/01/01_out.parquet")
 
       WithClose(storage) { storage =>
-        val key = s"${getClass.getName}:${counter.getAndIncrement()}"
-        try {
-          DataStoreRegistration.register(key, ds)
-          val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
-            override val params: ExportParams = new ExportParams() {
-              override def featureName: String = sft.getTypeName
-            }
-            override def connection: Map[String, String] = Map(DataStoreRegistration.param.key -> key)
+        val command: ExportCommand[DataStore] = new ExportCommand[DataStore]() {
+          override val params: ExportParams = new ExportParams() {
+            override def featureName: String = sft.getTypeName
           }
-          command.params.file = file.getAbsolutePath
-          command.execute()
-        } finally {
-          DataStoreRegistration.unregister(key, ds)
+          override def connection: Map[String, String] = Map.empty
+          override def loadDataStore(): DataStore = ds
         }
+        command.params.file = file.getAbsolutePath
+        command.execute()
 
         storage.metadata.addPartition(PartitionMetadata("2016/01/01", Seq(StorageFile(file.getName, 0L)), None, 2L))
 

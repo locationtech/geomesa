@@ -16,9 +16,9 @@ import org.locationtech.geomesa.convert.EvaluationContext.Stats
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Predicate
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.metrics.MetricsTags
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
@@ -28,7 +28,7 @@ import scala.util.Try
 class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predicate, SimpleFeatureConverter)])
     extends SimpleFeatureConverter {
 
-  private val tags = MetricsTags.typeNameTag(targetSft)
+  private val tags = TagUtils.typeNameTag(targetSft.getTypeName)
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams)), Stats(tags))

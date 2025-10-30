@@ -15,13 +15,13 @@ import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemPathReader, FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver, WriterConfig}
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
-import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory.CompositeObserver
+import org.locationtech.geomesa.fs.storage.api.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{MetadataObserver, WriterConfig}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
@@ -54,7 +54,11 @@ abstract class AbstractFileSystemStorage(
       try {
         // use the context classloader if defined, so that child classloaders can be accessed, as per SPI loading
         val cl = Option(Thread.currentThread.getContextClassLoader).getOrElse(ClassLoader.getSystemClassLoader)
-        val observer = cl.loadClass(c).newInstance().asInstanceOf[FileSystemObserverFactory]
+        // noinspection ScalaDeprecation
+        val observer = cl.loadClass(c).getDeclaredConstructor().newInstance() match {
+          case o: FileSystemObserverFactory => o
+          case o: org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory => o.bridge()
+        }
         builder += observer
         observer.init(context.conf, context.root, metadata.sft)
       } catch {
@@ -349,22 +353,16 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
+  private class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
     override protected def onClose(bounds: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
+      PathCache.register(context.fs, file)
     }
   }
 }
 
 object AbstractFileSystemStorage {
-
-  /**
-   * Reader trait
-   */
-  trait FileSystemPathReader {
-    def read(path: Path): CloseableIterator[SimpleFeature]
-  }
 
   /**
    * Tracks metadata during writes
@@ -374,7 +372,7 @@ object AbstractFileSystemStorage {
     private var count: Long = 0L
     private val bounds: Envelope = new Envelope()
 
-    override def write(feature: SimpleFeature): Unit = {
+    override def apply(feature: SimpleFeature): Unit = {
       // Update internal count/bounds/etc
       count += 1L
       val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]

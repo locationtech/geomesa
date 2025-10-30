@@ -30,7 +30,7 @@ object CloseableIterator {
   implicit def iteratorToCloseable[A](iter: Iterator[A]): CloseableIterator[A] = apply(iter)
 
   // This apply method provides us with a simple interface for creating new CloseableIterators.
-  def apply[A](iter: Iterator[A], close: => Unit = Unit): CloseableIterator[A] =
+  def apply[A](iter: Iterator[A], close: => Unit = ()): CloseableIterator[A] =
     new CloseableIteratorImpl[A](iter, close)
 
   // for wrapping java iterators
@@ -43,17 +43,18 @@ object CloseableIterator {
   def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
     new CloseableFeatureIterator(iter)
 
-  def single[A](elem: A, close: => Unit = Unit): CloseableIterator[A] =
+  def single[A](elem: A, close: => Unit = ()): CloseableIterator[A] =
     new CloseableSingleIterator(elem, close)
 
-  def fill[A](length: Int, close: => Unit = Unit)(elem: => A): CloseableIterator[A] =
+  def fill[A](length: Int, close: => Unit = ())(elem: => A): CloseableIterator[A] =
     new CloseableIteratorImpl(Iterator.fill(length)(elem), close)
 
   def empty[A]: CloseableIterator[A] = empty
 
-  private def wrap[A](t: GenTraversableOnce[A]): CloseableIterator[A] = t match {
+  def wrap[A](t: GenTraversableOnce[A]): CloseableIterator[A] = t match {
     case c: CloseableIterator[A] => c
-    case c => new CloseableIteratorImpl(c.toIterator, Unit)
+    case c: Closeable => CloseableIterator(t.toIterator, c.close())
+    case c => new CloseableIteratorImpl(c.toIterator, ())
   }
 
   class CloseableIteratorImpl[A](iter: Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {

@@ -15,13 +15,13 @@ permissions:  # added using https://github.com/step-security/secure-repo
 env:
   JAVA_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
-  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T2
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
   MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
   MAVEN_TEST_ARGS: test -Dtest.fork.count=1
   MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
-  MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
+  MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
@@ -90,7 +90,7 @@ jobs:
           - name: features
             selector: -f geomesa-features
           - name: fs
-            selector: -f geomesa-fs -pl '!geomesa-fs-storage,!geomesa-fs-storage/geomesa-fs-storage-api,!geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-fs-storage/geomesa-fs-storage-convert,!geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-fs-storage/geomesa-fs-storage-parquet'
+            selector: -f geomesa-fs -pl '!geomesa-fs-storage,!geomesa-fs-storage/geomesa-fs-storage-api,!geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-fs-storage/geomesa-fs-storage-convert,!geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-fs-storage/geomesa-fs-storage-orc-io,!geomesa-fs-storage/geomesa-fs-storage-parquet,!geomesa-fs-storage/geomesa-fs-storage-parquet-io'
           - name: fs-storage
             selector: -f geomesa-fs/geomesa-fs-storage
           - name: gt-pg15
