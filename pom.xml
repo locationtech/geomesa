@@ -195,7 +195,7 @@
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
         <scala.maven.plugin.version>4.9.6</scala.maven.plugin.version>
-        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version> <!-- note: requires java 17+ when building site -->
+        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version>
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>

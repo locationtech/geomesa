@@ -179,7 +179,6 @@ The following modules have been deprecated and will be removed in the next major
 * ``geomesa-metrics-cloudwatch``
 * ``geomesa-metrics-graphite``
 * ``geomesa-metrics-prometheus``
-* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 
 Deprecated Classes
 ------------------

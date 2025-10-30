@@ -27,7 +27,6 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.image.DataBuffer
-//import javax.media.jai.RasterFactory
 
 /**
  * Stripped down version of org.geotools.process.vector.HeatmapProcess
