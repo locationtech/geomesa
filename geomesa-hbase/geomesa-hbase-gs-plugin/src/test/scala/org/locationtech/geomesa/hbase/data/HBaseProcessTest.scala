@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -36,7 +37,7 @@ class HBaseProcessTest extends Specification with LazyLogging {
       val typeName = "testpoints"
 
       val params = Map(
-        ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
+        ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
         HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)

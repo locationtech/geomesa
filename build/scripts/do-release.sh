@@ -60,8 +60,7 @@ BRANCH="$(git branch --show-current)"
 mvn release:prepare \
   -DdryRun=true \
   -DautoVersionSubmodules=true \
-  -Darguments="-DskipTests -Dmaven.javadoc.skip=true -Ppython" \
-  -Ppython
+  -Darguments="-DskipTests -Dmaven.javadoc.skip=true"
 
 RELEASE="$(readPomVersion pom.xml.tag)"
 TAG="$(readReleaseProp scm.tag)"

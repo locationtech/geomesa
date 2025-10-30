@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import org.geotools.data.memory.MemoryDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
-import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.lambda.LambdaContainerTest.TestClock
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.PersistenceConfig
 import org.locationtech.geomesa.lambda.stream.OffsetManager
@@ -39,7 +39,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
       implicit val clock: TestClock = new TestClock()
       val manager = mock[OffsetManager]
       manager.acquireLock(anyString, anyInt, anyLong) returns Some(mock[Closeable])
-      WithClose(new TestGeoMesaDataStore(looseBBox = true)) { ds =>
+      WithClose(new MemoryDataStore()) { ds =>
         ds.createSchema(sft)
         WithClose(new KafkaFeatureCache(ds, sft, manager, "", Some(PersistenceConfig(Duration(1, "ms"), 100)))) { cache =>
           cache.partitionAssigned(1, -1L)
@@ -62,7 +62,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           there was one(manager).setOffset("", 0, 0)
           cache.offsetChanged(0, 0)
           cache.all().toSeq must containTheSameElementsAs(Seq(two, three))
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList mustEqual Seq(one)
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(one) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList
           clock.tick = 4
           manager.getOffset("", 0) returns 0L
           manager.getOffset("", 1) returns -1L
@@ -73,8 +74,8 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
           cache.offsetChanged(1, 0)
           cache.all() must beEmpty
           clock.tick = 4
-          SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList must
-            containTheSameElementsAs(Seq(one, two, three))
+          // note: compare backwards due to equals implementation in SimpleFeatureImpl vs ScalaSimpleFeature
+          Seq(one, two, three) mustEqual SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features()).toList.sortBy(_.getID)
         }
       }
     }

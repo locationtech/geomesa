@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs
+package org.locationtech.geomesa.fs.tools.ingest
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.conf.Configuration
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets
  */
 object HadoopSharedCluster extends StrictLogging {
 
-  lazy val Container: HadoopContainer = HadoopContainer.getInstance()
+  lazy val Container: HadoopContainer = org.geomesa.testcontainers.HadoopContainer.getInstance()
 
   lazy val ContainerConfiguration: Configuration = {
     val conf = new Configuration(false)

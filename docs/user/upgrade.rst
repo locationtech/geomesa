@@ -116,7 +116,18 @@ The following modules have been removed:
 
 The following JAR classifiers are no longer published:
 
+* ``geomesa-accumulo-datastore:tests``
+* ``geomesa-fs-datastore:tests``
+* ``geomesa-hbase-datastore:tests``
+* ``geomesa-index-api:tests``
+* ``geomesa-kafka-datastore:tests``
 * ``geomesa-tools:data``
+
+Deprecated Classes
+------------------
+
+* ``org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams`` - replaced with
+  ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

@@ -1,84 +1,59 @@
-name: build-and-test
+name: build
 
 on:
-  workflow_call:
-    inputs:
-      scala-version:
-        required: false
-        type: string
-        default: "2.12"
-      # splitting up the tests in the accumulo-datastore module reduces the overall CI build time
-      # tests are defined here as an input b/c 'matrix' doesn't have access to most other contexts (like env)
-      accumulo-test-splits-1:
-        required: false
-        type: string
-        default: >-
-          AccumuloDataStoreTest,
-          AccumuloDataStoreQueryTest,
-          AccumuloDataStoreStatsTest,
-          AttributeIndexStrategyTest,
-          AccumuloDataStoreAlterSchemaTest,
-          ArrowBatchIteratorTest,
-          MultiIteratorTest,
-          AccumuloDataStoreTransformsTest,
-          ArrowDictionaryTest,
-          VisibilitiesTest
-      accumulo-test-splits-2:
-        required: false
-        type: string
-        default: >-
-          AccumuloDataStoreAttributeVisibilityTest,
-          AttributeIndexFilteringIteratorTest,
-          AccumuloPartitioningTest,
-          AccumuloFeatureReaderTest,
-          AccumuloDataStoreAtomicWriteTest,
-          AttributeIndexValuesTest,
-          TubeSelectProcessTest,
-          AccumuloDataStoreColumnGroupsTest,
-          ZIntervalTest,
-          S2IndexTest,
-          AccumuloFeatureWriterTest,
-          KryoLazyStatsIteratorTest,
-          AccumuloDataStoreSortTest,
-          AccumuloDataStoreUuidTest,
-          AccumuloDataStoreAuthTest,
-          LiveAccumuloDataStoreTest,
-          DensityIteratorTest,
-          S3IndexTest
+  push:
+    branches:
+      - main
+      - '[0-9]+.[0-9]+.x'
+    tags:
+      - '**'
+  pull_request:
 
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
 env:
-  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode
-  MAVEN_COMPILE_OPTS: -T4 -DskipTests -Dlicense.skip=true -Dmaven.assembly.skip=true
-  MAVEN_TEST_OPTS: -Dtest.fork.count=1 -Dlicense.skip=true
+  JAVA_VERSION: 17
+  MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
+  MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T2
+  MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T2
+  MAVEN_TEST_ARGS: test -Dtest.fork.count=1
+  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests -Dtest.fork.count=1
+  MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
+  MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
+  MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar
+  MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
   compile:
+    name: ${{ matrix.scala-version }} / compile
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-compile-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn clean install $MAVEN_CLI_OPTS $MAVEN_COMPILE_OPTS
+        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS
       - name: Collect artifacts
         run: |
           mv ~/.m2/repository/org/locationtech/geomesa m2-geomesa
-          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -type d | tr '\n' ' ')
+          tar -czf classes.tgz $(find . -path '*/target/classes' -o -path '*/target/test-classes' -o -path '*/target/analysis' -type d | tr '\n' ' ')
       - name: Upload artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
           retention-days: 1
           path: |
             m2-geomesa
@@ -87,21 +62,23 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   unit-tests:
-    name: unit-tests (${{ matrix.tests.name }})
+    name: ${{ matrix.scala-version }} / unit-tests / ${{ matrix.tests.name }}
     runs-on: ubuntu-latest
     needs: compile
     strategy:
       fail-fast: false
       matrix:
+        scala-version: [ "2.12", "2.13" ]
         tests:
           - name: accumulo-ds-1
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-1 }}"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest"
           - name: accumulo-ds-2
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest="${{ inputs.accumulo-test-splits-2 }}"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest="AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-ds-3
-            selector: -pl :geomesa-accumulo-datastore_${{ inputs.scala-version }} -Dtest.excludes="${{ inputs.accumulo-test-splits-1 }}, ${{ inputs.accumulo-test-splits-2 }}"
+            selector: -pl geomesa-accumulo/geomesa-accumulo-datastore -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
-            selector: -f geomesa-accumulo -pl -:geomesa-accumulo-datastore_${{ inputs.scala-version }}
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -f geomesa-accumulo -pl '!geomesa-accumulo-datastore,!geomesa-accumulo-distributed-runtime'
           - name: arrow
             selector: -f geomesa-arrow
           - name: cassandra
@@ -113,15 +90,21 @@ jobs:
           - name: features
             selector: -f geomesa-features
           - name: fs
-            selector: -f geomesa-fs
+            selector: -f geomesa-fs -pl '!geomesa-fs-storage,!geomesa-fs-storage/geomesa-fs-storage-api,!geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-fs-storage/geomesa-fs-storage-convert,!geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-fs-storage/geomesa-fs-storage-parquet'
+          - name: fs-storage
+            selector: -f geomesa-fs/geomesa-fs-storage
           - name: gt-pg15
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=16-3.5
           - name: gt-pg17
             selector: -f geomesa-gt -Dtest.postgis.docker.tag=17-3.5
-          - name: hbase
-            selector: -f geomesa-hbase
+          - name: hbase-ds
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -pl geomesa-hbase/geomesa-hbase-datastore
+          - name: hbase-other
+            # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
+            selector: -f geomesa-hbase -pl '!geomesa-hbase-datastore,!geomesa-hbase-distributed-runtime-hbase2'
           - name: kafka
             selector: -f geomesa-kafka
           - name: lambda
@@ -132,8 +115,6 @@ jobs:
             selector: -f geomesa-process
           - name: redis
             selector: -f geomesa-redis
-          - name: spark
-            selector: -f geomesa-spark
           - name: utils
             selector: -f geomesa-utils-parent
           - name: others
@@ -142,22 +123,22 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
       - name: Generate cache key
         env:
           MOD_SELECTOR: "${{ matrix.tests.selector }}"
         run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> $GITHUB_ENV
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ inputs.scala-version }}-${{ env.MOD_SELECTOR }}
+          key: ${{ hashFiles('**/pom.xml') }}-unit-tests-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
@@ -168,7 +149,7 @@ jobs:
         continue-on-error: true
         run: |
           set -o pipefail
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS ${{ matrix.tests.selector }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS ${{ matrix.tests.selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry
         if: steps.test.outcome=='failure'
@@ -176,100 +157,156 @@ jobs:
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ matrix.tests.selector }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS $RESUME_FROM ${{ matrix.tests.selector }} | tee -a test.log
       - name: Unit tests (retry)
         id: test-retry-retry
         if: steps.test-retry.outcome=='failure'
         run: |
           set -o pipefail
           RESUME_FROM="$({ grep --text 'mvn <args> -rf ' test.log || test $? = 1; } | tail -n1 | sed 's/.*-rf/-rf/')"
-          mvn surefire:test $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS $RESUME_FROM ${{ matrix.tests.selector }} | tee -a test.log
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS $RESUME_FROM ${{ matrix.tests.selector }} | tee -a test.log
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   integration-tests:
+    name: ${{ matrix.scala-version }} / integration-tests
     runs-on: ubuntu-latest
     needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-it-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-it-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Integration Tests
-        run: mvn failsafe:integration-test failsafe:verify $MAVEN_CLI_OPTS $MAVEN_TEST_OPTS
+        run: |
+          export IT_MODULES="$(find . -path '*/src/test/*' -name '*IT.scala' -o -name '*IT.java' | sed 's|\(.*\)src/test.*|\1|' | sort -u | tr '\n' ',')"
+          echo $IT_MODULES
+          mvn $MAVEN_IT_ARGS $MAVEN_CLI_OPTS -pl "$IT_MODULES"
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  assembly:
+  spark:
+    name: ${{ matrix.scala-version }} / spark
     runs-on: ubuntu-latest
     needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-assembly-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-spark-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
+      - name: Install artifacts
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: Build Spark runtimes
+        # build the spark runtime jars, they are slow so we do them here in a parallel job
+        run: |
+          export PROJECT_LIST="$(find . -name '*-spark-runtime*' -type d -printf '%P,')"
+          echo $PROJECT_LIST
+          mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -pl "$PROJECT_LIST"
+      - name: Run Spark tests
+        run: |
+          echo mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
+          mvn $MAVEN_TEST_ARGS $MAVEN_CLI_OPTS -f geomesa-spark
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: rm -rf ~/.m2/repository/org/locationtech/geomesa
+  assembly:
+    name: ${{ matrix.scala-version }} / assembly
+    runs-on: ubuntu-latest
+    needs: compile
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-assembly-${{ matrix.scala-version }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Download artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Build assemblies
-        run: mvn "assembly:single@make-assembly" -Dassembly.ignoreMissingDescriptor=true $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   javadocs:
-    name: javadocs (${{ matrix.docs.name }})
+    name: ${{ matrix.scala-version }} / javadocs / ${{ matrix.docs.name }}
     runs-on: ubuntu-latest
     needs: compile
     strategy:
       fail-fast: false
       matrix:
+        scala-version: [ "2.12", "2.13" ]
         docs:
           - name: 1
             selector: "-pl geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,\
-                       geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       geomesa-features/geomesa-feature-common,geomesa-fs-storage/geomesa-fs-storage-common,\
                        geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,\
                        geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,\
-                       geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                       geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs-storage/geomesa-fs-storage-orc,\
                        geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,\
                        geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,\
                        geomesa-cassandra/geomesa-cassandra-datastore"
           - name: 2
             selector: "-pl '!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
-                       !geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
+                       !geomesa-features/geomesa-feature-common,!geomesa-fs-storage/geomesa-fs-storage-common,\
                        !geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,\
                        !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,\
-                       !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                       !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
+                       !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs-storage/geomesa-fs-storage-parquet,\
+                       !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs-storage/geomesa-fs-storage-orc,\
                        !geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,\
                        !geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,\
                        !geomesa-cassandra/geomesa-cassandra-datastore'"
@@ -277,32 +314,98 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
       - uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
-          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ inputs.scala-version }}
+          key: ${{ hashFiles('**/pom.xml') }}-javadocs-${{ matrix.scala-version }}
           path: ~/.m2/repository/
       - name: Set Scala version
-        run: ./build/scripts/change-scala-version.sh ${{ inputs.scala-version }}
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          name: classes-and-jars-${{ inputs.scala-version }}
+          name: classes-and-jars-${{ matrix.scala-version }}
       - name: Install artifacts
         run: |
           tar -xf classes.tgz
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Build scaladocs
-        run: mvn generate-sources scala:doc-jar ${{ matrix.docs.selector }} $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS ${{ matrix.docs.selector }}
       - name: Build javadocs
-        run: mvn generate-sources javadoc:jar $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
+        run: mvn $MAVEN_JAVADOC_ARGS $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  dash:
+  license-check:
+    name: ${{ matrix.scala-version }} / license-check
+    runs-on: ubuntu-latest
     needs: compile
-    uses: ./.github/workflows/dash.yml
-    with:
-      scala-version: ${{ inputs.scala-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        scala-version: [ "2.12", "2.13" ]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Check for pom.xml changes
+        id: pom_changes
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            pomChanged="false"
+            # get the changed files
+            git fetch --depth=1 origin ${{ github.base_ref }}
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
+            echo "Changed files:"
+            for file in "${changedFiles[@]}"; do
+              echo "  $file"
+              if [[ $file =~ .*pom.xml ]]; then
+                pomChanged="true"
+              fi
+            done
+          else
+            echo "Skipping dash check for branch (main, long-term branches, and tags)"
+            pomChanged="false"
+          fi
+          echo "pom_changed=$pomChanged" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        with:
+          distribution: temurin
+          java-version: "${{ env.JAVA_VERSION }}"
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        with:
+          key: ${{ hashFiles('**/pom.xml') }}-dash-${{ matrix.scala-version }}
+          path: ~/.m2/repository/
+      - name: Set Scala version
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
+      - name: Download artifacts
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: classes-and-jars-${{ matrix.scala-version }}
+      - name: Install artifacts
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: |
+          tar -xf classes.tgz
+          mkdir -p ~/.m2/repository/org/locationtech/geomesa
+          mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
+      - name: License check
+        if: steps.pom_changes.outputs.pom_changed == 'true'
+        run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
+      - name: Show license
+        if: success() || failure()
+        run: |
+          if [[ -f target/dash/summary ]]; then
+            cat target/dash/summary
+          else
+            echo "No pom changes detected - skipping license check"
+          fi
+      - name: Remove geomesa artifacts
+        if: success() || failure()
+        run: |
+          if [[ -d ~/.m2/repository/org/locationtech/geomesa ]]; then
+            rm -rf ~/.m2/repository/org/locationtech/geomesa
+          fi

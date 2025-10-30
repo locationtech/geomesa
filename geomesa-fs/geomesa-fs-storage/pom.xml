@@ -12,6 +12,10 @@
 
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${hadoop.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-fs-storage-api</module>
         <module>geomesa-fs-storage-common</module>

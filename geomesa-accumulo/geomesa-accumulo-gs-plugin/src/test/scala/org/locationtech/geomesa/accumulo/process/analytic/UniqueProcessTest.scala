@@ -12,7 +12,7 @@ import org.geotools.data.util.NullProgressListener
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.cql2.CQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.process.analytic.UniqueProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -25,7 +25,7 @@ import java.util.TimeZone
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class UniqueProcessTest extends Specification with TestWithFeatureType {
+class UniqueProcessTest extends Specification with TestWithDataStore {
 
   sequential
 

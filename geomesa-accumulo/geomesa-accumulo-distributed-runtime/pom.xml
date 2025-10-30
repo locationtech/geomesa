@@ -65,7 +65,7 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <id>geomesa-accumulo-distributed-runtime</id>
+                        <id>distributed-runtime</id>
                         <goals>
                             <goal>shade</goal>
                         </goals>

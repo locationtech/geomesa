@@ -13,18 +13,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.{Authorizations, SystemPermission}
 import org.geomesa.testcontainers.AccumuloContainer
 import org.locationtech.geomesa.utils.io.WithClose
-import org.testcontainers.utility.DockerImageName
-
-import java.util.concurrent.atomic.AtomicBoolean
-import scala.util.Try
 
 case object AccumuloContainer extends StrictLogging {
-
-  val ImageName =
-    DockerImageName.parse("ghcr.io/geomesa/accumulo-uno")
-        .withTag(sys.props.getOrElse("accumulo.docker.tag", "2.1.4-jdk17"))
-
-  val Namespace = "gm"
 
   lazy val instanceName = Container.getInstanceName
   lazy val zookeepers = Container.getZookeepers
@@ -32,7 +22,7 @@ case object AccumuloContainer extends StrictLogging {
   lazy val password = Container.getPassword
 
   lazy val Container: AccumuloContainer = {
-    val container = tryContainer.get
+    val container = org.geomesa.testcontainers.AccumuloContainer.getInstance()
     WithClose(container.client()) { client =>
       val secOps = client.securityOperations()
       secOps.changeUserAuthorizations(Users.root.name, Users.root.auths)
@@ -44,25 +34,6 @@ case object AccumuloContainer extends StrictLogging {
     }
     container
   }
-
-  private lazy val tryContainer: Try[AccumuloContainer] = Try {
-    logger.info("Starting Accumulo container")
-    val container = new AccumuloContainer(ImageName).withGeoMesaDistributedRuntime()
-    initialized.getAndSet(true)
-    container.start()
-    logger.info("Started Accumulo container")
-    container
-  }
-
-  private val initialized = new AtomicBoolean(false)
-
-  sys.addShutdownHook({
-    if (initialized.get) {
-      logger.info("Stopping Accumulo container")
-      tryContainer.foreach(_.stop())
-      logger.info("Stopped Accumulo container")
-    }
-  })
 
   case class UserWithAuths(name: String, password: String, auths: Authorizations)
 

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geomesa.testcontainers.hbase.HBaseContainer
 import org.geotools.api.data._
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
@@ -40,7 +41,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
   var sft = SimpleFeatureTypes.createType(sftName, spec)
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConfigsParam.getName -> HBaseCluster.hbaseSiteXml,
+    HBaseDataStoreParams.ConfigsParam.getName -> HBaseContainer.getInstance().getHBaseSiteXml,
     HBaseDataStoreParams.HBaseCatalogParam.getName -> getClass.getSimpleName,
     HBaseDataStoreParams.BinCoprocessorParam.key   -> true
   )

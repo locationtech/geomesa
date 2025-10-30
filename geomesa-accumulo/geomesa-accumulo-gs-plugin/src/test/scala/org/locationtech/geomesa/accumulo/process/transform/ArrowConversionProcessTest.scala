@@ -13,7 +13,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess
@@ -24,7 +24,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Collections
 
 @RunWith(classOf[JUnitRunner])
-class ArrowConversionProcessTest extends TestWithFeatureType {
+class ArrowConversionProcessTest extends TestWithDataStore {
 
   import scala.collection.JavaConverters._
 
