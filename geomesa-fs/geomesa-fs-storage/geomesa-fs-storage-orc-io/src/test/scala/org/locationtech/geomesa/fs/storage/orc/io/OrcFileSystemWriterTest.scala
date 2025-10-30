@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.orc
+package org.locationtech.geomesa.fs.storage.orc.io
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration

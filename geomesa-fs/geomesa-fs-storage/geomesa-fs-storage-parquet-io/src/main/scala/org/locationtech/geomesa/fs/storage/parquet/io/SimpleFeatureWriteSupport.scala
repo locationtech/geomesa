@@ -17,7 +17,6 @@ import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.fs.storage.parquet.io.GeoParquetMetadata.GeoParquetObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.{GeometryColumnX, GeometryColumnY, GeometryEncoding}
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -64,7 +63,7 @@ class SimpleFeatureWriteSupport extends WriteSupport[SimpleFeature] {
   // called per row
   override def write(record: SimpleFeature): Unit = {
     writer.write(consumer, record)
-    geoParquetObserver.write(record)
+    geoParquetObserver(record)
   }
 
   // called once at the end
@@ -104,7 +103,7 @@ object SimpleFeatureWriteSupport {
       }
       fids.apply(consumer, value.getID)
       if (vis != null) {
-        vis.apply(consumer, SecurityUtils.getVisibility(value))
+        vis.apply(consumer, value.getUserData.get("geomesa.feature.visibility").asInstanceOf[String])
       }
       bboxes.foreach { case (i, writer) =>
         writer.apply(consumer, value.getAttribute(i).asInstanceOf[Geometry])

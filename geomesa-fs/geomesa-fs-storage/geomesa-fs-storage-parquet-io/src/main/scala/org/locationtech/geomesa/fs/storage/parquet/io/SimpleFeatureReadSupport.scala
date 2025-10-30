@@ -22,7 +22,6 @@ import org.locationtech.geomesa.fs.storage.parquet.io.DateEncoding.DateEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.ListEncoding.ListEncoding
 import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
-import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -130,7 +129,7 @@ object SimpleFeatureReadSupport {
       val values = Array.tabulate[AnyRef](schema.sft.getAttributeCount)(i => converters(i).materialize())
       val userData = if (vis == null) { null } else {
         val map = new java.util.HashMap[AnyRef, AnyRef](1)
-        map.put(SecurityUtils.FEATURE_VISIBILITY, vis)
+        map.put("geomesa.feature.visibility", vis)
         map
       }
       new ScalaSimpleFeature(schema.sft, id, values, userData)

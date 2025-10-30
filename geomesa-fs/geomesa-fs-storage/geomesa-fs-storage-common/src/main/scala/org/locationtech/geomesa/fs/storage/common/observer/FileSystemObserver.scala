@@ -8,9 +8,15 @@
 
 package org.locationtech.geomesa.fs.storage.common.observer
 
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.geotools.api.feature.simple.SimpleFeature
 
 /**
  * Marker trait for writer hooks
  */
-trait FileSystemObserver extends FileSystemWriter
+@deprecated("Moved to org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver")
+trait FileSystemObserver extends org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserver {
+
+  override def apply(feature: SimpleFeature): Unit = write(feature)
+
+  def write(feature: SimpleFeature): Unit
+}

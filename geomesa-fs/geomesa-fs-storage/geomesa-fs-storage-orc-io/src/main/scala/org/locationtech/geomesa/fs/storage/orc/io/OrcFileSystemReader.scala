@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.orc
+package org.locationtech.geomesa.fs.storage.orc.io
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -16,18 +16,19 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.orc.utils.{OrcAttributeReader, OrcSearchArguments}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 
 import scala.collection.mutable.ArrayBuffer
 
-class OrcFileSystemReader(sft: SimpleFeatureType,
-                          config: Configuration,
-                          filter: Option[Filter],
-                          transform: Option[(String, SimpleFeatureType)]) extends FileSystemPathReader {
+class OrcFileSystemReader(
+    sft: SimpleFeatureType,
+    config: Configuration,
+    filter: Option[Filter],
+    transform: Option[(String, SimpleFeatureType)]
+  ) extends FileSystemPathReader {
 
   private val (options, columns) = {
     val options = new Reader.Options(config)
@@ -122,7 +123,7 @@ object OrcFileSystemReader {
     }
     // push down will exclude whole record batches, but doesn't actually filter inside a batch
     val pushDown = filter.flatMap { f =>
-      OrcSearchArguments(sft, OrcFileSystemStorage.createTypeDescription(sft), f)
+      OrcSearchArguments(sft, SimpleFeatureTypeDescription(sft), f)
     }
     OrcReadOptions(columns, pushDown)
   }

@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{Metrics, Tags}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tag, Tags}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
 import org.apache.kafka.common.TopicPartition
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
@@ -21,15 +21,15 @@ import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
+import org.locationtech.geomesa.metrics.micrometer.utils.GaugeUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.metrics.LatencyMetrics
 
 import java.io.Closeable
 import java.time.Duration
-import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future}
+import java.util.{Collections, Date}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -117,7 +117,7 @@ object KafkaCacheLoader extends LazyLogging {
     private val updates = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "update"))
     private val deletes = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "delete"))
     private val clears = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "clear"))
-    private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, MetricsPrefix, tags))
+    private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, tags))
 
     // for the initial load, don't bother spatially indexing until we have the final state
     private val initialLoader = initialLoad.map(readBack => new InitialLoader(readBack))
@@ -370,5 +370,37 @@ object KafkaCacheLoader extends LazyLogging {
       }
     }
   }
-}
 
+  /**
+   * Latency metrics tracker
+   *
+   * @param dtgIndex index of the date attribute to track in the feature type
+   * @param tags metrics tags
+   */
+  private class LatencyMetrics(dtgIndex: Int, tags: java.lang.Iterable[Tag]) {
+
+    private val date = GaugeUtils.timeGauge(s"$MetricsPrefix.dtg.latest", tags)
+
+    private val latency =
+      DistributionSummary.builder(s"$MetricsPrefix.dtg.latency")
+        .tags(tags)
+        .publishPercentileHistogram()
+        .baseUnit("milliseconds")
+        .minimumExpectedValue(1d)
+        .maximumExpectedValue(Duration.ofDays(1).toMillis.toDouble)
+        .register(Metrics.globalRegistry)
+
+    /**
+     * Record latency for a feature
+     *
+     * @param feature feature
+     */
+    def apply(feature: SimpleFeature): Unit = {
+      val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      if (dtg != null) {
+        date.set(dtg.getTime)
+        latency.record(System.currentTimeMillis() - dtg.getTime)
+      }
+    }
+  }
+}

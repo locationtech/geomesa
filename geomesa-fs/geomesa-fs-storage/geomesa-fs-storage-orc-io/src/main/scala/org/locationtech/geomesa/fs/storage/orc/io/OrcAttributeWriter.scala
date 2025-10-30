@@ -6,11 +6,10 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.orc.utils
+package org.locationtech.geomesa.fs.storage.orc.io
 
 import org.apache.orc.storage.ql.exec.vector._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
@@ -37,7 +36,7 @@ object OrcAttributeWriter {
     * @return
     */
   def apply(sft: SimpleFeatureType, batch: VectorizedRowBatch, fid: Boolean = true): OrcAttributeWriter = {
-    require(batch.cols.length == OrcFileSystemStorage.fieldCount(sft, fid),
+    require(batch.cols.length == SimpleFeatureTypeDescription.fieldCount(sft, fid),
       s"ORC schema does not match SimpleFeatureType: ${batch.cols.map(_.getClass.getName).mkString("\n\t", "\n\t", "")}")
 
     val builder = Seq.newBuilder[OrcAttributeWriter]
@@ -65,7 +64,7 @@ object OrcAttributeWriter {
       }
       builder += writer
       i += 1
-      col += OrcFileSystemStorage.fieldCount(descriptor)
+      col += SimpleFeatureTypeDescription.fieldCount(descriptor)
     }
 
     if (fid) {

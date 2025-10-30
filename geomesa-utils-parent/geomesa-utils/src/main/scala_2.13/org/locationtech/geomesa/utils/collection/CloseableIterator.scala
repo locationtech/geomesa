@@ -51,8 +51,9 @@ object CloseableIterator {
 
   def empty[A]: CloseableIterator[A] = empty
 
-  private def wrap[A](t: IterableOnce[A]): CloseableIterator[A] = t match {
+  def wrap[A](t: IterableOnce[A]): CloseableIterator[A] = t match {
     case c: CloseableIterator[A] => c
+    case c: Closeable => CloseableIterator(t.iterator, c.close())
     case c => new CloseableIteratorImpl(c.iterator, ())
   }
 
