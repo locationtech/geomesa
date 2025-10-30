@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-process-feature</artifactId>
+            <artifactId>gt-main</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.jts.io</groupId>

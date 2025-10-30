@@ -81,7 +81,8 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
 
   override def getQueryCapabilities: QueryCapabilities = GeoMesaQueryCapabilities
 
-  override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
+  // noinspection JavaAccessorMethodOverriddenAsEmptyParen
+  override def getFeatures(): SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
 
   override def getFeatures(filter: Filter): SimpleFeatureCollection =
     getFeatures(new Query(sft.getTypeName, filter))
