@@ -90,8 +90,13 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
-Version 5.5.0 Upgrade Guide
+Version 6.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
+
+Minimum Java Version
+--------------------
+
+With the latest versions of GeoTools and GeoServer, Java 17 is now the minimum required version.
 
 Dependency Version Upgrades
 ---------------------------
@@ -99,6 +104,19 @@ Dependency Version Upgrades
 The following dependencies have been upgraded:
 
 * kafka ``3.9.0`` -> ``3.9.1``
+* scala 2.12 ``2.12.19`` -> ``2.12.20``
+* scala 2.13 ``2.13.12`` -> ``2.13.16``
+
+Removed Modules
+---------------
+
+The following modules have been removed:
+
+* ``geomesa-process-wps``
+
+The following JAR classifiers are no longer published:
+
+* ``geomesa-tools:data``
 
 Version 5.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
@@ -161,6 +179,7 @@ The following modules have been deprecated and will be removed in the next major
 * ``geomesa-metrics-cloudwatch``
 * ``geomesa-metrics-graphite``
 * ``geomesa-metrics-prometheus``
+* ``geomesa-process-wps`` - migrated to ``geomesa-process-vector``
 
 Deprecated Classes
 ------------------

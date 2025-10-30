@@ -21,7 +21,7 @@ object HBaseCluster extends LazyLogging {
 
   val ImageName =
     DockerImageName.parse("ghcr.io/geomesa/hbase-docker")
-      .withTag(sys.props.getOrElse("hbase.docker.tag", "2.6.2"))
+      .withTag(sys.props.getOrElse("hbase.docker.tag", "2.6.3-jdk17"))
 
   private val container = new HBaseContainer(ImageName)
 

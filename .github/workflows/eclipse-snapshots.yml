@@ -25,13 +25,11 @@ jobs:
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           key: ${{ hashFiles('**/pom.xml') }}-eclipse-snapshots-${{ matrix.version }}
-          path: |
-            ~/.m2/repository/
-            build/zinc-0.3.15/
+          path: ~/.m2/repository/
       - name: Create settings.xml
         run: |
           mkdir -p ~/.m2
@@ -49,7 +47,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.version }}
       - name: Build with Maven
-        run: ./build/mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
+        run: mvn clean deploy -Peclipse -DskipTests -Dmaven.deploy.at.end=false $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
