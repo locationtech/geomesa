@@ -241,7 +241,7 @@ jobs:
           mkdir -p ~/.m2/repository/org/locationtech/geomesa
           mv m2-geomesa/* ~/.m2/repository/org/locationtech/geomesa/
       - name: Build assemblies
-        run: mvn "assembly:single@make-assembly" $MAVEN_CLI_OPTS
+        run: mvn "assembly:single@make-assembly" -Dassembly.ignoreMissingDescriptor=true $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
