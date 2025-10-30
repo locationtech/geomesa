@@ -29,7 +29,7 @@ class LambdaContainerTest extends SpecificationWithJUnit with BeforeAfterAll wit
   // listener for other containers in the docker network
   val dockerNetworkBrokers = "kafka:19092"
 
-  private val kafka =
+  val kafka =
     new KafkaContainer(LambdaContainerTest.KafkaImage)
       .withNetwork(network)
       .withNetworkAliases("kafka")

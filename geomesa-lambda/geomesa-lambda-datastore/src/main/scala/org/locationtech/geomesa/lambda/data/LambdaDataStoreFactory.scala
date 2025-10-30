@@ -89,7 +89,8 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
-        Seq(ExpiryParam, BrokersParam, ZookeepersParam).forall(_.exists(params))
+      Seq(ExpiryParam, BrokersParam).forall(_.exists(params)) &&
+      Seq(Params.Accumulo.ZookeepersParam, ZookeepersParam).exists(_.exists(params))
 
   // noinspection TypeAnnotation
   object Params extends GeoMesaDataStoreParams with SecurityParams {
