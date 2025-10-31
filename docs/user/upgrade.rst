@@ -98,6 +98,11 @@ Minimum Java Version
 
 With the latest versions of GeoTools and GeoServer, Java 17 is now the minimum required version.
 
+Accumulo Version Support
+------------------------
+
+GeoMesa no longer supports Accumulo 2.0. Users should upgrade to Accumulo 2.1.4.
+
 Dependency Version Upgrades
 ---------------------------
 
