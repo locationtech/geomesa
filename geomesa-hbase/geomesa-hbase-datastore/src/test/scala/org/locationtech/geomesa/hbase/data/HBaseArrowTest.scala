@@ -205,8 +205,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
       WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
         features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
+          FeatureUtils.write(writer, f, useProvidedFid = true)
         }
       }
       HBaseSystemProperties.RemoteArrowProperty.threadLocalValue.set("false")

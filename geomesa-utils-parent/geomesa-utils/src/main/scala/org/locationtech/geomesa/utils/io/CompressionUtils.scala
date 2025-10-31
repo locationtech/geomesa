@@ -24,8 +24,6 @@ trait CompressionUtils {
   def isCompressedFilename(filename: String): Boolean
   def getUncompressedFilename(filename: String): String
   def getCompressedFilename(filename: String): String
-  @deprecated("misleading name - replaced with decompress")
-  def compress(is: InputStream): InputStream = decompress(is)
   def decompress(is: InputStream): InputStream
 }
 

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.metrics.{MethodProfiling, Timings, TimingsImpl}
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 

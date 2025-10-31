@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.DebugLogProfiling
+import org.locationtech.geomesa.utils.metrics.DebugLogProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
 
 import java.io.{FileNotFoundException, InputStreamReader}

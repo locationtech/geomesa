@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.features.kryo
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.codec.binary.Base64
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
 import java.util
-import java.util.{Collections, Date, UUID}
+import java.util.{Base64, Collections, Date, UUID}
 import scala.util.{Failure, Try}
 
 @RunWith(classOf[JUnitRunner])
@@ -32,8 +32,6 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
   import SerializationOption._
 
   import scala.collection.JavaConverters._
-
-  sequential
 
   val options: Seq[Set[SerializationOption]] = Seq(
       Set.empty[SerializationOption],
@@ -46,12 +44,27 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       Set(Lazy, Immutable, WithUserData)
     )
 
+  def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
+    val aBytes = a.asInstanceOf[Array[Byte]]
+    val bBytes = b.asInstanceOf[Array[Byte]]
+    util.Arrays.equals(aBytes, bBytes) must beTrue
+  }
+
   "KryoFeatureSerializer" should {
 
-    def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
-      val aBytes = a.asInstanceOf[Array[Byte]]
-      val bBytes = b.asInstanceOf[Array[Byte]]
-      util.Arrays.equals(aBytes, bBytes) must beTrue
+    "have a properly working apply() method" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point,dtg:Date")
+      val opts = Set(SerializationOption.WithUserData)
+
+      // KRYO without options
+      val kryo1 = KryoFeatureSerializer(sft)
+      kryo1 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo1.options must beEmpty
+
+      // KRYO with options
+      val kryo2 = KryoFeatureSerializer(sft, opts)
+      kryo2 must beAnInstanceOf[KryoFeatureSerializer]
+      kryo2.options mustEqual opts
     }
 
     "correctly deserialize basic features" in {
@@ -282,6 +295,28 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       }
     }
 
+    "work regardless of user data opts" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point,dtg:Date")
+      val features = Seq.tabulate(6) { i =>
+        ScalaSimpleFeature.create(sft, i.toString, i.toString, "POINT(-110 30)", "2012-01-02T05:06:07.000Z")
+      }
+      features.zip(Seq("test&usa", "admin&user", "", null, "test", "user")).foreach { case (f, v) =>
+        f.getUserData.put("geomesa.feature.visibility", v)
+      }
+
+      // in this case the encoded user data will be ignored
+      val withUserData = KryoFeatureSerializer(sft, SerializationOption.WithUserData)
+      val noUserData = KryoFeatureSerializer(sft)
+
+      foreach(Seq((withUserData, noUserData), (noUserData, withUserData))) { case (serializer, deserializer) =>
+        val serialized = features.map(serializer.serialize)
+        val deserialized = serialized.map(deserializer.deserialize)
+        deserialized.map(_.getID) mustEqual features.map(_.getID)
+        deserialized.map(_.getAttributes) mustEqual features.map(_.getAttributes)
+        foreach(deserialized)(_.getUserData.asScala must beEmpty)
+      }
+    }
+
     "correctly project features" in {
       val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
       val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
@@ -300,6 +335,28 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized.getID mustEqual sf.getID
       deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
       deserialized.getAttributeCount mustEqual 1
+    }
+
+    "correctly project features with user data" in {
+      val sft = SimpleFeatureTypes.createType("fullType", "name:String,*geom:Point,dtg:Date")
+      val projectedSft = SimpleFeatureTypes.createType("projectedType", "*geom:Point")
+
+      val sf = new ScalaSimpleFeature(sft, "testFeature")
+      sf.setAttribute("name", "foo")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+      sf.getUserData.put("foo", "bar")
+
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithUserData)
+      val deserializer = new ProjectingKryoFeatureDeserializer(sft, projectedSft, SerializationOption.WithUserData)
+
+      val serialized = serializer.serialize(sf)
+      val deserialized = deserializer.deserialize(serialized)
+
+      deserialized.getID mustEqual sf.getID
+      deserialized.getDefaultGeometry mustEqual sf.getDefaultGeometry
+      deserialized.getAttributeCount mustEqual 1
+      deserialized.getUserData mustEqual sf.getUserData
     }
 
     "correctly project features to larger sfts" in {
@@ -458,7 +515,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       // base64 encoded bytes from version 2 of the kryo feature serializer
       val version2SerializedBase64 = "AgAAAC9mYWtlaeQBAAABO/iOtAABCANARoAAAAAAAEBIgAAAAAAAf/gAAAAAAAALFAAAAAFvcmcuZ2V" +
         "vdG9vbHMuZmFjdG9yeS5IaW50cyRLZflVU0VfUFJPVklERURfRknEamF2YS5sYW5nLkJvb2xlYe4B"
-      val version2Bytes = Base64.decodeBase64(version2SerializedBase64)
+      val version2Bytes = Base64.getDecoder.decode(version2SerializedBase64)
 
       val deserialized = serializer.deserialize(version2Bytes)
 

@@ -60,12 +60,12 @@ trait InputDataStoreArgs extends ReverseParsable {
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.UserParam.getName       -> inUser,
-    AccumuloDataStoreParams.PasswordParam.getName   -> inPassword,
-    AccumuloDataStoreParams.KeytabPathParam.getName -> inKeytabPath,
-    AccumuloDataStoreParams.InstanceIdParam.getName -> inInstanceId,
-    AccumuloDataStoreParams.ZookeepersParam.getName -> inZookeepers,
-    AccumuloDataStoreParams.CatalogParam.getName    -> inTableName
+    AccumuloDataStoreParams.UserParam.getName         -> inUser,
+    AccumuloDataStoreParams.PasswordParam.getName     -> inPassword,
+    AccumuloDataStoreParams.KeytabPathParam.getName   -> inKeytabPath,
+    AccumuloDataStoreParams.InstanceNameParam.getName -> inInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName   -> inZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName      -> inTableName
   )
 
   override def unparse(): Array[String] = {
@@ -124,11 +124,11 @@ trait OutputDataStoreArgs extends ReverseParsable {
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.UserParam.getName       -> outUser,
-    AccumuloDataStoreParams.PasswordParam.getName   -> outPassword,
-    AccumuloDataStoreParams.InstanceIdParam.getName -> outInstanceId,
-    AccumuloDataStoreParams.ZookeepersParam.getName -> outZookeepers,
-    AccumuloDataStoreParams.CatalogParam.getName    -> outTableName
+    AccumuloDataStoreParams.UserParam.getName         -> outUser,
+    AccumuloDataStoreParams.PasswordParam.getName     -> outPassword,
+    AccumuloDataStoreParams.InstanceNameParam.getName -> outInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName   -> outZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName      -> outTableName
   )
 
   override def unparse(): Array[String] = {

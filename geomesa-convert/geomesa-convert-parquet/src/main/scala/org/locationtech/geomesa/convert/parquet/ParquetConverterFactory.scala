@@ -47,15 +47,9 @@ class ParquetConverterFactory
     *
     * @param is input
     * @param sft simple feature type, if known ahead of time
-    * @param path file path, if there is a file available
+    * @param hints hints, including the file path, if there is a file available
     * @return
     */
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.fold(Map.empty[String, AnyRef])(EvaluationContext.inputFileParam)).toOption
-
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],

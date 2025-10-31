@@ -70,8 +70,4 @@ package object security {
      */
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
-
-  @deprecated("Use AuthUtils.getProvider")
-  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
-    AuthUtils.getProvider(params, auths)
 }

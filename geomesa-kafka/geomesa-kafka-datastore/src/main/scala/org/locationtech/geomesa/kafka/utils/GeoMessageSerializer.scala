@@ -72,22 +72,6 @@ object GeoMessageSerializer {
   private val Empty = Array.empty[Byte]
 
   /**
-    * Create a message serializer
-    *
-    * @param sft simple feature type
-    * @param serialization serialization type (avro or kryo)
-    * @param `lazy` use lazy deserialization
-    * @return
-    */
-  @deprecated("Use apply(SimpleFeatureType, SerializationType, Set[SerializationOption])")
-  def apply(
-      sft: SimpleFeatureType,
-      serialization: SerializationType = SerializationType.KRYO,
-      `lazy`: Boolean = false): GeoMessageSerializer = {
-    apply(sft, serialization, if (`lazy`) { Set(SerializationOption.Lazy) } else { Set.empty[SerializationOption] })
-  }
-
-  /**
    * Create a message serializer
    *
    * @param sft simple feature type
@@ -97,8 +81,8 @@ object GeoMessageSerializer {
    */
   def apply(
       sft: SimpleFeatureType,
-      serialization: SerializationType,
-      opts: Set[SerializationOption]): GeoMessageSerializer = {
+      serialization: SerializationType = SerializationType.KRYO,
+      opts: Set[SerializationOption] = Set.empty): GeoMessageSerializer = {
     val options = SerializationOption.builder.withoutId.withUserData.immutable.build() ++ opts
     val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
     val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()

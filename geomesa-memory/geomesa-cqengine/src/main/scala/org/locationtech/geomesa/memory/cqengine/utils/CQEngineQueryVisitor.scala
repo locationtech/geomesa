@@ -286,19 +286,20 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * PropertyIsNotEqualTo
     */
   override def visit(filter: PropertyIsNotEqualTo, data: scala.Any): AnyRef = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     val name = getAttribute(filter)
     val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
-    val value: Any = Iterator(filter.getExpression1, filter.getExpression2).collect {
+    val literals = Iterator(filter.getExpression1, filter.getExpression2).collect {
       case lit: Literal => FastConverter.evaluate(lit, attribute.getAttributeType)
-    }.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse not equal to values ${filterToString(filter)}")
     }
-    // TODO: could this be done better?
-    // may not be as big an issue as PropertyIsNull, as I'm not
-    // even sure how to build this filter in (E)CQL
-    new cqquery.logical.Not(new cqquery.simple.Equal(attribute, value))
+    if (literals.hasNext) {
+      val value = literals.next()
+      // TODO: could this be done better?
+      // may not be as big an issue as PropertyIsNull, as I'm not
+      // even sure how to build this filter in (E)CQL
+      new cqquery.logical.Not(new cqquery.simple.Equal(attribute, value))
+    } else {
+      throw new RuntimeException(s"Can't parse not equal to values: ${filterToString(filter)}")
+    }
   }
 
   /**

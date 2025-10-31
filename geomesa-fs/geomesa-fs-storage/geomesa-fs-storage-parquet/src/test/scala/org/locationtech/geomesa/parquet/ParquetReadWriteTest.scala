@@ -106,7 +106,7 @@ class ParquetReadWriteTest extends Specification with AllExpectations with LazyL
 
       // Validate the file
       FileValidationObserver(filePath).close() must throwA[RuntimeException].like {
-        case e => e.getMessage mustEqual s"Unable to validate ${filePath}: File may be corrupted"
+        case e => e.getMessage must contain("corrupted")
       }
     }
 

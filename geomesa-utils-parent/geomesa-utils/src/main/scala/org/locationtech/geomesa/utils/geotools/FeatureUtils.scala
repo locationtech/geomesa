@@ -109,13 +109,6 @@ object FeatureUtils {
     builder
   }
 
-  @deprecated("use `write` or `copyToFeature` instead")
-  def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
-                   sf: SimpleFeature,
-                   useProvidedFid: Boolean = false): SimpleFeature = {
-    copyToFeature(writer.next(), sf, useProvidedFid)
-  }
-
   /**
    * Copy a feature to the feature returned by a feature writer
    *

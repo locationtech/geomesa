@@ -164,11 +164,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, Stats(tags))
 
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext = {
-    val stats = Stats.wrap(success, failure, tags)
-    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, stats)
-  }
-
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, parseTimer), ec)
     options.parseMode match {

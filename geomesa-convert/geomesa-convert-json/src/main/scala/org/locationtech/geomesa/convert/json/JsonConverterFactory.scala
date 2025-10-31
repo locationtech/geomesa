@@ -13,7 +13,6 @@ import com.google.gson.{JsonElement, JsonNull, JsonParser}
 import com.jayway.jsonpath.{JsonPath, PathNotFoundException}
 import com.typesafe.config.Config
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
 import org.locationtech.geomesa.convert.json.JsonConverter._
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert, PropNamer}
@@ -54,12 +53,6 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
     }
     option
   }
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
 
   /**
    * Infer a configuration and simple feature type from an input stream, if possible

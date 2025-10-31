@@ -60,7 +60,7 @@ BRANCH="$(git branch --show-current)"
 mvn release:prepare \
   -DdryRun=true \
   -DautoVersionSubmodules=true \
-  -Darguments="-DskipTests -Dmaven.javadoc.skip=true"
+  -Darguments="-Dmaven.test.skip -Dmaven.javadoc.skip=true"
 
 RELEASE="$(readPomVersion pom.xml.tag)"
 TAG="$(readReleaseProp scm.tag)"
@@ -89,11 +89,11 @@ mvn release:clean
 git checkout "$TAG"
 mkdir -p "$RELEASE"
 
-mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.12.log
+mvn clean deploy -Pcentral,python -Dmaven.test.skip | tee "$RELEASE"/build_2.12.log
 copyReleaseArtifacts
 
 ./build/scripts/change-scala-version.sh 2.13
-mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.13.log
+mvn clean deploy -Pcentral,python -Dmaven.test.skip | tee "$RELEASE"/build_2.13.log
 copyReleaseArtifacts
 
 # reset pom changes

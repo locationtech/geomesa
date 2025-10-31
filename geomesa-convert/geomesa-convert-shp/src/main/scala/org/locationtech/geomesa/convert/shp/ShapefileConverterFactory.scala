@@ -33,12 +33,6 @@ class ShapefileConverterFactory
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.fold(Map.empty[String, AnyRef])(EvaluationContext.inputFileParam)).toOption
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
       hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = {
     val url = hints.get(EvaluationContext.InputFilePathKey) match {
       case Some(p) => p.toString

@@ -13,7 +13,6 @@ import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -43,15 +42,9 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
     *
     * @param is input
     * @param sft simple feature type, if known ahead of time
-    * @param path file path, if known
+    * @param hints hints
     * @return
     */
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
-
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],

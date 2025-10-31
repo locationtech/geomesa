@@ -15,9 +15,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature.{LazyAttributeReader
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoAttributeReader
 import org.locationtech.geomesa.features.kryo.impl.LazyDeserialization._
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
-import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.io.Sizable
-import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 
 import java.io.InputStream
 

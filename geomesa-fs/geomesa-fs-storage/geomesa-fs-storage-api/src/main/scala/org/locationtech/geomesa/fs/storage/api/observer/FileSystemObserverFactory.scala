@@ -13,7 +13,6 @@ import org.apache.hadoop.fs.Path
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import java.io.Closeable
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 /**
@@ -74,27 +73,23 @@ object FileSystemObserverFactory {
     override def apply(feature: SimpleFeature): Unit = observers.foreach(_.apply(feature))
 
     override def flush(): Unit = {
-      val errors = ArrayBuffer.empty[Throwable]
-      observers.foreach { o =>
-        Try(o.flush()).failed.foreach(errors.+=)
-      }
+      val errors = observers.flatMap(o => Try(o.flush()).failed.toOption)
       if (errors.nonEmpty) {
-        val e = errors.head
-        errors.tail.foreach(e.addSuppressed)
-        throw e
+        throw collapseErrors(errors)
       }
     }
 
     override def close(): Unit = {
-      val errors = ArrayBuffer.empty[Throwable]
-      observers.foreach { o =>
-        Try(o.close()).failed.foreach(errors.+=)
-      }
+      val errors = observers.flatMap(o => Try(o.close()).failed.toOption)
       if (errors.nonEmpty) {
-        val e = errors.head
-        errors.tail.foreach(e.addSuppressed)
-        throw e
+        throw collapseErrors(errors)
       }
+    }
+
+    private def collapseErrors(errors: Seq[Throwable]): Throwable = {
+      val e = errors.head
+      errors.tail.foreach(e.addSuppressed)
+      e
     }
   }
 }

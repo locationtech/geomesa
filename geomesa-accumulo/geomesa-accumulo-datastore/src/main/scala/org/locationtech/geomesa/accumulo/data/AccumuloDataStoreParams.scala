@@ -27,9 +27,6 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       supportsNiFiExpressions = true
     )
 
-  @deprecated("InstanceNameParam")
-  val InstanceIdParam: GeoMesaParam[String] = InstanceNameParam
-
   val ZookeepersParam =
     new GeoMesaParam[String](
       "accumulo.zookeepers",

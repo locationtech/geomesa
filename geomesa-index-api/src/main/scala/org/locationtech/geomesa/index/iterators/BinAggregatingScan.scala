@@ -66,9 +66,6 @@ object BinAggregatingScan {
     val DateOpt       = "dtg"
     val LabelOpt      = "label"
     val DateArrayOpt  = "dtg-array"
-
-    @deprecated("AggregatingScan.Configuration.BatchSizeOpt")
-    val BatchSizeOpt = "batch"
   }
 
   def configure(sft: SimpleFeatureType,

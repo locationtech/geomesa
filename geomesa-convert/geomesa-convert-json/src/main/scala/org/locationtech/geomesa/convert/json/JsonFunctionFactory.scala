@@ -10,8 +10,10 @@ package org.locationtech.geomesa.convert.json
 
 import com.google.gson._
 import com.jayway.jsonpath.JsonPath
+import com.typesafe.scalalogging.LazyLogging
 import org.json4s.JsonAST.{JNull, JValue}
 import org.json4s.{JBool, JDouble, JInt, JString}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
@@ -20,7 +22,7 @@ import org.locationtech.geomesa.utils.text.DateParsing
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
 
-class JsonFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
+class JsonFunctionFactory extends TransformerFunctionFactory with CollectionParsing with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -31,8 +33,12 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath, jsonArrayToObject, newJsonObject, emptyToNull)
 
   @deprecated("use toString")
-  private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
-    args(0).toString
+  private val jsonToString = new NamedTransformerFunction(Seq("jsonToString", "json2string"), pure = true) {
+    override def apply(args: Array[AnyRef]): AnyRef = args(0).toString
+    override def withContext(ec: EvaluationContext): TransformerFunction = {
+      logger.warn("Using deprecated function 'jsonToString' - use 'toString' instead")
+      super.withContext(ec)
+    }
   }
 
   private val jsonPath: TransformerFunction = new NamedTransformerFunction(Array("jsonPath"), pure = true) {
