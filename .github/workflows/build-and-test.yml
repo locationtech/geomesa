@@ -89,7 +89,7 @@ jobs:
       - name: Generate cache key
         env:
           MOD_SELECTOR: "${{ matrix.tests.project-list }}"
-        run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> $GITHUB_ENV
+        run: echo "MOD_SELECTOR=$(echo $MOD_SELECTOR | sed 's/[^a-zA-Z0-9_.-]/-/g' | head -c 256)" >> "$GITHUB_ENV"
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           key: ${{ hashFiles('**/pom.xml') }}-build-${{ matrix.scala-version }}-${{ env.MOD_SELECTOR }}
@@ -142,7 +142,9 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Find tests
-        run: export IT_MODULES="$(find . -path '*/src/test/*' -name '*IT.scala' -o -name '*IT.java' | sed 's|\(.*\)src/test.*|\1|' | sort -u | tr '\n' ',')"
+        run: |
+          export IT_MODULES="$(find . -path '*/src/test/*' -name '*IT.scala' -o -name '*IT.java' | sed 's|\(.*\)src/test.*|\1|' | sort -u | tr '\n' ',')"
+          echo "IT_MODULES=$IT_MODULES" >> "$GITHUB_ENV"
       - name: Build with Maven
         run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl "$IT_MODULES"
       - name: Integration Tests
@@ -205,7 +207,7 @@ jobs:
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
   javadocs:
-    name: javadocs / ${{ matrix.docs.name }} / ${{ matrix.scala-version }}
+    name: javadocs-${{ matrix.docs.name }} / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -215,6 +217,7 @@ jobs:
           - name: 1
             project-list: "geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,geomesa-cassandra/geomesa-cassandra-datastore"
           - name: 2
+            # TODO ! doesn't seem to work with -am
             project-list: "'!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,!geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,!geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,!geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,!geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,!geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,!geomesa-cassandra/geomesa-cassandra-datastore'"
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -229,11 +232,11 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.docs.project-list }}
+        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.docs.project-list }},geomesa-arrow/geomesa-arrow-jts
       - name: Build scaladocs
-        run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS ${{ matrix.docs.project-list }}
+        run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.docs.project-list }}
       - name: Build javadocs
-        run: mvn $MAVEN_JAVADOC_ARGS $MAVEN_CLI_OPTS -pl :geomesa-arrow-jts
+        run: mvn $MAVEN_JAVADOC_ARGS $MAVEN_CLI_OPTS -pl geomesa-arrow/geomesa-arrow-jts
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
