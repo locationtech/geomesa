@@ -15,7 +15,6 @@
     <module>geomesa-bom</module>
     <module>geomesa-hadoop-utils</module>
     <module>geomesa-utils</module>
-    <module>geomesa-zk-utils</module>
   </modules>
 
 </project>

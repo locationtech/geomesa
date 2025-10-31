@@ -53,7 +53,7 @@
         <!-- java/scala -->
         <jdk.version>17</jdk.version>
         <scala.version>2.12.20</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
-        <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
+        <scala.binary.version>2.12</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
@@ -256,7 +256,6 @@
             <id>debug-tests</id>
             <properties>
                 <maven.test.debug>true</maven.test.debug>
-                <test.fork.count>1</test.fork.count> <!-- otherwise we get port conflicts -->
             </properties>
         </profile>
 
@@ -900,21 +899,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-core_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-cloudwatch_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-graphite_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-metrics-micrometer_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -987,11 +971,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-zk-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -2702,9 +2681,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
-                        <!-- Turn off 'useIncrementalCompilation' to keep this plugin
-                             from recompiling Java files that the scala-maven-plugin
-                             already compiled -->
+                        <!-- keep this plugin from re-compiling Java files that the scala-maven-plugin already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
@@ -3291,18 +3268,6 @@
                                         <exclude>org.slf4j:slf4j-log4j12</exclude>
                                     </excludes>
                                 </bannedDependencies>
-                                <requireProperty>
-                                    <message>property scala.version must be set</message>
-                                    <property>scala.version</property>
-                                    <regexMessage>property scala.version doesn't match expected compiler version</regexMessage>
-                                    <regex>2.12.*</regex>
-                                </requireProperty>
-                                <requireProperty>
-                                    <message>property scala.binary.version must be set</message>
-                                    <property>scala.binary.version</property>
-                                    <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
-                                    <regex>2.12</regex>
-                                </requireProperty>
                                 <requireMavenVersion>
                                     <version>[${maven.min.version},)</version>
                                 </requireMavenVersion>

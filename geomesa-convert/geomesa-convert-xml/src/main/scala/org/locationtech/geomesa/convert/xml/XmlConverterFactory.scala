@@ -20,7 +20,6 @@ import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, Namer
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.TextTools
 import org.w3c.dom._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 import pureconfig.{ConfigObjectCursor, ConfigSource}
@@ -218,7 +217,6 @@ object XmlConverterFactory {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, XmlOptions] = {
@@ -238,7 +236,7 @@ object XmlConverterFactory {
       for {
         lineMode <- parse("line-mode", LineMode.values).right
       } yield {
-        XmlOptions(validators, reporters, parseMode, errorMode, lineMode, encoding)
+        XmlOptions(validators, parseMode, errorMode, lineMode, encoding)
       }
     }
 
@@ -326,7 +324,7 @@ object XmlConverterFactory {
         Seq.tabulate(n.getChildNodes.getLength)(n.getChildNodes.item)
             .foreach(child => builder ++= parseNode(child, elemPath, defaultNamespacePrefix))
 
-      case n: Text if !TextTools.isWhitespace(n.getData) =>
+      case n: Text if !n.getData.isBlank =>
         builder += path -> n.getData
 
       case _ => // no-op

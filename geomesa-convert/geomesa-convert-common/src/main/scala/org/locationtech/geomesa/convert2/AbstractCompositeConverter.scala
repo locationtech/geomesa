@@ -128,7 +128,6 @@ object AbstractCompositeConverter {
     override def withListener(listener: ContextListener): EvaluationContext =
       CompositeEvaluationContext(contexts.map(_.withListener(listener)), StatListener(stats, listener))
 
-    override def metrics: ConverterMetrics = contexts.head.metrics
     override val success: com.codahale.metrics.Counter = new com.codahale.metrics.Counter() {
       override def inc(n: Long): Unit = stats.success(n.toInt)
       override def getCount: Long = stats.success(0)

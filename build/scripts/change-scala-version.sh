@@ -79,5 +79,3 @@ sed "${sed_no_backup[@]}" "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s
 
 # Update enforcer rules
 sed "${sed_no_backup[@]}" "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
-sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION\.\*</regex>|<regex>$TO_VERSION.*</regex>|" "$BASEDIR/pom.xml"
-sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION</regex>|<regex>$TO_VERSION</regex>|" "$BASEDIR/pom.xml"
