@@ -26,7 +26,7 @@ env:
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
-  build:
+  unit-tests:
     name: build / ${{ matrix.tests.name }} / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
     needs: compile
