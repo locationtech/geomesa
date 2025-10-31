@@ -14,8 +14,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.gt.partition.postgis.dialect.PartitionedPostgisDialect.SftUserData
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.index.TemporalIndexCheck
-import org.locationtech.geomesa.utils.stats.IndexCoverage
+import org.locationtech.geomesa.utils.index.{IndexCoverage, TemporalIndexCheck}
 
 import java.io.Closeable
 import java.sql.{Connection, PreparedStatement}

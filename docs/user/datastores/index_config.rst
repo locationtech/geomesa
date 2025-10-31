@@ -421,7 +421,7 @@ To set the cardinality of an attribute, use the key ``cardinality`` on the attri
     .. code-tab:: scala SchemaBuilder
 
         import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-        import org.locationtech.geomesa.utils.stats.Cardinality
+        import org.locationtech.geomesa.utils.index.Cardinality
 
         val sft = SchemaBuilder.builder()
             .addString("name").withIndex(Cardinality.HIGH)

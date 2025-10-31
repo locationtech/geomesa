@@ -79,10 +79,8 @@ object AgeOffIterator extends LazyLogging {
     }
   }
 
-  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
-  }
+  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] =
+    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).find(_ != null)
 
   def set(tableOps: TableOperations, table: String, sft: SimpleFeatureType, expiry: Duration): Unit =
     tableOps.attachIterator(table, configure(sft, expiry)) // all scopes

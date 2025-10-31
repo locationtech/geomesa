@@ -20,7 +20,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
-import org.locationtech.geomesa.utils.index.SpatialIndex;
+import org.locationtech.geomesa.memory.index.SpatialIndex;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;

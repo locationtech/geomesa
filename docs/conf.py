@@ -29,7 +29,7 @@ def ultimateReplace(app, docname, source):
 
 
 ultimate_replacements = {
-  "{{accumulo_supported_versions}}": target.versions.accumulo_version,
+  "{{accumulo_supported_versions}}": "version " + target.versions.accumulo_version,
   "{{accumulo_required_version}}": target.versions.accumulo_version,
   "{{cassandra_supported_versions}}": "version " + target.versions.cassandra_version,
   "{{cassandra_required_version}}": target.versions.cassandra_version,

@@ -32,9 +32,8 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.index.{IndexCoverage, IndexMode}
 import org.locationtech.geomesa.utils.io.WithStore
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 import scala.util.control.NonFatal
 

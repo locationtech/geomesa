@@ -1690,10 +1690,6 @@ class JsonConverterTest extends Specification {
       verifyInferredSchema((f, is) => f.infer(is, None, Map.empty[String, AnyRef]))
     }
 
-    "infer schema from non-geojson files using deprecated API" >> {
-      verifyInferredSchema((f, is) => f.infer(is).fold[Try[(SimpleFeatureType, Config)]](Failure(null))(Success(_)))
-    }
-
     def verifyInferredSchema(
         infer: (JsonConverterFactory, InputStream) => Try[(SimpleFeatureType, Config)]): MatchResult[Any] = {
       val json =

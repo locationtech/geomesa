@@ -27,7 +27,7 @@ import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.stats.IndexCoverage
+import org.locationtech.geomesa.utils.index.IndexCoverage
 
 class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
     extends GeoMesaDataStore[CassandraDataStore](config) with LocalLocking {

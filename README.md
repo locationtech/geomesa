@@ -198,12 +198,12 @@ cd geomesa
 The project is built using Maven. To build, run:
 
 ```bash
-mvn clean install -DskipTests
+mvn clean install -Dmaven.test.skip
 ```
 
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
-To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+To run unit tests, omit the `-Dmaven.test.skip` (note: requires `docker` to be available).
 
 ### Build with Bloop Compile Server
 

@@ -60,7 +60,8 @@ class PostgisResiliencyTest extends Specification with LazyLogging {
   def write(ds: DataStore, features: Seq[SimpleFeature]): Unit = {
     WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
       features.foreach { f =>
-        val toWrite = FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+        val toWrite = writer.next()
+        FeatureUtils.copyToFeature(toWrite, f, useProvidedFid = true)
         toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(toWrite.getID.substring(sft.getTypeName.length + 1))
         writer.write()
       }

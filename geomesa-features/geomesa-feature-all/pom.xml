@@ -10,6 +10,11 @@
     <artifactId>geomesa-feature-all_2.12</artifactId>
     <name>GeoMesa Features All</name>
 
+    <properties>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -32,11 +37,6 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_${scala.binary.version}</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

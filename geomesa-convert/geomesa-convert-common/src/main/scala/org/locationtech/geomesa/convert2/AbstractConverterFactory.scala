@@ -116,11 +116,11 @@ object AbstractConverterFactory extends LazyLogging {
 
     val updates = ArrayBuffer.empty[Config => Config]
     if (conf.hasPath("options.validation-mode")) {
-      logger.warn(s"Using deprecated option 'validation-mode'. Prefer 'error-mode'")
+      logger.warn(s"Using deprecated option 'validation-mode' - use 'error-mode' instead")
       updates.append(c => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
     }
     if (conf.hasPath("options.validating")) {
-      logger.warn(s"Using deprecated validation key 'validating'")
+      logger.warn(s"Using deprecated option 'validating' - use 'error-mode' instead")
       val validators = if (conf.getBoolean("options.validating")) {
         ConfigValueFactory.fromIterable(Seq(HasGeoValidatorFactory.Name, HasDtgValidatorFactory.Name).asJava)
       } else {
@@ -377,11 +377,12 @@ object AbstractConverterFactory extends LazyLogging {
       }
 
       if (cur.atKey("verbose").isRight) {
-        logger.warn("'verbose' option is deprecated - please use logging levels instead")
+        logger.warn("Using deprecated option 'verbose' - use logging levels instead")
       }
       if (cur.atKey("reporters").isRight) {
         logger.warn(
-          "'reporters' option is no longer supported, please see https://www.geomesa.org/documentation/stable/user/appendix/metrics.html")
+          "Using deprecated option 'reporters' - see https://www.geomesa.org/documentation/stable/user/appendix/metrics.html " +
+            "for configuring metrics")
       }
 
       for {

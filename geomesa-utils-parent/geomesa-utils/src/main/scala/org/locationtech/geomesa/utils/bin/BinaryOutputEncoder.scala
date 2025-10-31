@@ -52,28 +52,6 @@ class BinaryOutputEncoder private (toValues: ToValues) {
       callback.result
     }
   }
-
-  @deprecated("Can leak resources - use non-CloseableIterator version and close any resources outside this function")
-  def encode(f: CloseableIterator[SimpleFeature], os: OutputStream, sort: Boolean = false): Long = {
-    if (sort) {
-      val byteStream = new ByteArrayOutputStream
-      val callback = new ByteStreamCallback(byteStream)
-      try { f.foreach(toValues(_, callback)) } finally {
-        f.close()
-      }
-      val count = callback.result
-      val bytes = byteStream.toByteArray
-      val size = (bytes.length / count).toInt
-      bytes.grouped(size).toSeq.sorted(BinaryOutputEncoder.DateOrdering).foreach(os.write)
-      count
-    } else {
-      val callback = new ByteStreamCallback(os)
-      try { f.foreach(toValues(_, callback)) } finally {
-        f.close()
-      }
-      callback.result
-    }
-  }
 }
 
 object BinaryOutputEncoder extends LazyLogging {

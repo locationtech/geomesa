@@ -85,10 +85,8 @@ object DtgAgeOffIterator extends LazyLogging {
     }
   }
 
-  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
-  }
+  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] =
+    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).find(_ != null)
 
   def set(
       tableOps: TableOperations,

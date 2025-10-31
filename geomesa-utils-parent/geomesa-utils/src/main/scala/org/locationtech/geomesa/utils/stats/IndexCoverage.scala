@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.utils.stats
 
+@deprecated("Moved to org.locationtech.geomesa.utils.index")
 object IndexCoverage extends Enumeration {
   type IndexCoverage = Value
-  val FULL = Value("full")
-  val JOIN = Value("join")
-  val NONE = Value("none")
+  val FULL: Value = Value("full")
+  val JOIN: Value = Value("join")
+  val NONE: Value = Value("none")
 }

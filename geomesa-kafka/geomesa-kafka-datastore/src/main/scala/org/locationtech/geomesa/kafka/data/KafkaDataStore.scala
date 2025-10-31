@@ -421,8 +421,8 @@ object KafkaDataStore extends LazyLogging {
   def usesDefaultPartitioning(sft: SimpleFeatureType): Boolean =
     sft.getUserData.get(PartitioningKey) == PartitioningDefault
 
-  @deprecated("Uses a custom partitioner which creates issues with Kafka streams. Use `producer(String, Map[String, String]) instead")
-  def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
+  // kept for back-compatibility - uses a custom partitioner which creates issues with Kafka streams
+  private def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
     val props =
       if (config.producers.properties.contains(PARTITIONER_CLASS_CONFIG)) {
         config.producers.properties

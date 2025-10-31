@@ -13,7 +13,7 @@ import org.apache.commons.dbcp2._
 import org.apache.commons.pool2.impl.{GenericObjectPool, GenericObjectPoolConfig}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.Properties
 import scala.util.control.NonFatal

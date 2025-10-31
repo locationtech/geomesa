@@ -17,8 +17,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
+import org.locationtech.geomesa.memory.index.SpatialIndex
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.index.SpatialIndex
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Geometry
 

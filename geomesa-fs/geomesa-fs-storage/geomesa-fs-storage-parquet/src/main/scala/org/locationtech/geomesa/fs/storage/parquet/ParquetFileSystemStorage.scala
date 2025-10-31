@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.parquet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.parquet.example.data.Group
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.filter2.compat.FilterCompat.FilterPredicateCompat
 import org.apache.parquet.hadoop.ParquetReader
@@ -28,6 +27,7 @@ import org.locationtech.geomesa.fs.storage.common.{AbstractFileSystemStorage, Fi
 import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.FileValidationObserver
 import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider, AuthsParam, VisibilityUtils}
+import org.locationtech.geomesa.utils.io.WithClose
 
 import java.util.Collections
 import scala.util.control.NonFatal
@@ -99,22 +99,17 @@ object ParquetFileSystemStorage extends LazyLogging {
     override def apply(feature: SimpleFeature): Unit = {}
     override def flush(): Unit = {}
     override def close(): Unit = {
-      var reader: ParquetReader[Group] = null
       try {
-        // read Parquet file content
-        reader = ParquetReader.builder(new GroupReadSupport(), file).build()
-        var record = reader.read()
-        while (record != null) {
-          // Process the record
-          record = reader.read()
+        WithClose(ParquetReader.builder(new GroupReadSupport(), file).build()) { reader =>
+          var record = reader.read()
+          while (record != null) {
+            // Process the record
+            record = reader.read()
+          }
+          logger.trace(s"$file is a valid Parquet file")
         }
-        logger.trace(s"$file is a valid Parquet file")
       } catch {
-        case NonFatal(e) => throw new RuntimeException(s"Unable to validate $file: File may be corrupted", e)
-      } finally {
-        if (reader != null) {
-          reader.close()
-        }
+        case NonFatal(e) => throw new RuntimeException(s"File appears to be corrupted: $file", e)
       }
     }
   }

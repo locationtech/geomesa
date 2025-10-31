@@ -1,24 +1,30 @@
 GeoServer Plugins
 =================
 
-A straightforward way to render, manipulate, and manage data stored
-in GeoMesa data stores is to use `GeoServer <https://geoserver.org/>`_,
-an open source server for sharing geospatial data. This chapter describes
-how to work with the GeoMesa GeoServer plugins.
+A straightforward way to render, manipulate, and manage data stored in GeoMesa data stores is to use
+`GeoServer <https://geoserver.org/>`_, an open source server for sharing geospatial data. This chapter describes how to work
+with the GeoMesa GeoServer plugins.
 
 .. _geoserver_versions:
 
 GeoServer Versions
 ------------------
 
-Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
-version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version,
-although this may occasionally cause errors as GeoServer does not follow semantic versioning.
-
 .. note::
 
-    New versions of GeoServer are released regularly. GeoMesa may work with newer versions of GeoServer, but
-    only the versions listed below have been verified.
+    GeoMesa ``{{release}}`` is tested and compatible with GeoServer ``{{geoserver_version}}``.
+
+Not all versions of GeoServer are compatible with all versions of GeoMesa. It is recommended to use the latest GeoServer bug-fix
+release for the compatible minor version, although this may occasionally cause errors as GeoServer does not follow semantic
+versioning.
+
+New versions of GeoServer are released regularly. GeoMesa may work with newer versions of GeoServer, but only the versions
+listed here have been verified.
+
+.. raw:: html
+
+   <details>
+   <summary><b>Click here to see all GeoMesa/GeoServer versions</b></summary>
 
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
@@ -46,10 +52,9 @@ although this may occasionally cause errors as GeoServer does not follow semanti
 | 2.1.x and earlier | 2.12.x            |
 +-------------------+-------------------+
 
-.. warning::
+.. raw:: html
 
-    GeoMesa will not work with an incompatible version of GeoServer. Ensure that your install the correct
-    version according to the chart above.
+   </details>
 
 Installation
 ------------

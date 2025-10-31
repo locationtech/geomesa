@@ -229,7 +229,7 @@ public class GeoMesaStreamsBuilderTest {
             // initialize kafka consumers for the store
             ds.getFeatureReader(new Query(sft.getTypeName()), Transaction.AUTO_COMMIT).close();
             // send the mocked messages to the actual embedded kafka topic
-            try(Producer<byte[], byte[]> producer = KafkaDataStore.producer(ds.config())) {
+            try(Producer<byte[], byte[]> producer = KafkaDataStore.producer(ds.config().brokers(), ds.config().producers().properties())) {
                 kryoMessages.forEach(producer::send);
             }
 

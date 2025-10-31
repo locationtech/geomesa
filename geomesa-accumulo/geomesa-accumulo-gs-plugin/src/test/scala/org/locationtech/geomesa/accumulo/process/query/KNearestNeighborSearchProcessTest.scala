@@ -13,12 +13,12 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.referencing.GeodeticCalculator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geohash.VincentyModel
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.runner.JUnitRunner
@@ -144,8 +144,11 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val inputFeatures = collection(referenceFeature)
       val dataFeatures = ds.getFeatureSource(sftName).getFeatures(wideQuery)
       val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 5000d, 50000d)).toList
+      val calc = new GeodeticCalculator()
       val directFeatures = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures().features).toList.sortBy { f =>
-        VincentyModel.getDistanceBetweenTwoPoints(referenceFeature.point, f.point).getDistanceInMeters
+        calc.setStartingGeographicPoint(referenceFeature.point.getX, referenceFeature.point.getY)
+        calc.setDestinationGeographicPoint(f.point.getX, f.point.getY)
+        calc.getOrthodromicDistance
       }
       res must containTheSameElementsAs(directFeatures.take(k))
     }

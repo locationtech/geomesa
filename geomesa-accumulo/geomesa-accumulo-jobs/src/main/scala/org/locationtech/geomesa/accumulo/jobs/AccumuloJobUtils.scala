@@ -11,15 +11,9 @@ package org.locationtech.geomesa.accumulo.jobs
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.hadoop.conf.Configuration
-import org.geotools.api.data.Query
-import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
-import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.jobs.JobUtils
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
-import org.locationtech.geomesa.utils.index.IndexMode
 
 import java.io.File
 import scala.io.Source
@@ -55,40 +49,4 @@ object AccumuloJobUtils extends LazyLogging {
                  libJars: Seq[String] = defaultLibJars,
                  searchPath: Iterator[() => Seq[File]] = defaultSearchPath): Unit =
     JobUtils.setLibJars(conf, libJars, searchPath)
-
-  /**
-   * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
-   */
-  @deprecated("Replaced by AccumuloDataStore.getSingleQueryPlan")
-  def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = ds.getSingleQueryPlan(query)
-
-  /**
-    * Get a sequence of one or more query plans, which is guaranteed not to contain
-    * a JoinPlan (return a fallback in this case). If we get multiple scan plans,
-    * that's groovy.
-    */
-  @deprecated("Deprecated with no replacement")
-  def getMultipleQueryPlan(ds: AccumuloDataStore, query: Query): Seq[AccumuloQueryPlan] = {
-    // disable join plans
-    JoinIndex.AllowJoinPlans.set(false)
-
-    try {
-      lazy val fallbackIndex = {
-        val schema = ds.getSchema(query.getTypeName)
-        ds.manager.indices(schema, IndexMode.Read).headOption.getOrElse {
-          throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
-        }
-      }
-
-      val queryPlans = ds.getQueryPlan(query)
-      if (queryPlans.isEmpty) {
-        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity)))
-      } else {
-        queryPlans
-      }
-    } finally {
-      // make sure we reset the thread locals
-      JoinIndex.AllowJoinPlans.remove()
-    }
-  }
 }

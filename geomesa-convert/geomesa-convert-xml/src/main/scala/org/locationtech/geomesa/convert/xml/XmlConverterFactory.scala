@@ -38,12 +38,6 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
   override protected def withDefaults(conf: Config): Config =
     super.withDefaults(conf).withFallback(ConfigFactory.load("xml-converter-defaults"))
 
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
-
   /**
    * Infer a configuration and simple feature type from an input stream, if possible
    *

@@ -120,21 +120,6 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val ConfigPathProperty: SystemProperty = HBaseSystemProperties.ConfigPathProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteFilterProperty: SystemProperty = HBaseSystemProperties.RemoteFilterProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteArrowProperty: SystemProperty = HBaseSystemProperties.RemoteArrowProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteBinProperty: SystemProperty = HBaseSystemProperties.RemoteBinProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteDensityProperty: SystemProperty = HBaseSystemProperties.RemoteDensityProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteStatsProperty: SystemProperty = HBaseSystemProperties.RemoteStatsProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val YieldPartialResultsProperty: SystemProperty = HBaseSystemProperties.YieldPartialResultsProperty
-
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"
 

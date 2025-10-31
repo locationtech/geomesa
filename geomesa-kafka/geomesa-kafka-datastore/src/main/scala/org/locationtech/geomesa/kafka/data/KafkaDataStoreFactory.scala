@@ -23,12 +23,12 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams.{LazyFeatures, SerializationType}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchFactory
 import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusFactory
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import pureconfig.error.{CannotConvert, ConfigReaderFailures, FailureReason}
 import pureconfig.{ConfigCursor, ConfigReader, ConfigSource}
 
@@ -237,10 +237,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    // noinspection ScalaDeprecation
-    Seq(CacheCleanup, CacheConsistency, CacheTicker).foreach { p =>
-      if (params.containsKey(p.key)) {
-        logger.warn(s"Parameter '${p.key}' is deprecated, and no longer has any effect")
+    Seq("kafka.cache.cleanup", "cleanUpCache", "kafka.cache.consistency", "consistencyCheck", "kafka.cache.ticker").foreach { p =>
+      if (params.containsKey(p)) {
+        logger.warn(s"Ignoring unsupported parameter: $p")
       }
     }
 

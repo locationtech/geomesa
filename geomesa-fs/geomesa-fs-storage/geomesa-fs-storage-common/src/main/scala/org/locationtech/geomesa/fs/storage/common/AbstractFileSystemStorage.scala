@@ -28,7 +28,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import scala.collection.mutable.ListBuffer

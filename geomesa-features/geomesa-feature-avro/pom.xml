@@ -13,11 +13,11 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-feature-common_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-common_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -27,17 +27,8 @@
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-        </dependency>
 
         <!-- test dependencies -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-security_${scala.binary.version}</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
@@ -49,6 +40,11 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

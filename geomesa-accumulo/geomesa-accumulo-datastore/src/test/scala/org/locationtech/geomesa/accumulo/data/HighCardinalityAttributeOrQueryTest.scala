@@ -15,7 +15,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

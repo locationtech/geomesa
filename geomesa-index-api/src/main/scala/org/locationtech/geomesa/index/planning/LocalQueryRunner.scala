@@ -118,15 +118,6 @@ object LocalQueryRunner extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   /**
-    * Filter to checking visibilities
-    *
-    * @param provider auth provider, if any
-    * @return
-    */
-  @deprecated("Replaced with `VisibilityUtils.visible`")
-  def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = VisibilityUtils.visible(provider)
-
-  /**
     * Reducer for local transforms. Handles ecql and visibility filtering, transforms and analytic queries.
     *
     * @param sft simple feature type being queried
