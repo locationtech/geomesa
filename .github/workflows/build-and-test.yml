@@ -218,25 +218,9 @@ jobs:
         scala-version: [ "2.12", "2.13" ]
         docs:
           - name: 1
-            project-list: "geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,\
-                           geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
-                           geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,\
-                           geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,\
-                           geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                           geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
-                           geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,\
-                           geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,\
-                           geomesa-cassandra/geomesa-cassandra-datastore"
+            project-list: "geomesa-utils-parent/geomesa-utils,geomesa-index-api,geomesa-convert/geomesa-convert-common,geomesa-features/geomesa-feature-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-spark/geomesa-spark-jts,geomesa-tools,geomesa-features/geomesa-feature-kryo,geomesa-kafka/geomesa-kafka-datastore,geomesa-z3,geomesa-arrow/geomesa-arrow-gt,geomesa-accumulo/geomesa-accumulo-datastore,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-metrics/geomesa-metrics-micrometer,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,geomesa-features/geomesa-feature-exporters,geomesa-redis/geomesa-redis-datastore,geomesa-gt/geomesa-gt-partitioning,geomesa-hbase/geomesa-hbase-datastore,geomesa-cassandra/geomesa-cassandra-datastore"
           - name: 2
-            project-list: "'!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,\
-                           !geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,\
-                           !geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,\
-                           !geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,\
-                           !geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,\
-                           !geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,\
-                           !geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,\
-                           !geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,\
-                           !geomesa-cassandra/geomesa-cassandra-datastore'"
+            project-list: "'!geomesa-utils-parent/geomesa-utils,!geomesa-index-api,!geomesa-convert/geomesa-convert-common,!geomesa-features/geomesa-feature-common,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,!geomesa-spark/geomesa-spark-jts,!geomesa-tools,!geomesa-features/geomesa-feature-kryo,!geomesa-kafka/geomesa-kafka-datastore,!geomesa-z3,!geomesa-arrow/geomesa-arrow-gt,!geomesa-accumulo/geomesa-accumulo-datastore,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,!geomesa-metrics/geomesa-metrics-micrometer,!geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,!geomesa-features/geomesa-feature-exporters,!geomesa-redis/geomesa-redis-datastore,!geomesa-gt/geomesa-gt-partitioning,!geomesa-hbase/geomesa-hbase-datastore,!geomesa-cassandra/geomesa-cassandra-datastore'"
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
