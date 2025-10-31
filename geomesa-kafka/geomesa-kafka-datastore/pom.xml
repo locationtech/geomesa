@@ -47,15 +47,11 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-zk-utils_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kafka-utils_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-metrics-core_${scala.binary.version}</artifactId>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

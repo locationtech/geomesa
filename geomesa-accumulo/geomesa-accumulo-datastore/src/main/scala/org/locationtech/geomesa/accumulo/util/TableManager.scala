@@ -18,8 +18,8 @@ import org.locationtech.geomesa.accumulo.util.TableManager._
 import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.DistributedLocking
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
+import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
 import java.io.Closeable
 import java.util.concurrent.TimeUnit

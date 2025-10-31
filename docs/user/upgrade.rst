@@ -113,7 +113,12 @@ Removed Modules
 
 The following modules have been removed:
 
+* ``geomesa-metrics-core``
+* ``geomesa-metrics-cloudwatch``
+* ``geomesa-metrics-graphite``
+* ``geomesa-metrics-prometheus``
 * ``geomesa-process-wps``
+* ``geomesa-zk-utils``
 
 The following JAR classifiers are no longer published:
 

@@ -36,8 +36,6 @@ import scala.util.Try
 class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions](
   "avro", AvroConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
   import scala.collection.JavaConverters._
 
   /**
@@ -64,11 +62,8 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
           // this is a file written in the geomesa avro format
           val records = dfs.iterator.asScala.take(AbstractConverterFactory.inferSampleSize)
           // get the version from the first record
-          val version =
-            records.headOption
-                .flatMap(r => Option(r.get(VersionField.name)).map(_.asInstanceOf[Int]))
-                .getOrElse(SerializationVersions.DefaultVersion)
-          val nameEncoder = new FieldNameEncoder(version)
+          val version = records.flatMap(r => Option(r.get(VersionField.name))).collectFirst { case i: Integer => i.intValue() }
+          val nameEncoder = new FieldNameEncoder(version.getOrElse(SerializationVersions.DefaultVersion))
           val dataSft = AvroDataFile.getSft(dfs)
           val native = AvroSerialization.usesNativeCollections(dfs.getSchema)
 
