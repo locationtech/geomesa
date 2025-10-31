@@ -60,11 +60,5 @@ class AccumuloSchemaBuilderTest extends Specification {
 
       List(sft1, sft2) forall test
     }
-
-    "work with deprecated cardinality" in {
-      // noinspection ScalaDeprecation
-      val sft = AccumuloSchemaBuilder.builder().addString("test").withIndex(org.locationtech.geomesa.utils.stats.Cardinality.HIGH).spec
-      sft mustEqual "test:String:index=true:cardinality=high"
-    }
   }
 }

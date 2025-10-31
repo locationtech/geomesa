@@ -14,7 +14,6 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractSchemaBuilder, AttributeBuilder, UserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
-import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.index.Cardinality.Cardinality
 
 import scala.reflect.{ClassTag, classTag}
@@ -372,10 +371,6 @@ object SchemaBuilder {
       * @return attribute builder for chaining calls
       */
     def withIndex(cardinality: Cardinality): A =
-      withOptions(AttributeOptions.OptIndex -> "true", AttributeOptions.OptCardinality -> cardinality.toString)
-
-    @deprecated("use org.locationtech.geomesa.utils.index.Cardinality")
-    def withIndex(cardinality: org.locationtech.geomesa.utils.stats.Cardinality.Cardinality): A =
       withOptions(AttributeOptions.OptIndex -> "true", AttributeOptions.OptCardinality -> cardinality.toString)
 
     /**
