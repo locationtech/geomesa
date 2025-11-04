@@ -393,7 +393,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) ||
-          SecurityUtils.getVisibility(live) != SecurityUtils.getVisibility(original)) {
+            SecurityUtils.getVisibility(live) != SecurityUtils.getVisibility(original)) {
         updateFeature(live, original)
       }
       original = null

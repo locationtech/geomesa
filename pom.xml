@@ -2674,6 +2674,12 @@
                 <artifactId>testcontainers-spark</artifactId>
                 <version>${testcontainers.spark.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.spark</groupId>
+                        <artifactId>spark-sql_2.12</artifactId> <!-- exclude so we can override the scala version -->
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
