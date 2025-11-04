@@ -19,9 +19,13 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
-
-class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions)
-  extends GeoMesaProcessVisitor with LazyLogging {
+/**
+ * Binary format visitor
+ *
+ * @param sft simple feature type
+ * @param options encoding options
+ */
+class BinVisitor(sft: SimpleFeatureType, options: EncodingOptions) extends GeoMesaProcessVisitor with LazyLogging {
 
   import scala.collection.JavaConverters._
 

@@ -190,6 +190,7 @@ Removed Classes
 * ``org.locationtech.geomesa.tools.utils.StorageJobUtils``
 * ``org.locationtech.geomesa.utils.cache.ByteArrayCacheKey``
 * ``org.locationtech.geomesa.utils.cache.FilePersistence``
+* ``org.locationtech.geomesa.utils.cache.PropertiesPersistence``
 * ``org.locationtech.geomesa.utils.collection.AtomicBitSet``
 * ``org.locationtech.geomesa.utils.collection.ConcurrentHashSet``
 * ``org.locationtech.geomesa.utils.collection.MaybeSynchronized``
@@ -212,21 +213,18 @@ Removed Classes
 Removed Methods
 ^^^^^^^^^^^^^^^
 
-* ``org.locationtech.geomesa.utils.geohash.BoundingBox`` - various unused methods
-* ``org.locationtech.geomesa.utils.geohash.GeoHash`` - various unused methods
-* ``org.locationtech.geomesa.utils.geohash.GeohashUtils`` - various unused methods
+* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory`` - various system properties
+* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams.InstanceIdParam``
 * ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils#getMultipleQueryPlan``
 * ``org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils#getSingleQueryPlan``
-* ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory#infer(InputStream,Option[SimpleFeatureType],Option[String])``
-* ``org.locationtech.geomesa.convert.all.TypeAwareInference#infer(String,() => InputStream,Option[SimpleFeatureType],Option[String])``
-* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory`` - various system properties
-* ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties
-* ``org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams.InstanceIdParam``
 * ``org.locationtech.geomesa.arrow.io.FormatVersion.LatestVersion``
 * ``org.locationtech.geomesa.convert.ConverterConfigLoader#rebaseConfig``
+* ``org.locationtech.geomesa.convert.all.TypeAwareInference#infer(String,() => InputStream,Option[SimpleFeatureType],Option[String])``
 * ``org.locationtech.geomesa.convert2.SimpleFeatureConverter#createEvaluationContext(Map,Counter,Counter)``
+* ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory#infer(InputStream,Option[SimpleFeatureType],Option[String])``
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStore#this(FileContext)``
 * ``org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme#apply(DateTimeFormatter)``
+* ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties
 * ``org.locationtech.geomesa.index.planning.LocalQueryRunner#visible``
 * ``org.locationtech.geomesa.index.planning.QueryPlanner`` - "perThreadQueryHints"-related methods
 * ``org.locationtech.geomesa.kafka.data.KafkaDataStore#producer(KafkaDataStoreConfig)``
@@ -234,6 +232,10 @@ Removed Methods
 * ``org.locationtech.geomesa.lambda.stream.kafka.KafkaStore#topic``
 * ``org.locationtech.geomesa.security#getAuthorizationsProvider``
 * ``org.locationtech.geomesa.utils.bin.BinaryOutputEncoder#encode(CloseableIterator,OutputStream,Boolean)``
+* ``org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig`` - various methods
+* ``org.locationtech.geomesa.utils.geohash.BoundingBox`` - various unused methods
+* ``org.locationtech.geomesa.utils.geohash.GeoHash`` - various unused methods
+* ``org.locationtech.geomesa.utils.geohash.GeohashUtils`` - various unused methods
 * ``org.locationtech.geomesa.utils.geotools.FeatureUtils#copyToWriter``
 * ``org.locationtech.geomesa.utils.io.CompressionUtils#compress(InputStream)``
 * ``org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle#write(CreateMode,Boolean)``

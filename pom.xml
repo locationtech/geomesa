@@ -2677,7 +2677,7 @@
                 <exclusions>
                     <exclusion>
                         <groupId>org.apache.spark</groupId>
-                        <artifactId>spark-sql_2.12</artifactId> <!-- exclude so we can override the scala version -->
+                        <artifactId>spark-sql_*</artifactId> <!-- exclude so we can override the scala version -->
                     </exclusion>
                 </exclusions>
             </dependency>

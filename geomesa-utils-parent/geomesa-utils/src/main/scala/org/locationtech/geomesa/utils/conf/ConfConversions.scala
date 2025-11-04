@@ -21,12 +21,6 @@ object ConfConversions {
    */
   implicit class RichConfig(val base: Config) extends AnyVal {
 
-    def getConfigOpt(path: String): Option[Config] =
-      if (base.hasPath(path)) Some(base.getConfig(path)) else None
-
-    def getConfigListOpt(path: String): Option[java.util.List[_ <: Config]] =
-      if (base.hasPath(path)) Some(base.getConfigList(path)) else None
-
     /**
      * Converts the (potentially nested) config to a flat map
      *

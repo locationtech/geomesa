@@ -17,16 +17,15 @@ import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.index.Cardinality._
-import org.locationtech.geomesa.utils.index.{Cardinality, VisibilityLevel}
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
+import org.locationtech.geomesa.utils.index.{Cardinality, VisibilityLevel}
 import org.locationtech.jts.geom._
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
-import scala.reflect.ClassTag
 import scala.util.Try
 
-object Conversions extends Conversions {
+object Conversions {
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
@@ -42,16 +41,6 @@ object Conversions extends Conversions {
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
-    def geometry: Geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    def polygon: Polygon = sf.getDefaultGeometry.asInstanceOf[Polygon]
-    def point: Point = sf.getDefaultGeometry.asInstanceOf[Point]
-    def lineString: LineString = sf.getDefaultGeometry.asInstanceOf[LineString]
-    def multiPolygon: MultiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
-    def multiPoint: MultiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
-    def multiLineString: MultiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
-
-    def get[T](i: Int): T = sf.getAttribute(i).asInstanceOf[T]
-    def get[T](name: String): T = sf.getAttribute(name).asInstanceOf[T]
 
     /**
       * Gets the feature ID as a parsed UUID consisting of (msb, lsb). Caches the bits
@@ -78,9 +67,6 @@ object Conversions extends Conversions {
       * @param uuid (most significant bits, least significant bits)
       */
     def cacheUuid(uuid: (Long, Long)): Unit = sf.getUserData.put("uuid", uuid)
-
-    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] =
-      Option(sf.getUserData.get(key)).collect { case ct(x) => x }
   }
 }
 

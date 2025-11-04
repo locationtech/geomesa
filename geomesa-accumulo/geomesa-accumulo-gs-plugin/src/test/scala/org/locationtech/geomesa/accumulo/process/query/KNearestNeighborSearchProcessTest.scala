@@ -19,8 +19,8 @@ import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Point
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Random
@@ -146,8 +146,10 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
       val res = SelfClosingIterator(knn.execute(inputFeatures, dataFeatures, k, 5000d, 50000d)).toList
       val calc = new GeodeticCalculator()
       val directFeatures = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures().features).toList.sortBy { f =>
-        calc.setStartingGeographicPoint(referenceFeature.point.getX, referenceFeature.point.getY)
-        calc.setDestinationGeographicPoint(f.point.getX, f.point.getY)
+        val start = referenceFeature.getDefaultGeometry.asInstanceOf[Point]
+        val dest = f.getDefaultGeometry.asInstanceOf[Point]
+        calc.setStartingGeographicPoint(start.getX, start.getY)
+        calc.setDestinationGeographicPoint(dest.getX, dest.getY)
         calc.getOrthodromicDistance
       }
       res must containTheSameElementsAs(directFeatures.take(k))

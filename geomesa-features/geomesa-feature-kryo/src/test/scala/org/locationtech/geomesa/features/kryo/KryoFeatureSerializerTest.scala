@@ -219,9 +219,8 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
         deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
-        import org.locationtech.geomesa.utils.geotools.Conversions._
-        arrayEquals(deserialized.get[java.util.Map[String,_]]("m1").get("a"), sf.get[java.util.Map[String,_]]("m1").get("a"))
-        arrayEquals(deserialized.get[java.util.List[_]]("l").get(0), sf.get[java.util.List[_]]("l").get(0))
+        arrayEquals(deserialized.getAttribute("m1").asInstanceOf[java.util.Map[String,_]].get("a"), sf.getAttribute("m1").asInstanceOf[java.util.Map[String,_]].get("a"))
+        arrayEquals(deserialized.getAttribute("l").asInstanceOf[java.util.List[_]].get(0), sf.getAttribute("l").asInstanceOf[java.util.List[_]].get(0))
       }
     }
 
