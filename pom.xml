@@ -126,6 +126,7 @@
         <testcontainers.version>1.21.3</testcontainers.version>
         <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
         <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
+        <testcontainers.spark.version>1.0.0</testcontainers.spark.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
@@ -2666,6 +2667,12 @@
                 <groupId>org.geomesa.testcontainers</groupId>
                 <artifactId>testcontainers-hbase</artifactId>
                 <version>${testcontainers.hbase.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.geomesa.testcontainers</groupId>
+                <artifactId>testcontainers-spark</artifactId>
+                <version>${testcontainers.spark.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

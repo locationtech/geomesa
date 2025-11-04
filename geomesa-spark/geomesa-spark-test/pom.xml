@@ -104,6 +104,10 @@
             <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-spark</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
             <artifactId>scala-logging_${scala.binary.version}</artifactId>
             <scope>test</scope>
@@ -124,19 +128,6 @@
                             <spark.worker.memory>${test.spark.worker.memory}</spark.worker.memory>
                         </systemPropertyVariables>
                         <reuseForks>false</reuseForks> <!-- spark contexts interfere with each other if re-using forks -->
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
-                            <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
-                            <spark.worker.cores>${test.spark.worker.cores}</spark.worker.cores>
-                            <spark.worker.memory>${test.spark.worker.memory}</spark.worker.memory>
-                        </systemPropertyVariables>
-                        <reuseForks>false</reuseForks>
                     </configuration>
                 </plugin>
             </plugins>
