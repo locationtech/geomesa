@@ -18,12 +18,13 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.stats.Stat
+import org.locationtech.geomesa.index.stats.impl.EnumerationStat
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 import org.specs2.matcher.MatchResult
 
 import java.util.Date
@@ -118,8 +119,6 @@ class LambdaDataStoreTest extends LambdaContainerTest {
         customTopic.foreach(sft.getUserData.put(LambdaDataStore.TopicKey, _))
 
         val ds = DataStoreFinder.getDataStore(dsParams()).asInstanceOf[LambdaDataStore]
-        println(dsParams())
-        println(ds)
         ds must not(beNull)
 
         try {

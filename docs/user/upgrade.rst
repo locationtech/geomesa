@@ -121,8 +121,10 @@ Deprecated Classes
   ``org.locationtech.geomesa.fs.data.FileSystemDataStoreParams``
 * ``org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory`` - replaced with
   ``org.locationtech.geomesa.fs.storage.api.observer.FileSystemObserverFactory``
+* ``org.locationtech.geomesa.security.SecureSimpleFeature``
 * ``org.locationtech.geomesa.utils.stats.Cardinality`` - replaced with ``org.locationtech.geomesa.utils.index.Cardinality``
 * ``org.locationtech.geomesa.utils.stats.IndexCoverage`` - replaced with ``org.locationtech.geomesa.utils.index.IndexCoverage``
+
 
 Internal API Changes
 --------------------
@@ -162,7 +164,16 @@ Relocated Classes
 * ``org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader`` ->
   ``org.locationtech.geomesa.fs.storage.parquet.io.ParquetFileSystemReader``
 * ``org.locationtech.geomesa.fs.storage.parquet.SimpleFeatureParquetWriter`` -> ``org.locationtech.geomesa.fs.storage.parquet.io``
+* ``org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.BucketIndex`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.WrappedQuadTree`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.index.WrappedSTRtree`` -> ``org.locationtech.geomesa.memory.index.impl``
+* ``org.locationtech.geomesa.utils.io.IncrementingFileName`` -> ``org.locationtech.geomesa.tools.export``
+* ``org.locationtech.geomesa.utils.iterators.SimplePlaybackIterator`` -> ``org.locationtech.geomesa.kafka.tools.ingest``
+* ``org.locationtech.geomesa.utils.iterators.SortedMergeIterator`` -> ``org.locationtech.geomesa.index.view``
+* ``org.locationtech.geomesa.utils.kryo.NonMutatingInput`` -> ``org.locationtech.geomesa.features.kryo.impl``
 * ``org.locationtech.geomesa.utils.metrics.MetricsTags`` -> ``org.locationtech.geomesa.metrics.micrometer.utils.TagUtils``
+* ``org.locationtech.geomesa.utils.stats`` -> ``org.locationtech.geomesa.index.stats`` and ``org.locationtech.geomesa.index.stats.impl``
 
 Removed Classes
 ^^^^^^^^^^^^^^^

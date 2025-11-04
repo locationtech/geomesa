@@ -27,10 +27,10 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, Stat}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats._
 
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong

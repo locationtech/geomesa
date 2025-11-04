@@ -21,13 +21,13 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
+import org.locationtech.geomesa.index.stats.impl.MinMax
 import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.TestConfigLoader
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodedValues}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.jts.geom.Point
 import org.specs2.matcher.MatchResult
 import org.specs2.runner.JUnitRunner

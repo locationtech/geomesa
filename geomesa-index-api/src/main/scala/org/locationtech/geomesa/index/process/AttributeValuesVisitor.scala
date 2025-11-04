@@ -21,8 +21,9 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.process.AttributeValuesVisitor.AttributeResult
+import org.locationtech.geomesa.index.stats.Stat
+import org.locationtech.geomesa.index.stats.impl.EnumerationStat
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}
 
 import scala.collection.mutable
 

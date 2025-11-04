@@ -20,8 +20,8 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, TableBasedMetadata}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats._
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date

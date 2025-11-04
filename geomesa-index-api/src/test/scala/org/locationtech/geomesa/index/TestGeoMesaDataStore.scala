@@ -32,7 +32,6 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.stats.Stat
 
 import scala.collection.SortedSet
 

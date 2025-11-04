@@ -18,8 +18,8 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.stats.impl.EnumerationStat
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.stats.EnumerationStat
 import org.specs2.runner.JUnitRunner
 
 import java.io.ByteArrayOutputStream

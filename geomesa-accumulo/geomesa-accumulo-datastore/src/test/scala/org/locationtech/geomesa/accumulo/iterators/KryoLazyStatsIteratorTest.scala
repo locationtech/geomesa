@@ -14,8 +14,8 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

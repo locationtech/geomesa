@@ -49,6 +49,7 @@ package object security {
     val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
   }
 
+  @deprecated("Use org.locationtech.geomesa.security.SecurityUtils directly")
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
 
     /**

@@ -17,10 +17,10 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStatWriter}
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStatWriter, Stat}
 import org.locationtech.geomesa.index.view.RoutedDataStoreView.RoutedStats
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats._
 
 /**
   * Routed querying against multiple data stores

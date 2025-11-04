@@ -17,10 +17,10 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.stats.impl.CountStat
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.CountStat
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

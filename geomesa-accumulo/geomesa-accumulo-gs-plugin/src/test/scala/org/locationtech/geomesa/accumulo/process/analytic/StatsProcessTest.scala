@@ -16,9 +16,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.process.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.process.analytic.StatsProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

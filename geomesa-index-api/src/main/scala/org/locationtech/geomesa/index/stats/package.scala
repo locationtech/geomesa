@@ -13,7 +13,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
-import org.locationtech.geomesa.utils.stats._
+import org.locationtech.geomesa.index.stats.impl._
 
 package object stats {
 

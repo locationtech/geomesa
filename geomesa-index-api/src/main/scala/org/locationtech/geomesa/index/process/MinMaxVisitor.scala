@@ -16,10 +16,9 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.index.stats.{HasGeoMesaStats, Stat}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.geomesa.utils.stats.Stat
 
 /**
  * Feature visitor for calculating min/max values

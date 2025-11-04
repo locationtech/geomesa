@@ -17,9 +17,9 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.locationtech.geomesa.utils.stats.Stat
 
 /**
  * Visitor for calculating stats

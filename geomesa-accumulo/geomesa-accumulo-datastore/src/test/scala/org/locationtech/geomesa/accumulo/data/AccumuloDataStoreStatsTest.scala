@@ -22,9 +22,9 @@ import org.locationtech.geomesa.accumulo.index.AttributeJoinIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
 import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.stats.impl.MinMax
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
-import org.locationtech.geomesa.utils.stats.MinMax
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification

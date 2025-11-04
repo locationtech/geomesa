@@ -18,9 +18,9 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal

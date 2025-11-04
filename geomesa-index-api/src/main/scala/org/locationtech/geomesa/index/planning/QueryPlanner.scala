@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
+import org.locationtech.geomesa.index.stats.impl.StatParser
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -31,7 +32,6 @@ import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.iterators.{ExceptionalIterator, TimedIterator}
 import org.locationtech.geomesa.utils.metrics.MethodProfiling
-import org.locationtech.geomesa.utils.stats.StatParser
 
 import java.time.Duration
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}

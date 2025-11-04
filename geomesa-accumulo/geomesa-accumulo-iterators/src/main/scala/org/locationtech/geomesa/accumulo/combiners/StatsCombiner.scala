@@ -16,8 +16,9 @@ import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, Sorted
 import org.apache.hadoop.io.Text
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
+import org.locationtech.geomesa.index.stats.Stat
+import org.locationtech.geomesa.index.stats.impl.StatSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 
 import scala.util.control.NonFatal
 

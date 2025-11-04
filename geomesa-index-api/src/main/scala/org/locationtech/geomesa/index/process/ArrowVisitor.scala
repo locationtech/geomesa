@@ -108,13 +108,13 @@ object ArrowVisitor {
    * @param batchSize batch size
    */
   private class SimpleArrowManualVisitor(
-    sft: SimpleFeatureType,
-    encoding: SimpleFeatureEncoding,
-    ipcOpts: IpcOption,
-    sort: Option[(String, Boolean)],
-    batchSize: Int,
-    flattenStruct: Boolean
-  ) extends ArrowManualVisitor {
+      sft: SimpleFeatureType,
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)],
+      batchSize: Int,
+      flattenStruct: Boolean
+    ) extends ArrowManualVisitor {
 
     private val out = new ByteArrayOutputStream()
     private val bytes = ListBuffer.empty[Array[Byte]]
@@ -150,15 +150,15 @@ object ArrowVisitor {
    * @param batchSize batch size
    */
   private class ComplexArrowManualVisitor(
-    sft: SimpleFeatureType,
-    encoding: SimpleFeatureEncoding,
-    ipcOpts: IpcOption,
-    dictionaryFields: Seq[String],
-    sort: Option[(String, Boolean)],
-    preSorted: Boolean,
-    batchSize: Int,
-    flattenStruct: Boolean
-  ) extends ArrowManualVisitor {
+      sft: SimpleFeatureType,
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      dictionaryFields: Seq[String],
+      sort: Option[(String, Boolean)],
+      preSorted: Boolean,
+      batchSize: Int,
+      flattenStruct: Boolean
+    ) extends ArrowManualVisitor {
 
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 

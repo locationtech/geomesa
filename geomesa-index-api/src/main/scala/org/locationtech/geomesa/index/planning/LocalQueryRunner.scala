@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, VisibilityUtils}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
@@ -30,7 +31,6 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats.Stat
 import org.locationtech.jts.geom.Envelope
 
 import java.io.ByteArrayOutputStream

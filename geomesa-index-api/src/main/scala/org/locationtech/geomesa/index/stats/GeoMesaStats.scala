@@ -16,8 +16,8 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.stats._
 import org.locationtech.jts.geom.Geometry
 
 import java.io.{Closeable, Flushable}

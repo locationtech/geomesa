@@ -32,6 +32,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
@@ -43,7 +44,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Overri
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexCoverage, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.Stat
 
 import java.util.Locale
 import scala.util.control.NonFatal

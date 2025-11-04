@@ -11,10 +11,10 @@ package org.locationtech.geomesa.tools.stats
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, Stat}
+import org.locationtech.geomesa.index.stats.impl.Histogram
+import org.locationtech.geomesa.index.stats.impl.MinMax.MinMaxGeometry
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
-import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification

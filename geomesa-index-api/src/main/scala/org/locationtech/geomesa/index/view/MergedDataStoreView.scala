@@ -18,12 +18,12 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader.HasGeoMesaFeatureReader
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
 import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats._
 
 import java.util.concurrent.CopyOnWriteArrayList
 
