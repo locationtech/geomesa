@@ -41,7 +41,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
-  override val adapter: TestIndexAdapter = new TestIndexAdapter()
+  override val adapter: TestIndexAdapter = new TestIndexAdapter(this)
 
   override val stats: GeoMesaStats = new TestStats(this, new InMemoryMetadata[Stat]())
 
@@ -51,7 +51,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
 object TestGeoMesaDataStore {
 
-  class TestIndexAdapter extends IndexAdapter[TestGeoMesaDataStore] {
+  class TestIndexAdapter(ds: TestGeoMesaDataStore) extends IndexAdapter[TestGeoMesaDataStore] {
 
     import ByteArrays.ByteOrdering
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
