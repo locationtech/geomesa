@@ -84,15 +84,12 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
   override def createQueryPlan(strategy: QueryStrategy): CassandraQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val keyRanges = strategy.keyRanges
-    val ecql = strategy.ecql
     val hints = strategy.hints
+    val reducer = Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, None, hints.getTransform, hints))
 
-    val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints))
-
-    if (keyRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+    if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
-      val ranges = keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
+      val ranges = strategy.keyRanges.flatMap(mapper.select(_, strategy.tieredKeyRanges))
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
@@ -101,7 +98,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      StatementPlan(strategy, tables, statements, threads, ecql, rowsToFeatures, reducer, sort, max, project)
+      StatementPlan(strategy, tables, statements, threads, strategy.ecql, rowsToFeatures, reducer, sort, max, project)
     }
   }
 

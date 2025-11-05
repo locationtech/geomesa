@@ -348,7 +348,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     if (!isFullTableScan(strategy)) {
       return None
     }
-    lazy val filterString = FilterHelper.toString(strategy.filter.filter.getOrElse(Filter.INCLUDE))
+    lazy val filterString = strategy.filter.filter.fold("INCLUDE")(FilterHelper.toString)
     val block = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
     if (block.getOrElse(blockByDefault)) {
       Some(new IllegalArgumentException(s"Full-table scans are disabled. Query being stopped for ${sft.getTypeName}: $filterString"))

@@ -60,31 +60,28 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
   }
 
   override def createQueryPlan(strategy: QueryStrategy): RedisQueryPlan = {
-
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val byteRanges = strategy.ranges
-    val ecql = strategy.ecql
     val hints = strategy.hints
 
     val reducer = {
       val visible = Some(VisibilityUtils.visible(Some(ds.config.authProvider)))
-      Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints))
+      Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, visible, hints.getTransform, hints))
     }
 
-    if (byteRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
+    if (strategy.ranges.isEmpty) { EmptyPlan(strategy, reducer) } else {
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
-        byteRanges.map(RedisIndexAdapter.toRedisIdRange)
+        strategy.ranges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
-        byteRanges.map(RedisIndexAdapter.toRedisRange)
+        strategy.ranges.map(RedisIndexAdapter.toRedisRange)
       }
       val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
 
-      ZLexPlan(strategy, tables, ranges, ds.config.pipeline, ecql, results, reducer, sort, max, project)
+      ZLexPlan(strategy, tables, ranges, ds.config.pipeline, strategy.ecql, results, reducer, sort, max, project)
     }
   }
 
