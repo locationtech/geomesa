@@ -276,7 +276,13 @@ class KafkaDataStore(
 
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
-        admin.deleteTopics(Collections.singletonList(topic)).all().get
+        if (config.onSchemaDeleteTruncate) {
+          logger.info(s"truncating $topic")
+          KafkaTruncateTopic(admin).truncate(topic)
+        } else {
+          logger.info(s"deleting $topic")
+          admin.deleteTopics(Collections.singletonList(topic)).all().get
+        }
       } else {
         logger.warn(s"Topic [$topic] does not exist, can't delete it")
       }
@@ -510,6 +516,7 @@ object KafkaDataStore extends LazyLogging {
       consumers: ConsumerConfig,
       producers: ProducerConfig,
       clearOnStart: Boolean,
+      onSchemaDeleteTruncate: Boolean,
       topics: TopicConfig,
       indices: IndexConfig,
       looseBBox: Boolean,
