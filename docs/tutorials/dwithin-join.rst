@@ -49,7 +49,7 @@ interactive Spark REPL with all dependencies needed for running Spark with GeoMe
 
 .. code-block:: bash
 
-    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar
+    $ bin/spark-shell --jars geomesa-accumulo-spark_{{scala_binary_version}}-{{release}}-runtime.jar
 
 .. note::
 

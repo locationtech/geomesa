@@ -13,9 +13,9 @@ deps=()
 # mapfile reads the results into an array
 # we get the list of artifacts from `mvn clean install` (seems to be only way...)
 mapfile -t deps < <(
-  mvn clean install -Dmaven.test.skip -Dmaven.assembly.skip -B -T2C 2>&1 |
+  mvn clean install -Dmaven.main.skip -Dmaven.test.skip -Dmaven.source.skip -Dmaven.assembly.skip -B -T2C 2>&1 |
   grep Installing | # pull out installed artifacts only
-  grep -v -e "\-sources\.jar$" -e "\.pom$" | # skip sources jars and poms
+  grep -v -e "\.pom$" | # skip poms
   sed 's|.*\.m2/repository/org/locationtech/geomesa/||' | # strip line prefix
   sed 's|\.|!|g' | # replace . with ! so that classifiers sort after regular artifact
   sort | # sort artifacts
@@ -38,7 +38,7 @@ function printDependency() {
       classifier="$classifier"$'\n'"                <scope>test</scope>"
     fi
   fi
-  if [[ $artifact =~ -runtime ]]; then
+  if [[ $artifact =~ -runtime ]] || [[ $classifier =~ runtime ]]; then
     classifier="$classifier"$'\n'"                <!-- this is a shaded jar with all dependencies already included -->"
     classifier="$classifier"$'\n'"                <exclusions>"
     classifier="$classifier"$'\n'"                    <exclusion>"

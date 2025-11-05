@@ -56,11 +56,8 @@
         <!--spark  runtime -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
+            <classifier>runtime</classifier>
         </dependency>
 
         <!-- additional deps to manage in for deploying to lib dir-->

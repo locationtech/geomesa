@@ -16,13 +16,15 @@ env:
   JAVA_VERSION: 17
   MAVEN_CLI_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false --batch-mode -Dlicense.skip=true
   MAVEN_COMPILE_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4
-  MAVEN_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T4
-  MAVEN_TEST_ARGS: test
-  MAVEN_SPARK_TEST_ARGS: test -Dtest.fork.count=2
-  MAVEN_IT_ARGS: test failsafe:integration-test failsafe:verify -DskipTests
+  MAVEN_COMPILE_NO_OP_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -Pskip-spark-runtimes -T4 -Dmaven.main.skip
+  MAVEN_COMPILE_SPARK_ARGS: clean install -Dmaven.test.skip -Dmaven.assembly.skip=true -Dmaven.source.skip -T4
+  MAVEN_TEST_ARGS: test -Dmaven.main.skip
+  MAVEN_TEST_IT_ARGS: test failsafe:integration-test failsafe:verify -Dmaven.main.skip -DskipTests
+  MAVEN_TEST_SPARK_ARGS: test -Dmaven.main.skip -Dtest.fork.count=2
   MAVEN_ASSEMBLY_ARGS: assembly:single@make-assembly -Dassembly.ignoreMissingDescriptor=true -T2
   MAVEN_SCALADOC_ARGS: generate-sources scala:doc-jar
   MAVEN_JAVADOC_ARGS: generate-sources javadoc:jar -Psite
+
   MAVEN_DASH_ARGS: org.eclipse.dash:license-tool-plugin:license-check -Ddash.fail=true -Ddash.projectId=locationtech.geomesa -DexcludeGroupIds=org.locationtech.geomesa
 
 jobs:
@@ -42,7 +44,7 @@ jobs:
             list: geomesa-accumulo/geomesa-accumulo-datastore -Dtest.excludes="AccumuloDataStoreTest,AccumuloDataStoreQueryTest,AccumuloDataStoreStatsTest,AttributeIndexStrategyTest,AccumuloDataStoreAlterSchemaTest,ArrowBatchIteratorTest,MultiIteratorTest,AccumuloDataStoreTransformsTest,ArrowDictionaryTest,VisibilitiesTest,AccumuloDataStoreAttributeVisibilityTest,AttributeIndexFilteringIteratorTest,AccumuloPartitioningTest,AccumuloFeatureReaderTest,AccumuloDataStoreAtomicWriteTest,AttributeIndexValuesTest,AccumuloDataStoreColumnGroupsTest,ZIntervalTest,S2IndexTest,AccumuloFeatureWriterTest,KryoLazyStatsIteratorTest,AccumuloDataStoreSortTest,AccumuloDataStoreUuidTest,AccumuloDataStoreAuthTest,DensityIteratorTest,S3IndexTest"
           - name: accumulo-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21,geomesa-accumulo/geomesa-accumulo-tools
+            list: geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-tools
           - name: arrow
             list: geomesa-arrow/geomesa-arrow-datastore,geomesa-arrow/geomesa-arrow-dist,geomesa-arrow/geomesa-arrow-gt,geomesa-arrow/geomesa-arrow-jts,geomesa-arrow/geomesa-arrow-tools
           - name: cassandra
@@ -52,20 +54,20 @@ jobs:
           - name: features
             list: geomesa-features/geomesa-feature-all,geomesa-features/geomesa-feature-avro,geomesa-features/geomesa-feature-common,geomesa-features/geomesa-feature-exporters,geomesa-features/geomesa-feature-kryo
           - name: fs
-            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-spark-runtime,geomesa-fs/geomesa-fs-tools
+            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-tools
           - name: fs-storage
             list: geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-api,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc-io,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet-io
           - name: gt-pg15
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-spark-runtime,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=15-3.4
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=15-3.4
           - name: gt-pg16
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-spark-runtime,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=16-3.5
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=16-3.5
           - name: gt-pg17
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-spark-runtime,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=17-3.5
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools -Dtest.postgis.docker.tag=17-3.5
           - name: hbase-ds
             list: geomesa-hbase/geomesa-hbase-datastore
           - name: hbase-other
             # we exclude distributed runtime as it breaks the classpath loading, but it doesn't have any tests anyway
-            list: geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-spark,geomesa-hbase/geomesa-hbase-spark-runtime-hbase2,geomesa-hbase/geomesa-hbase-tools
+            list: geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-spark,geomesa-hbase/geomesa-hbase-tools
           - name: kafka
             list: geomesa-kafka/geomesa-kafka-confluent,geomesa-kafka/geomesa-kafka-datastore,geomesa-kafka/geomesa-kafka-dist,geomesa-kafka/geomesa-kafka-gs-plugin,geomesa-kafka/geomesa-kafka-tools,geomesa-kafka/geomesa-kafka-utils
           - name: lambda
@@ -146,7 +148,7 @@ jobs:
       - name: Build with Maven
         run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl "$IT_MODULES"
       - name: Integration Tests
-        run: mvn $MAVEN_IT_ARGS $MAVEN_CLI_OPTS -pl "$IT_MODULES"
+        run: mvn $MAVEN_TEST_IT_ARGS $MAVEN_CLI_OPTS -pl "$IT_MODULES"
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
@@ -171,10 +173,10 @@ jobs:
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
         # TODO we don't have any tests for hbase spark runtime - maybe split up the test modules since this job is already slow
-        run: mvn $MAVEN_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl geomesa-spark/geomesa-spark-test
+        run: mvn $MAVEN_COMPILE_SPARK_ARGS $MAVEN_CLI_OPTS -am -pl geomesa-spark/geomesa-spark-test
       - name: Run Spark tests
         if: matrix.scala-version == '2.12' # there's no 2.13 spark docker container
-        run: mvn $MAVEN_SPARK_TEST_ARGS $MAVEN_CLI_OPTS -pl geomesa-spark/geomesa-spark-test
+        run: mvn $MAVEN_TEST_SPARK_ARGS $MAVEN_CLI_OPTS -pl geomesa-spark/geomesa-spark-test
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
@@ -198,7 +200,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
       - name: Build assemblies
         run: mvn $MAVEN_ASSEMBLY_ARGS $MAVEN_CLI_OPTS
       - name: Remove geomesa artifacts
@@ -213,7 +215,7 @@ jobs:
         scala-version: [ "2.12", "2.13" ]
         projects:
           - name: accumulo
-            list: geomesa-accumulo/geomesa-accumulo-datastore,geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-distributed-runtime,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo21,geomesa-accumulo/geomesa-accumulo-tools
+            list: geomesa-accumulo/geomesa-accumulo-datastore,geomesa-accumulo/geomesa-accumulo-dist,geomesa-accumulo/geomesa-accumulo-distributed-runtime,geomesa-accumulo/geomesa-accumulo-gs-plugin,geomesa-accumulo/geomesa-accumulo-indices,geomesa-accumulo/geomesa-accumulo-iterators,geomesa-accumulo/geomesa-accumulo-jobs,geomesa-accumulo/geomesa-accumulo-spark,geomesa-accumulo/geomesa-accumulo-tools
           - name: arrow
             list: geomesa-arrow/geomesa-arrow-datastore,geomesa-arrow/geomesa-arrow-dist,geomesa-arrow/geomesa-arrow-gt,geomesa-arrow/geomesa-arrow-jts,geomesa-arrow/geomesa-arrow-tools
           - name: cassandra
@@ -223,13 +225,13 @@ jobs:
           - name: features
             list: geomesa-features/geomesa-feature-all,geomesa-features/geomesa-feature-avro,geomesa-features/geomesa-feature-common,geomesa-features/geomesa-feature-exporters,geomesa-features/geomesa-feature-kryo
           - name: fs
-            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-spark-runtime,geomesa-fs/geomesa-fs-tools
+            list: geomesa-fs/geomesa-fs-datastore,geomesa-fs/geomesa-fs-dist,geomesa-fs/geomesa-fs-gs-plugin,geomesa-fs/geomesa-fs-spark,geomesa-fs/geomesa-fs-tools
           - name: fs-storage
             list: geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-api,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-common,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-convert,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-orc-io,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet,geomesa-fs/geomesa-fs-storage/geomesa-fs-storage-parquet-io
           - name: gt
-            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-spark-runtime,geomesa-gt/geomesa-gt-tools
+            list: geomesa-gt/geomesa-gt-dist,geomesa-gt/geomesa-gt-gs-plugin,geomesa-gt/geomesa-gt-partitioning,geomesa-gt/geomesa-gt-spark,geomesa-gt/geomesa-gt-tools
           - name: hbase
-            list: geomesa-hbase/geomesa-hbase-datastore,geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-distributed-runtime-hbase2,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-spark,geomesa-hbase/geomesa-hbase-spark-runtime-hbase2,geomesa-hbase/geomesa-hbase-tools
+            list: geomesa-hbase/geomesa-hbase-datastore,geomesa-hbase/geomesa-hbase-dist,geomesa-hbase/geomesa-hbase-distributed-runtime-hbase2,geomesa-hbase/geomesa-hbase-gs-plugin,geomesa-hbase/geomesa-hbase-jobs,geomesa-hbase/geomesa-hbase-rpc,geomesa-hbase/geomesa-hbase-server,geomesa-hbase/geomesa-hbase-server-hbase2,geomesa-hbase/geomesa-hbase-spark,geomesa-hbase/geomesa-hbase-tools
           - name: kafka
             list: geomesa-kafka/geomesa-kafka-confluent,geomesa-kafka/geomesa-kafka-datastore,geomesa-kafka/geomesa-kafka-dist,geomesa-kafka/geomesa-kafka-gs-plugin,geomesa-kafka/geomesa-kafka-tools,geomesa-kafka/geomesa-kafka-utils
           - name: lambda
@@ -259,7 +261,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts
+        run: mvn $MAVEN_COMPILE_PLACEHOLDER_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts
       - name: Build scaladocs
         run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Build javadocs
@@ -307,7 +309,7 @@ jobs:
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
         if: steps.pom_changes.outputs.pom_changed == 'true'
-        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS
+        run: mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
       - name: License check
         if: steps.pom_changes.outputs.pom_changed == 'true'
         run: mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
