@@ -17,10 +17,9 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
-import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
+import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.Conversions._
 
 @DescribeProcess(
   title = "Geomesa-enabled Proximity Search",
@@ -64,7 +63,7 @@ class ProximityVisitor(inputFeatures: SimpleFeatureCollection,
   private val dwithin = {
     val geomProperty = ff.property(dataFeatures.getSchema.getGeometryDescriptor.getName)
     val geomFilters = SelfClosingIterator(inputFeatures.features).map { sf =>
-      ff.dwithin(geomProperty, ff.literal(sf.geometry), bufferInMeters, "meters")
+      ff.dwithin(geomProperty, ff.literal(sf.getDefaultGeometry), bufferInMeters, "meters")
     }
     orFilters(geomFilters.toSeq)
   }

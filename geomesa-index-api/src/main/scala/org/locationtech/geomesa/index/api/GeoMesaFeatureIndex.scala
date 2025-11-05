@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.{ExcludeFilter, Filter}
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -276,8 +277,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           // check that full table scans are allowed
           if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
             // check that full table scans are allowed
-            lazy val filterString =
-              org.locationtech.geomesa.filter.filterToString(filter.filter.getOrElse(Filter.INCLUDE))
+            lazy val filterString = FilterHelper.toString(filter.filter.getOrElse(Filter.INCLUDE))
             val block =
               QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
                   .orElse(BlockFullTableScans.toBoolean)

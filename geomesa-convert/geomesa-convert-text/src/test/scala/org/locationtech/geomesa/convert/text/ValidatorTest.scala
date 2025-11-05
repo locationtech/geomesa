@@ -14,6 +14,7 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -126,8 +127,8 @@ class ValidatorTest extends Specification {
         val tooOld = BinnedTime.maxDate(TimePeriod.Week).plusDays(1).format(format)
         val res = WithClose(converter.process(is("20371231,Point(2 2)")))(_.toList)
         res must haveLength(1)
-        res.head.point.getX mustEqual 2.0
-        res.head.point.getY mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 2.0
         converter.process(is(s"$tooYoung,Point(2 2)")) must throwAn[IOException]
         converter.process(is(s"$tooOld,Point(2 2)")) must throwAn[IOException]
       }
@@ -154,8 +155,8 @@ class ValidatorTest extends Specification {
 
         val res = WithClose(converter.process(is("20120101,Point(2 2)")))(_.toList)
         res must haveLength(1)
-        res.head.point.getX mustEqual 2.0
-        res.head.point.getY mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 2.0
         converter.process(is("20120101,Point(200 200)")) must throwAn[IOException]
       }
     }
@@ -168,8 +169,8 @@ class ValidatorTest extends Specification {
 
         val res = WithClose(converter.process(is("20120101,Point(2 2)")))(_.toList)
         res must haveLength(1)
-        res.head.point.getX mustEqual 2.0
-        res.head.point.getY mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 2.0
+        res.head.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 2.0
         WithClose(converter.process(is("20120101,Point(200 200)")))(_.toList) must haveLength(0)
       }
     }
@@ -188,10 +189,7 @@ class ValidatorTest extends Specification {
             |20120105,Point(4 4)
           """.stripMargin)).toList
         res must haveLength(3)
-        res.sortBy(_.point.getY)
-        res(0).point.getY mustEqual 2.0
-        res(1).point.getY mustEqual 3.0
-        res(2).point.getY mustEqual 4.0
+        res.map(_.getDefaultGeometry.asInstanceOf[Point].getY).sorted mustEqual Seq(2d, 3d, 4d)
       }
     }
   }

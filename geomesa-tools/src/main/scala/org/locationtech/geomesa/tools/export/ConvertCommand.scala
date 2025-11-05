@@ -26,20 +26,18 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 
-class ConvertCommand extends Command with MethodProfiling with LazyLogging {
+class ConvertCommand extends Command with LazyLogging {
 
   override val name = "convert"
   override val params = new ConvertParameters
 
   override def execute(): Unit = {
-    def complete(count: Option[Long], time: Long): Unit =
-      Command.user.info(s"Conversion complete to ${Option(params.file).getOrElse("standard out")} " +
-          s"in ${time}ms${count.map(c => s" for $c features").getOrElse("")}")
-
-    profile(complete _)(convertAndExport())
+    val start = System.currentTimeMillis()
+    val count = convertAndExport()
+    Command.user.info(s"Conversion complete to ${Option(params.file).getOrElse("standard out")} " +
+      s"in ${System.currentTimeMillis() - start}ms${count.map(c => s" for $c features").getOrElse("")}")
   }
 
   private def convertAndExport(): Option[Long] = {

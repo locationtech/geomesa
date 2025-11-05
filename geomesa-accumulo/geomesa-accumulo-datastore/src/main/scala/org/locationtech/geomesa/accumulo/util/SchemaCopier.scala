@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.util
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.accumulo.core.client.admin.TableOperations
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FileUtil, Path}
 import org.apache.hadoop.tools.DistCp
@@ -31,6 +30,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.concurrent.{Callable, ConcurrentHashMap}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.io.Source
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -318,9 +318,9 @@ class SchemaCopier(
     // consumer: (src, dest) => Unit
     def distCpConsumer(threads: Int)(consumer: (Path, Path) => Unit): Unit = {
       logger.debug(s"Reading $distcpPath")
-      WithClose(IOUtils.lineIterator(exportFs.open(distcpPath), StandardCharsets.UTF_8)) { files =>
+      WithClose(Source.fromInputStream(exportFs.open(distcpPath))(StandardCharsets.UTF_8)) { files =>
         CachedThreadPool.executor(threads) { executor =>
-          files.asScala.foreach { file =>
+          files.getLines().foreach { file =>
             val runnable: Runnable = () => {
               val path = new Path(file)
               val copy = new Path(copyToDir, path.getName)

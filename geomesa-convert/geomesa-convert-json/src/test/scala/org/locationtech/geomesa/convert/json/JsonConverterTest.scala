@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.convert.json
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.micrometer.core.instrument.{Counter, Metrics, Tag, Tags}
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.{Counter, Metrics, Tags}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
@@ -1054,8 +1054,6 @@ class JsonConverterTest extends Specification {
         """.stripMargin)
 
       WithClose(SimpleFeatureConverter(mapSft, mapConf)) { converter =>
-        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-
         import java.util.{Map => JMap}
 
         val ec = converter.createEvaluationContext()
@@ -1069,20 +1067,20 @@ class JsonConverterTest extends Specification {
 
         val f = features.head
 
-        val m = f.get[JMap[String,String]]("map1")
+        val m = f.getAttribute("map1").asInstanceOf[JMap[String,String]]
         m must beAnInstanceOf[JMap[String,String]]
         m.size() mustEqual 2
         m.get("a") mustEqual "val1"
         m.get("b") mustEqual "val2"
 
-        val m2 = f.get[JMap[String,String]]("map2")
+        val m2 = f.getAttribute("map2").asInstanceOf[JMap[String,String]]
         m2 must beAnInstanceOf[JMap[String,String]]
         m2.size mustEqual 3
         m2.get("a") mustEqual "1.0"
         m2.get("b") mustEqual "foobar"
         m2.get("c") mustEqual "false"
 
-        val m3 = f.get[JMap[Int,Boolean]]("map3")
+        val m3 = f.getAttribute("map3").asInstanceOf[JMap[Int,Boolean]]
         m3 must beAnInstanceOf[JMap[Int,Boolean]]
         m3.size mustEqual 3
         m3.get(1) mustEqual true
@@ -1200,13 +1198,11 @@ class JsonConverterTest extends Specification {
         ec.success.getCount mustEqual 1
         ec.failure.getCount mustEqual 0
         val f = features.head
-
-        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-        f.get[Int]("i") mustEqual 1
-        f.get[Long]("l") mustEqual Long.MaxValue
-        f.get[Double]("d") mustEqual 1.7976931348623157E8
-        f.get[Float]("f") mustEqual 1.023f
-        f.get[Boolean]("b") mustEqual false
+        f.getAttribute("i").asInstanceOf[Int] mustEqual 1
+        f.getAttribute("l").asInstanceOf[Long] mustEqual Long.MaxValue
+        f.getAttribute("d").asInstanceOf[Double] mustEqual 1.7976931348623157E8
+        f.getAttribute("f").asInstanceOf[Float] mustEqual 1.023f
+        f.getAttribute("b").asInstanceOf[Boolean] mustEqual false
       }
     }
 
@@ -1688,10 +1684,6 @@ class JsonConverterTest extends Specification {
 
     "infer schema from non-geojson files" >> {
       verifyInferredSchema((f, is) => f.infer(is, None, Map.empty[String, AnyRef]))
-    }
-
-    "infer schema from non-geojson files using deprecated API" >> {
-      verifyInferredSchema((f, is) => f.infer(is).fold[Try[(SimpleFeatureType, Config)]](Failure(null))(Success(_)))
     }
 
     def verifyInferredSchema(

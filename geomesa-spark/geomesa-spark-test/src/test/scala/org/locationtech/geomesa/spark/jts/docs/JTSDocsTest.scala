@@ -28,7 +28,7 @@ class JTSDocsTest extends TestWithSpark {
   override def beforeAll(): Unit = {
     // note: path needs to be the same locally and on the worker in order for spark to find it -
     // probably we're not calling something quite right
-    worker.withFileSystemBind(csv, csv, BindMode.READ_ONLY)
+    cluster.worker.withFileSystemBind(csv, csv, BindMode.READ_ONLY)
     super.beforeAll()
   }
 

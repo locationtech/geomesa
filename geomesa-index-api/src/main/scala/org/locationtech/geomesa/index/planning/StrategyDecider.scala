@@ -21,7 +21,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 /**
   * Selects from available strategies for answering a query
@@ -140,7 +140,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
     byId.orElse(byName).orElse(byJoin).getOrElse(fallback)
   }
 
-  class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
+  class CostBasedStrategyDecider extends StrategyDecider {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

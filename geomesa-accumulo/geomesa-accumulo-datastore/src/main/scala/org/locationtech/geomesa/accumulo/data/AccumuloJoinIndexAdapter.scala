@@ -32,8 +32,8 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.stats.Stat
 
 import java.util.Map.Entry
 import scala.util.Try

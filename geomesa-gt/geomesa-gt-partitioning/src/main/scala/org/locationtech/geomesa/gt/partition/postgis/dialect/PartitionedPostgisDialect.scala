@@ -25,9 +25,9 @@ import org.locationtech.geomesa.gt.partition.postgis.dialect.procedures._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.tables._
 import org.locationtech.geomesa.gt.partition.postgis.dialect.triggers.{DeleteTrigger, InsertTrigger, UpdateTrigger, WriteAheadTrigger}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
-import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.Conversion
+import org.locationtech.geomesa.utils.geotools.PrimitiveConversions.{Conversion, ConvertToInt}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.geotools.{Conversions, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.jts.geom._
 
@@ -367,7 +367,7 @@ class PartitionedPostgisDialect(store: JDBCDataStore, grants: Seq[RoleName] = Se
   }
 }
 
-object PartitionedPostgisDialect extends Conversions with StrictLogging {
+object PartitionedPostgisDialect extends StrictLogging {
 
   private val IgnoredTables = Seq("pg_stat_statements", "pg_stat_statements_info")
 
@@ -462,12 +462,12 @@ object PartitionedPostgisDialect extends Conversions with StrictLogging {
 
   implicit class GeometryAttributeConversions(val d: GeometryDescriptor) extends AnyVal {
     def getSrid: Option[Int] =
-      Option(d.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID)).map(int)
+      Option(d.getUserData.get(JDBCDataStore.JDBC_NATIVE_SRID)).map(ConvertToInt.convert)
         .orElse(
           Option(d.getCoordinateReferenceSystem)
             .flatMap(crs => Try(CRS.lookupEpsgCode(crs, true)).filter(_ != null).toOption.map(_.intValue())))
     def getCoordinateDimensions: Option[Int] =
-      Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(int)
+      Option(d.getUserData.get(Hints.COORDINATE_DIMENSION)).map(ConvertToInt.convert)
   }
 
   /**

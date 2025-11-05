@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2
 
-import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,18 +52,6 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
    * @return
    */
   def createEvaluationContext(globalParams: Map[String, Any] = Map.empty): EvaluationContext
-
-  /**
-   * Create a context used for local state while processing. A context object is not thread-safe, and should
-   * only be used in one thread at a time.
-   *
-   * @param globalParams global key-values to make accessible through the evaluation context
-   * @param success counter for tracking successful conversions
-   * @param failure counter for tracking failed conversions
-   * @return
-   */
-  @deprecated("Custom counters are no longer supported, use a ContextListener instead")
-  def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext
 
   /**
    * Java API for `createEvaluationContext`

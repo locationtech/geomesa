@@ -17,14 +17,12 @@ import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression._
 import org.locationtech.geomesa.convert2.transforms.ExpressionVisitor.ExpressionTreeVisitor
-import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ConverterConfig, ConverterName, SimpleFeatureConverter, SimpleFeatureConverterFactory}
+import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigSource}
 
-import java.io.InputStream
 import scala.util.control.NonFatal
-import scala.util.{Failure, Try}
 
 class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
 
@@ -88,11 +86,6 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
       Some(new FeatureToFeatureConverter(sft, id, columns ++ defaults, opts))
     }
   }
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new UnsupportedOperationException())
 }
 
 object FeatureToFeatureConverterFactory {

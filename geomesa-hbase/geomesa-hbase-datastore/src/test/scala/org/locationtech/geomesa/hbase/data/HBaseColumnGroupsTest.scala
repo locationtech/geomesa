@@ -26,13 +26,14 @@ import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, Scan
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_TRACK}
 import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
+import org.locationtech.geomesa.index.stats.Stat
+import org.locationtech.geomesa.index.stats.impl.MinMax
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.locationtech.jts.geom.{Envelope, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.utils.stats
 
-object Cardinality  extends Enumeration {
+@deprecated("Moved to org.locationtech.geomesa.utils.index")
+object Cardinality extends Enumeration {
   type Cardinality = Value
-  val HIGH    = Value("high")
-  val LOW     = Value("low")
-  val UNKNOWN = Value("unknown")
+  val HIGH: Value    = Value("high")
+  val LOW: Value     = Value("low")
+  val UNKNOWN: Value = Value("unknown")
 }

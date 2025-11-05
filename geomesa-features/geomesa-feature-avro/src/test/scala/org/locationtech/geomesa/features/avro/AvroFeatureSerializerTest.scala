@@ -11,16 +11,16 @@ package org.locationtech.geomesa.features.avro
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Geometry
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
-import java.util
 import java.util.{Collections, Date, UUID}
 
 @RunWith(classOf[JUnitRunner])
@@ -42,12 +42,36 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
 //      Set(Lazy, Immutable, WithUserData)
     )
 
-  "new AvroFeatureSerializer" should {
+  val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point,dtg:Date")
+  val basicFeatures = Seq.tabulate(6) { i =>
+    ScalaSimpleFeature.create(sft, i.toString, i.toString, "POINT(-110 30)", "2012-01-02T05:06:07.000Z")
+  }
+  val basicFeaturesWithVis = basicFeatures.zip(Seq("test&usa", "admin&user", "", null, "test", "user")).map { case (f, v) =>
+    val withVis = ScalaSimpleFeature.copy(f)
+    withVis.getUserData.put("geomesa.feature.visibility", v)
+    withVis
+  }
 
-    def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
-      val aBytes = a.asInstanceOf[Array[Byte]]
-      val bBytes = b.asInstanceOf[Array[Byte]]
-      util.Arrays.equals(aBytes, bBytes) must beTrue
+  def arrayEquals(a: Any, b: Any): MatchResult[Boolean] = {
+    val aBytes = a.asInstanceOf[Array[Byte]]
+    val bBytes = b.asInstanceOf[Array[Byte]]
+    java.util.Arrays.equals(aBytes, bBytes) must beTrue
+  }
+
+  "AvroFeatureSerializer" should {
+
+    "have a properly working apply() method" >> {
+      val opts = Set(SerializationOption.WithUserData)
+
+      // without options
+      val avro1 = new AvroFeatureSerializer(sft)
+      avro1 must beAnInstanceOf[AvroFeatureSerializer]
+      avro1.options must beEmpty
+
+      // with options
+      val avro2 = new AvroFeatureSerializer(sft, opts)
+      avro2 must beAnInstanceOf[AvroFeatureSerializer]
+      avro2.options mustEqual opts
     }
 
     "correctly deserialize basic features" in {
@@ -202,9 +226,8 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
 
         deserialized must not(beNull)
         deserialized.getType mustEqual sf.getType
-        import org.locationtech.geomesa.utils.geotools.Conversions._
-        arrayEquals(deserialized.get[java.util.Map[String,_]]("m1").get("a"), sf.get[java.util.Map[String,_]]("m1").get("a"))
-        arrayEquals(deserialized.get[java.util.List[_]]("l").get(0), sf.get[java.util.List[_]]("l").get(0))
+        arrayEquals(deserialized.getAttribute("m1").asInstanceOf[java.util.Map[String,_]].get("a"), sf.getAttribute("m1").asInstanceOf[java.util.Map[String,_]].get("a"))
+        arrayEquals(deserialized.getAttribute("l").asInstanceOf[java.util.List[_]].get(0), sf.getAttribute("l").asInstanceOf[java.util.List[_]].get(0))
       }
     }
 
@@ -276,6 +299,81 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
           }
         }
       }
+    }
+
+    "be able to deserialize points" >> {
+      val serializer = new AvroFeatureSerializer(sft)
+
+      val serialized = basicFeatures.map(serializer.serialize)
+
+      val decoded = serialized.map(serializer.deserialize)
+      decoded.map(_.getID) mustEqual basicFeatures.map(_.getID)
+      decoded.map(_.getAttributes) mustEqual basicFeatures.map(_.getAttributes)
+    }
+
+    "be able to deserialize points with user data" >> {
+      val serializer = new AvroFeatureSerializer(sft, SerializationOption.WithUserData)
+
+      val features = basicFeaturesWithVis
+
+      val serialized = features.map(serializer.serialize)
+
+      val deserialized = serialized.map(serializer.deserialize)
+
+      deserialized.map(_.getID) mustEqual features.map(_.getID)
+      deserialized.map(_.getAttributes) mustEqual features.map(_.getAttributes)
+      deserialized.map(_.getUserData) mustEqual features.map(_.getUserData)
+    }
+
+    "not include user data when not requested" >> {
+      val serializer = new AvroFeatureSerializer(sft)
+      val expected = basicFeatures.map(serializer.serialize)
+      val actual = basicFeaturesWithVis.map(serializer.serialize)
+
+      actual must haveSize(expected.size)
+
+      forall(actual.zip(expected)) { case (a, e) => arrayEquals(a, e) }
+    }
+
+    "include user data when requested" >> {
+      val noUserData = {
+        val serializer = new AvroFeatureSerializer(sft, SerializationOption.defaults)
+        basicFeatures.map(serializer.serialize)
+      }
+      val withUserData = {
+        val serializer = new AvroFeatureSerializer(sft, SerializationOption.WithUserData)
+        basicFeaturesWithVis.map(serializer.serialize)
+      }
+
+      withUserData must haveSize(noUserData.size)
+
+      forall(withUserData.zip(noUserData)) {
+        case (y, n) => y.length must beGreaterThan(n.length)
+      }
+    }
+
+    "work when user data is serialized but not expected by deserializer" >> {
+      // in this case the serialized user data will be ignored
+      val serializer = new AvroFeatureSerializer(sft, SerializationOption.WithUserData)
+      val deserializer = new AvroFeatureSerializer(sft, SerializationOption.defaults)
+
+      val sf = basicFeaturesWithVis.head
+
+      val serialized = serializer.serialize(sf)
+      val deserialized = deserializer.deserialize(serialized)
+      deserialized.getID mustEqual sf.getID
+      deserialized.getAttributes mustEqual sf.getAttributes
+      deserialized.getUserData.asScala must beEmpty
+    }
+
+    "fail when user data is not serialized but is expected by the deserializer" >> {
+      val serializer = new AvroFeatureSerializer(sft, SerializationOption.defaults)
+      val deserializer = new AvroFeatureSerializer(sft, SerializationOption.WithUserData)
+
+      val sf = basicFeaturesWithVis.head
+
+      val serialized = serializer.serialize(sf)
+      deserializer.deserialize(serialized) must throwAn[Exception]
     }
   }
 }

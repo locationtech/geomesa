@@ -11,6 +11,8 @@
     <artifactId>geomesa-fs-spark-runtime_2.12</artifactId>
 
     <properties>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
         <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
         <maven.scoverage.phase>none</maven.scoverage.phase>
     </properties>

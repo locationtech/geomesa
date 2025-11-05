@@ -13,10 +13,10 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, Stat}
 import org.locationtech.geomesa.lambda.stream.TransientStore
-import org.locationtech.geomesa.utils.stats._
 
 class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, TransientStore]) extends GeoMesaStats {
 

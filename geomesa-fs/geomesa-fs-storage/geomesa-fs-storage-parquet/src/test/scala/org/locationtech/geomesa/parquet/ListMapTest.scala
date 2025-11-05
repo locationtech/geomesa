@@ -74,26 +74,24 @@ class ListMapTest extends Specification {
           .withFilter(FilterCompat.NOOP)
           .withConf(sftConf)
           .build()
-
-        import org.locationtech.geomesa.utils.geotools.Conversions._
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
         sf.getID must be equalTo "1"
-        sf.get[java.util.List[String]]("foobar").asScala must containTheSameElementsAs(List("a", "b", "c"))
+        sf.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must containTheSameElementsAs(List("a", "b", "c"))
         sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
         sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
 
         val sf2 = reader.read()
         sf2.getAttributeCount mustEqual 3
         sf2.getID must be equalTo "2"
-        sf2.get[java.util.List[String]]("foobar") must beNull
+        sf2.getAttribute("foobar").asInstanceOf[java.util.List[String]] must beNull
         sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
         sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
 
         val sf3 = reader.read()
         sf3.getAttributeCount mustEqual 3
         sf3.getID must be equalTo "3"
-        sf3.get[java.util.List[String]]("foobar").asScala must beEmpty
+        sf3.getAttribute("foobar").asInstanceOf[java.util.List[String]].asScala must beEmpty
         sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
         sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
       }
@@ -141,12 +139,10 @@ class ListMapTest extends Specification {
           .withConf(sftConf)
           .build()
 
-        import org.locationtech.geomesa.utils.geotools.Conversions._
-
         val sf = reader.read()
         sf.getAttributeCount mustEqual 3
         sf.getID must be equalTo "1"
-        val m = sf.get[java.util.Map[String,String]]("foobar").asScala
+        val m = sf.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]].asScala
         m must containTheSameElementsAs(Seq("a" -> "1", "b" -> "2", "c" -> "3"))
         sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
         sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
@@ -154,14 +150,14 @@ class ListMapTest extends Specification {
         val sf2 = reader.read()
         sf2.getAttributeCount mustEqual 3
         sf2.getID must be equalTo "2"
-        sf2.get[java.util.Map[String,String]]("foobar") must beNull
+        sf2.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]] must beNull
         sf2.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 67.2363
         sf2.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 55.236
 
         val sf3 = reader.read()
         sf3.getAttributeCount mustEqual 3
         sf3.getID must be equalTo "3"
-        sf3.get[java.util.Map[String,String]]("foobar").asScala must beEmpty
+        sf3.getAttribute("foobar").asInstanceOf[java.util.Map[String,String]].asScala must beEmpty
         sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
         sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
       }
@@ -214,14 +210,12 @@ class ListMapTest extends Specification {
         val u1 = "00000000-0000-1111-0000-000000000000"
         val u2 = "00000000-0000-2222-0000-000000000000"
 
-        import org.locationtech.geomesa.utils.geotools.Conversions._
-
         val sf = reader.read()
         sf.getAttributeCount mustEqual 4
         sf.getID must be equalTo "1"
-        val u = sf.get[java.util.List[UUID]]("foo").asScala.map(_.toString)
+        val u = sf.getAttribute("foo").asInstanceOf[java.util.List[UUID]].asScala.map(_.toString)
         u must containTheSameElementsAs(Seq[String](u2, u1))
-        val m = sf.get[java.util.Map[Int, Double]]("bar").asScala
+        val m = sf.getAttribute("bar").asInstanceOf[java.util.Map[Int, Double]].asScala
         m must containTheSameElementsAs(Seq(1 -> 2.0, 3 -> 6.0))
         sf.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 25.236263
         sf.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
@@ -237,8 +231,8 @@ class ListMapTest extends Specification {
         val sf3 = reader.read()
         sf3.getAttributeCount mustEqual 4
         sf3.getID must be equalTo "3"
-        sf3.get[java.util.List[_]]("foo").asScala must beEmpty
-        sf3.get[java.util.Map[_,_]]("bar").asScala must beEmpty
+        sf3.getAttribute("foo").asInstanceOf[java.util.List[_]].asScala must beEmpty
+        sf3.getAttribute("bar").asInstanceOf[java.util.Map[_,_]].asScala must beEmpty
         sf3.getDefaultGeometry.asInstanceOf[Point].getX mustEqual 73.0
         sf3.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 73.0
       }

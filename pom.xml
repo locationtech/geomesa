@@ -126,6 +126,7 @@
         <testcontainers.version>1.21.3</testcontainers.version>
         <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
         <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
+        <testcontainers.spark.version>1.0.0</testcontainers.spark.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
@@ -202,6 +203,7 @@
         <maven.scoverage.phase>package</maven.scoverage.phase>
         <maven.shade.skip>false</maven.shade.skip>
         <maven.assembly.skip>false</maven.assembly.skip>
+        <maven.empty.javadoc.phase>none</maven.empty.javadoc.phase>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
@@ -290,6 +292,25 @@
                                 <goals>
                                     <goal>doc-jar</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- for modules with no sources, use the regular jar plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>force-javadoc</id>
+                                <phase>${maven.empty.javadoc.phase}</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${project.build.directory}</classesDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -2647,6 +2668,18 @@
                 <artifactId>testcontainers-hbase</artifactId>
                 <version>${testcontainers.hbase.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.geomesa.testcontainers</groupId>
+                <artifactId>testcontainers-spark</artifactId>
+                <version>${testcontainers.spark.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.spark</groupId>
+                        <artifactId>*</artifactId> <!-- exclude so we can override the scala version -->
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -10,11 +10,11 @@ package org.locationtech.geomesa.metrics.micrometer
 package prometheus
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import com.typesafe.scalalogging.LazyLogging
 import io.micrometer.core.instrument.{MeterRegistry, Tag}
 import io.micrometer.prometheusmetrics.{PrometheusMeterRegistry, PrometheusRenameFilter}
 import io.prometheus.metrics.exporter.httpserver.HTTPServer
 import io.prometheus.metrics.exporter.pushgateway.{Format, PushGateway, Scheme}
+import org.locationtech.geomesa.metrics.micrometer.RegistryFactory.BaseRegistryFactory
 import pureconfig.generic.semiauto.deriveReader
 import pureconfig.{ConfigReader, ConfigSource}
 
@@ -23,12 +23,11 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import scala.util.control.NonFatal
 
-object PrometheusFactory extends RegistryFactory(RegistryFactory.Prometheus) with LazyLogging {
+object PrometheusFactory extends BaseRegistryFactory(RegistryFactory.Prometheus) {
 
   import scala.collection.JavaConverters._
 
   override protected def createRegistry(conf: Config): MeterRegistry = {
-    logger.info("Creating Prometheus registry")
     // noinspection ScalaUnusedSymbol
     implicit val gatewayReader: ConfigReader[PushGatewayConfig] = deriveReader[PushGatewayConfig]
     implicit val prometheusReader: ConfigReader[PrometheusConfig] = deriveReader[PrometheusConfig]

@@ -30,7 +30,7 @@ import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
 import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Exporter}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, PathUtils}
 
 import java.io.File
 import java.text.NumberFormat

@@ -44,4 +44,3 @@ object NewTestObserverFactory {
     override def close(): Unit = closed = true
   }
 }
-

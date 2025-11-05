@@ -37,17 +37,9 @@ jobs:
       fail-fast: false
       matrix:
         tool:
-          - bandit
           - csslint
-          - jacksonlinter
-          - jshint
-          - prospector
-          - pylint
-          - pylintpython3
           - remark-lint
-          - SQLint
           - shellcheck
-          - stylelint
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code

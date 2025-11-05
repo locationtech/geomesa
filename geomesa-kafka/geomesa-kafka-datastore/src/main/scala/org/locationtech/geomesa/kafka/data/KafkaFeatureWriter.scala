@@ -121,8 +121,7 @@ object KafkaFeatureWriter {
     override def hasNext: Boolean = ids.hasNext
 
     override def next(): FastSettableFeature = {
-      import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-      reset(ids.headOption.getOrElse(featureIds.getAndIncrement().toString))
+      reset(if (ids.hasNext) { ids.next() } else { featureIds.getAndIncrement().toString })
       // default to using the provided fid
       feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       feature

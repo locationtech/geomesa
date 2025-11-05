@@ -24,7 +24,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
-import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -32,6 +32,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
@@ -41,9 +42,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
-import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexCoverage, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 
 import java.util.Locale
 import scala.util.control.NonFatal
@@ -433,7 +433,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
         if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
           logger.error("The query being executed requires multiple scans, which is not currently " +
             "supported by GeoMesa. Your result set will be partially incomplete. " +
-            s"Query: ${filterToString(query.getFilter)}")
+            s"Query: ${FilterHelper.toString(query.getFilter)}")
         }
         qps.head
       }

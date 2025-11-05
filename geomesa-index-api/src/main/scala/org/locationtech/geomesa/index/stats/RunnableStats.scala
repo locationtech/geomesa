@@ -14,13 +14,13 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats._
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -137,7 +137,7 @@ class RunnableStats(ds: DataStore) extends GeoMesaStats with LazyLogging {
       }
     } catch {
       case NonFatal(e) =>
-        logger.error(s"Error running stats query with stats '$query' and filter '${filterToString(filter)}'", e)
+        logger.error(s"Error running stats query with stats '$query' and filter '${FilterHelper.toString(filter)}'", e)
         None
     }
   }
@@ -162,7 +162,7 @@ object RunnableStats {
         }
       } catch {
         case NonFatal(e) =>
-          logger.error(s"Error running stats query with stats '$query' and filter '${filterToString(filter)}'", e)
+          logger.error(s"Error running stats query with stats '$query' and filter '${FilterHelper.toString(filter)}'", e)
           None
       }
     }

@@ -14,7 +14,6 @@ import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata.Config
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -65,7 +64,7 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
   }
 }
 
-object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
+object FileBasedMetadataFactory extends LazyLogging {
 
   val MetadataDirectory = "metadata"
   val StoragePath = s"$MetadataDirectory/storage.json"

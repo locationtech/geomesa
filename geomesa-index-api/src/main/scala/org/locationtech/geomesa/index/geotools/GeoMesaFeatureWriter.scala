@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.WriteException
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
@@ -362,8 +363,6 @@ object GeoMesaFeatureWriter extends LazyLogging {
     */
   private trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
-    import org.locationtech.geomesa.security.SecureSimpleFeature
-
     def filter: Filter
 
     private val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
@@ -393,7 +392,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
       live = GeoMesaFeatureWriter.featureWithFid(live)
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
-      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) || live.visibility != original.visibility) {
+      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) ||
+            SecurityUtils.getVisibility(live) != SecurityUtils.getVisibility(original)) {
         updateFeature(live, original)
       }
       original = null
