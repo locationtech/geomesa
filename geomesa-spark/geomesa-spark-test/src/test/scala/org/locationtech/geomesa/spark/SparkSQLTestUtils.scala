@@ -3,12 +3,11 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark
 
-import org.apache.spark.sql.SparkSession
 import org.geotools.api.data.{DataStore, SimpleFeatureStore}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
@@ -24,17 +23,6 @@ import scala.util.Random
 object SparkSQLTestUtils {
 
   import scala.collection.JavaConverters._
-
-  def createSparkSession(): SparkSession = {
-    SparkSession.builder()
-      .appName("testSpark")
-      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-      .config("spark.sql.crossJoin.enabled", "true")
-      .config("spark.ui.enabled", value = false)
-      .master("local[*]")
-      .getOrCreate()
-  }
 
   val random = new Random()
   random.setSeed(0)

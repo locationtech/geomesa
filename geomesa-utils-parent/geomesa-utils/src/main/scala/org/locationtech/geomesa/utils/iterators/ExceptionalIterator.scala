@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.iterators
@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
  * @param delegate delegate iterator
  * @tparam T type bounds
  */
-class ExceptionalIterator[T](val delegate: Iterator[T]) extends Iterator[T] {
+class ExceptionalIterator[T](delegate: Iterator[T]) extends Iterator[T] {
 
   private var _suppressed: Throwable = _
 

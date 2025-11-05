@@ -3,15 +3,11 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
 
-import com.datastax.driver.core.{Cluster, SocketOptions}
-import org.cassandraunit.CQLDataLoader
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.collection.ListFeatureCollection
@@ -20,55 +16,55 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.slf4j.LoggerFactory
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import java.nio.file.{Files, Path}
+import org.specs2.specification.BeforeAfterAll
+import org.testcontainers.cassandra.CassandraContainer
+import org.testcontainers.cassandra.delegate.CassandraDatabaseDelegate
+import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.output.Slf4jLogConsumer
+import org.testcontainers.utility.{DockerImageName, MountableFile}
 
 @RunWith(classOf[JUnitRunner])
-class CassandraDataStoreTest extends Specification {
+class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
   import scala.collection.JavaConverters._
 
   sequential
 
-  var storage: Path = _
-  var params: Map[String, String] = _
+  protected def createContainer(): CassandraContainer = {
+    new CassandraContainer(DockerImageName.parse("cassandra").withTag(sys.props.getOrElse("cassandra.docker.tag", "3.11.19")))
+      .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("cassandra")))
+      .withFileSystemBind(MountableFile.forClasspathResource("init.cql").getResolvedPath, "/init.cql", BindMode.READ_ONLY)
+  }
+
+  val container: CassandraContainer = createContainer()
+
+  lazy val params: Map[String, String] = Map(
+    Params.ContactPointParam.getName -> s"${container.getContactPoint.getHostString}:${container.getContactPoint.getPort}",
+    Params.KeySpaceParam.getName -> "geomesa_cassandra",
+    Params.CatalogParam.getName -> "test_sft"
+  )
   var ds: CassandraDataStore = _
 
-  step {
-    storage = Files.createTempDirectory("cassandra")
-
-    System.setProperty("cassandra.storagedir", storage.toString)
-
-    EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra-config.yaml", 1200000L)
-
-    var readTimeout: Int = SystemProperty("cassandraReadTimeout", "12000").get.toInt
-
-    if (readTimeout < 0) {
-      readTimeout = 12000
-    }
-    val host = EmbeddedCassandraServerHelper.getHost
-    val port = EmbeddedCassandraServerHelper.getNativeTransportPort
-    val cluster = new Cluster.Builder().addContactPoints(host).withPort(port)
-        .withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout)).build().init()
-    val session = cluster.connect()
-    val cqlDataLoader = new CQLDataLoader(session)
-    cqlDataLoader.load(new ClassPathCQLDataSet("init.cql", false, false))
-
-    params = Map(
-      Params.ContactPointParam.getName -> s"$host:$port",
-      Params.KeySpaceParam.getName -> "geomesa_cassandra",
-      Params.CatalogParam.getName -> "test_sft"
-    )
+  override def beforeAll(): Unit = {
+    container.start()
+    // re-create initScript logic without using copyFileToContainer (which fails with rootless docker)
+    new CassandraDatabaseDelegate(container).execute(null, "/init.cql", -1, false, false)
     ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[CassandraDataStore]
+  }
+
+  override def afterAll(): Unit = {
+    CloseWithLogging(ds)
+    container.close()
   }
 
   "CassandraDataStore" should {
@@ -155,7 +151,7 @@ class CassandraDataStoreTest extends Specification {
         if (loose) {
           clientSideFilter must beSome("none")
         } else {
-          clientSideFilter must beSome(org.locationtech.geomesa.filter.filterToString(filter))
+          clientSideFilter must beSome(FilterHelper.toString(filter))
         }
       }
 
@@ -328,11 +324,5 @@ class CassandraDataStoreTest extends Specification {
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
     }
-  }
-
-  step {
-    ds.dispose()
-    // note: no way to shutdown c* cluster, and clean method throws exception on system namespace
-    PathUtils.deleteRecursively(storage)
   }
 }

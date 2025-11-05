@@ -4,7 +4,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.spark
@@ -19,7 +19,7 @@ import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloQueryPlan}
-import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
+import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
@@ -57,7 +57,12 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       // getMultipleQueryPlan will return the fallback if any
       // element of the plan is a JoinPlan
       val sft = ds.getSchema(query.getTypeName)
-      val qps = AccumuloJobUtils.getMultipleQueryPlan(ds, query)
+      // disable join plans
+      JoinIndex.AllowJoinPlans.set(false)
+      val qps = try { ds.getQueryPlan(query) } finally {
+        // make sure we reset the thread locals
+        JoinIndex.AllowJoinPlans.remove()
+      }
 
       // can return a union of the RDDs because the query planner *should*
       // be rewriting ORs to make them logically disjoint
@@ -68,10 +73,14 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         // flatten and duplicate the query plans so each one only has a single table
         val expanded = qps.flatMap {
           case qp: BatchScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
-          case qp: EmptyPlan => Seq(qp)
+          case _: EmptyPlan => Seq.empty
           case qp => throw new UnsupportedOperationException(s"Unexpected query plan type: $qp")
         }
-        sc.union(expanded.map(queryPlanToRDD(sft, _)))
+        if (expanded.isEmpty) {
+          sc.emptyRDD[SimpleFeature]
+        } else {
+          sc.union(expanded.map(queryPlanToRDD(sft, _)))
+        }
       }
       SpatialRDD(sfrdd, transform.getOrElse(sft))
     } finally {

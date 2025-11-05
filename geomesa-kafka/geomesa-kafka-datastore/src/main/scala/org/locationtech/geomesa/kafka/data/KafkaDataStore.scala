@@ -3,14 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.Tags
 import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
@@ -20,15 +19,15 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySe
 import org.geotools.api.data.{Query, SimpleFeatureStore, Transaction}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.audit.AuditWriter
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{MetricsConfig, NamespaceConfig}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils.DistributedLocking.LocalLocking
+import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
@@ -39,8 +38,6 @@ import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsum
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
 import org.locationtech.geomesa.kafka.versions.KafkaConsumerVersions
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
-import org.locationtech.geomesa.metrics.micrometer.{MetricsTags, RegistrySetup}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
@@ -48,7 +45,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfig
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
 import java.io.{Closeable, IOException, StringReader}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
@@ -70,10 +66,10 @@ class KafkaDataStore(
 
   override val stats: GeoMesaStats = new RunnableStats(this)
 
-  private val registry = config.registrySetup.map(_.register())
+  private val registry = config.metricsRegistry.map(_.register())
 
   // note: sharing a single producer is generally faster
-  // http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
+  // https://kafka.apache.org/39/javadoc/org/apache/kafka/clients/producer/KafkaProducer.html
 
   // only instantiate the producer if needed
   private val defaultProducer = new LazyProducer(KafkaDataStore.producer(config.brokers, config.producers.properties))
@@ -94,8 +90,9 @@ class KafkaDataStore(
       } else {
         val sft = KafkaDataStore.super.getSchema(key)
         val views = config.layerViewsConfig.getOrElse(key, Seq.empty).map(KafkaDataStore.createLayerView(sft, _))
+        val tags = KafkaDataStore.this.tags(sft.getTypeName)
         // if the expiry is zero, this will return a NoOpFeatureCache
-        val cache = KafkaFeatureCache(sft, config.indices, views)
+        val cache = KafkaFeatureCache(sft, config.indices, views, tags)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
@@ -103,7 +100,7 @@ class KafkaDataStore(
         val readBack = config.consumers.readBack
         val expiry = config.indices.expiry
         val offsetCommitInterval = config.consumers.offsetCommitInterval
-        val loader = new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, offsetCommitInterval, serializer, readBack, expiry)
+        val loader = new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, offsetCommitInterval, serializer, readBack, expiry, tags)
         try { loader.start() } catch {
           case NonFatal(e) =>
             CloseWithLogging(loader)
@@ -319,11 +316,12 @@ class KafkaDataStore(
     val producer = getTransactionalProducer(sft, transaction)
     val vis = sft.isVisibilityRequired
     val serializer = serialization.apply(sft)
+    val tags = this.tags(sft.getTypeName)
     val writer = filter match {
-      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer) with RequiredVisibilityWriter
-      case None           => new AppendKafkaFeatureWriter(sft, producer, serializer)
-      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, serializer, f) with RequiredVisibilityWriter
-      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, serializer, f)
+      case None if vis    => new AppendKafkaFeatureWriter(sft, producer, serializer, tags) with RequiredVisibilityWriter
+      case None           => new AppendKafkaFeatureWriter(sft, producer, serializer, tags)
+      case Some(f) if vis => new ModifyKafkaFeatureWriter(sft, producer, serializer, tags, f) with RequiredVisibilityWriter
+      case Some(f)        => new ModifyKafkaFeatureWriter(sft, producer, serializer, tags, f)
     }
     if (config.clearOnStart && cleared.add(sft.getTypeName)) {
       writer.clear()
@@ -336,7 +334,6 @@ class KafkaDataStore(
     CloseWithLogging(partitionedProducer)
     CloseWithLogging(caches.asMap.asScala.values)
     CloseWithLogging(registry)
-    CloseWithLogging(config.metrics)
     caches.invalidateAll()
     super.dispose()
   }
@@ -424,16 +421,8 @@ object KafkaDataStore extends LazyLogging {
   def usesDefaultPartitioning(sft: SimpleFeatureType): Boolean =
     sft.getUserData.get(PartitioningKey) == PartitioningDefault
 
-  /**
-   * Get tags for metrics
-   *
-   * @param sft simple feature type
-   * @return
-   */
-  private[kafka] def tags(sft: SimpleFeatureType): Tags = MetricsTags.typeNameTag(sft.getTypeName)
-
-  @deprecated("Uses a custom partitioner which creates issues with Kafka streams. Use `producer(String, Map[String, String]) instead")
-  def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
+  // kept for back-compatibility - uses a custom partitioner which creates issues with Kafka streams
+  private def producer(config: KafkaDataStoreConfig): Producer[Array[Byte], Array[Byte]] = {
     val props =
       if (config.producers.properties.contains(PARTITIONER_CLASS_CONFIG)) {
         config.producers.properties
@@ -522,16 +511,12 @@ object KafkaDataStore extends LazyLogging {
       producers: ProducerConfig,
       clearOnStart: Boolean,
       topics: TopicConfig,
-      @deprecated("unused")
-      serialization: SerializationType,
       indices: IndexConfig,
       looseBBox: Boolean,
       layerViewsConfig: Map[String, Seq[LayerViewConfig]],
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
-      @deprecated("replaced with micrometer metrics")
-      metrics: Option[GeoMesaMetrics],
-      registrySetup: Option[RegistrySetup],
+      metricsRegistry: Option[MetricsConfig],
       namespace: Option[String]) extends NamespaceConfig
 
   case class ConsumerConfig(

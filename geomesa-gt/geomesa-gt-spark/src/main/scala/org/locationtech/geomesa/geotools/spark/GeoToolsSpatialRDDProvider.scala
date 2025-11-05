@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.geotools.spark
@@ -16,6 +16,7 @@ import org.geotools.api.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
@@ -58,9 +59,11 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     * @param typeName simple feature type name
     */
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    WithStore[DataStore](params) { ds =>
-      require(ds != null, "Could not load data store with the provided parameters")
-      require(ds.getSchema(typeName) != null, "Schema must exist before calling save - use `DataStore.createSchema`")
+    if (GeoToolsSpatialRDDProvider.StoreCheck.toBoolean.get) {
+      WithStore[DataStore](params) { ds =>
+        require(ds != null, "Could not load data store with the provided parameters")
+        require(ds.getSchema(typeName) != null, "Schema must exist before calling save - use `DataStore.createSchema`")
+      }
     }
 
     rdd.foreachPartition { iter =>
@@ -71,4 +74,8 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       }
     }
   }
+}
+
+object GeoToolsSpatialRDDProvider {
+  val StoreCheck: SystemProperty = SystemProperty("geomesa.gt.spark.store.check", "true")
 }

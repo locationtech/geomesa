@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-fs_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,12 +12,18 @@
 
     <packaging>pom</packaging>
 
+    <properties>
+        <guava.version>${hadoop.guava.version}</guava.version>
+    </properties>
+
     <modules>
         <module>geomesa-fs-storage-api</module>
         <module>geomesa-fs-storage-common</module>
         <module>geomesa-fs-storage-convert</module>
         <module>geomesa-fs-storage-orc</module>
+        <module>geomesa-fs-storage-orc-io</module>
         <module>geomesa-fs-storage-parquet</module>
+        <module>geomesa-fs-storage-parquet-io</module>
     </modules>
 
 </project>

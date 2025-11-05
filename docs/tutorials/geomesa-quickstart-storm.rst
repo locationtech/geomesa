@@ -17,21 +17,21 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_required_version|,
+-  an instance of Accumulo {{accumulo_required_version}},
 -  an Accumulo user with create-table and write permissions,
--  a Kafka |kafka_required_version| cluster,
+-  a Kafka {{kafka_required_version}} cluster,
 -  an installation of Storm 0.9+, and
--  an instance of GeoServer |geoserver_version| with the GeoMesa Accumulo plugin.
+-  an instance of GeoServer {{geoserver_version}} with the GeoMesa Accumulo plugin.
    installed
 
 In order to install the GeoMesa Accumulo GeoServer plugin, see :ref:`install_accumulo_geoserver`.
 
 You will also need:
 
--  The `xz <https://tukaani.org/xz/>`__ data compression tool,
--  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
--  `Apache Maven <https://maven.apache.org>`__ |maven_version|, and
--  a `git <https://git-scm.com/>`__ client.
+-  The `xz <https://tukaani.org/xz/>`__ data compression tool
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  `Apache Maven <https://maven.apache.org>`__ {{maven_required_version}}, and
+-  a `git <https://git-scm.com/>`__ client
 
 Download and Build the Tutorial
 -------------------------------
@@ -93,7 +93,7 @@ Use ``storm jar`` to submit the topology to your Storm instance:
 
 .. code-block:: bash
 
-    $ storm jar geomesa-quickstart-storm/target/geomesa-quickstart-storm-$VERSION.jar \
+    $ storm jar geomesa-quickstart-storm/target/geomesa-quickstart-storm-{{release}}.jar \
         com.example.geomesa.storm.OSMIngest \
         -instanceId <accumulo-instance-id>  \
         -zookeepers <zookeepers>            \   
@@ -139,7 +139,7 @@ messages:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-storm/target/geomesa-quickstart-storm-$VERSION.jar \
+    $ java -cp geomesa-quickstart-storm/target/geomesa-quickstart-storm-{{release}}.jar \
         com.example.geomesa.storm.OSMIngestProducer \
         -ingestFile simple-gps-points-120312.txt    \
         -topic OSM                                  \

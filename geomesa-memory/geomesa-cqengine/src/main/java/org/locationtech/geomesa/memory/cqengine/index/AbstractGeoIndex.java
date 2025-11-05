@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.index;
@@ -20,7 +20,7 @@ import com.googlecode.cqengine.resultset.ResultSet;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
-import org.locationtech.geomesa.utils.index.SpatialIndex;
+import org.locationtech.geomesa.memory.index.SpatialIndex;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;

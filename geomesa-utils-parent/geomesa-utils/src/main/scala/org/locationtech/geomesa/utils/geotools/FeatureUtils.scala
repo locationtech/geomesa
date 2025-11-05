@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
@@ -27,7 +27,7 @@ object FeatureUtils {
 
   // sourced from the following:
   //   https://github.com/geotools/geotools/blob/master/modules/library/cql/src/main/jjtree/ECQLGrammar.jjt
-  //   http://docs.geotools.org/latest/userguide/library/cql/internal.html
+  //   https://docs.geotools.org/latest/userguide/library/cql/internal.html
   val ReservedWords: Set[String] = HashSet(
     "AFTER",
     "AND",
@@ -107,13 +107,6 @@ object FeatureUtils {
 
     builder.init(orig)
     builder
-  }
-
-  @deprecated("use `write` or `copyToFeature` instead")
-  def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
-                   sf: SimpleFeature,
-                   useProvidedFid: Boolean = false): SimpleFeature = {
-    copyToFeature(writer.next(), sf, useProvidedFid)
   }
 
   /**

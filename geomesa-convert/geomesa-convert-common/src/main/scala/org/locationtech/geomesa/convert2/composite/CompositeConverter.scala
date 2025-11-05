@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2.composite
@@ -15,8 +15,8 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.Stats
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -28,13 +28,10 @@ import scala.util.Try
 class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predicate, SimpleFeatureConverter)])
     extends SimpleFeatureConverter {
 
-  private val tags = ConverterMetrics.typeNameTag(targetSft)
+  private val tags = TagUtils.typeNameTag(targetSft.getTypeName)
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams)), Stats(tags))
-
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
-    createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams, success, failure)), Stats.wrap(success, failure, tags))
 
   private def createEvaluationContext(contexts: Seq[EvaluationContext], theseStats: Stats): EvaluationContext = {
     val stats = new Stats() {

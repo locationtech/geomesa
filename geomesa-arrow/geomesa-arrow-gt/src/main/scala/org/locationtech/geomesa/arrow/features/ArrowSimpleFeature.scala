@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow.features
@@ -15,7 +15,7 @@ import org.geotools.api.filter.identity.FeatureId
 import org.geotools.api.geometry.BoundingBox
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
-import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.jts.geom.Geometry
 
 import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}

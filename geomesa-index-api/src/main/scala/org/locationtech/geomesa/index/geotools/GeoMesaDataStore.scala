@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
@@ -16,6 +16,7 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.api._
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibility, VersionKey}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -42,17 +43,19 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
-  * Abstract base class for data store implementations on top of distributed databases
-  *
-  * @param config common datastore configuration options - subclasses can extend this
-  * @tparam DS type of this data store
-  */
+ * Abstract base class for data store implementations on top of distributed databases
+ *
+ * @param config common datastore configuration options - subclasses can extend this
+ * @tparam DS type of this data store
+ */
 abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats {
 
   this: DS =>
 
   import scala.collection.JavaConverters._
+
+  private val registry = config.metrics.map(_.register())
 
   val queryPlanner: QueryPlanner[DS] = new QueryPlanner(this)
 
@@ -320,7 +323,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
             throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
                 "version of GeoMesa than this client can handle. Please ensure that you are using the " +
                 "same GeoMesa jar versions across your entire workflow. For more information, see " +
-                "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+                "https://www.geomesa.org/documentation/stable/user/upgrade.html")
         }
       }
 
@@ -409,6 +412,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     Try(GeoMesaDataStore.liveStores.get(VersionKey(config.catalog, getClass)).remove(this))
     CloseWithLogging(stats)
     CloseWithLogging(config.audit)
+    CloseWithLogging(registry)
     super.dispose()
   }
 
@@ -433,7 +437,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
-    queryPlanner.planQuery(sft, query, index, explainer)
+    index.foreach(query.getHints.put(QueryHints.QUERY_INDEX, _))
+    queryPlanner.planQuery(sft, query, explainer)
   }
 
   /**

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.redis.data
@@ -15,13 +15,13 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, MetricsConfig}
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import redis.clients.jedis._
 import redis.clients.jedis.util.{JedisURIHelper, Pool}
-import redis.clients.jedis.{Connection, DefaultJedisClientConfig, HostAndPort, Jedis, JedisClientConfig, JedisCluster, JedisPool}
 
 import java.awt.RenderingHints
 import java.net.URI
@@ -77,6 +77,8 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       TestConnectionParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      MetricsRegistryParam,
+      MetricsRegistryConfigParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
@@ -171,6 +173,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(new AuditLogger("redis", AuditProvider.Loader.loadOrNone(params)))
     }
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
     // get the auth params passed in as a comma-delimited string
     val authProvider = AuthUtils.getProvider(params,
       AuthsParam.lookupOpt(params).map(_.split(",").toSeq.filterNot(_.isEmpty)).getOrElse(Seq.empty))
@@ -184,7 +187,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    RedisDataStoreConfig(catalog, generateStats, audit, authProvider, queries, pipeline, ns)
+    RedisDataStoreConfig(catalog, generateStats, authProvider, audit, metrics, queries, pipeline, ns)
   }
 
   private def parse(url: String): Try[URI] = Try(new URI(url)).filter(JedisURIHelper.isValid)
@@ -192,8 +195,9 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   case class RedisDataStoreConfig(
       catalog: String,
       generateStats: Boolean,
-      audit: Option[AuditWriter],
       authProvider: AuthorizationsProvider,
+      audit: Option[AuditWriter],
+      metrics: Option[MetricsConfig],
       queries: RedisQueryConfig,
       pipeline: Boolean,
       namespace: Option[String]

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.conf
@@ -12,9 +12,8 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureSerializer}
+import org.locationtech.geomesa.features.{SerializationOption, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
@@ -80,9 +79,9 @@ class ColumnGroups {
   def serializers(sft: SimpleFeatureType): Seq[(Array[Byte], SimpleFeatureSerializer)] = {
     apply(sft).map { case (colFamily, subset) =>
       if (colFamily.eq(ColumnGroups.Default) || colFamily.eq(ColumnGroups.Attributes)) {
-        (colFamily, KryoFeatureSerializer(subset, SerializationOptions.withoutId))
+        (colFamily, KryoFeatureSerializer(subset, SerializationOption.WithoutId))
       } else {
-        (colFamily, new ProjectingKryoFeatureSerializer(sft, subset, SerializationOptions.withoutId))
+        (colFamily, new ProjectingKryoFeatureSerializer(sft, subset, SerializationOption.WithoutId))
       }
     }
   }

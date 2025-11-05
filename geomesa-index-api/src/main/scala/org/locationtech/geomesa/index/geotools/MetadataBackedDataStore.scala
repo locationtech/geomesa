@@ -3,12 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.data._
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -23,6 +24,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.DistributedLocking
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeComparator.TypeComparison
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -49,6 +51,16 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
   protected [geomesa] val interceptors: QueryInterceptorFactory = QueryInterceptorFactory(this)
+
+  // common metrics tags for this data store
+  private val tags: Tags = {
+    val storeTag = {
+      val name = getClass.getSimpleName.toLowerCase(Locale.US)
+      val i = name.lastIndexOf("datastore")
+      if (i > 0) { name.substring(0, i) } else { name }
+    }
+    Tags.of("store", storeTag, "catalog", config.catalog)
+  }
 
   // hooks to allow extended functionality
 
@@ -138,13 +150,18 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
           // set the enabled indices
           preSchemaCreate(sft)
 
+          // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
+          val encodedAttributes = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+          // validate we can read out the encoded sft - invalid user data keys can break the parsing
+          try { SimpleFeatureTypes.createType("", encodedAttributes) } catch {
+            case NonFatal(e) => throw new IllegalArgumentException("Invalid schema:", e)
+          }
+          val metadataMap = Map(
+            AttributesKey      -> encodedAttributes,
+            StatsGenerationKey -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
+          )
           try {
             // write out the metadata to the catalog table
-            // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
-            val metadataMap = Map(
-              AttributesKey      -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-              StatsGenerationKey -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
-            )
             metadata.insert(sft.getTypeName, metadataMap)
 
             // reload the sft so that we have any default metadata,
@@ -252,6 +269,12 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
       // validation and normalization of the schema
       preSchemaUpdate(sft, previousSft)
 
+      val encodedAttributes = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+      // validate we can read out the encoded sft - invalid user data keys can break the parsing
+      try { SimpleFeatureTypes.createType("", encodedAttributes) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Invalid schema:", e)
+      }
+
       // if all is well, update the metadata - first back it up
       if (FastConverter.convertOrElse[java.lang.Boolean](sft.getUserData.get(Configs.UpdateBackupMetadata), true)) {
         metadata.backup(typeName.getLocalPart)
@@ -265,7 +288,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         }
       }
       // now insert the new spec string
-      metadata.insert(sft.getTypeName, AttributesKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+      metadata.insert(sft.getTypeName, AttributesKey, encodedAttributes)
 
       onSchemaUpdated(sft, previousSft)
     } finally {
@@ -410,6 +433,14 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   }
 
   // end methods from org.geotools.api.data.DataStore
+
+  /**
+   * Get metrics tags for a given type name + this store
+   *
+   * @param typeName type name
+   * @return
+   */
+  def tags(typeName: String): Tags = tags.and(TagUtils.typeNameTag(typeName))
 
   /**
    * Validate a call to updateSchema, throwing errors on failed validation

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-hbase_2.12</artifactId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-hbase-distributed-runtime-hbase2_2.12</artifactId>
@@ -13,7 +13,10 @@
     <description>GeoMesa coprocessors and filters, for installation into an HBase cluster</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
     </properties>
 
     <dependencies>
@@ -54,7 +57,7 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <id>geomesa-hbase-distributed-runtime</id>
+                        <id>distributed-runtime</id>
                         <goals>
                             <goal>shade</goal>
                         </goals>

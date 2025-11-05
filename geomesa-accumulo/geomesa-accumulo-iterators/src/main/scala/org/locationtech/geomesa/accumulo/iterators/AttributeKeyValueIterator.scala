@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
@@ -13,7 +13,6 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.IteratorCache
@@ -48,8 +47,7 @@ class AttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] with 
     val spec = options.get(SFT_OPT)
     attribute = options.get(ATTRIBUTE_OPT).toInt
     index = IteratorCache.index(IteratorCache.sft(spec), spec, options.get(INDEX_OPT)).asInstanceOf[AttributeIndex]
-    val kryoOptions = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-    serializer = IteratorCache.serializer(options.get(TRANSFORM_OPT), kryoOptions)
+    serializer = IteratorCache.serializer(options.get(TRANSFORM_OPT), index.serializedWithId)
   }
 
   override def seek(range: Range, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit =

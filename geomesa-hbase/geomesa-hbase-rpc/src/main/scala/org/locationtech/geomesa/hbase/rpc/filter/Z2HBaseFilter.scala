@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.rpc.filter
@@ -14,7 +14,6 @@ import org.apache.hadoop.hbase.Cell
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.{Filter, FilterBase}
 import org.locationtech.geomesa.index.filters.Z2Filter
-import org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 class Z2HBaseFilter(filter: Z2Filter, offset: Int, bytes: Array[Byte]) extends FilterBase {

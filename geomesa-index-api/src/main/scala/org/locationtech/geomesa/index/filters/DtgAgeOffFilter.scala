@@ -3,14 +3,15 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.filters
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.AggregatingScan._
@@ -44,9 +45,7 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
       case Some(ispec) => IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
     }
 
-    // noinspection ScalaDeprecation
-    val withId = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-    reusableSf = IteratorCache.serializer(spec, withId).getReusableFeature
+    reusableSf = IteratorCache.serializer(spec, index.serializedWithId).getReusableFeature
     dtgIndex = options(DtgOpt).toInt // note: keep this last, for back-compatibility with DtgAgeOffIterator
   }
 

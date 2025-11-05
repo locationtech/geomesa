@@ -1,6 +1,12 @@
 Web Processing Services (WPS) Tube Select
 =========================================
 
+.. warning::
+
+    This tutorial uses data from the old Twitter, but has not been updated for the current X API. If you are interested in
+    updating the tutorial, please reach out to the
+    `GeoMesa community <https://github.com/locationtech/geomesa/?tab=readme-ov-file#join-the-community>`__.
+
 This tutorial will show you how to:
 
 1. Ingest a set of Twitter data.
@@ -37,7 +43,7 @@ Manual, particularly the tasks relevant to Accumulo. Afterwards, it may be
 necessary to change the versions of Accumulo and Hadoop that the tutorial
 uses. After completing the deployment tutorial, you should have:
 
--  an instance of Accumulo |accumulo_required_version| running on Hadoop |hadoop_version|,
+-  an instance of Accumulo {{accumulo_required_version}},
 -  access to an Accumulo user that has both create-table and write
    permissions, and
 -  an instance of GeoServer 2.5.2 with the GeoMesa plugin installed.
@@ -45,9 +51,9 @@ uses. After completing the deployment tutorial, you should have:
 Because this tutorial requires building custom Java code, development
 tools should also be installed and configured:
 
--  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
--  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
--  a `git <https://git-scm.com/>`__ client.
+- `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  `Apache Maven <https://maven.apache.org/>`__ {{maven_required_version}}, and
+-  a `git <https://git-scm.com/>`__ client
 
 Using the GeoServer Plugin
 --------------------------
@@ -448,7 +454,4 @@ Beyond Curl
 -----------
 
 WPS services can also be accessed by a variety of clients including
-`OpenLayers <https://openlayers.org/>`__, which has implemented a
-`JavaScript WPS
-Builder <https://dev.openlayers.org/releases/OpenLayers-2.13.1/examples/wps.html>`__
-tutorial similar to the one built into GeoServer.
+`OpenLayers <https://openlayers.org/>`__, which provides a JavaScript WPS client.

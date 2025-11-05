@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools.converters
@@ -11,7 +11,6 @@ package org.locationtech.geomesa.utils.geotools.converters
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.filter.expression.Expression
-import org.geotools.data.util.InterpolationConverterFactory
 import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -36,11 +35,7 @@ object FastConverter extends StrictLogging {
       new CacheLoader[(Class[_], Class[_]), Array[Converter]]() {
         override def load(key: (Class[_], Class[_])): Array[Converter] = {
           val (from, to) = key
-          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
-            // exclude jai-related factories as it's not usually on the classpath
-            case _: InterpolationConverterFactory => false
-            case _ => true
-          }
+          val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray
           logger.debug(s"Loaded ${factories.length} converter factories: ${factories.map(_.getClass.getName).mkString(", ")}")
           val converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
           logger.debug(

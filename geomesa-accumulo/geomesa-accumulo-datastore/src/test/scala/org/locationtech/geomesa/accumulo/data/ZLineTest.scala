@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.api.data.Query
@@ -22,7 +23,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ZLineTest extends Specification with TestWithFeatureType {
+class ZLineTest extends Specification with TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -43,16 +44,16 @@ class ZLineTest extends Specification with TestWithFeatureType {
     val cf = e.getKey.getColumnFamily.toString
     val cq = e.getKey.getColumnQualifier.getBytes.map("%02X" format _).mkString
     val value = Key.toPrintableString(e.getValue.get(), 0, e.getValue.getSize, e.getValue.getSize)
-    println(s"$row :: $cf :: $cq :: $value")
+    logger.info(s"$row :: $cf :: $cq :: $value")
   }
 
   "ZLines" should {
     "add features" in {
       skipped("testing")
       new Z3Index(ds, sft, "geom", "dtg", IndexMode.ReadWrite).getTableNames().foreach { table =>
-        println(table)
+        logger.info(table)
         val scanner = ds.connector.createScanner(table, new Authorizations())
-        println(scanner.asScala.toSeq.length)
+        logger.info(scanner.asScala.toSeq.length.toString)
         scanner.close()
       }
       success

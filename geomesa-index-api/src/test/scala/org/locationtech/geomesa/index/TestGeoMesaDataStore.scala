@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index
@@ -11,9 +11,9 @@ package org.locationtech.geomesa.index
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
@@ -22,7 +22,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, MetricsConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
@@ -33,7 +33,6 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.security.DefaultAuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.stats.Stat
 
 import scala.collection.SortedSet
 
@@ -42,7 +41,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
-  override val adapter: TestIndexAdapter = new TestIndexAdapter(this)
+  override val adapter: TestIndexAdapter = new TestIndexAdapter()
 
   override val stats: GeoMesaStats = new TestStats(this, new InMemoryMetadata[Stat]())
 
@@ -52,7 +51,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
 object TestGeoMesaDataStore {
 
-  class TestIndexAdapter(ds: TestGeoMesaDataStore) extends IndexAdapter[TestGeoMesaDataStore] {
+  class TestIndexAdapter extends IndexAdapter[TestGeoMesaDataStore] {
 
     import ByteArrays.ByteOrdering
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -96,7 +95,7 @@ object TestGeoMesaDataStore {
         case SingleRowByteRange(row)  => TestRange(row, ByteArrays.rowFollowingRow(row))
         case BoundedByteRange(lo, hi) => TestRange(lo, hi)
       }
-      val opts = if (strategy.index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+      val opts = if (strategy.index.serializedWithId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) }
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform
@@ -172,7 +171,7 @@ object TestGeoMesaDataStore {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +
             s"${r.end.map(ByteArrays.toHex).mkString(";")})").mkString(",")}")
-      explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
+      explainer(s"ecql: ${ecql.fold("INCLUDE")(FilterHelper.toString)}")
     }
   }
 
@@ -221,6 +220,7 @@ object TestGeoMesaDataStore {
     override val catalog: String = "test"
     override val authProvider = new DefaultAuthorizationsProvider(Seq.empty)
     override val audit: Option[AuditWriter] = None
+    override val metrics: Option[MetricsConfig] = None
     override val generateStats: Boolean = true
     override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {
       override val threads: Int = 1

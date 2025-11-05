@@ -60,17 +60,14 @@ BRANCH="$(git branch --show-current)"
 mvn release:prepare \
   -DdryRun=true \
   -DautoVersionSubmodules=true \
-  -Darguments="-DskipTests -Dmaven.javadoc.skip=true -Ppython" \
-  -Ppython
+  -Darguments="-Dmaven.test.skip -Dmaven.javadoc.skip=true"
 
 RELEASE="$(readPomVersion pom.xml.tag)"
 TAG="$(readReleaseProp scm.tag)"
-NEXT="$(readPomVersion pom.xml.next)"
 
 # update README versions and commit
 for pom in pom.xml pom.xml.tag pom.xml.next; do
   sed -i "s|<geomesa\.release\.version>.*|<geomesa.release.version>$RELEASE</geomesa.release.version>|" "$pom"
-  sed -i "s|<geomesa\.devel\.version>.*|<geomesa.devel.version>$NEXT</geomesa.devel.version>|" "$pom"
 done
 # regenerates the README
 mvn clean install -pl .
@@ -92,11 +89,11 @@ mvn release:clean
 git checkout "$TAG"
 mkdir -p "$RELEASE"
 
-mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.12.log
+mvn clean deploy -Pcentral,python -Dmaven.test.skip | tee "$RELEASE"/build_2.12.log
 copyReleaseArtifacts
 
 ./build/scripts/change-scala-version.sh 2.13
-mvn clean deploy -Pcentral,python -DskipTests | tee "$RELEASE"/build_2.13.log
+mvn clean deploy -Pcentral,python -Dmaven.test.skip | tee "$RELEASE"/build_2.13.log
 copyReleaseArtifacts
 
 # reset pom changes

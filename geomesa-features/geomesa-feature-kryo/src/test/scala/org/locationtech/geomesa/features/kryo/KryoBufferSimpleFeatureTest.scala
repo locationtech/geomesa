@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -20,7 +20,7 @@ import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class KryoBufferSimpleFeatureTest extends Specification {
+class KryoBufferSimpleFeatureTest extends Specification with LazyLogging {
 
   "KryoBufferSimpleFeature" should {
 
@@ -39,7 +39,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       val serialized = serializer.serialize(sf)
 
       val laz = serializer.getReusableFeature
@@ -143,7 +143,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
 
       val bytes = laz.transform()
 
-      foreach(Seq(SerializationOptions.none, SerializationOptions.builder.`lazy`.build)) { opts =>
+      foreach(Seq(SerializationOption.defaults, SerializationOption.builder.`lazy`.build())) { opts =>
         val transformed = KryoFeatureSerializer(projectedSft, opts).deserialize(bytes)
         transformed.getID mustEqual sf.getID
         transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
@@ -278,7 +278,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       val name = new String(Array.fill(Short.MaxValue * 2)(1.toByte), StandardCharsets.UTF_8)
       sf.setAttribute("name", name)
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.WithoutId)
       val laz = serializer.getReusableFeature
 
       laz.setBuffer(serializer.serialize(sf))
@@ -310,7 +310,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val serializer = KryoFeatureSerializer(sft, SerializationOption.defaults)
       val serialized = serializer.serialize(sf)
 
       val start = System.currentTimeMillis()
@@ -318,7 +318,7 @@ class KryoBufferSimpleFeatureTest extends Specification {
         val de = serializer.deserialize(serialized)
         de.getAttribute(1)
       }
-      println(s"took ${System.currentTimeMillis() - start}ms")
+      logger.info(s"took ${System.currentTimeMillis() - start}ms")
 
       val start2 = System.currentTimeMillis()
       val reusable = serializer.getReusableFeature
@@ -326,10 +326,8 @@ class KryoBufferSimpleFeatureTest extends Specification {
         reusable.setBuffer(serialized)
         reusable.getAttribute(7)
       }
-      println(s"took ${System.currentTimeMillis() - start2}ms")
+      logger.info(s"took ${System.currentTimeMillis() - start2}ms")
 
-      println()
-      println()
       success
     }
   }

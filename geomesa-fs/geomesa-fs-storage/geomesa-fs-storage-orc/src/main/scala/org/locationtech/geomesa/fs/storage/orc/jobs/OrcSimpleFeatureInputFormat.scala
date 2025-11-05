@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.orc.jobs
@@ -21,8 +21,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader.OrcReadOptions
+import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemReader
+import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemReader.OrcReadOptions
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat.{OrcSimpleFeatureInputFormatBase, OrcSimpleFeatureRecordReaderBase}
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcInputFormatReader
 import org.locationtech.geomesa.index.planning.QueryRunner

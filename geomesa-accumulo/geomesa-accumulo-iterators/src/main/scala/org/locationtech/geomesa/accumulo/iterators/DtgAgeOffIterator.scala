@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
@@ -85,10 +85,8 @@ object DtgAgeOffIterator extends LazyLogging {
     }
   }
 
-  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).headOption
-  }
+  def list(tableOps: TableOperations, table: String): Option[IteratorSetting] =
+    IteratorScope.values.iterator.flatMap(scope => Option(tableOps.getIteratorSetting(table, Name, scope))).find(_ != null)
 
   def set(
       tableOps: TableOperations,

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.planning
@@ -15,8 +15,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -57,6 +57,7 @@ trait QueryRunner {
     * @param sft simple feature type associated with the query
     */
   protected[geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+    import org.locationtech.geomesa.filter.{andFilters, ff, orFilters}
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -66,13 +67,6 @@ trait QueryRunner {
     interceptors(sft).foreach { interceptor =>
       interceptor.rewrite(query)
       QueryRunner.logger.trace(s"Query rewritten by $interceptor to: $query")
-    }
-
-    // set query hints - we need this in certain situations where we don't have access to the query directly
-    QueryPlanner.threadedHints.get.foreach { hints =>
-      hints.foreach { case (k, v) => query.getHints.put(k, v) }
-      // clear any configured hints so we don't process them again
-      QueryPlanner.threadedHints.clear()
     }
 
     // handle any params passed in through geoserver
@@ -120,7 +114,7 @@ trait QueryRunner {
     * @param hints query hints, which have been configured using @see configureQuery
     * @return simple feature that will be returned from a query using the hints
     */
-  protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
+  protected[geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (hints.isBinQuery) {
       BinaryOutputEncoder.BinEncodedSft

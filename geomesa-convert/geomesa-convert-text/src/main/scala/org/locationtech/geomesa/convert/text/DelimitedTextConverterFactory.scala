@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.text
@@ -12,7 +12,6 @@ import com.typesafe.config.Config
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
@@ -26,7 +25,6 @@ import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.TextTools
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
@@ -39,12 +37,6 @@ class DelimitedTextConverterFactory
       DelimitedTextConverterFactory.TypeToProcess, DelimitedTextConfigConvert, BasicFieldConvert, DelimitedTextOptionsConvert) {
 
   import scala.collection.JavaConverters._
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
 
   override def infer(
       is: InputStream,
@@ -70,7 +62,7 @@ class DelimitedTextConverterFactory
       sft: Option[SimpleFeatureType]): Try[(SimpleFeatureType, Config)] = {
     // : Seq[List[String]]
     val rows = lines.flatMap { line =>
-      if (TextTools.isWhitespace(line)) { None } else {
+      if (line.isBlank) { None } else {
         Try(format.parse(new StringReader(line)).iterator().next.iterator.asScala.toList).toOption
       }
     }
@@ -115,7 +107,7 @@ class DelimitedTextConverterFactory
       }
 
       val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
-        SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+        SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
       val config = configConvert.to(converterConfig)
           .withFallback(fieldConvert.to(fields.toSeq))
@@ -172,7 +164,7 @@ class DelimitedTextConverterFactory
         }
 
         val options = DelimitedTextOptions(Some(1), CharNotSpecified, CharNotSpecified, None,
-          SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+          SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields.toSeq))
@@ -216,7 +208,6 @@ object DelimitedTextConverterFactory {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, DelimitedTextOptions] = {
@@ -246,7 +237,7 @@ object DelimitedTextConverterFactory {
         escape    <- optionalChar("escape").right
         delimiter <- option("delimiter", PrimitiveConvert.charConfigReader).right
       } yield {
-        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, reporters, parseMode, errorMode, encoding)
+        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, parseMode, errorMode, encoding)
       }
     }
 

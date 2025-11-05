@@ -4,7 +4,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
@@ -19,7 +19,7 @@ import org.locationtech.geomesa.cassandra.ColumnSelect
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.{CassandraIndexWriter, CassandraResultsToFeatures}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper.{FeatureIdColumnName, SimpleFeatureColumnName}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, RequiredVisibilityWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
@@ -182,7 +182,7 @@ object CassandraIndexAdapter extends LazyLogging {
 
     override protected def createSerializer: KryoFeatureSerializer = {
       idSerializer = GeoMesaFeatureIndex.idFromBytes(index.sft)
-      KryoFeatureSerializer(index.sft, SerializationOptions.builder.`lazy`.withoutId.build)
+      KryoFeatureSerializer(index.sft, SerializationOption.builder.`lazy`.withoutId.build())
     }
   }
 

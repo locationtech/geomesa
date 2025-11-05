@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
@@ -11,29 +11,21 @@ package org.locationtech.geomesa.utils.geotools
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
-import org.geotools.geometry.Position2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
-import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
-import org.locationtech.geomesa.utils.index.VisibilityLevel
+import org.locationtech.geomesa.utils.index.Cardinality._
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
-import org.locationtech.geomesa.utils.stats.Cardinality
-import org.locationtech.geomesa.utils.stats.Cardinality._
-import org.locationtech.geomesa.utils.stats.IndexCoverage._
+import org.locationtech.geomesa.utils.index.{Cardinality, VisibilityLevel}
 import org.locationtech.jts.geom._
 
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
-import scala.reflect.ClassTag
 import scala.util.Try
 
-object Conversions extends Conversions {
-
-  implicit class RichCoord(val c: Coordinate) extends AnyVal {
-    def toPoint2D = new Position2D(c.x, c.y)
-  }
+object Conversions {
 
   implicit class RichGeometry(val geom: Geometry) extends AnyVal {
     def bufferMeters(meters: Double): Geometry = geom.buffer(distanceDegrees(meters))
@@ -49,19 +41,6 @@ object Conversions extends Conversions {
   }
 
   implicit class RichSimpleFeature(val sf: SimpleFeature) extends AnyVal {
-    def geometry: Geometry = sf.getDefaultGeometry.asInstanceOf[Geometry]
-    def polygon: Polygon = sf.getDefaultGeometry.asInstanceOf[Polygon]
-    def point: Point = sf.getDefaultGeometry.asInstanceOf[Point]
-    def lineString: LineString = sf.getDefaultGeometry.asInstanceOf[LineString]
-    def multiPolygon: MultiPolygon = sf.getDefaultGeometry.asInstanceOf[MultiPolygon]
-    def multiPoint: MultiPoint = sf.getDefaultGeometry.asInstanceOf[MultiPoint]
-    def multiLineString: MultiLineString = sf.getDefaultGeometry.asInstanceOf[MultiLineString]
-
-    def get[T](i: Int): T = sf.getAttribute(i).asInstanceOf[T]
-    def get[T](name: String): T = sf.getAttribute(name).asInstanceOf[T]
-
-    def getNumericDouble(i: Int): Double = double(sf.getAttribute(i))
-    def getNumericDouble(name: String): Double = double(sf.getAttribute(name))
 
     /**
       * Gets the feature ID as a parsed UUID consisting of (msb, lsb). Caches the bits
@@ -88,37 +67,77 @@ object Conversions extends Conversions {
       * @param uuid (most significant bits, least significant bits)
       */
     def cacheUuid(uuid: (Long, Long)): Unit = sf.getUserData.put("uuid", uuid)
+  }
+}
 
-    def userData[T](key: AnyRef)(implicit ct: ClassTag[T]): Option[T] =
-      Option(sf.getUserData.get(key)).collect { case ct(x) => x }
+object PrimitiveConversions {
+
+  trait Conversion[T] {
+    def convert(value: AnyRef): T
+  }
+
+  implicit object ConvertToBoolean extends ConvertToBoolean
+
+  trait ConvertToBoolean extends Conversion[Boolean] {
+    override def convert(value: AnyRef): Boolean = value match {
+      case v: String => v.equalsIgnoreCase("true")
+      case v: java.lang.Boolean => v.booleanValue
+      case _ => throw new IllegalArgumentException(s"Input $value is not a Boolean type")
+    }
+  }
+
+  implicit object ConvertToDouble extends ConvertToDouble
+
+  trait ConvertToDouble extends Conversion[Double] {
+    override def convert(value: AnyRef): Double = value match {
+      case v: String => v.toDouble
+      case v: Number => v.doubleValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToInt extends ConvertToInt
+
+  trait ConvertToInt extends Conversion[Int] {
+    override def convert(value: AnyRef): Int = value match {
+      case v: String => v.toInt
+      case v: Number => v.intValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToShort extends ConvertToShort
+
+  trait ConvertToShort extends Conversion[Short] {
+    override def convert(value: AnyRef): Short = value match {
+      case v: String => v.toShort
+      case v: Number => v.shortValue()
+      case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+    }
+  }
+
+  implicit object ConvertToString extends ConvertToString
+
+  trait ConvertToString extends Conversion[String] {
+    override def convert(value: AnyRef): String = value match {
+      case v: String => v
+      case v         => v.toString
+    }
   }
 }
 
 trait Conversions {
 
-  protected def boolean(value: AnyRef, default: Boolean = false): Boolean = value match {
-    case v: String => v.equalsIgnoreCase("true")
-    case v: java.lang.Boolean => v.booleanValue
-    case _ => default
-  }
+  import PrimitiveConversions._
 
-  protected def double(value: AnyRef): Double = value match {
-    case v: Number => v.doubleValue()
-    case v: String => v.toDouble
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def boolean(value: AnyRef, default: Boolean = false): Boolean =
+    Try(ConvertToBoolean.convert(value)).getOrElse(default)
 
-  protected def int(value: AnyRef): Int = value match {
-    case v: String => v.toInt
-    case v: Number => v.intValue()
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def double(value: AnyRef): Double = ConvertToDouble.convert(value)
 
-  protected def short(value: AnyRef): Short = value match {
-    case v: String => v.toShort
-    case v: Number => v.shortValue()
-    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
-  }
+  protected def int(value: AnyRef): Int = ConvertToInt.convert(value)
+
+  protected def short(value: AnyRef): Short = ConvertToShort.convert(value)
 }
 
 /**
@@ -132,10 +151,6 @@ object RichAttributeDescriptors extends Conversions {
   // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
-    def setKeepStats(enabled: Boolean): AttributeDescriptor = {
-      if (enabled) { ad.getUserData.put(OptStats, "true") } else { ad.getUserData.remove(OptStats) }
-      ad
-    }
     def isKeepStats(): Boolean = boolean(ad.getUserData.get(OptStats))
 
     def isIndexValue(): Boolean = boolean(ad.getUserData.get(OptIndexValue))
@@ -143,29 +158,13 @@ object RichAttributeDescriptors extends Conversions {
     def getColumnGroups(): Set[String] =
       Option(ad.getUserData.get(OptColumnGroups).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
 
-    def setCardinality(cardinality: Cardinality): AttributeDescriptor = {
-      ad.getUserData.put(OptCardinality, cardinality.toString)
-      ad
-    }
-
     def getCardinality(): Cardinality =
       Option(ad.getUserData.get(OptCardinality).asInstanceOf[String])
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
     def isJson(): Boolean = boolean(ad.getUserData.get(OptJson))
 
-    def setListType(typ: Class[_]): AttributeDescriptor = {
-      ad.getUserData.put(UserDataListType, typ.getName)
-      ad
-    }
-
     def getListType(): Class[_] = tryClass(ad.getUserData.get(UserDataListType).asInstanceOf[String])
-
-    def setMapTypes(keyType: Class[_], valueType: Class[_]): AttributeDescriptor = {
-      ad.getUserData.put(UserDataMapKeyType, keyType.getName)
-      ad.getUserData.put(UserDataMapValueType, valueType.getName)
-      ad
-    }
 
     def getMapTypes(): (Class[_], Class[_]) =
       (tryClass(ad.getUserData.get(UserDataMapKeyType)), tryClass(ad.getUserData.get(UserDataMapValueType)))
@@ -189,17 +188,12 @@ object RichAttributeDescriptors extends Conversions {
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {
 
-    def indexCoverage(coverage: IndexCoverage): AttributeTypeBuilder = builder.userData(OptIndex, coverage.toString)
-
     def indexValue(indexValue: Boolean): AttributeTypeBuilder = builder.userData(OptIndexValue, indexValue)
 
     def cardinality(cardinality: Cardinality): AttributeTypeBuilder =
       builder.userData(OptCardinality, cardinality.toString)
 
     def collectionType(typ: Class[_]): AttributeTypeBuilder = builder.userData(UserDataListType, typ)
-
-    def mapTypes(keyType: Class[_], valueType: Class[_]): AttributeTypeBuilder =
-      builder.userData(UserDataMapKeyType, keyType).userData(UserDataMapValueType, valueType)
   }
 }
 
@@ -249,26 +243,20 @@ object RichSimpleFeatureType extends Conversions {
       case None        => VisibilityLevel.Feature
       case Some(level) => VisibilityLevel.withName(level.toLowerCase)
     }
-    def setVisibilityLevel(vis: VisibilityLevel): Unit = sft.getUserData.put(IndexVisibilityLevel, vis.toString)
 
     def isVisibilityRequired: Boolean = boolean(sft.getUserData.get(RequireVisibility), default = false)
-    def setVisibilityRequired(required: Boolean): Unit =
-      sft.getUserData.put(RequireVisibility, String.valueOf(required))
 
     def getZ3Interval: TimePeriod = userData[String](IndexZ3Interval) match {
       case None    => TimePeriod.Week
       case Some(i) => TimePeriod.withName(i.toLowerCase)
     }
-    def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(IndexZ3Interval, i.toString)
 
     def getS3Interval: TimePeriod = userData[String](IndexS3Interval) match {
       case None    => TimePeriod.Week
       case Some(i) => TimePeriod.withName(i.toLowerCase)
     }
-    def setS3Interval(i: TimePeriod): Unit = sft.getUserData.put(IndexS3Interval, i.toString)
 
     def getXZPrecision: Short = userData(IndexXzPrecision).map(short).getOrElse(XZSFC.DefaultPrecision)
-    def setXZPrecision(p: Short): Unit = sft.getUserData.put(IndexXzPrecision, p.toString)
 
     // note: defaults to false now
     @deprecated("table sharing no longer supported")
@@ -302,7 +290,6 @@ object RichSimpleFeatureType extends Conversions {
     def getUserDataPrefixes: Seq[String] =
       (Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)).toSeq
 
-    def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
     def setZ2Shards(splits: Int): Unit = sft.getUserData.put(IndexZ2Shards, splits.toString)
     def getZ2Shards: Int =
       userData(IndexZ2Shards).map(int).getOrElse(userData(IndexZShards).map(int).getOrElse(4))
@@ -317,7 +304,6 @@ object RichSimpleFeatureType extends Conversions {
     def setIdShards(splits: Int): Unit = sft.getUserData.put(IndexIdShards, splits.toString)
     def getIdShards: Int = userData(IndexIdShards).map(int).getOrElse(4)
 
-    def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FidsAreUuids, String.valueOf(uuid))
     def isUuid: Boolean = boolean(sft.getUserData.get(FidsAreUuids))
     def isUuidEncoded: Boolean = isUuid && boolean(sft.getUserData.get(FidsAreUuidEncoded), default = true)
 
@@ -338,8 +324,6 @@ object RichSimpleFeatureType extends Conversions {
       userData[String](s"$key.$indexName").orElse(userData[String](key))
     }
 
-    def getRemoteVersion: Option[SemanticVersion] = userData[String](RemoteVersion).map(SemanticVersion.apply)
-
     def getQueryInterceptors: Seq[String] = userData[String](QueryInterceptors).toSeq.flatMap(_.split(","))
 
     def getKeywords: Set[String] =
@@ -350,8 +334,6 @@ object RichSimpleFeatureType extends Conversions {
 
     def removeKeywords(keywords: Set[String]): Unit =
       sft.getUserData.put(Keywords, getKeywords.diff(keywords).mkString(KeywordsDelimiter))
-
-    def removeAllKeywords(): Unit = sft.getUserData.remove(Keywords)
 
     def userData[T](key: AnyRef): Option[T] = Option(sft.getUserData.get(key).asInstanceOf[T])
   }

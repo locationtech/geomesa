@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
@@ -53,7 +53,7 @@ object DensityScan extends LazyLogging {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
+  private type GridIterator = SimpleFeature => Iterator[(Double, Double, Double)]
 
   val BatchSize: SystemProperty = SystemProperty("geomesa.density.batch.size", "100000")
 
@@ -240,18 +240,18 @@ object DensityScan extends LazyLogging {
   /**
     * Gets the weight for a simple feature
     */
-  sealed trait Weigher {
+  private sealed trait Weigher {
     def weight(sf: SimpleFeature): Double
   }
 
-  case object EqualWeight extends Weigher {
+  private case object EqualWeight extends Weigher {
     override def weight(sf: SimpleFeature): Double = 1d
   }
 
   /**
     * Gets the weight for a feature from a numeric attribute
     */
-  class WeightByNumber(i: Int) extends Weigher {
+  private class WeightByNumber(i: Int) extends Weigher {
     override def weight(sf: SimpleFeature): Double = {
       val d = sf.getAttribute(i).asInstanceOf[Number]
       if (d == null) { 0.0 } else { d.doubleValue }
@@ -261,7 +261,7 @@ object DensityScan extends LazyLogging {
   /**
     * Tries to convert a non-double attribute into a double
     */
-  class WeightByNonNumber(i: Int) extends Weigher {
+  private class WeightByNonNumber(i: Int) extends Weigher {
     override def weight(sf: SimpleFeature): Double = {
       val d = sf.getAttribute(i)
       if (d == null) { 0.0 } else {
@@ -274,7 +274,7 @@ object DensityScan extends LazyLogging {
   /**
     * Evaluates an arbitrary expression against the simple feature to return a weight
     */
-  class WeightByExpression(e: Expression) extends Weigher {
+  private class WeightByExpression(e: Expression) extends Weigher {
     override def weight(sf: SimpleFeature): Double = {
       val d = e.evaluate(sf, classOf[java.lang.Double])
       if (d == null) { 0.0 } else { d }
@@ -285,13 +285,13 @@ object DensityScan extends LazyLogging {
     * Renderer for geometries
     */
   sealed trait GeometryRenderer {
-    def render(grid: RenderingGrid, sf: SimpleFeature)
+    def render(grid: RenderingGrid, sf: SimpleFeature): Unit
   }
 
   /**
     * Writes a density record from a feature that has a point geometry
     */
-  class PointRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class PointRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[Point], weigher.weight(sf))
   }
@@ -299,7 +299,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has a multi-point geometry
     */
-  class MultiPointRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class MultiPointRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[MultiPoint], weigher.weight(sf))
   }
@@ -307,7 +307,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has a line geometry
     */
-  class LineStringRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class LineStringRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[LineString], weigher.weight(sf))
   }
@@ -315,7 +315,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has a multi-line geometry
     */
-  class MultiLineStringRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class MultiLineStringRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[MultiLineString], weigher.weight(sf))
   }
@@ -323,7 +323,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has a polygon geometry
     */
-  class PolygonRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class PolygonRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[Polygon], weigher.weight(sf))
   }
@@ -331,7 +331,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has a polygon geometry
     */
-  class MultiPolygonRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class MultiPolygonRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[MultiPolygon], weigher.weight(sf))
   }
@@ -339,7 +339,7 @@ object DensityScan extends LazyLogging {
   /**
     * Writes a density record from a feature that has an arbitrary geometry
     */
-  class MultiRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
+  private class MultiRenderer(i: Int, weigher: Weigher) extends GeometryRenderer {
     override def render(grid: RenderingGrid, sf: SimpleFeature): Unit =
       grid.render(sf.getAttribute(i).asInstanceOf[Geometry], weigher.weight(sf))
   }

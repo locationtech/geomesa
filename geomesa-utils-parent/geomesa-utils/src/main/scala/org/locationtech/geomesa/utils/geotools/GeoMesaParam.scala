@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.Parameter
@@ -62,6 +63,7 @@ class GeoMesaParam[T <: AnyRef](
 
   private val deprecated = deprecatedKeys ++ deprecatedParams.map(_.key)
 
+  // remember to update `GeoMesaParam.binding` if you add something here
   private val toTypedValue: AnyRef => T = {
     if (ct.runtimeClass == classOf[Duration]) {
       v => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[T]
@@ -69,6 +71,8 @@ class GeoMesaParam[T <: AnyRef](
       v => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[FiniteDuration].asInstanceOf[T]
     } else if (ct.runtimeClass == classOf[Properties]) {
       v => GeoMesaParam.parseProperties(v.asInstanceOf[String]).asInstanceOf[T]
+    } else if (ct.runtimeClass == classOf[Config]) {
+      v => ConfigFactory.parseString(v.asInstanceOf[String]).asInstanceOf[T]
     } else {
       v => v.asInstanceOf[T]
     }
@@ -79,6 +83,8 @@ class GeoMesaParam[T <: AnyRef](
       v => GeoMesaParam.printDuration(v.asInstanceOf[Duration])
     } else if (ct.runtimeClass == classOf[Properties]) {
       v => GeoMesaParam.printProperties(v.asInstanceOf[Properties])
+    } else if (ct.runtimeClass == classOf[Config]) {
+      v => v.asInstanceOf[Config].root().render(ConfigRenderOptions.concise())
     } else {
       v => v
     }
@@ -251,7 +257,7 @@ object GeoMesaParam {
   }
 
   def binding[T <: AnyRef](ct: ClassTag[T]): Class[_] = ct.runtimeClass match {
-    case c if classOf[Duration].isAssignableFrom(c) | c == classOf[Properties] => classOf[String]
+    case c if classOf[Duration].isAssignableFrom(c) | c == classOf[Properties] | c == classOf[Config] => classOf[String]
     case c => c
   }
 

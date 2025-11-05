@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.util
 
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -22,7 +22,7 @@ class AccumuloSchemaBuilderTest extends Specification {
 
   "AccumuloSchemaBuilder" should {
 
-    "allow join indices" >> {
+    "allow join indices" in {
       val spec = AccumuloSchemaBuilder.builder()
           .addString("foo").withJoinIndex()
           .addInt("bar").withJoinIndex(Cardinality.HIGH)
@@ -31,7 +31,7 @@ class AccumuloSchemaBuilderTest extends Specification {
       spec mustEqual "foo:String:index=join,bar:Int:index=join:cardinality=high"
     }
 
-    "configure table splitters as strings" >> {
+    "configure table splitters as strings" in {
       val config = Map("id.type" -> "digit", "fmt" ->"%02d", "min" -> "0", "max" -> "99")
       val sft1 = AccumuloSchemaBuilder.builder()
           .addInt("i")

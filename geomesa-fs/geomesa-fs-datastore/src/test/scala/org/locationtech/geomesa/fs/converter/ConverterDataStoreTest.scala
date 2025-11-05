@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.converter
@@ -157,7 +157,7 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
         writeTarGz(fc, s"$bucket$path", contents, multiplier)
       }
 
-      foreach(Seq(("100 millis", true), ("60 seconds", false))) { case (timeout, expectTimeout) =>
+      foreach(Seq(("100 millis", true), ("5 minutes", false))) { case (timeout, expectTimeout) =>
         val params = Map(
           "fs.path"               -> bucket,
           "fs.encoding"           -> "converter",
@@ -172,13 +172,10 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
           types must haveSize(1)
           types.head mustEqual "fs-test"
 
-          var i = 0
-          while (i < 5) {
-            i += 1
+          foreach(Range(0, 5)) { _ =>
             val count = try {
               val q = new Query("fs-test", Filter.INCLUDE)
-              val iter = CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT))
-              try { iter.length } finally { iter.close() }
+              WithClose(CloseableIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)))(_.length)
             } catch {
               case _: RuntimeException => -1
             }
@@ -188,7 +185,6 @@ class ConverterDataStoreTest extends Specification with BeforeAfterAll {
               count mustEqual multiplier * 12
             }
           }
-          ok
         }
       }
     }

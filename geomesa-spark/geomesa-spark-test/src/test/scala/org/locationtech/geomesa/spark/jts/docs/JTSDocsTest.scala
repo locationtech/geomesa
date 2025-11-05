@@ -3,37 +3,36 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark.jts.docs
 
 
-import org.junit.runner.RunWith
-import org.locationtech.geomesa.spark.jts.TestEnvironment
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.spark.TestWithSpark
+import org.testcontainers.containers.BindMode
+import org.testcontainers.utility.MountableFile
 
 /**
  * Test rig for verifying examples in the user manual. Note: this cannot be in the
  * parent package and safely confirm all proper imports are included in the examples.
  */
-@RunWith(classOf[JUnitRunner])
-class JTSDocsTest extends Specification with TestEnvironment {
+class JTSDocsTest extends TestWithSpark {
 
-  sequential
+  import org.apache.spark.sql.types._
+  import org.locationtech.geomesa.spark.jts._
+  import org.locationtech.jts.geom._
 
-  // before
-  step {
-    // Trigger initialization of spark session
-    val _ = spark
+  lazy val csv = MountableFile.forClasspathResource("jts-example.csv").getResolvedPath
+
+  override def beforeAll(): Unit = {
+    // note: path needs to be the same locally and on the worker in order for spark to find it -
+    // probably we're not calling something quite right
+    cluster.worker.withFileSystemBind(csv, csv, BindMode.READ_ONLY)
+    super.beforeAll()
   }
 
   "jts documentation example" should {
-
-    import org.apache.spark.sql.types._
-    import org.locationtech.geomesa.spark.jts._
-    import org.locationtech.jts.geom._
 
     "read and convert geospatial csv" >> {
       import spark.implicits._
@@ -45,12 +44,11 @@ class JTSDocsTest extends Specification with TestEnvironment {
         StructField("latitude", DoubleType, nullable=false),
         StructField("longitude", DoubleType, nullable=false)))
 
-      val dataFile = this.getClass.getClassLoader.getResource("jts-example.csv").getPath
       val df = spark.read
         .schema(schema)
         .option("sep", "-")
         .option("timestampFormat", "yyyy/MM/dd HH:mm:ss ZZ")
-        .csv(dataFile)
+        .csv(csv)
 
       val alteredDF = df
         .withColumn("polygon", st_polygonFromText($"polygonText"))
@@ -80,15 +78,10 @@ class JTSDocsTest extends Specification with TestEnvironment {
       import org.locationtech.geomesa.spark.jts._
       import spark.implicits._
 
-      val chicagoDF = dfBlank.withColumn("geom", st_makePoint(10.0, 10.0))
+      val chicagoDF = dfBlank().withColumn("geom", st_makePoint(10.0, 10.0))
       chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
 
       chicagoDF.count() shouldEqual 1
     }
-  }
-
-  // after
-  step {
-    spark.stop()
   }
 }

@@ -3,7 +3,7 @@ HBase Data Store
 
 .. note::
 
-    GeoMesa currently supports HBase |hbase_supported_versions|.
+    GeoMesa currently supports HBase {{hbase_supported_versions}}.
 
 The GeoMesa HBase Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `Apache HBase`_.

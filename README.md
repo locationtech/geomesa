@@ -38,14 +38,14 @@ geospatial analytics.
 
 ## Downloads
 
-**Latest release: [5.3.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.3.0)** &nbsp;-&nbsp;
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-accumulo_2.12-5.3.0-bin.tar.gz) |
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-hbase_2.12-5.3.0-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-cassandra_2.12-5.3.0-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-kafka_2.12-5.3.0-bin.tar.gz) |
-  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-redis_2.12-5.3.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-fs_2.12-5.3.0-bin.tar.gz) |
-  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.3.0/geomesa-gt_2.12-5.3.0-bin.tar.gz)
+**Latest release: [5.4.0](https://github.com/locationtech/geomesa/releases/tag/geomesa-5.4.0)** &nbsp;-&nbsp;
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-accumulo_2.12-5.4.0-bin.tar.gz) |
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-hbase_2.12-5.4.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-cassandra_2.12-5.4.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-kafka_2.12-5.4.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-redis_2.12-5.4.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-fs_2.12-5.4.0-bin.tar.gz) |
+  [**PostGIS**](https://github.com/locationtech/geomesa/releases/download/geomesa-5.4.0/geomesa-gt_2.12-5.4.0-bin.tar.gz)
 
 ### Verifying Downloads
 
@@ -59,7 +59,7 @@ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 Then verify the file:
 
 ```bash
-gpg2 --verify geomesa-accumulo_2.12-5.3.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.3.0-bin.tar.gz
+gpg2 --verify geomesa-accumulo_2.12-5.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.4.0-bin.tar.gz
 ```
 
 The keys currently used for signing are:
@@ -79,7 +79,7 @@ GeoMesa is hosted on Maven Central. To include it as a dependency, add the desir
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-accumulo-datastore_2.12</artifactId>
-  <version>5.3.0</version>
+  <version>5.4.0</version>
 </dependency>
 ```
 
@@ -91,7 +91,7 @@ GeoMesa provides a bill-of-materials module, which can simplify version manageme
     <dependency>
       <groupId>org.locationtech.geomesa</groupId>
       <artifactId>geomesa-bom_2.12</artifactId>
-      <version>5.3.0</version>
+      <version>5.4.0</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -145,7 +145,7 @@ DataStore implementations:
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
   <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
-  <version>5.3.0</version>
+  <version>5.4.0</version>
   <exclusions>
     <exclusion>
       <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
@@ -171,7 +171,7 @@ resolvers ++= Seq(
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "5.3.0"
+  "org.locationtech.geomesa" %% "geomesa-utils" % "5.4.0"
 )
 ```
 
@@ -184,7 +184,7 @@ libraryDependencies ++= Seq(
 Requirements:
 
 * [Git](https://git-scm.com/)
-* [Java JDK 11](https://adoptium.net/temurin/releases/)
+* [Java JDK 17](https://adoptium.net/temurin/releases/)
 * [Apache Maven](https://maven.apache.org/) 3.6.3 or later
 * [Docker](https://docs.docker.com/get-docker/) (only required for running unit tests)
 
@@ -198,12 +198,12 @@ cd geomesa
 The project is built using Maven. To build, run:
 
 ```bash
-mvn clean install -DskipTests
+mvn clean install -Dmaven.test.skip
 ```
 
 The full build takes quite a while. To speed it up, you may use multiple threads (`-T 1.5C`).
 
-To run unit tests, omit the `-DskipTests` (note: requires `docker` to be available).
+To run unit tests, omit the `-Dmaven.test.skip` (note: requires `docker` to be available).
 
 ### Build with Bloop Compile Server
 
@@ -217,23 +217,6 @@ which provides fast incremental compilation. To export the GeoMesa build to Bloo
 For more information on using Bloop, refer to the
 [Bloop documentation](https://scalacenter.github.io/bloop/docs/build-tools/maven).
 
-### Build with Zinc Compile Server
-
-GeoMesa also provides experimental support for the [Zinc](https://github.com/typesafehub/zinc) compile server,
-which provides fast incremental compilation. However, please note that Zinc is no longer actively maintained.
-To use an existing Zinc server, run maven with `-Pzinc`. GeoMesa provides a helper script at `build/mvn`, which
-is a wrapper around Maven that downloads and runs Zinc automatically:
-
-```bash
-build/mvn clean install -T8 -DskipTests
-```
-
-If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
-environment variable to point to the root of your JDK. Example from a Mac:
-
-```bash
-JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
-```
 ### Scala Cross Build
 
 To build for a different Scala version (e.g. 2.13), run the following script, then build as normal:

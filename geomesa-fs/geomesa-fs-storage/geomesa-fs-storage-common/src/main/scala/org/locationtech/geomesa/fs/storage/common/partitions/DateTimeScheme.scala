@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.partitions
@@ -178,10 +178,6 @@ object DateTimeScheme {
 
   def apply(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
     DateTimeScheme(DateTimeFormatter.ofPattern(format), format, stepUnit, step, dtg, dtgIndex)
-
-  @deprecated("Pattern is not correct when using this constructor")
-  def apply(formatter: DateTimeFormatter, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int): DateTimeScheme =
-    DateTimeScheme(formatter, formatter.toString, stepUnit, step, dtg, dtgIndex)
 
   object Config {
     val DateTimeFormatOpt: String = "datetime-format"

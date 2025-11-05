@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.view
@@ -28,7 +28,7 @@ import org.locationtech.geomesa.index.view.MergedQueryRunner.Queryable
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.iterators.{DeduplicatingSimpleFeatureIterator, SortedMergeIterator}
+import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
 
 /**
  * Query runner for merging results from multiple stores
@@ -116,20 +116,10 @@ class MergedQueryRunner(
     * @param original query to configure
     * @return
     */
-  override protected [geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
+  override protected[geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
     val query = new Query(original)
-
-    // set the thread-local hints once, so that we have them for each data store that is being queried
-    // noinspection ScalaDeprecation
-    QueryPlanner.getPerThreadQueryHints.foreach { hints =>
-      hints.foreach { case (k, v) => query.getHints.put(k, v) }
-      // clear any configured hints so we don't process them again
-      QueryPlanner.clearPerThreadQueryHints()
-    }
-
     // handle view params if present
     ViewParams.setHints(query)
-
     query
   }
 

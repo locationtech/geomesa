@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools
@@ -11,23 +11,19 @@ package org.locationtech.geomesa.tools
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.facebook.nailgun.NGContext
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.Command.CommandException
-import org.locationtech.geomesa.tools.Runner.{AutocompleteInfo, CommandResult, Executor}
+import org.locationtech.geomesa.tools.Runner.{CommandResult, Executor}
 import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
-import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentCommand, VersionCommand}
+import org.locationtech.geomesa.tools.status.{AutoCompleteCommand, ConfigureCommand, EnvironmentCommand, VersionCommand}
 import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 
-import java.io.File
-import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
-trait Runner extends MethodProfiling with LazyLogging {
+trait Runner extends LazyLogging {
 
   def name: String
 
@@ -39,8 +35,18 @@ trait Runner extends MethodProfiling with LazyLogging {
    */
   protected def classpathEnvironments: Seq[String] = Seq.empty
 
+  /**
+   * Main command line invocation
+   *
+   * @param args command line args
+   */
   def main(args: Array[String]): Unit = execute(new MainExecutor(args))
 
+  /**
+   * Nailgun main invocation
+   *
+   * @param context context
+   */
   def nailMain(context: NGContext): Unit = execute(new NailgunExecutor(context))
 
   private def execute(executor: Executor): Unit = {
@@ -86,7 +92,7 @@ trait Runner extends MethodProfiling with LazyLogging {
           .addConverterFactory(new GeoMesaIStringConverterFactory)
           .build()
 
-    val commands = this.commands :+ new HelpCommand(this, jc)
+    val commands = this.commands ++ Seq(new HelpCommand(this, jc), new AutoCompleteCommand(this, jc))
     commands.foreach { command =>
       jc.addCommand(command.name, command.params)
       command.subCommands.foreach(sub => jc.getCommands.get(command.name).addCommand(sub.name, sub.params))
@@ -140,60 +146,6 @@ trait Runner extends MethodProfiling with LazyLogging {
         command.getUsageFormatter.usage(out)
         out.toString
     }
-  }
-
-  def autocompleteUsage(jc: JCommander, autocompleteInfo: AutocompleteInfo): Unit = {
-    val file = new File(autocompleteInfo.path)
-    val commands = jc.getCommands.asScala.keys.toSeq
-    val out = new StringBuilder
-    out.append(
-      s"""_${autocompleteInfo.commandName}(){
-         |  local cur prev;
-         |  COMPREPLY=();
-         |  cur="$${COMP_WORDS[COMP_CWORD]}";
-         |  prev="$${COMP_WORDS[COMP_CWORD-1]}";
-         |
-         |  if [[ "$${COMP_WORDS[1]}" == "help" ]]; then
-         |    COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
-         |    return 0;
-         |  fi;
-         |
-         |  case $${COMP_CWORD} in
-         |    1)
-         |      COMPREPLY=( $$(compgen -W "${commands.mkString(" ")}" $${cur}));
-         |      ;;
-         |    [2-9] | [1-9][0-9])
-         |      if [[ "$${cur}" =~ ^-[a-zA-Z-]?+$$ ]]; then
-         |        case $${COMP_WORDS[1]} in
-        """.stripMargin)
-    commands.foreach { command =>
-      val params = jc.getCommands.get(command).getParameters.asScala.filter(!_.getParameter.hidden()).flatMap(_.getParameter.names().filter(_.length != 2))
-        out.append(
-      s"""            $command)
-         |              COMPREPLY=( $$(compgen -W "${params.mkString(" ").replaceAll("[,\\s]+", " ")}" -- $${cur}));
-         |              return 0;
-         |              ;;
-      """.stripMargin)
-    }
-    out.append(
-      s"""        esac;
-         |      else
-         |        compopt -o filenames -o nospace;
-         |        COMPREPLY=( $$(compgen -f "$$2") );
-         |      fi;
-         |      return 0;
-         |      ;;
-         |    *)
-         |      COMPREPLY=();
-         |      ;;
-         |  esac;
-         |};
-         |complete -F _${autocompleteInfo.commandName} ${autocompleteInfo.commandName};
-         |complete -F _${autocompleteInfo.commandName} bin/${autocompleteInfo.commandName};
-         |
-         |
-       """.stripMargin)
-    FileUtils.writeStringToFile(file, out.toString(), StandardCharsets.UTF_8)
   }
 
   /**
@@ -266,6 +218,4 @@ object Runner {
    * @param errors error messages or exceptions with full stack traces
    */
   case class CommandResult(code: Int, errors: Seq[Either[String, Throwable]] = Seq.empty)
-
-  case class AutocompleteInfo(path: String, commandName: String)
 }

@@ -3,38 +3,23 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark.geotools
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.api.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.api.feature.simple.SimpleFeature
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
+import org.locationtech.geomesa.geotools.spark.GeoToolsSpatialRDDProvider
+import org.locationtech.geomesa.spark.{GeoMesaSpark, TestWithGeoToolsSpark}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.specs2.mutable.Specification
-import org.specs2.runner.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
-class GeoToolsSpatialRDDProviderTest extends Specification {
+class GeoToolsSpatialRDDProviderTest extends TestWithGeoToolsSpark {
 
   import scala.collection.JavaConverters._
-
-  var sc: SparkContext = _
-
-  step {
-    val conf = new SparkConf().setMaster("local[2]").setAppName("testSpark")
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
-    sc = SparkContext.getOrCreate(conf)
-  }
-
-  val dsParams = Map("namespace" -> getClass.getSimpleName, "cqengine" -> "true", "geotools" -> "true")
 
   lazy val chicagoSft =
     SimpleFeatureTypes.createType("chicago",
@@ -50,25 +35,35 @@ class GeoToolsSpatialRDDProviderTest extends Specification {
   )
 
   "The GeoToolsSpatialRDDProvider" should {
-    "read from the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
-      ds.createSchema(chicagoSft)
-      WithClose(ds.getFeatureWriterAppend("chicago", Transaction.AUTO_COMMIT)) { writer =>
-        chicagoFeatures.take(3).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-      }
+    "read from a database" in {
+      val sft = SimpleFeatureTypes.renameSft(chicagoSft, "chicago_read")
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { ds =>
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          chicagoFeatures.take(3).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
 
-      val rdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
-      rdd.count() mustEqual 3l
+        val rdd = GeoMesaSpark(postgisParams.asJava).rdd(new Configuration(), sparkContext, postgisParams, new Query(sft.getTypeName))
+        rdd.count() mustEqual 3L
+      }
     }
 
-    "write to the in-memory database" in {
-      val ds = DataStoreFinder.getDataStore(dsParams.asJava)
-      ds.createSchema(chicagoSft)
-      val writeRdd = sc.parallelize(chicagoFeatures)
-      GeoMesaSpark(dsParams.asJava).save(writeRdd, dsParams, "chicago")
-      // verify write
-      val readRdd = GeoMesaSpark(dsParams.asJava).rdd(new Configuration(), sc, dsParams, new Query("chicago"))
-      readRdd.count() mustEqual 6l
+    "write to a database" in {
+      val sft = SimpleFeatureTypes.renameSft(chicagoSft, "chicago_write")
+      WithClose(DataStoreFinder.getDataStore(postgisParams.asJava)) { ds =>
+        ds.createSchema(sft)
+        val writeRdd = sparkContext.parallelize(chicagoFeatures)
+        // need to bypass the store check up fron b/c ds params are different from the local check and the distributed write
+        GeoToolsSpatialRDDProvider.StoreCheck.threadLocalValue.set("false")
+        try {
+          GeoMesaSpark(postgisParams.asJava).save(writeRdd, postgisSparkParams, sft.getTypeName)
+        } finally {
+          GeoToolsSpatialRDDProvider.StoreCheck.threadLocalValue.remove()
+        }
+        // verify write
+        val readRdd = GeoMesaSpark(postgisParams.asJava).rdd(new Configuration(), sparkContext, postgisParams, new Query(sft.getTypeName))
+        readRdd.count() mustEqual 6L
+      }
     }
   }
 }

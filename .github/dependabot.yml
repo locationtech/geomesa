@@ -12,3 +12,24 @@ updates:
           - "major"
           - "minor"
           - "patch"
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "[dependabot] "
+    allow:
+      - dependency-name: "org.apache.maven.plugins:*"
+      - dependency-name: "com.mycila:license-maven-plugin"
+      - dependency-name: "net.alchim31.maven:scala-maven-plugin"
+      - dependency-name: "org.codehaus.mojo:build-helper-maven-plugin"
+      - dependency-name: "org.cyclonedx:cyclonedx-maven-plugin"
+      - dependency-name: "org.scoverage:scoverage-maven-plugin"
+      - dependency-name: "org.sonatype.central:central-publishing-maven-plugin"
+      - dependency-name: "pl.project13.maven:git-commit-id-plugin"
+    groups:
+      plugins:
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"

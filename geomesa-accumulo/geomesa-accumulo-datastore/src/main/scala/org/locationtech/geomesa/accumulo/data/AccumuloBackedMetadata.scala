@@ -3,32 +3,30 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.client.{AccumuloClient, BatchWriter}
+import org.apache.accumulo.core.client.AccumuloClient
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableManager}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
 
 class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
   import scala.collection.JavaConverters._
 
+  // note: accumulo client is closed by the owning data store
+
   private val config = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
   private val empty = new Text()
-
-  private var closed = false
-
-  private var writer: BatchWriter = _
 
   override protected def checkIfTableExists: Boolean = connector.tableOperations().exists(table)
 
@@ -38,42 +36,32 @@ class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String
     new AccumuloBackedMetadata(connector, s"${table}_${timestamp}_bak", serializer)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
-    synchronized {
-      if (writer == null) {
-        if (closed) {
-          throw new IllegalStateException("Trying to write using a closed instance")
-        }
-        writer = connector.createBatchWriter(table, config)
+    WithClose(connector.createBatchWriter(table, config)) { writer =>
+      rows.foreach { case (k, v) =>
+        val m = new Mutation(k)
+        m.put(empty, empty, new Value(v))
+        writer.addMutation(m)
       }
     }
-    rows.foreach { case (k, v) =>
-      val m = new Mutation(k)
-      m.put(empty, empty, new Value(v))
-      writer.addMutation(m)
-    }
-    writer.flush()
   }
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit = {
     val ranges = rows.map(r => Range.exact(new Text(r))).asJava
-    val deleter = connector.createBatchDeleter(table, Authorizations.EMPTY, 1, config)
-    deleter.setRanges(ranges)
-    deleter.delete()
-    deleter.close()
+    WithClose(connector.createBatchDeleter(table, Authorizations.EMPTY, 1, config)) { deleter =>
+      deleter.setRanges(ranges)
+      deleter.delete()
+    }
   }
 
   override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = {
-    val scanner = connector.createScanner(table, Authorizations.EMPTY)
-    scanner.setRange(Range.exact(new Text(row)))
-    try {
+    WithClose(connector.createScanner(table, Authorizations.EMPTY)) { scanner =>
+      scanner.setRange(Range.exact(new Text(row)))
       val iter = scanner.iterator
       if (iter.hasNext) {
         Some(iter.next.getValue.get)
       } else {
         None
       }
-    } finally {
-      scanner.close()
     }
   }
 
@@ -83,15 +71,6 @@ class AccumuloBackedMetadata[T](val connector: AccumuloClient, val table: String
     val scanner = connector.createScanner(table, Authorizations.EMPTY)
     scanner.setRange(range)
     CloseableIterator(scanner.iterator.asScala.map(r => (r.getKey.getRow.copyBytes, r.getValue.get)), scanner.close())
-  }
-
-  override def close(): Unit = synchronized {
-    if (!closed) {
-      closed = true
-      if (writer != null) {
-        CloseWithLogging(writer)
-      }
-    }
   }
 }
 

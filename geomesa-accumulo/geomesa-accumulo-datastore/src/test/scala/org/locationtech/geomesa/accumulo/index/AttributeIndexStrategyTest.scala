@@ -3,12 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
 import com.google.gson.Gson
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -20,8 +21,8 @@ import org.geotools.util.Converters
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
@@ -44,12 +45,11 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
 
-import java.io.ByteArrayInputStream
 import java.util.Date
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexStrategyTest extends Specification with TestWithFeatureType {
+class AttributeIndexStrategyTest extends Specification with TestWithFeatureType with LazyLogging {
 
   override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
       "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
@@ -147,10 +147,10 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       ds.manager.indices(sft).foreach { index =>
         if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
           index.getTableNames().foreach { table =>
-            println(table)
-            WithClose(ds.connector.createScanner(table, root.auths))(_.asScala.foreach(println))
+            logger.info(table)
+            WithClose(ds.connector.createScanner(table, root.auths))(_.asScala.foreach(r => logger.info(r.toString)))
           }
-          println()
+          logger.info("")
         }
       }
       success

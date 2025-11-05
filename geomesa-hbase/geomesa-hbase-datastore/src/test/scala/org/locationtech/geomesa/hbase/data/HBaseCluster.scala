@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
@@ -21,7 +21,7 @@ object HBaseCluster extends LazyLogging {
 
   val ImageName =
     DockerImageName.parse("ghcr.io/geomesa/hbase-docker")
-      .withTag(sys.props.getOrElse("hbase.docker.tag", "2.6.2"))
+      .withTag(sys.props.getOrElse("hbase.docker.tag", "2.6.3-jdk17"))
 
   private val container = new HBaseContainer(ImageName)
 

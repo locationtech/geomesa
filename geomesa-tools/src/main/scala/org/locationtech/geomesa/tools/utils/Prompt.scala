@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.utils
@@ -29,11 +29,16 @@ object Prompt {
     console
   }
 
-  def confirm(msg: String,
-              confirmStrings: List[String] = List("yes", "y"))
-             (implicit console: SystemConsole = SystemConsole): Boolean = {
+  def confirm(
+      msg: String,
+      confirmStrings: List[String] = List("yes", "y"),
+      default: String = "")
+     (implicit console: SystemConsole = SystemConsole): Boolean = {
     print(msg)
-    val response = console.readLine().toLowerCase.trim
+    var response = console.readLine().toLowerCase.trim
+    if (response.isEmpty) {
+      response = default
+    }
     confirmStrings.map(_.toLowerCase).contains(response)
   }
 

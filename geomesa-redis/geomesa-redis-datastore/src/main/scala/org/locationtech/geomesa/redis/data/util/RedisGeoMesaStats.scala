@@ -3,23 +3,21 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.redis.data
 package util
 
-import org.locationtech.geomesa.index.stats.MetadataBackedStats
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
+import org.locationtech.geomesa.index.stats.{MetadataBackedStats, Stat}
 import org.locationtech.geomesa.redis.data.util.RedisGeoMesaStats.RedisStat
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.Stat
-import redis.clients.jedis.{Jedis, UnifiedJedis}
 
+import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import scala.util.control.NonFatal
-import java.nio.charset.StandardCharsets
 
 /**
   * Redis stats implementation
@@ -93,8 +91,8 @@ class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
                   case _ => null
                 }
                 val success = list.get(1) match {
-                  case i: java.lang.Long => i == 1L
-                  case i: java.lang.Integer => i == 1
+                  case i: java.lang.Long => i.longValue() == 1L
+                  case i: java.lang.Integer => i.intValue() == 1
                   case s: String => s.toInt == 1
                   case _ => false
                 }

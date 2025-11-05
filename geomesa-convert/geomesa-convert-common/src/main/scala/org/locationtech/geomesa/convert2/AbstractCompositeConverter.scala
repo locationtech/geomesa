@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
@@ -18,6 +18,7 @@ import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.{CompositeEvaluationContext, PredicateContext}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -32,7 +33,23 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
     delegates: Seq[(Predicate, ParsingConverter[T])]
   ) extends SimpleFeatureConverter with LazyLogging {
 
-  private val tags = ConverterMetrics.typeNameTag(sft)
+  private val tags = TagUtils.typeNameTag(sft.getTypeName)
+
+  private val routingTimer =
+    Timer.builder(ConverterMetrics.name("predicate.eval"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(2))
+      .register(Metrics.globalRegistry)
+
+  private val parseTimer =
+    Timer.builder(ConverterMetrics.name("parse"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(10))
+      .register(Metrics.globalRegistry)
 
   protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[T]
 
@@ -40,9 +57,6 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams)), Stats(tags))
-
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext =
-    createEvaluationContext(delegates.map(_._2.createEvaluationContext(globalParams, success, failure)), Stats.wrap(success, failure, tags))
 
   private def createEvaluationContext(contexts: Seq[EvaluationContext], theseStats: Stats): EvaluationContext = {
     val stats = new Stats() {
@@ -73,36 +87,21 @@ abstract class AbstractCompositeConverter[T <: AnyRef](
       }
     }
 
-    val routing =
-      Timer.builder(ConverterMetrics.name("predicate.eval"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(2))
-        .register(Metrics.globalRegistry)
-
     def eval(element: T): CloseableIterator[SimpleFeature] = {
       val start = System.nanoTime()
       args(0) = element
       val converted = predicates.collectFirst { case p if matches(p.predicate) =>
-        routing.record(System.nanoTime() - start, TimeUnit.NANOSECONDS) // note: invoke before executing the conversion
+        routingTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS) // note: invoke before executing the conversion
         p.context.line = ec.line // update the line in the sub context
         p.converter.convert(CloseableIterator.single(element), p.context)
       }
       converted.getOrElse {
-        routing.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+        routingTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
         ec.stats.failure()
         CloseableIterator.empty
       }
     }
 
-    val parseTimer =
-      Timer.builder(ConverterMetrics.name("parse"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(10))
-        .register(Metrics.globalRegistry)
     new ErrorHandlingIterator(parse(is, ec), errorMode, ec, parseTimer).flatMap(eval)
   }
 
@@ -126,7 +125,6 @@ object AbstractCompositeConverter {
     override def withListener(listener: ContextListener): EvaluationContext =
       CompositeEvaluationContext(contexts.map(_.withListener(listener)), StatListener(stats, listener))
 
-    override def metrics: ConverterMetrics = contexts.head.metrics
     override val success: com.codahale.metrics.Counter = new com.codahale.metrics.Counter() {
       override def inc(n: Long): Unit = stats.success(n.toInt)
       override def getCount: Long = stats.success(0)

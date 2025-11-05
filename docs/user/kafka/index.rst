@@ -5,7 +5,7 @@ Kafka Data Store
 
 .. note::
 
-    GeoMesa currently supports Kafka |kafka_supported_versions|.
+    GeoMesa currently supports Kafka {{kafka_supported_versions}}.
 
 The GeoMesa Kafka Data Store is an implementation of the GeoTools
 ``DataStore`` interface that is backed by `Apache Kafka`_. The

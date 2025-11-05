@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
@@ -221,6 +221,27 @@ class GeoMesaDataStoreAlterSchemaTest extends Specification {
       missing.apply()
 
       ds.checkSchemaCompatibility("test", toSft(missingConfig)) mustEqual SchemaCompatibility.Unchanged
+    }
+    "prevent creating a schema with corrupt metadata" in {
+      val ds = new TestGeoMesaDataStore(true)
+      val spec = "name:String,age:Integer,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      sft.getUserData.put("geomesa.foo=bar", "baz")
+      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+      ds.getSchema("test") must beNull
+    }
+    "prevent updates that would corrupt the schema metadata" in {
+      val ds = new TestGeoMesaDataStore(true)
+      val spec = "name:String,age:Integer,dtg:Date,*geom:Point:srid=4326"
+      ds.createSchema(SimpleFeatureTypes.createType("test", spec))
+
+      val sft = SimpleFeatureTypes.mutable(ds.getSchema("test"))
+      sft.getUserData.put("geomesa.foo=bar", "baz")
+
+      ds.updateSchema("test", sft) must throwAn[IllegalArgumentException]
+
+      ds.getSchema("test") must not(beNull)
+      SimpleFeatureTypes.encodeType(ds.getSchema("test")) mustEqual spec
     }
   }
 }

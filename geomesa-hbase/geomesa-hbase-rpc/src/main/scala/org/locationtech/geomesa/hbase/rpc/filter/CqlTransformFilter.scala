@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.rpc.filter
@@ -17,7 +17,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
 import org.locationtech.geomesa.hbase.rpc.filter.CqlTransformFilter.DelegateFilter
@@ -103,7 +103,7 @@ object CqlTransformFilter extends StrictLogging {
       throw new IllegalArgumentException("The filter must have a predicate and/or transform")
     }
 
-    val feature = KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+    val feature = KryoFeatureSerializer(sft, SerializationOption.WithoutId).getReusableFeature
     feature.setIdParser(index.getIdFromRow(_, _, _, null))
     transform.foreach { case (tdefs, tsft) => feature.setTransforms(tdefs, tsft) }
 
@@ -302,7 +302,7 @@ object CqlTransformFilter extends StrictLogging {
       offset += sftLength
 
       val sft = IteratorCache.sft(spec)
-      val feature = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
+      val feature = IteratorCache.serializer(spec, SerializationOption.WithoutId).getReusableFeature
 
       val cqlLength = ByteArrays.readInt(bytes, offset)
       offset += 4

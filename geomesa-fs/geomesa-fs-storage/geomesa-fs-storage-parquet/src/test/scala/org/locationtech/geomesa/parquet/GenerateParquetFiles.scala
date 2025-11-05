@@ -3,19 +3,18 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.parquet
 
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemContext
-import org.locationtech.geomesa.fs.storage.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter
 import org.locationtech.geomesa.fs.storage.parquet.io.GeometrySchema.GeometryEncoding
-import org.locationtech.geomesa.fs.storage.parquet.io.SimpleFeatureParquetSchema
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemWriter, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -24,7 +23,7 @@ import java.util.{Locale, UUID}
 /**
  * Writes GeoParquet 'native' and 'wkb' files to /tmp/, for testing interoperability with other systems.
  */
-object GenerateParquetFiles {
+object GenerateParquetFiles extends StrictLogging {
 
   def main(args: Array[String]): Unit = {
 
@@ -68,15 +67,15 @@ object GenerateParquetFiles {
 
     Seq(GeometryEncoding.GeoParquetNative, GeometryEncoding.GeoParquetWkb, GeometryEncoding.GeoMesaV1).foreach { encoding =>
       val config = new Configuration()
+      SimpleFeatureParquetSchema.setSft(config, sft)
       config.set("parquet.compression", "gzip")
       config.set(SimpleFeatureParquetSchema.GeometryEncodingKey, encoding.toString)
       val dir = new Path(sys.props("java.io.tmpdir"))
       val file = new Path(dir, s"${encoding.toString.replace("GeoParquet", "geoparquet-").toLowerCase(Locale.US)}-test.parquet")
-      val context = FileSystemContext(dir, config)
-      WithClose(new ParquetFileSystemWriter(sft, context, file)) { writer =>
+      WithClose(new ParquetFileSystemWriter(file, config)) { writer =>
         features.foreach(writer.write)
       }
-      println(s"Wrote ${features.length} features to $file")
+      logger.info(s"Wrote ${features.length} features to $file")
     }
   }
 }

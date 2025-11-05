@@ -47,15 +47,16 @@ Partition size is configured with the key ``pg.partitions.interval.hours``.
     sft.getUserData().put("pg.partitions.interval.hours", "12");
 
 After the schema has been created, changes to the partition size can be made through the
-:ref:`postgis_cli_update_schema` command. Changes will not be applied to any existing partitions. If the partition
-size is **increased**, any recent partitions that would overlap with the new partition size will need to be
-manually dropped and the data re-inserted in the write-ahead table in order to prevent partition range conflict errors.
+:ref:`postgis_cli_update_schema` command, or (for schemas created or updated with GeoMesa version ``5.4.0`` or later) by directly
+updating the ``geomesa_userdata`` table in Postgres. Changes will not be applied to any existing partitions. If the partition size
+is **increased**, any recent partitions that would overlap with the new partition size will need to be manually dropped and the
+data re-inserted into the write-ahead table in order to prevent partition range conflict errors.
 
 Configuring Index Resolution
 ----------------------------
 
 Each feature type can be configured with a number of pages per range. The partition tables use a
-`BRIN <https://www.postgresql.org/docs/current/brin-intro.html>`__ index, which is a lossy index structure.
+`BRIN <https://www.postgresql.org/docs/17/brin.html>`__ index, which is a lossy index structure.
 The number of data pages stored in each index range controls how lossy, and how large the index becomes.
 By default, Postgres stores 128 pages in each range. Storing fewer pages will generally make the index more
 efficient, at the cost of requiring more space; however, the optimal number will depend on data characteristics
@@ -132,7 +133,7 @@ and ``pg.partitions.tablespace.main``. See :ref:`pg_partition_table_design` for 
     sft.getUserData().put("pg.partitions.tablespace.wa", "fasttablespace");
 
 After the schema has been created, changes to the configured tablespaces can be made through the
-:ref:`postgis_cli_update_schema` command, or by directly updating the ``partition_tablespaces`` table in Postgres.
+:ref:`postgis_cli_update_schema` command, or by directly updating the ``geomesa_userdata`` table in Postgres.
 Changes will not be applied to any existing partitions.
 
 Configuring the Maintenance Schedule
@@ -154,8 +155,7 @@ for each query, moving data out of it faster may improve performance.
     SimpleFeatureType sft = ....;
     sft.getUserData().put("pg.partitions.cron.minute", "0");
 
-After the schema has been created, changes to the schedule can be made through the
-:ref:`postgis_cli_update_schema` command.
+After the schema has been created, changes to the schedule can be made through the :ref:`postgis_cli_update_schema` command.
 
 Configuring WAL logging
 -----------------------
@@ -165,5 +165,10 @@ for all changes to the database, including the partitioned tables. Disabling the
 can significantly improve write performance, but at the cost of data durability. If increased performance is desired,
 the WAL can be disabled for the partitioned tables by setting the key ``pg.wal.enabled`` to ``false``.
 
+.. code-block:: java
+
+    SimpleFeatureType sft = ....;
+    sft.getUserData().put("pg.wal.enabled", "false");
+
 See the PostgreSQL `documentation <https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED>`_
- for more information on the implications of disabling the WAL.
+for more information on the implications of disabling the WAL.

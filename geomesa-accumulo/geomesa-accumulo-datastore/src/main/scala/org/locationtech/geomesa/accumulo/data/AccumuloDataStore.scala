@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 
@@ -17,19 +17,24 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryStrategy}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
 import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -37,10 +42,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
-import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexCoverage, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
-import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
 import java.util.Locale
 import scala.util.control.NonFatal
@@ -128,8 +131,6 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
   }
 
   override protected def loadIteratorVersions: Set[String] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     // just check the first table available
     val versions = getTypeNames.iterator.flatMap { typeName =>
       getAllIndexTableNames(typeName).iterator.flatMap { table =>
@@ -146,7 +147,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
         }
       }
     }
-    versions.headOption.toSet
+    versions.find(_ != null).toSet
   }
 
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
@@ -176,7 +177,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
           val nsMsg = if (namespace.isEmpty) { "" } else { s" for the namespace '$namespace'" }
           throw new RuntimeException(s"$msg. You may override this check by setting the system property " +
             s"'${ValidateDistributedClasspath.property}=false'. Otherwise, please verify that the appropriate " +
-            s"JARs are installed$nsMsg - see http://www.geomesa.org/documentation/user/accumulo/install.html" +
+            s"JARs are installed$nsMsg - see https://www.geomesa.org/documentation/stable/user/accumulo/install.html" +
             "#installing-the-accumulo-distributed-runtime-library")
         }
       }
@@ -395,6 +396,53 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
     }
 
     sft
+  }
+
+  // methods specific to accumulo
+
+  /**
+   * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
+   *
+   * @param query query
+   * @return
+   */
+  def getSingleQueryPlan(query: Query): AccumuloQueryPlan = {
+    // disable join plans as those have multiple tables
+    JoinIndex.AllowJoinPlans.set(false)
+
+    try {
+      lazy val fallbackIndex = {
+        val schema = getSchema(query.getTypeName)
+        manager.indices(schema, IndexMode.Read).headOption.getOrElse {
+          throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
+        }
+      }
+
+      val queryPlans = getQueryPlan(query)
+
+      if (queryPlans.isEmpty) {
+        val filter =
+          FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity, query.getHints)
+        EmptyPlan(QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, filter.filter, None))
+      } else {
+        val qps =
+          if (queryPlans.lengthCompare(1) == 0) { queryPlans } else {
+            // this query requires multiple scans, which we can't execute from some input formats
+            // instead, fall back to a full table scan
+            logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
+            getQueryPlan(query, Some(fallbackIndex.identifier))
+          }
+        if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
+          logger.error("The query being executed requires multiple scans, which is not currently " +
+            "supported by GeoMesa. Your result set will be partially incomplete. " +
+            s"Query: ${FilterHelper.toString(query.getFilter)}")
+        }
+        qps.head
+      }
+    } finally {
+      // make sure we reset the thread locals
+      JoinIndex.AllowJoinPlans.remove()
+    }
   }
 
   override def dispose(): Unit = {

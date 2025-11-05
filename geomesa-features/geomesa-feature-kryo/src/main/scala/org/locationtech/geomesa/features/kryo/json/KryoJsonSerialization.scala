@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo.json
@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.control.NonFatal
 
 /**
- * Serializes into bson (http://bsonspec.org/). Note this is a limited form of bson that only matches
+ * Serializes into bson (https://bsonspec.org/). Note this is a limited form of bson that only matches
  * the existing json types - does not cover the bson extensions like binary data, etc. Also note endianness,
  * etc might not match the spec 100%.
  *

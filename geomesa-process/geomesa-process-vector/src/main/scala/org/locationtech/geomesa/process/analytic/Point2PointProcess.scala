@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.process.analytic
@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+import org.locationtech.jts.geom.Point
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
@@ -53,8 +54,6 @@ class Point2PointProcess extends GeoMesaProcess {
 
                ): SimpleFeatureCollection = {
 
-    import org.locationtech.geomesa.utils.geotools.Conversions._
-
     val queryType = data.getSchema
     val sftBuilder = new SimpleFeatureTypeBuilder()
     sftBuilder.init(baseType)
@@ -75,7 +74,7 @@ class Point2PointProcess extends GeoMesaProcess {
         .filter { case (_, coll) => coll.lengthCompare(minPoints) > 0 }
         .flatMap { case (_, coll) =>
 
-          val globalSorted = coll.sortBy(_.get[java.util.Date](sortFieldIndex))
+          val globalSorted = coll.sortBy(_.getAttribute(sortFieldIndex).asInstanceOf[java.util.Date])
 
           val groups = if (!breakOnDay) { Array(globalSorted) } else {
             globalSorted
@@ -86,10 +85,8 @@ class Point2PointProcess extends GeoMesaProcess {
 
           val results = groups.flatMap { sorted =>
             sorted.sliding(2).zipWithIndex.map { case (ptLst, idx) =>
-              import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-              val pts = ptLst.map(_.point.getCoordinate)
+              val pts = ptLst.map(_.getDefaultGeometry.asInstanceOf[Point].getCoordinate)
               val length = JTS.orthodromicDistance(pts.head, pts.last, DefaultGeographicCRS.WGS84)
-
               val group    = ptLst.head.getAttribute(groupingFieldIndex)
               val startDtg = ptLst.head.getAttribute(sortAttrName)
               val endDtg   = ptLst.last.getAttribute(sortAttrName)

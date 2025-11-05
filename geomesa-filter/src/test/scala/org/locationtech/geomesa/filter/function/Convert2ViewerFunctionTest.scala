@@ -3,15 +3,15 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 
 package org.locationtech.geomesa.filter.function
 
+import org.geotools.data.DataUtilities
 import org.geotools.util.Base64
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -28,7 +28,7 @@ class Convert2ViewerFunctionTest extends Specification {
   "Convert2ViewerFunction" should {
     "convert inputs" in {
       val sft = SimpleFeatureTypes.createType("foo", "foo:String,dtg:Date,*geom:Point:srid=4326")
-      val sf = ScalaSimpleFeature.create(sft, "", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
+      val sf = DataUtilities.parse(sft, "", "foo", "2017-01-01T00:00:00.000Z", "POINT (45 50)")
       val fn = new Convert2ViewerFunction()
       fn.setParameters(java.util.Arrays.asList(ff.property("foo"), ff.property("geom"), ff.property("dtg")))
       val result = Base64.decode(fn.evaluate(sf))

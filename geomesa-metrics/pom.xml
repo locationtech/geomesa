@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,11 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>geomesa-metrics-core</module>
-        <module>geomesa-metrics-cloudwatch</module>
-        <module>geomesa-metrics-graphite</module>
         <module>geomesa-metrics-micrometer</module>
-        <module>geomesa-metrics-prometheus</module>
     </modules>
 
 </project>

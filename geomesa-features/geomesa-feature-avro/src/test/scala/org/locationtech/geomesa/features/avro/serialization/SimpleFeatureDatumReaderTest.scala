@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro.serialization
@@ -14,9 +14,7 @@ import org.apache.commons.io.IOUtils
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.data.DataUtilities
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -195,14 +193,14 @@ class SimpleFeatureDatumReaderTest extends Specification with LazyLogging {
 
       val userData = sf.getUserData
 
-      userData.put(SecurityUtils.FEATURE_VISIBILITY, "USER|ADMIN")
+      userData.put("geomesa.feature.visibility", "USER|ADMIN")
       userData.put(null, java.lang.Integer.valueOf(5))
       userData.put(java.lang.Long.valueOf(10), "10")
       userData.put("null", null)
 
       // serialize
       val baos = new ByteArrayOutputStream()
-      val writer = new SimpleFeatureDatumWriter(sft, SerializationOptions.withUserData)
+      val writer = new SimpleFeatureDatumWriter(sft, SerializationOption.WithUserData)
       val encoder = EncoderFactory.get().binaryEncoder(baos, null)
       writer.write(sf, encoder)
       encoder.flush()

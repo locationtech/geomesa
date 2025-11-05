@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.json
 
 import com.typesafe.config.{Config, ConfigFactory}
-import io.micrometer.core.instrument.{Counter, Metrics}
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.{Counter, Metrics, Tags}
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -25,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
@@ -1054,8 +1054,6 @@ class JsonConverterTest extends Specification {
         """.stripMargin)
 
       WithClose(SimpleFeatureConverter(mapSft, mapConf)) { converter =>
-        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-
         import java.util.{Map => JMap}
 
         val ec = converter.createEvaluationContext()
@@ -1069,20 +1067,20 @@ class JsonConverterTest extends Specification {
 
         val f = features.head
 
-        val m = f.get[JMap[String,String]]("map1")
+        val m = f.getAttribute("map1").asInstanceOf[JMap[String,String]]
         m must beAnInstanceOf[JMap[String,String]]
         m.size() mustEqual 2
         m.get("a") mustEqual "val1"
         m.get("b") mustEqual "val2"
 
-        val m2 = f.get[JMap[String,String]]("map2")
+        val m2 = f.getAttribute("map2").asInstanceOf[JMap[String,String]]
         m2 must beAnInstanceOf[JMap[String,String]]
         m2.size mustEqual 3
         m2.get("a") mustEqual "1.0"
         m2.get("b") mustEqual "foobar"
         m2.get("c") mustEqual "false"
 
-        val m3 = f.get[JMap[Int,Boolean]]("map3")
+        val m3 = f.getAttribute("map3").asInstanceOf[JMap[Int,Boolean]]
         m3 must beAnInstanceOf[JMap[Int,Boolean]]
         m3.size mustEqual 3
         m3.get(1) mustEqual true
@@ -1200,13 +1198,11 @@ class JsonConverterTest extends Specification {
         ec.success.getCount mustEqual 1
         ec.failure.getCount mustEqual 0
         val f = features.head
-
-        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-        f.get[Int]("i") mustEqual 1
-        f.get[Long]("l") mustEqual Long.MaxValue
-        f.get[Double]("d") mustEqual 1.7976931348623157E8
-        f.get[Float]("f") mustEqual 1.023f
-        f.get[Boolean]("b") mustEqual false
+        f.getAttribute("i").asInstanceOf[Int] mustEqual 1
+        f.getAttribute("l").asInstanceOf[Long] mustEqual Long.MaxValue
+        f.getAttribute("d").asInstanceOf[Double] mustEqual 1.7976931348623157E8
+        f.getAttribute("f").asInstanceOf[Float] mustEqual 1.023f
+        f.getAttribute("b").asInstanceOf[Boolean] mustEqual false
       }
     }
 
@@ -1466,20 +1462,31 @@ class JsonConverterTest extends Specification {
         }
 
         val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
-        meters must haveLength(7)
-        meters.map(_.getId.getName) must containTheSameElementsAs(
-          Seq("success", "failure", "parse.duration", "conversion.duration", "validator.id.null", "validator.geom.null",
-            "validator.geom.bounds.invalid").map(n => s"geomesa.convert.$n")
-        )
+        meters must haveLength(9)
+        meters.map(_.getId.getName).distinct.sorted mustEqual
+          Seq("geomesa.converter.convert", "geomesa.converter.count", "geomesa.converter.parse", "geomesa.converter.validate")
         foreach(meters)(_.getId.getTag("converter.name") mustEqual "metrics-test")
 
-        def getCounter(name: String): Option[Double] = meters.collectFirst { case c: Counter if c.getId.getName == name => c.count() }
+        def getCounter(name: String, tags: Tags): Option[Counter] = {
+          meters.collectFirst {
+            case c: Counter if c.getId.getName == name && tags.asScala.forall(t => c.getId.getTag(t.getKey) == t.getValue) => c
+          }
+        }
+        val countPass = getCounter("geomesa.converter.count", Tags.of("result", "success")).orNull
+        val countFail = getCounter("geomesa.converter.count", Tags.of("result", "failure")).orNull
+        val validateNullGeom = getCounter("geomesa.converter.validate", Tags.of("result", "null", "attribute", "geom")).orNull
+        val validateBoundsGeom = getCounter("geomesa.converter.validate", Tags.of("result", "invalid.bounds", "attribute", "geom")).orNull
+
+        countPass must not(beNull)
+        countFail must not(beNull)
+        validateNullGeom must not(beNull)
+        validateBoundsGeom must not(beNull)
 
         eventually {
-          getCounter("geomesa.convert.failure") must beSome(2d)
-          getCounter("geomesa.convert.success") must beSome(2d)
-          getCounter("geomesa.convert.validator.geom.null") must beSome(0d)
-          getCounter("geomesa.convert.validator.geom.bounds.invalid") must beSome(1d)
+          countPass.count() mustEqual 2d
+          countFail.count() mustEqual 2d
+          validateNullGeom.count() mustEqual 0d
+          validateBoundsGeom.count() mustEqual 1d
         }
       } finally {
         Metrics.removeRegistry(registry)
@@ -1677,10 +1684,6 @@ class JsonConverterTest extends Specification {
 
     "infer schema from non-geojson files" >> {
       verifyInferredSchema((f, is) => f.infer(is, None, Map.empty[String, AnyRef]))
-    }
-
-    "infer schema from non-geojson files using deprecated API" >> {
-      verifyInferredSchema((f, is) => f.infer(is).fold[Try[(SimpleFeatureType, Config)]](Failure(null))(Success(_)))
     }
 
     def verifyInferredSchema(

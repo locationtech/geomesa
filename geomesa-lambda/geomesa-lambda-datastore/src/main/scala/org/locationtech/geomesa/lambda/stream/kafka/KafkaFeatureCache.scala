@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.lambda.stream.kafka
@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.data.{DataStore, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.index.utils.FeatureWriterHelper
+import org.locationtech.geomesa.lambda.data.LambdaDataStore.PersistenceConfig
 import org.locationtech.geomesa.lambda.stream.OffsetManager
 import org.locationtech.geomesa.lambda.stream.OffsetManager.OffsetListener
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache._
@@ -19,7 +20,7 @@ import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.io.Closeable
 import java.time.{Clock, Instant, ZoneOffset, ZonedDateTime}
@@ -27,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ScheduledThreadPoolExecutor, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -39,8 +39,7 @@ class KafkaFeatureCache(
     sft: SimpleFeatureType,
     offsetManager: OffsetManager,
     topic: String,
-    expiry: Option[FiniteDuration],
-    batchSize: Option[Int])
+    persist: Option[PersistenceConfig])
    (implicit clock: Clock = Clock.systemUTC())
   extends WritableFeatureCache with ReadableFeatureCache with OffsetListener
     with Closeable with MethodProfiling with StrictLogging {
@@ -48,8 +47,6 @@ class KafkaFeatureCache(
   import org.locationtech.geomesa.filter.ff
 
   import scala.collection.JavaConverters._
-
-  require(batchSize.forall(_ > 0), s"Invalid persistence batch size: ${batchSize.orNull}")
 
   // map of feature id -> current feature
   private val features = new ConcurrentHashMap[String, FeatureReference]
@@ -61,7 +58,7 @@ class KafkaFeatureCache(
 
   private val lockTimeout = KafkaFeatureCache.LockTimeout.toMillis.get
 
-  private val persistence = expiry.map(e => new Persistence(e.toMillis))
+  private val persistence = persist.map { case PersistenceConfig(e, batchSize) => new Persistence(e.toMillis, batchSize) }
 
   offsetManager.addOffsetListener(topic, this)
 
@@ -163,7 +160,7 @@ class KafkaFeatureCache(
   /**
    * Wrapper for managing scheduled persistence runs
    */
-  private class Persistence(expiryMillis: Long) extends Closeable {
+  private class Persistence(expiryMillis: Long, batchSize: Int) extends Closeable {
 
     private val frequency = KafkaFeatureCache.PersistInterval.toMillis.get
     private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
@@ -248,16 +245,16 @@ class KafkaFeatureCache(
         lastPersistedOffset
       } else {
         logger.trace(expired.values.map(e => s"offset ${e.offset}: ${e.feature}").mkString("Expired entries:\n\t", "\n\t", ""))
-        val batch = batchSize match {
-          case Some(max) if expired.size > max =>
-            logger.trace(s"Skipping persistence for ${expired.size - max} features based on batch size of $max")
+        val batch =
+          if (expired.size <= batchSize) {
+            expired
+          } else {
+            logger.trace(s"Skipping persistence for ${expired.size - batchSize} features based on batch size of $batchSize")
             // sort by offset since we track persistence based on offset
-            val sorted = expired.toList.sortBy(_._2.offset).take(max)
+            val sorted = expired.toList.sortBy(_._2.offset).take(batchSize)
             nextOffset = sorted.last._2.offset
             sorted.toMap
-          case _ =>
-            expired
-        }
+          }
         persist(partition, batch)
 
         logger.debug(s"Committing offset [$topic:$partition:$nextOffset]")

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo
@@ -17,14 +17,13 @@ import org.geotools.api.geometry.BoundingBox
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature._
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoLongReader
-import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureDeserializationV2}
+import org.locationtech.geomesa.features.kryo.impl.{IntBitSet, KryoFeatureDeserialization, KryoFeatureDeserializationV2, NonMutatingInput}
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
-import org.locationtech.geomesa.utils.collection.IntBitSet
+import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, RenameTransform, Transforms}
-import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, Transform}
-import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
 
 class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends SimpleFeature {

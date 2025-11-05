@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php. 
+ * https://www.apache.org/licenses/LICENSE-2.0 
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2.transforms
@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert2.transforms
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.digest.MurmurHash3
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -56,8 +57,12 @@ class IdFunctionFactory extends TransformerFunctionFactory with LazyLogging {
   }
 
   @deprecated("Replaced with base64Encode")
-  private val base64 = TransformerFunction.pure("base64") { args =>
-    Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]])
+  private val base64 = new NamedTransformerFunction(Seq("base64"), pure = true) {
+    override def apply(args: Array[AnyRef]): AnyRef = Base64.encodeBase64URLSafeString(args(0).asInstanceOf[Array[Byte]])
+    override def withContext(ec: EvaluationContext): TransformerFunction = {
+      logger.warn("Using deprecated function 'base64' - use 'base64Encode' instead")
+      this
+    }
   }
 
   private val md5: TransformerFunction = new NamedTransformerFunction(Seq("md5"), pure = true) {

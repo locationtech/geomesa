@@ -3,14 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2.validators
 
 import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 
 trait SimpleFeatureValidatorFactory {
 
@@ -30,16 +29,5 @@ trait SimpleFeatureValidatorFactory {
    * @param config optional configuration string
    * @param tags for metrics
    */
-  def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator =
-    apply(sft, ConverterMetrics.empty, config)
-
-  /**
-    * Create a validator for the given feature typ
-    *
-    * @param sft simple feature type
-    * @param metrics metrics registry for reporting validation
-    * @param config optional configuration string
-    */
-  @deprecated("Use micrometer global registry for metrics")
-  def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator
+  def apply(sft: SimpleFeatureType, config: Option[String], tags: Tags): SimpleFeatureValidator
 }

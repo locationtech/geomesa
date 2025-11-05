@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark
@@ -20,8 +20,12 @@ import scala.util.Try
  */
 package object jts extends DataFrameFunctions.Library with SpatialEncoders {
 
-  lazy val SedonaGeometryUDT: Try[UserDefinedType[Geometry]] =
-    Try(Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT").newInstance().asInstanceOf[UserDefinedType[Geometry]])
+  lazy val SedonaGeometryUDT: Try[UserDefinedType[Geometry]] = Try {
+    Class.forName("org.apache.spark.sql.sedona_sql.UDT.GeometryUDT")
+      .getDeclaredConstructor()
+      .newInstance()
+      .asInstanceOf[UserDefinedType[Geometry]]
+  }
 
   def useSedonaSerialization: Boolean =
     sys.props.get("geomesa.use.sedona").forall(_.toBoolean) && SedonaGeometryUDT.isSuccess

@@ -29,19 +29,12 @@ the relevant sections are reproduced here. For this tutorial, we will be using t
 This tutorial will use the GeoMesa FileSystem data store to avoid external dependencies, but any other back-end
 store can be used instead by changing the ``DataStoreService`` used.
 
-First, set the version to use:
-
-.. parsed-literal::
-
-    export TAG="|release_version|"
-    export VERSION="|scala_binary_version|-${TAG}" # note: |scala_binary_version| is the Scala build version
-
 .. code-block:: bash
 
     mkdir -p ~/gm-nifi-quickstart/extensions
     cd ~/gm-nifi-quickstart
     export NARS="geomesa-fs-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
-    for nar in $NARS; do wget -O "extensions/${nar}_$VERSION.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$TAG/${nar}_$VERSION.nar"; done
+    for nar in $NARS; do wget -O "extensions/${nar}_{{scala_binary_version}}-{{release}}.nar" "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-{{release}}/${nar}_{{scala_binary_version}}-{{release}}.nar"; done
 
 Obtain GDELT data
 -----------------

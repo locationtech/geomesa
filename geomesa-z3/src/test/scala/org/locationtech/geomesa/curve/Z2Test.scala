@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.curve
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.zorder.sfcurve.{CoveredRange, Z2, ZRange}
 import org.specs2.mutable.Specification
@@ -16,7 +17,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class Z2Test extends Specification {
+class Z2Test extends Specification with LazyLogging {
 
   val rand = new Random(-574)
   val maxInt = Z2SFC.lon.maxIndex
@@ -130,7 +131,7 @@ class Z2Test extends Specification {
         )
 
         def print(l: Z2, u: Z2, size: Int): Unit =
-          println(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
+          logger.info(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
         def round(z: (Double, Double)): (Double, Double) =
           (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
 

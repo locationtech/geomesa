@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
@@ -116,11 +116,11 @@ object AbstractConverterFactory extends LazyLogging {
 
     val updates = ArrayBuffer.empty[Config => Config]
     if (conf.hasPath("options.validation-mode")) {
-      logger.warn(s"Using deprecated option 'validation-mode'. Prefer 'error-mode'")
+      logger.warn(s"Using deprecated option 'validation-mode' - use 'error-mode' instead")
       updates.append(c => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
     }
     if (conf.hasPath("options.validating")) {
-      logger.warn(s"Using deprecated validation key 'validating'")
+      logger.warn(s"Using deprecated option 'validating' - use 'error-mode' instead")
       val validators = if (conf.getBoolean("options.validating")) {
         ConfigValueFactory.fromIterable(Seq(HasGeoValidatorFactory.Name, HasDtgValidatorFactory.Name).asJava)
       } else {
@@ -176,11 +176,10 @@ object AbstractConverterFactory extends LazyLogging {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, BasicOptions] = {
-      Right(BasicOptions(validators, reporters, parseMode, errorMode, encoding))
+      Right(BasicOptions(validators, parseMode, errorMode, encoding))
     }
 
     override protected def encodeOptions(options: BasicOptions, base: java.util.Map[String, AnyRef]): Unit = {}
@@ -331,13 +330,11 @@ object AbstractConverterFactory extends LazyLogging {
     *
     * @tparam O options class
     */
-  abstract class ConverterOptionsConvert[O <: ConverterOptions]
-      extends ConfigConvert[O] with ConfigSeqConvert with ConfigMapConvert {
+  abstract class ConverterOptionsConvert[O <: ConverterOptions] extends ConfigConvert[O] with ConfigMapConvert {
 
     protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, O]
@@ -380,32 +377,22 @@ object AbstractConverterFactory extends LazyLogging {
       }
 
       if (cur.atKey("verbose").isRight) {
-        logger.warn("'verbose' option is deprecated - please use logging levels instead")
+        logger.warn("Using deprecated option 'verbose' - use logging levels instead")
+      }
+      if (cur.atKey("reporters").isRight) {
+        logger.warn(
+          "Using deprecated option 'reporters' - see https://www.geomesa.org/documentation/stable/user/appendix/metrics.html " +
+            "for configuring metrics")
       }
 
       for {
         validators <- cur.atKey("validators").right.flatMap(_.asListCursor).right.flatMap(mergeValidators).right
-        reporters  <- parseReporters(cur.atKeyOrUndefined("reporters")).right
         parseMode  <- parse("parse-mode", ParseMode.values).right
         errorMode  <- parse("error-mode", ErrorMode.values, Map("skip-bad-records" -> ErrorMode.LogErrors)).right
         encoding   <- cur.atKey("encoding").right.flatMap(_.asString).right.map(Charset.forName).right
-        options    <- decodeOptions(cur, validators, reporters, parseMode, errorMode, encoding).right
+        options    <- decodeOptions(cur, validators, parseMode, errorMode, encoding).right
       } yield {
         options
-      }
-    }
-
-    /**
-      * Reads reporters as a config list, plus checks for back compatible config map
-      *
-      * @param cur cursor
-      * @return
-      */
-    private def parseReporters(cur: ConfigCursor): Either[ConfigReaderFailures, Seq[Config]] = {
-      if (cur.asObjectCursor.isRight) {
-        configMapFrom(cur).right.map(_.values.toList)
-      } else {
-        configSeqFrom(cur)
       }
     }
 
@@ -415,9 +402,6 @@ object AbstractConverterFactory extends LazyLogging {
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
       map.put("validators", options.validators.asJava)
-      if (options.reporters.nonEmpty) {
-        map.put("reporters", options.reporters.map(_.root().unwrapped()))
-      }
       encodeOptions(options, map)
       map
     }
@@ -463,24 +447,6 @@ object AbstractConverterFactory extends LazyLogging {
           }
         }
         for { obj <- cur.asObjectCursor.right; configs <- merge(obj).right } yield { configs }
-      }
-    }
-  }
-
-  /**
-    * Convert unnamed configs
-    */
-  trait ConfigSeqConvert {
-    protected def configSeqFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Seq[Config]] = {
-      if (cur.isUndefined) { Right(Seq.empty) } else {
-        def merge(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[Config]] = {
-          cur.list.foldLeft[Either[ConfigReaderFailures, Seq[Config]]](Right(Seq.empty)) {
-            case (seq, v) => for { s <- seq.right; c <- v.asObjectCursor.right } yield {
-              s :+ c.valueOpt.map(_.toConfig).getOrElse(ConfigFactory.empty)
-            }
-          }
-        }
-        for { obj <- cur.asListCursor.right; configs <- merge(obj).right } yield { configs }
       }
     }
   }

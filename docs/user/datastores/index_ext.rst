@@ -15,7 +15,7 @@ Some additional indices are provided out-of-the-box:
 S2/S3 Index
 -----------
 
-The S2 and S3 indices are based on the `S2 library <https://s2geometry.io/>`__:
+The S2 and S3 indices are based on the `S2 library <https://github.com/google/s2geometry>`__:
 
 .. pull-quote::
 

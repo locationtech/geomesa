@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.spark.jts.udf
@@ -11,75 +11,76 @@ package org.locationtech.geomesa.spark.jts.udf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql._
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.spark.TestWithSpark
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
 import org.locationtech.jts.geom.Point
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.{lang => jl}
 
-@RunWith(classOf[JUnitRunner])
-class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
+class SpatialRelationFunctionsTest extends TestWithSpark {
+
   type DFRelation = (Column, Column) => TypedColumn[Any, jl.Boolean]
-  sequential
+
+  var dfPoints: DataFrame = _
+  var dfLines: DataFrame = _
+  var dfBoxes: DataFrame = _
+
+  val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
+  val lineRef  = "LINESTRING(0 10, 0 -10)"
+
+  val points = Map(
+    "int"    -> "POINT(5 5)",
+    "edge"   -> "POINT(0 5)",
+    "corner" -> "POINT(0 0)",
+    "ext"    -> "POINT(-5 0)")
+
+  val lines = Map(
+    "touches" -> "LINESTRING(0 0, 1 0)",
+    "crosses" -> "LINESTRING(-1 0, 1 0)",
+    "disjoint" -> "LINESTRING(1 0, 2 0)")
+
+  val boxes = Map(
+    "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
+    "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
+    "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
+    "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
+    "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
+    "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    import spark.implicits._
+
+    dfPoints = points.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
+    dfPoints.createOrReplaceTempView("points")
+
+    dfLines = lines.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
+    dfLines.createOrReplaceTempView("lines")
+
+    dfBoxes = boxes.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
+    dfBoxes.createOrReplaceTempView("boxes")
+  }
 
   "SQL spatial relationships" should {
 
-    var dfPoints: DataFrame = null
-    var dfLines: DataFrame = null
-    var dfBoxes: DataFrame = null
-
-    val boxRef   = "POLYGON((0  0,  0 10, 10 10, 10  0,  0  0))"
-    val lineRef  = "LINESTRING(0 10, 0 -10)"
-
-    val points = Map(
-      "int"    -> "POINT(5 5)",
-      "edge"   -> "POINT(0 5)",
-      "corner" -> "POINT(0 0)",
-      "ext"    -> "POINT(-5 0)")
-
-    val lines = Map(
-      "touches" -> "LINESTRING(0 0, 1 0)",
-      "crosses" -> "LINESTRING(-1 0, 1 0)",
-      "disjoint" -> "LINESTRING(1 0, 2 0)")
-
-    val boxes = Map(
-      "int"     -> "POLYGON(( 1  1,  1  2,  2  2,  2  1,  1  1))",
-      "intEdge" -> "POLYGON(( 0  1,  0  2,  1  2,  1  1,  0  1))",
-      "overlap" -> "POLYGON((-1  1, -1  2,  1  2,  1  1, -1  1))",
-      "extEdge" -> "POLYGON((-1  1, -1  2,  0  2,  0  1, -1  1))",
-      "ext"     -> "POLYGON((-2  1, -2  2, -1  2, -1  1, -2  1))",
-      "corner"  -> "POLYGON((-1 -1, -1  0,  0  0,  0 -1, -1 -1))")
-
-    // before
-    step {
-      import spark.implicits._
-
-      dfPoints = points.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
-      dfPoints.createOrReplaceTempView("points")
-
-      dfLines = lines.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
-      dfLines.createOrReplaceTempView("lines")
-
-      dfBoxes = boxes.mapValues(WKTUtils.read).toSeq.toDF("name", "geom")
-      dfBoxes.createOrReplaceTempView("boxes")
-    }
-
     // DE-9IM comparisons
-    def testData(r: DataFrame, expectedNames: Seq[String]) = {
+    def testData(r: DataFrame, expectedNames: Seq[String]): MatchResult[Seq[String]] = {
       val d = r.collect()
       val column = d.map(row => row.getAs[String]("name")).toSeq
       column must containTheSameElementsAs(expectedNames)
     }
 
-    def testDirect(relation: DFRelation, name: String, g1: String, g2: String, expected: Boolean) = {
+    def testDirect(relation: DFRelation, name: String, g1: String, g2: String, expected: Boolean): MatchResult[Any] = {
       import spark.implicits._
-      dfBlank.select(relation(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
+      dfBlank().select(relation(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
       // NB: Hack to pull SQL-land name from columnar function expression.
       val relationName = SQLFunctionHelper.columnName(relation(lit(null), lit(null))).split('(').head
       val sql = s"select $relationName(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
-      sc.sql(sql).as[Boolean].first mustEqual expected
+      (sc.sql(sql).as[Boolean].first mustEqual expected).updateMessage(m => s"$m - $name")
     }
 
     "st_contains" >> {
@@ -112,7 +113,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_contains, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_contains(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_contains(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_contains(lit(null), lit(null))).first must beNull
     }
 
     "st_covers" >> {
@@ -146,7 +147,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_covers, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_covers(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_covers(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_covers(lit(null), lit(null))).first must beNull
     }
 
     "st_crosses" >> {
@@ -163,7 +164,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_crosses, "disjoint", lineRef, lines("disjoint"), false)
 
       sc.sql("select st_crosses(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_crosses(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_crosses(lit(null), lit(null))).first must beNull
     }
 
     "st_disjoint" >> {
@@ -197,7 +198,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_disjoint, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_disjoint(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_disjoint(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_disjoint(lit(null), lit(null))).first must beNull
     }
 
     "st_equals" >> {
@@ -233,7 +234,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_equals, "polygon", boxRef, "POLYGON((10 0, 10 10, 0 10, 0 0, 10 0))", true)
 
       sc.sql("select st_equals(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_equals(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_equals(lit(null), lit(null))).first must beNull
     }
 
     "st_intersects" >> {
@@ -267,7 +268,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_intersects, "poly6", boxRef, boxes("corner"),  true)
 
       sc.sql("select st_intersects(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_intersects(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_intersects(lit(null), lit(null))).first must beNull
     }
 
     "st_overlaps" >> {
@@ -300,7 +301,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_overlaps, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_overlaps(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_overlaps(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_overlaps(lit(null), lit(null))).first must beNull
     }
 
     "st_touches" >> {
@@ -334,7 +335,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_touches, "poly6", boxRef, boxes("corner"),  true)
 
       sc.sql("select st_touches(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_touches(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_touches(lit(null), lit(null))).first must beNull
     }
 
     "st_within" >> {
@@ -369,7 +370,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       testDirect(st_within, "poly6", boxes("corner"),  boxRef, false)
 
       sc.sql("select st_within(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_within(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_within(lit(null), lit(null))).first must beNull
     }
 
     "st_relate" >> {
@@ -381,15 +382,15 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
 
       val expected = "FF1FF0102"
       sc.sql(s"select st_relate($l1, $l2)").as[String].first mustEqual expected
-      dfBlank.select(st_relate(st_geomFromWKT(ls1), st_geomFromWKT(ls2))).first mustEqual expected
+      dfBlank().select(st_relate(st_geomFromWKT(ls1), st_geomFromWKT(ls2))).first mustEqual expected
 
       sc.sql(s"select st_relateBool($l1, $l2, 'FF*FF****')").as[Boolean].first mustEqual true
-      dfBlank.select(st_relateBool(st_geomFromWKT(ls1), st_geomFromWKT(ls2), lit("FF*FF****"))).first mustEqual true
+      dfBlank().select(st_relateBool(st_geomFromWKT(ls1), st_geomFromWKT(ls2), lit("FF*FF****"))).first mustEqual true
 
       sc.sql("select st_relate(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_relate(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_relate(lit(null), lit(null))).first must beNull
       sc.sql("select st_relateBool(null, null, null)").collect.head(0) must beNull
-      dfBlank.select(st_relateBool(lit(null), lit(null), lit(null))).first must beNull
+      dfBlank().select(st_relateBool(lit(null), lit(null), lit(null))).first must beNull
     }
 
     // other relationship functions
@@ -400,10 +401,10 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       val box2 = "POLYGON((0 50, 0 60, 10 60, 10 50, 0 50))"
 
       sc.sql(s"select st_area(st_geomFromWKT('$box1'))").as[Double].first mustEqual 100.0
-      dfBlank.select(st_area(st_geomFromWKT(box1))).first mustEqual 100.0
+      dfBlank().select(st_area(st_geomFromWKT(box1))).first mustEqual 100.0
 
       sc.sql(s"select st_area(st_geomFromWKT('$box2'))").as[Double].first mustEqual 100.0
-      dfBlank.select(st_area(st_geomFromWKT(box2))).first mustEqual 100.0
+      dfBlank().select(st_area(st_geomFromWKT(box2))).first mustEqual 100.0
 
       val r3 = sc.sql(s"select * from boxes where st_intersects(st_geomFromWKT('$box1'), geom) and st_area(geom) > 1")
       r3.collect
@@ -424,17 +425,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         .collect.toSeq must containTheSameElementsAs(Seq("overlap"))
 
       sc.sql("select st_area(null)").collect.head(0) must beNull
-      dfBlank.select(st_area(lit(null))).first must beNull
+      dfBlank().select(st_area(lit(null))).first must beNull
     }
 
     "st_centroid" >> {
       val expected = WKTUtils.read("POINT(5 5)").asInstanceOf[Point]
       sc.sql(s"select st_centroid(st_geomFromWKT('$boxRef'))").as[Point].first mustEqual expected
 
-      dfBlank.select(st_centroid(st_geomFromWKT(boxRef))).first mustEqual expected
+      dfBlank().select(st_centroid(st_geomFromWKT(boxRef))).first mustEqual expected
 
       sc.sql("select st_centroid(null)").collect.head(0) must beNull
-      dfBlank.select(st_centroid(lit(null))).first must beNull
+      dfBlank().select(st_centroid(lit(null))).first must beNull
     }
 
     "st_closestpoint" >> {
@@ -444,10 +445,10 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       val expected = WKTUtils.read("POINT(10 5)")
 
       sc.sql(s"select st_closestPoint(st_geomFromWKT('$box1'), st_geomFromWKT('$pt1'))").as[Point].first mustEqual expected
-      dfBlank.select(st_closestPoint(st_geomFromWKT(box1), st_geomFromWKT(pt1))).first mustEqual expected
+      dfBlank().select(st_closestPoint(st_geomFromWKT(box1), st_geomFromWKT(pt1))).first mustEqual expected
 
       sc.sql("select st_closestPoint(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_closestPoint(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_closestPoint(lit(null), lit(null))).first must beNull
     }
 
     "st_distance" >> {
@@ -457,54 +458,49 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
 
       sc.sql(s"select st_distance(st_geomFromWKT('$pt1'), st_geomFromWKT('$pt2'))")
         .as[Double].first mustEqual 10.0
-      dfBlank.select(st_distance(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first mustEqual 10.0
+      dfBlank().select(st_distance(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first mustEqual 10.0
 
       val expected = beCloseTo(1111950.0, 1.0)
       sc.sql(s"select st_distanceSphere(st_geomFromWKT('$pt1'), st_geomFromWKT('$pt2'))")
         .as[Double].first must expected
-      dfBlank.select(st_distanceSphere(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first.doubleValue() must expected
+      dfBlank().select(st_distanceSphere(st_geomFromWKT(pt1), st_geomFromWKT(pt2))).first.doubleValue() must expected
 
       sc.sql("select st_distance(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_distance(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_distance(lit(null), lit(null))).first must beNull
 
       sc.sql("select st_distanceSphere(null, null)").collect.head(0) must beNull
-      dfBlank.select(st_distanceSphere(lit(null), lit(null))).first must beNull
+      dfBlank().select(st_distanceSphere(lit(null), lit(null))).first must beNull
     }
 
     "st_length" >> {
       import spark.implicits._
       // length
       sc.sql(s"select st_length(st_geomFromWKT('LINESTRING(0 0, 10 0)'))").as[Double].first mustEqual 10.0
-      dfBlank.select(st_length(st_geomFromWKT("LINESTRING(0 0, 10 0)"))).first mustEqual 10.0
+      dfBlank().select(st_length(st_geomFromWKT("LINESTRING(0 0, 10 0)"))).first mustEqual 10.0
 
       // perimeter
       sc.sql(s"select st_length(st_geomFromWKT('$boxRef'))").as[Double].first mustEqual 40.0
-      dfBlank.select(st_length(st_geomFromWKT(boxRef))).first mustEqual 40.0
+      dfBlank().select(st_length(st_geomFromWKT(boxRef))).first mustEqual 40.0
 
       sc.sql("select st_length(null)").collect.head(0) must beNull
-      dfBlank.select(st_length(lit(null))).first must beNull
+      dfBlank().select(st_length(lit(null))).first must beNull
     }
 
     "st_translate" >> {
       val expected = WKTUtils.read("LINESTRING(1 2, 11 2)")
-      val trans = dfBlank.select(st_translate(st_geomFromWKT("LINESTRING(0 0, 10 0)"), 1, 2)).first
+      val trans = dfBlank().select(st_translate(st_geomFromWKT("LINESTRING(0 0, 10 0)"), 1, 2)).first
       trans mustEqual expected
     }
 
     "st_aggregateDistanceSphere" >> {
       val p1 = points("int")
       val p2 = points("edge")
-      dfBlank.select(st_aggregateDistanceSphere(array(st_geomFromWKT(p1), st_geomFromWKT(p2)))).first must not(throwAn[Exception])
+      dfBlank().select(st_aggregateDistanceSphere(array(st_geomFromWKT(p1), st_geomFromWKT(p2)))).first must not(throwAn[Exception])
     }
 
     "st_lengthSphere" >> {
       val line = "LINESTRING(1 2, 11 2)"
-      dfBlank.select(st_lengthSphere(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
-    }
-
-    // after
-    step {
-      spark.stop()
+      dfBlank().select(st_lengthSphere(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
     }
   }
 }

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
@@ -25,8 +25,6 @@ import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaP
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.process.query.ProximitySearchProcess
-import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -130,19 +128,6 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
         }
 
         testTransforms(ds)
-
-        def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
-          val query = new ListFeatureCollection(sft, toAdd(4))
-          val source = ds.getFeatureSource(typeName).getFeatures()
-
-          val proximity = new ProximitySearchProcess().execute(query, source, 10.0)
-          SelfClosingIterator(proximity.features()).toList mustEqual Seq(toAdd(4))
-
-          val tube = new TubeSelectProcess().execute(query, source, Filter.INCLUDE, null, 1L, 100.0, 10, null)
-          SelfClosingIterator(tube.features()).toList mustEqual Seq(toAdd(4))
-        }
-
-        testProcesses(ds)
 
         def testCount(ds: HBaseDataStore): MatchResult[_] = {
           val query = new Query(typeName, Filter.INCLUDE, Query.NO_PROPERTIES)

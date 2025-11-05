@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index
 
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{andOption, filterToString}
+import org.locationtech.geomesa.filter.{FilterHelper, andOption}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -279,8 +279,8 @@ package object api {
     }
 
     override lazy val toString: String =
-      s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +
-          s"[${secondary.map(filterToString).getOrElse("None")}]($costMultiplier)"
+      s"$index[${primary.map(FilterHelper.toString).getOrElse("INCLUDE")}]" +
+          s"[${secondary.map(FilterHelper.toString).getOrElse("None")}]($costMultiplier)"
   }
 
   object FilterStrategy {

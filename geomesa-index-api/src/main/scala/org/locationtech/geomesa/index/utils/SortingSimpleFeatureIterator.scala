@@ -3,16 +3,15 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.utils
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{SerializationOption, SimpleFeatureSerializer}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
@@ -134,7 +133,7 @@ object SortingSimpleFeatureIterator extends LazyLogging {
     }
 
     val files = ArrayBuffer.empty[File] // tmp files we create when we exceed in-memory threshold
-    lazy val serializer = KryoFeatureSerializer(head.getFeatureType, SerializationOptions.withUserData)
+    lazy val serializer = KryoFeatureSerializer(head.getFeatureType, SerializationOption.WithUserData)
     // use ArrayList for sort-in-place of the underlying array
     val list = new java.util.ArrayList[SimpleFeature](100)
     list.add(head)

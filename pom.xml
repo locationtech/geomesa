@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.12</artifactId>
     <packaging>pom</packaging>
-    <version>5.4.0-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -51,15 +51,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- java/scala -->
-        <jdk.version>11</jdk.version>
-        <scala.version>2.12.19</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
-        <scala.binary.version>2.12</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
+        <jdk.version>17</jdk.version>
+        <scala.version>2.12.20</scala.version> <!-- 2.12.18 is minimum required to support java 21 -->
+        <scala.binary.version>2.12</scala.binary.version>
         <scala.xml.version>2.2.0</scala.xml.version>
         <scala.parsers.version>2.3.0</scala.parsers.version>
 
         <!-- geotools -->
-        <gt.version>33.1</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
-        <geoserver.version>2.27.1</geoserver.version>
+        <gt.version>34.0</gt.version> <!-- make sure this tracks with gs, jts, spatial4j and ejml -->
+        <geoserver.version>2.28.0</geoserver.version>
         <jts.version>1.20.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <ejml.version>0.41</ejml.version> <!-- needs to track with gt/gs version -->
@@ -77,7 +77,7 @@
         <commons.compress.version>1.26.0</commons.compress.version>
         <commons.csv.version>1.10.0</commons.csv.version>
         <commons.dbcp.version>2.11.0</commons.dbcp.version>
-        <commons.io.version>2.16.1</commons.io.version>
+        <commons.io.version>2.19.0</commons.io.version>
         <commons.lang3.version>3.15.0</commons.lang3.version>
         <commons.logging.version>1.3.3</commons.logging.version>
         <commons.pool2.version>2.12.0</commons.pool2.version>
@@ -91,23 +91,23 @@
         <kryo.version>4.0.3</kryo.version>
         <mango.version>3.0.0</mango.version>
         <metrics.version>3.2.6</metrics.version>
-        <micrometer.version>1.13.4</micrometer.version>
+        <micrometer.version>1.15.4</micrometer.version>
         <orc.version>1.9.7</orc.version>
         <parboiled.version>1.4.1</parboiled.version>
         <parboiled.scala.version>1.3.1</parboiled.scala.version>
         <parquet.version>1.15.2</parquet.version>
-        <postgres.version>42.7.2</postgres.version>
-        <prometheus.version>1.3.1</prometheus.version>
+        <postgres.version>42.7.7</postgres.version>
+        <prometheus.version>1.4.1</prometheus.version>
         <pureconfig.version>0.17.4</pureconfig.version>
         <rhino.js.version>1.7.14</rhino.js.version>
-        <s2.geometry.version>1.0.1</s2.geometry.version>
+        <s2.geometry.version>20250620-rc1</s2.geometry.version>
         <sizeof.version>0.4.3</sizeof.version>
         <spring.security.version>5.8.15</spring.security.version> <!-- geoserver is still on 5.x -->
         <typesafe.config.version>1.4.3</typesafe.config.version>
 
         <!-- standardized transitive dependencies -->
         <aircompressor.version>0.27</aircompressor.version>
-        <fasterxml.jackson.version>2.17.2</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
+        <fasterxml.jackson.version>2.19.0</fasterxml.jackson.version> <!-- used by geoserver, spark and arrow -->
         <h2.version>2.2.224</h2.version>
         <hsql.version>2.7.2</hsql.version>
         <jetty.version>9.4.57.v20241219</jetty.version>
@@ -123,39 +123,40 @@
         <specs2.version>4.20.5</specs2.version>
         <junit.version>4.13.2</junit.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <testcontainers.version>1.21.0</testcontainers.version>
-        <testcontainers.accumulo.version>1.4.1</testcontainers.accumulo.version>
-        <testcontainers.hbase.version>1.0.0</testcontainers.hbase.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
+        <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
+        <testcontainers.spark.version>1.0.0</testcontainers.spark.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
-        <accumulo.version>2.1.3</accumulo.version>
+        <accumulo.version>2.1.4</accumulo.version>
         <accumulo-20.version>2.0.1</accumulo-20.version>
         <zookeeper.version>3.9.3</zookeeper.version>
         <thrift.version>0.17.0</thrift.version>
         <thrift-accumulo-20.version>0.12.0</thrift-accumulo-20.version>
         <thrift-cassandra.version>0.12.0</thrift-cassandra.version>
-        <hadoop.version>3.4.1</hadoop.version>
-        <spark.version>3.5.5</spark.version>
-        <hbase.version>2.6.1-hadoop3</hbase.version>
-        <hbase.hadoop.version>3.4.1</hbase.hadoop.version>
+        <hadoop.version>3.4.2</hadoop.version>
+        <spark.version>3.5.7</spark.version>
+        <hbase.version>2.6.3-hadoop3</hbase.version>
         <hbase.htrace.version>4.1.0-incubating</hbase.htrace.version>
         <hbase.protobuf.version>2.5.0</hbase.protobuf.version>
         <protobuf.version>3.25.6</protobuf.version> <!-- see also confluent.protobuf.version, hbase.protobuf.version -->
         <cassandra.driver.version>3.11.5</cassandra.driver.version>
         <cassandra.version>3.11.19</cassandra.version>
-        <kafka.version>3.9.0</kafka.version> <!-- needs to align with confluent version -->
+        <scylladb.version>2025.1.4</scylladb.version>
+        <kafka.version>3.9.1</kafka.version> <!-- needs to align with confluent version -->
         <confluent.version>7.8.0</confluent.version> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
         <confluent.protobuf.version>3.25.6</confluent.protobuf.version>
-        <sedona.version>1.5.0</sedona.version>
-        <sedona.spark.version>3.4</sedona.spark.version>
+        <sedona.version>1.8.0</sedona.version>
+        <sedona.spark.version>3.5</sedona.spark.version>
         <sedona.h3.version>4.1.1</sedona.h3.version>
-        <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing Apache Sedona integration -->
+        <jts2geojson.version>0.16.1</jts2geojson.version> <!-- for testing sedona integration -->
         <snappy.java.version>1.1.10.5</snappy.java.version>
 
         <!-- guava - versions vary across environments -->
         <guava.version>${geotools.guava.version}</guava.version>
         <geotools.guava.version>33.2.1-jre</geotools.guava.version>
-        <accumulo.guava.version>33.0.0-jre</accumulo.guava.version>
+        <accumulo.guava.version>33.4.6-jre</accumulo.guava.version>
         <hbase.guava.version>27.0-jre</hbase.guava.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
         <hadoop.guava.version>27.0-jre</hadoop.guava.version>
@@ -167,104 +168,104 @@
 
         <!-- plugins -->
         <!-- note: plugin versions are generally set to the latest available -->
+        <maven.min.version>3.6.3</maven.min.version>
+        <build.helper.maven.plugin.version>3.6.1</build.helper.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.9.0</central.publishing.maven.plugin.version>
         <cyclonedx.maven.plugin.version>2.9.1</cyclonedx.maven.plugin.version>
-        <maven.clean.plugin.version>3.4.1</maven.clean.plugin.version>
-        <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
         <exec.maven.plugin.version>3.5.0</exec.maven.plugin.version>
-        <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
-        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
-        <maven.install.plugin.version>3.1.3</maven.install.plugin.version>
-        <maven.dependency.plugin.version>3.8.1</maven.dependency.plugin.version>
+        <git.commit.id.plugin.version>9.0.2</git.commit.id.plugin.version>
+        <license.maven.plugin.version>5.0.0</license.maven.plugin.version>
+        <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.assembly.plugin.version>3.7.1</maven.assembly.plugin.version>
-        <maven.shade.plugin.version>3.6.0</maven.shade.plugin.version>
-        <!-- note: we use an older version that still supports using zinc compile server -->
-        <scala.maven.plugin.version>3.4.6</scala.maven.plugin.version>
-        <maven.surefire.plugin.version>3.5.2</maven.surefire.plugin.version>
-        <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
-        <maven.deploy.plugin.version>3.1.3</maven.deploy.plugin.version>
-        <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
-        <maven.javadoc.plugin.version>3.11.2</maven.javadoc.plugin.version>
-        <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
-        <maven.release.plugin.version>3.1.1</maven.release.plugin.version>
-        <git.commit.id.plugin.version>4.9.10</git.commit.id.plugin.version>
-        <license.maven.plugin.version>4.6</license.maven.plugin.version>
-        <maven.enforcer.plugin.version>3.5.0</maven.enforcer.plugin.version>
-        <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
         <maven.checkstyle.plugin.version>3.6.0</maven.checkstyle.plugin.version>
-        <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
-        <scoverage.maven.plugin.version>2.0.6</scoverage.maven.plugin.version> <!-- 2.1+ requires java 17+ -->
-        <maven.project.info.reports.plugin.version>3.8.0</maven.project.info.reports.plugin.version>
+        <maven.clean.plugin.version>3.5.0</maven.clean.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.dependency.plugin.version>3.9.0</maven.dependency.plugin.version>
+        <maven.deploy.plugin.version>3.1.4</maven.deploy.plugin.version>
+        <maven.enforcer.plugin.version>3.6.2</maven.enforcer.plugin.version>
+        <maven.failsafe.plugin.version>3.5.4</maven.failsafe.plugin.version>
+        <maven.gpg.plugin.version>3.2.8</maven.gpg.plugin.version>
+        <maven.install.plugin.version>3.1.4</maven.install.plugin.version>
+        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>3.12.0</maven.javadoc.plugin.version>
+        <maven.project.info.reports.plugin.version>3.9.0</maven.project.info.reports.plugin.version>
+        <maven.release.plugin.version>3.1.1</maven.release.plugin.version>
+        <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+        <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
+        <maven.site.plugin.version>3.21.0</maven.site.plugin.version>
+        <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
+        <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
+        <scala.maven.plugin.version>4.9.6</scala.maven.plugin.version>
+        <scoverage.maven.plugin.version>2.1.0</scoverage.maven.plugin.version>
 
         <!-- maven properties -->
         <maven.deploy.at.end>true</maven.deploy.at.end>
+        <maven.scoverage.phase>package</maven.scoverage.phase>
+        <maven.shade.skip>false</maven.shade.skip>
+        <maven.assembly.skip>false</maven.assembly.skip>
+        <maven.empty.javadoc.phase>none</maven.empty.javadoc.phase>
 
         <!-- testing properties -->
         <maven.test.memory>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit -XX:MaxJavaStackTraceDepth=1000000</maven.test.memory>
-        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED --illegal-access=warn</maven.test.opens>
-        <maven.test.debug>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</maven.test.debug>
+        <maven.test.opens>--add-opens=java.base/java.nio=ALL-UNNAMED</maven.test.opens>
+        <maven.test.debug/>
         <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens}</maven.test.jvmargs>
-        <test.fork.count>2</test.fork.count>
+        <test.fork.count>1</test.fork.count>
         <test.includes>**/*Test.java</test.includes>
         <test.excludes>**/*IT.java</test.excludes>
         <test.enable.assertions>false</test.enable.assertions> <!-- arrow tests become extremely slow with assertions enabled-->
-        <test.accumulo.docker.tag>2.1.3</test.accumulo.docker.tag>
+        <test.spark.worker.cores>2</test.spark.worker.cores>
+        <test.spark.worker.memory>1g</test.spark.worker.memory>
+        <test.accumulo.docker.tag>2.1.4-jdk17</test.accumulo.docker.tag>
+        <test.cassandra.docker.tag>3.11.19</test.cassandra.docker.tag>
         <test.confluent.docker.tag>7.8.0</test.confluent.docker.tag> <!-- confluent 7.8.x corresponds to kafka 3.8.x -->
-        <test.hbase.docker.tag>2.6.2</test.hbase.docker.tag>
+        <test.hbase.docker.tag>2.6.3-jdk17</test.hbase.docker.tag>
+        <test.kafka.docker.tag>3.9.1</test.kafka.docker.tag>
         <test.minio.docker.tag>RELEASE.2024-10-29T16-01-48Z</test.minio.docker.tag>
         <test.postgis.docker.tag>15-3.4</test.postgis.docker.tag>
         <test.postgres.docker.tag>15.1</test.postgres.docker.tag>
         <test.redis.docker.tag>7-alpine</test.redis.docker.tag>
+        <test.spark.docker.tag>${spark.version}-scala${scala.binary.version}-java${jdk.version}-ubuntu</test.spark.docker.tag>
         <test.zookeeper.docker.tag>3.9.2</test.zookeeper.docker.tag>
 
-        <!-- documentation -->
-        <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>5.3.0</geomesa.release.version>
-        <geomesa.devel.version>5.4.0-SNAPSHOT</geomesa.devel.version>
+        <!-- documentation/readme -->
+        <!-- bump version right before performing a release -->
+        <geomesa.release.version>5.4.0</geomesa.release.version>
         <copyright.year>2025</copyright.year>
 
         <!-- recommended installation versions - update as necessary if our versions fall behind -->
         <accumulo.version.recommended>${accumulo.version}</accumulo.version.recommended>
-        <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
-        <hbase.thirdparty.version.recommended>4.1.9</hbase.thirdparty.version.recommended>
-        <cassandra.server.version.recommended>${cassandra.version}</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>${cassandra.driver.version}</cassandra.driver.version.recommended>
-        <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
-        <zookeeper.version.recommended>${zookeeper.version}</zookeeper.version.recommended>
+        <cassandra.server.version.recommended>${cassandra.version}</cassandra.server.version.recommended>
+        <scylladb.version.recommended>${scylladb.version}</scylladb.version.recommended>
         <confluent.version.recommended>7.8.0</confluent.version.recommended>
+        <hadoop.version.recommended>${hadoop.version}</hadoop.version.recommended>
+        <hbase.version.recommended>${hbase.version}</hbase.version.recommended>
+        <hbase.thirdparty.version.recommended>4.1.11</hbase.thirdparty.version.recommended>
+        <zookeeper.version.recommended>${zookeeper.version}</zookeeper.version.recommended>
+
+        <!-- some min supported versions, for libraries that have fairly wide compatibility -->
+        <hadoop.min.version>2.8</hadoop.min.version>
+        <kafka.min.version>2.0</kafka.min.version>
+        <postgres.min.version>15</postgres.min.version>
+        <redis.min.version>5.0</redis.min.version>
     </properties>
 
     <profiles>
 
         <profile>
+            <!-- for remote debugging tests -->
             <id>debug-tests</id>
             <properties>
-                <maven.test.jvmargs>${maven.test.memory} ${maven.test.opens} ${maven.test.debug}</maven.test.jvmargs>
+                <maven.test.debug>true</maven.test.debug>
             </properties>
         </profile>
 
         <profile>
-            <id>zinc</id>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>net.alchim31.maven</groupId>
-                            <artifactId>scala-maven-plugin</artifactId>
-                            <configuration>
-                                <recompileMode>incremental</recompileMode>
-                                <useZincServer>true</useZincServer>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-
-        <profile>
+            <!-- for publishing to maven central -->
             <id>central</id>
             <properties>
-                <!-- don't deployAtEnd to prevent the staging repo from closing prematurely when building multiple
-                     scala versions. we can discard the staging repo if there is an error in the build. -->
+                <!-- we can discard the staging repo if there is an error in the build -->
                 <maven.deploy.at.end>false</maven.deploy.at.end>
             </properties>
             <build>
@@ -294,6 +295,25 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!-- for modules with no sources, use the regular jar plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>force-javadoc</id>
+                                <phase>${maven.empty.javadoc.phase}</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${project.build.directory}</classesDirectory>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
@@ -301,6 +321,8 @@
                         <configuration>
                             <schemaVersion>1.4</schemaVersion>
                             <projectType>library</projectType>
+                            <!-- this plugin has to be enabled explicitly, as central publishing skips the normal deploy phase -->
+                            <skipNotDeployed>false</skipNotDeployed>
                         </configuration>
                         <executions>
                             <execution>
@@ -332,33 +354,117 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central.publishing.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <autoPublish>true</autoPublish>
+                            <deploymentName>geomesa-${project.version}_${scala.binary.version}</deploymentName>
+                            <!-- handles non-scala duplicate modules between 2.12/2.13 -->
+                            <ignorePublishedComponents>true</ignorePublishedComponents>
+                            <!-- used to lookup credentials in ~/.m2/settings.xml -->
+                            <publishingServerId>sonatype</publishingServerId>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <!-- for publishing to the eclipse maven repositories -->
+            <id>eclipse</id>
             <distributionManagement>
+                <!-- note: we no longer publish releases to eclipse, they go to maven central -->
                 <repository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <id>repo.eclipse.org</id>
+                    <url>https://repo.eclipse.org/content/repositories/geomesa-releases/</url>
                 </repository>
                 <snapshotRepository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <id>repo.eclipse.org</id>
+                    <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
         </profile>
 
         <profile>
+            <!-- for generating scoverage reports on test coverage -->
             <id>scoverage</id>
             <properties>
+                <maven.assembly.skip>true</maven.assembly.skip>
+                <maven.source.skip>true</maven.source.skip>
                 <!-- disable surefire and failsafe tests to avoid duplicate testing by scoverage -->
                 <skipTests>true</skipTests>
+                <test.fork.count>1</test.fork.count>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scoverage</groupId>
+                        <artifactId>scoverage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <phase>${maven.scoverage.phase}</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
+            <id>site</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <!-- generate the javadocs directory that site expects, to avoid failures when there are no java sources -->
+                            <execution>
+                                <id>create-missing-apidocs</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <mkdir dir="${project.build.directory}/site/apidocs" />
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <!-- required to build site javadocs with mixed scala sources -->
+                        <executions>
+                            <execution>
+                                <id>generate-classpath</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>build-classpath</goal>
+                                </goals>
+                                <configuration>
+                                    <outputFile>${project.build.directory}/module-classpath</outputFile>
+                                    <outputProperty>dep.cp</outputProperty>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <!-- for exporting the maven build as a bloop project, see build/scripts/bloop-export.sh -->
             <id>bloop</id>
-            <properties>
-                <scala.maven.plugin.version>4.9.2</scala.maven.plugin.version>
-            </properties>
             <dependencies>
                 <dependency>
                     <groupId>jdk.tools</groupId>
@@ -439,17 +545,6 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-spark-runtime-accumulo20_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>*</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -653,7 +748,17 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-fs-storage-orc-io_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-fs-storage-parquet_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-fs-storage-parquet-io_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -804,21 +909,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-core_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-cloudwatch_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-metrics-graphite_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-metrics-micrometer_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -880,12 +970,6 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-                <classifier>data</classifier>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -897,11 +981,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-zk-utils_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -1002,75 +1081,10 @@
 
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-main</artifactId>
+                <artifactId>gt-bom</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-shapefile</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-cql</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-metadata</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools.jdbc</groupId>
-                <artifactId>gt-jdbc-postgis</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -1083,11 +1097,6 @@
                         <artifactId>checker-qual</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-imagemosaic</artifactId>
-                <version>${gt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ejml</groupId>
@@ -1116,269 +1125,6 @@
                         <artifactId>ejml-zdense</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-referencing</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-hsql</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-epsg-wkt</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>jgridshift</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-coverage</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>org.jaitools</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-jdbc</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools.jdbc</groupId>
-                <artifactId>gt-jdbc-h2</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-imageio-ext-gdal</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-geotiff</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-geojson</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-xml</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>commons-jxpath</groupId>
-                        <artifactId>commons-jxpath</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools.xsd</groupId>
-                <artifactId>gt-xsd-core</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools.xsd</groupId>
-                <artifactId>gt-xsd-wfs</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-process</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>org.jaitools</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-process-feature</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-render</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-transform</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-grid</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-arcgrid</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-complex</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-app-schema-resolver</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-geojson-core</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-geopkg</artifactId>
-                <version>${gt.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-gml-geometry-streaming</artifactId>
-                <version>${gt.version}</version>
             </dependency>
 
             <dependency>
@@ -1571,18 +1317,10 @@
             </dependency>
             <dependency>
                 <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-core</artifactId>
+                <artifactId>micrometer-bom</artifactId>
                 <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-prometheus</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-cloudwatch2</artifactId>
-                <version>${micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.prometheus</groupId>
@@ -1667,9 +1405,23 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>io.sgr</groupId>
-                <artifactId>s2-geometry-library-java</artifactId>
+                <groupId>org.datasyslab</groupId>
+                <artifactId>s2-geometry-library</artifactId>
                 <version>${s2.geometry.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.jsinterop</groupId>
+                        <artifactId>jsinterop-annotations</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.amazonaws</groupId>
@@ -2382,6 +2134,7 @@
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
+                <scope>provided</scope>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.jms</groupId>
@@ -2420,7 +2173,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.zookeeper</groupId>
@@ -2683,24 +2435,6 @@
 
             <!-- dependencies excluded due to license issues -->
             <dependency>
-                <groupId>javax.media</groupId>
-                <artifactId>jai_core</artifactId>
-                <version>1.1.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.media</groupId>
-                <artifactId>jai_codec</artifactId>
-                <version>1.1.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.media</groupId>
-                <artifactId>jai_imageio</artifactId>
-                <version>1.1</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
                 <version>3.0.2</version>
@@ -2918,6 +2652,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>cassandra</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.geomesa.testcontainers</groupId>
                 <artifactId>testcontainers-accumulo</artifactId>
                 <version>${testcontainers.accumulo.version}</version>
@@ -2928,6 +2668,18 @@
                 <artifactId>testcontainers-hbase</artifactId>
                 <version>${testcontainers.hbase.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.geomesa.testcontainers</groupId>
+                <artifactId>testcontainers-spark</artifactId>
+                <version>${testcontainers.spark.version}</version>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.spark</groupId>
+                        <artifactId>*</artifactId> <!-- exclude so we can override the scala version -->
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -2951,9 +2703,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
-                        <!-- Turn off 'useIncrementalCompilation' to keep this plugin
-                             from recompiling Java files that the scala-maven-plugin
-                             already compiled -->
+                        <!-- keep this plugin from re-compiling Java files that the scala-maven-plugin already compiled -->
                         <useIncrementalCompilation>false</useIncrementalCompilation>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
@@ -2993,19 +2743,6 @@
                             </manifestEntries>
                         </archive>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <!-- binds to the default test-jar goal to exclude logging configs -->
-                            <id>default</id>
-                            <configuration>
-                                <excludes>
-                                    <exclude>log4j.properties</exclude>
-                                    <exclude>log4j.xml</exclude>
-                                    <exclude>logging.properties</exclude>
-                                </excludes>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -3022,6 +2759,7 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven.assembly.plugin.version}</version>
                     <configuration>
+                        <skipAssembly>${maven.assembly.skip}</skipAssembly>
                         <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>
                 </plugin>
@@ -3030,6 +2768,7 @@
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>${maven.shade.plugin.version}</version>
                     <configuration>
+                        <skip>${maven.shade.skip}</skip>
                         <artifactSet>
                             <excludes combine.children="append">
                                 <exclude>org.slf4j:*</exclude>
@@ -3119,6 +2858,7 @@
                             <exclude>${test.excludes}</exclude>
                         </excludes>
                         <argLine>${maven.test.jvmargs}</argLine>
+                        <debugForkedProcess>${maven.test.debug}</debugForkedProcess>
                         <systemPropertyVariables>
                             <java.awt.headless>true</java.awt.headless>
                             <user.timezone>UTC</user.timezone>
@@ -3128,12 +2868,15 @@
                             <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
                             <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
+                            <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+                            <spark.docker.tag>${test.spark.docker.tag}</spark.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
                         </systemPropertyVariables>
                     </configuration>
@@ -3156,12 +2899,15 @@
                         <testSourceDirectory>src/test/scala</testSourceDirectory>
                         <systemPropertyVariables>
                             <accumulo.docker.tag>${test.accumulo.docker.tag}</accumulo.docker.tag>
+                            <cassandra.docker.tag>${test.cassandra.docker.tag}</cassandra.docker.tag>
                             <confluent.docker.tag>${test.confluent.docker.tag}</confluent.docker.tag>
+                            <kafka.docker.tag>${test.kafka.docker.tag}</kafka.docker.tag>
                             <hbase.docker.tag>${test.hbase.docker.tag}</hbase.docker.tag>
                             <minio.docker.tag>${test.minio.docker.tag}</minio.docker.tag>
                             <postgis.docker.tag>${test.postgis.docker.tag}</postgis.docker.tag>
                             <postgres.docker.tag>${test.postgres.docker.tag}</postgres.docker.tag>
                             <redis.docker.tag>${test.redis.docker.tag}</redis.docker.tag>
+                            <spark.docker.tag>${test.spark.docker.tag}</spark.docker.tag>
                             <zookeeper.docker.tag>${test.zookeeper.docker.tag}</zookeeper.docker.tag>
                         </systemPropertyVariables>
                     </configuration>
@@ -3207,31 +2953,31 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>pl.project13.maven</groupId>
-                    <artifactId>git-commit-id-plugin</artifactId>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
                     <version>${git.commit.id.plugin.version}</version>
                     <configuration>
                         <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-                        <runOnlyOnce>false</runOnlyOnce>
-                        <verbose>false</verbose>
                         <dateFormat>yyyy-MM-dd'T'HH:mm:ssZ</dateFormat>
                         <failOnNoGitDirectory>false</failOnNoGitDirectory>
-                        <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                         <useNativeGit>true</useNativeGit>
                         <generateGitPropertiesFile>true</generateGitPropertiesFile>
                         <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
                         <!-- note: don't use includeProperties, it causes non-git properties to be excluded -->
                         <excludeProperties>
-                            <excludeProperty>^git\.build\.user\.email$</excludeProperty>
                             <excludeProperty>^git\.build\.host$</excludeProperty>
-                            <excludeProperty>^git\.remote\.origin\.url$</excludeProperty>
-                            <excludeProperty>^git\.commit\.id\.describe-short$</excludeProperty>
-                            <excludeProperty>^git\.commit\.user\.email$</excludeProperty>
-                            <excludeProperty>^git\.commit\.message\.short$</excludeProperty>
-                            <excludeProperty>^git\.commit\.id\.abbrev$</excludeProperty>
+                            <excludeProperty>^git\.build\.user\.email$</excludeProperty>
                             <excludeProperty>^git\.build\.user\.name$</excludeProperty>
                             <excludeProperty>^git\.closest\.tag\.commit\.count$</excludeProperty>
-                            <excludeProperty>^git\.commit\.user\.name$</excludeProperty>
+                            <excludeProperty>^git\.commit\.author\.time$</excludeProperty>
+                            <excludeProperty>^git\.commit\.committer\.time$</excludeProperty>
+                            <excludeProperty>^git\.commit\.id\.abbrev$</excludeProperty>
+                            <excludeProperty>^git\.commit\.id\.describe-short$</excludeProperty>
+                            <excludeProperty>^git\.commit\.message\.short$</excludeProperty>
+                            <excludeProperty>^git\.commit\.user\.email$</excludeProperty>
+                            <excludeProperty>^git\.local\.branch\.ahead$</excludeProperty>
+                            <excludeProperty>^git\.local\.branch\.behind$</excludeProperty>
+                            <excludeProperty>^git\.remote\.origin\.url$</excludeProperty>
                         </excludeProperties>
                     </configuration>
                 </plugin>
@@ -3320,6 +3066,11 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>${maven.project.info.reports.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${maven.antrun.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -3406,8 +3157,8 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
                 <executions>
                     <execution>
                         <goals>
@@ -3487,29 +3238,10 @@
                         <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
                         </goals>
                         <configuration>
                             <!-- we need source jars for publishing to maven central, even if there are no sources -->
                             <forceCreation>true</forceCreation>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <!-- required to build javadocs with mixed scala sources -->
-                <executions>
-                    <execution>
-                        <id>generate-classpath</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>build-classpath</goal>
-                        </goals>
-                        <configuration>
-                            <silent>true</silent>
-                            <outputProperty>dep.cp</outputProperty>
                         </configuration>
                     </execution>
                 </executions>
@@ -3558,20 +3290,8 @@
                                         <exclude>org.slf4j:slf4j-log4j12</exclude>
                                     </excludes>
                                 </bannedDependencies>
-                                <requireProperty>
-                                    <message>property scala.version must be set</message>
-                                    <property>scala.version</property>
-                                    <regexMessage>property scala.version doesn't match expected compiler version</regexMessage>
-                                    <regex>2.12.*</regex>
-                                </requireProperty>
-                                <requireProperty>
-                                    <message>property scala.binary.version must be set</message>
-                                    <property>scala.binary.version</property>
-                                    <regexMessage>property scala.binary.version doesn't match compiler version</regexMessage>
-                                    <regex>2.12</regex>
-                                </requireProperty>
                                 <requireMavenVersion>
-                                    <version>[3.6.3,)</version>
+                                    <version>[${maven.min.version},)</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -3660,14 +3380,9 @@
     <distributionManagement>
         <site>
             <id>geomesa.org</id>
-            <name>geomesa.org</name>
             <url>https://www.geomesa.org/</url>
         </site>
-        <snapshotRepository>
-            <id>repo.eclipse.org</id>
-            <name>GeoMesa Repository - Snapshots</name>
-            <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
-        </snapshotRepository>
+        <downloadUrl>https://github.com/locationtech/geomesa/releases</downloadUrl>
     </distributionManagement>
 
     <developers>

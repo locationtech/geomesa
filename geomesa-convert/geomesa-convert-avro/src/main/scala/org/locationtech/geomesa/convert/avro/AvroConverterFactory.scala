@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.avro
@@ -13,7 +13,6 @@ import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -36,8 +35,6 @@ import scala.util.Try
 class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroConfig, BasicField, BasicOptions](
   "avro", AvroConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
 
-  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
   import scala.collection.JavaConverters._
 
   /**
@@ -45,15 +42,9 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
     *
     * @param is input
     * @param sft simple feature type, if known ahead of time
-    * @param path file path, if known
+    * @param hints hints
     * @return
     */
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
-
   override def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType],
@@ -64,11 +55,8 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
           // this is a file written in the geomesa avro format
           val records = dfs.iterator.asScala.take(AbstractConverterFactory.inferSampleSize)
           // get the version from the first record
-          val version =
-            records.headOption
-                .flatMap(r => Option(r.get(VersionField.name)).map(_.asInstanceOf[Int]))
-                .getOrElse(SerializationVersions.DefaultVersion)
-          val nameEncoder = new FieldNameEncoder(version)
+          val version = records.flatMap(r => Option(r.get(VersionField.name))).collectFirst { case i: Integer => i.intValue() }
+          val nameEncoder = new FieldNameEncoder(version.getOrElse(SerializationVersions.DefaultVersion))
           val dataSft = AvroDataFile.getSft(dfs)
           val native = AvroSerialization.usesNativeCollections(dfs.getSchema)
 

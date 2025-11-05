@@ -3,24 +3,24 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geohash
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
+import org.locationtech.jts.geom._
 
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
 
 /**
  * GeoHashes above GeoHash.MAX_PRECISION are not supported.
- * @param x
- * @param y
- * @param bbox
- * @param bitset
- * @param prec
+ * @param x x centroid
+ * @param y y centroid
+ * @param bbox bounding box
+ * @param bitset internal bitset
+ * @param prec precision
  */
 case class GeoHash private(x: Double,
                            y: Double,
@@ -37,9 +37,9 @@ case class GeoHash private(x: Double,
    * Hash string is calculated lazily if GeoHash object was created
    * from a Point, because calculation is expensive
    */
-  lazy val hash = optHash.getOrElse(toBase32(bitset, prec))
+  lazy val hash: String = optHash.getOrElse(toBase32(bitset, prec))
 
-  lazy val geom = bbox.geom
+  lazy val geom: Geometry = bbox.geom
 
   /**
    * Utility method to return the bit-string as a full binary string.
@@ -76,7 +76,7 @@ case class GeoHash private(x: Double,
     asInt
   }
 
-  def getPoint = GeoHash.factory.createPoint(new Coordinate(x,y))
+  def getPoint: Point = GeoHash.factory.createPoint(new Coordinate(x,y))
 
   def contains(gh: GeoHash): Boolean = prec <= gh.prec && bitset.subsetOf(gh.bitset)
 
@@ -90,12 +90,12 @@ case class GeoHash private(x: Double,
   // Overriding equals obligates us to override hashCode.
   override def hashCode: Int = bitset.hashCode + prec
 
-  override def compareTo(gh: GeoHash) = this.hash.compareTo(gh.hash)
+  override def compareTo(gh: GeoHash): Int = this.hash.compareTo(gh.hash)
 }
 
 case class Bounds(low: Double,
                   high: Double) {
-  lazy val mid = (low+high)/2.0
+  lazy val mid: Double = (low+high)/2.0
 }
 
 object GeoHash extends LazyLogging {
@@ -118,20 +118,12 @@ object GeoHash extends LazyLogging {
 
   private lazy val latDeltaMap: Map[Int, Double]  =
     (0 to MAX_PRECISION).map(i => (i, latRange / powersOf2Map(i / 2))).toMap
-  def latitudeDeltaForPrecision(prec: Int): Double = {
-    checkPrecision(prec)
-    latDeltaMap(prec)
-  }
 
   private lazy val lonDeltaMap: Map[Int, Double] =
     (0 to MAX_PRECISION).map(i => (i, lonRange / powersOf2Map(i / 2 + i % 2))).toMap
-  def longitudeDeltaForPrecision(prec: Int): Double = {
-    checkPrecision(prec)
-    lonDeltaMap(prec)
-  }
 
   private val bits = Array(16,8,4,2,1)
-  protected[geohash] val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+  private val base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
   private val characterMap: Map[Char, BitSet] =
     base32.zipWithIndex.map { case (c, i) => c -> bitSetFromBase32Character(i) }.toMap
 
@@ -170,7 +162,7 @@ object GeoHash extends LazyLogging {
     encode(lonIndex, latIndex, lonDelta, latDelta, prec)
   }
 
-  def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25) = {
+  def covering(ll: GeoHash, ur: GeoHash, prec: Int = 25): Seq[GeoHash] = {
     checkPrecision(prec)
 
     val bbox = BoundingBox(ll.getPoint, ur.getPoint)
@@ -178,8 +170,15 @@ object GeoHash extends LazyLogging {
     def subsIntersecting(hash: GeoHash): Seq[GeoHash] = {
       if (hash.prec == prec) List(hash)
       else {
-        val subs = BoundingBox.generateSubGeoHashes(hash)
-        subs.flatMap { case sub =>
+        def padLongToString(i: Long) = String.format("%5s", i.toBinaryString).replace(' ', '0')
+        val subs = Seq.tabulate(32) { i =>
+          val oneBits = padLongToString(i)
+            .zipWithIndex
+            .filter { case (ch, _) => ch != '0' }
+            .map { case (_, idx) => hash.prec + idx }
+          GeoHash(hash.bitset | BitSet(oneBits: _*), hash.prec + 5)
+        }
+        subs.flatMap { sub =>
           if (!bbox.intersects(sub.bbox)) List()
           else subsIntersecting(sub)
         }
@@ -189,22 +188,22 @@ object GeoHash extends LazyLogging {
     subsIntersecting(init)
   }
 
-  def checkPrecision(precision: Int) =
+  private def checkPrecision(precision: Int): Unit =
     require(precision <= MAX_PRECISION,
             s"GeoHash precision of $precision requested, but precisions above $MAX_PRECISION are not supported")
 
   /**
    * Get the dimensions of the geohash grid bounded by ll and ur at precision.
-   * @param g1
-   * @param g2
-   * @param precision
+   * @param g1 geohash
+   * @param g2 geohash
+   * @param precision precision
    * @return tuple containing (latitude span count, longitude span count)
    */
   def getLatitudeLongitudeSpanCount(g1: GeoHash, g2: GeoHash, precision: Int): (Int, Int) = {
     require(g1.prec == precision,
-            s"Geohash ${g1.hash} has precision ${g1.prec} but precision ${precision} is required")
+            s"Geohash ${g1.hash} has precision ${g1.prec} but precision $precision is required")
     require(g2.prec == precision,
-            s"Geohash ${g2.hash} has precision ${g2.prec} but precision ${precision} is required")
+            s"Geohash ${g2.hash} has precision ${g2.prec} but precision $precision is required")
 
     val Array(latIndex1, lonIndex1) = GeoHash.gridIndicesForLatLong(g1)
     val Array(latIndex2, lonIndex2) = GeoHash.gridIndicesForLatLong(g2)
@@ -219,7 +218,7 @@ object GeoHash extends LazyLogging {
    * @param gh the geohash
    * @return an array containing first the latitude index and then the longitude index
    */
-  def gridIndicesForLatLong(gh: GeoHash) = {
+  def gridIndicesForLatLong(gh: GeoHash): Array[Long] = {
     val (lonIndex, latIndex) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
     Array(latIndex, lonIndex)
   }
@@ -231,7 +230,7 @@ object GeoHash extends LazyLogging {
    * @param gh the geohash
    * @return latitude index
    */
-  def gridIndexForLatitude(gh: GeoHash) = {
+  def gridIndexForLatitude(gh: GeoHash): Long = {
     val (_, latIndex) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
     latIndex
   }
@@ -244,7 +243,7 @@ object GeoHash extends LazyLogging {
    * @param gh the geohash
    * @return longitude index
    */
-  def gridIndexForLongitude(gh: GeoHash) = {
+  def gridIndexForLongitude(gh: GeoHash): Long = {
     val (lonIndex, _) = extractReverseBits(gh.bitset.toBitMask.head, gh.prec)
     lonIndex
   }
@@ -267,7 +266,6 @@ object GeoHash extends LazyLogging {
     checkPrecision(prec)
     encode(lonIndex, latIndex, lonDeltaMap(prec), latDeltaMap(prec), prec)
   }
-
 
   def next(gh: GeoHash): GeoHash = GeoHash(GeoHash.next(gh.bitset), gh.prec)
 
@@ -343,8 +341,8 @@ object GeoHash extends LazyLogging {
                                      latIndex: Long,
                                      lonDelta: Double,
                                      latDelta: Double): BoundingBox =
-    BoundingBox(Bounds((lonBounds.low+lonDelta*lonIndex), (lonBounds.low+lonDelta*(lonIndex+1))),
-                Bounds((latBounds.low+latDelta*latIndex), (latBounds.low+latDelta*(latIndex+1))))
+    BoundingBox(Bounds(lonBounds.low+lonDelta*lonIndex, lonBounds.low+lonDelta*(lonIndex+1)),
+                Bounds(latBounds.low+latDelta*latIndex, latBounds.low+latDelta*(latIndex+1)))
 
   /**
    * Reverses and interleaves every other bits of two longs into one long. The two longs must be
@@ -389,7 +387,7 @@ object GeoHash extends LazyLogging {
   private def shift(n: Int, bs: BitSet): BitSet = bs.map(_ + n)
 
   private def bitSetFromBase32Character(charIndex: Long): BitSet =
-    BitSet(toPaddedBinaryString(charIndex, 5).zipWithIndex.filter { case (c,idx) => c == '1' }.map(_._2): _*)
+    BitSet(toPaddedBinaryString(charIndex, 5).zipWithIndex.filter { case (c, _) => c == '1' }.map(_._2): _*)
 
   private def toPaddedBinaryString(i: Long, length: Int): String =
     String.format("%" + length + "s", i.toBinaryString).replace(' ', '0')
@@ -408,7 +406,7 @@ object GeoHash extends LazyLogging {
     (0 until precision).grouped(5).map(i=>ch(i, bitset)).mkString
   }
 
-  private def ch(v: IndexedSeq[Int], bitset: BitSet) =
+  private def ch(v: IndexedSeq[Int], bitset: BitSet): Char =
     base32(v.foldLeft(0)((cur,i) => cur + (if (bitset(i)) bits(i%bits.length) else 0)))
 
 }

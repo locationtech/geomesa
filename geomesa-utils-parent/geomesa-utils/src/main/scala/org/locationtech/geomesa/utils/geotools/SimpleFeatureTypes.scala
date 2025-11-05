@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
@@ -285,13 +285,12 @@ object SimpleFeatureTypes {
 
   def encodeUserData(sft: SimpleFeatureType): String = {
     val prefixes = sft.getUserDataPrefixes
-    val result = new StringBuilder(";")
-    sft.getUserData.asScala.foreach { case (k: AnyRef, v: AnyRef) =>
-      if (v != null && prefixes.exists(k.toString.startsWith)) {
-        result.append(encodeUserData(k, v)).append(",")
-      }
+    val toEncode = sft.getUserData.asScala.collect {
+      case (k, v) if v != null && prefixes.exists(k.toString.startsWith) => encodeUserData(k, v)
     }
-    if (result.lengthCompare(1) > 0) { result.substring(0, result.length - 1) } else { "" }
+    if (toEncode.isEmpty) { "" } else {
+      toEncode.toSeq.sorted.mkString(";", ",", "")
+    }
   }
 
   def encodeUserData(data: java.util.Map[_ <: AnyRef, _ <: AnyRef]): String = {

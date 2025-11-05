@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.exporters
@@ -43,7 +43,7 @@ class GmlExporter private (out: OutputStream, configuration: WFSConfiguration)
     props.add(org.geotools.gml2.GMLConfiguration.OPTIMIZED_ENCODING)
     props.add(org.geotools.gml2.GMLConfiguration.NO_FEATURE_BOUNDS)
     val e = new Encoder(configuration)
-    e.getNamespaces.declarePrefix("geomesa", "http://geomesa.org")
+    e.getNamespaces.declarePrefix("geomesa", "https://geomesa.org")
     e.setEncoding(StandardCharsets.UTF_8)
     e.setIndenting(true)
     e
@@ -57,7 +57,7 @@ class GmlExporter private (out: OutputStream, configuration: WFSConfiguration)
     val features = if (sft.getName.getNamespaceURI != null) { fc } else {
       val builder = new SimpleFeatureTypeBuilder()
       builder.init(sft)
-      builder.setNamespaceURI("http://geomesa.org")
+      builder.setNamespaceURI("https://geomesa.org")
       new ReTypingFeatureCollection(fc, builder.buildFeatureType())
     }
     val collection = WfsFactory.eINSTANCE.createFeatureCollectionType()

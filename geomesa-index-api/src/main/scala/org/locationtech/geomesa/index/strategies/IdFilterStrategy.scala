@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.strategies
@@ -40,7 +40,7 @@ object IdFilterStrategy {
       case f: And => f.getChildren.asScala.map(intersectIdFilters).reduceLeftOption(_ intersect _).getOrElse(Set.empty)
       case f: Or  => f.getChildren.asScala.flatMap(intersectIdFilters).toSet
       case f: Id  => f.getIDs.asScala.map(_.toString).toSet
-      case _ => throw new IllegalArgumentException(s"Expected ID filter, got ${filterToString(filter)}")
+      case _ => throw new IllegalArgumentException(s"Expected ID filter, got: ${FilterHelper.toString(filter)}")
     }
   }
 }

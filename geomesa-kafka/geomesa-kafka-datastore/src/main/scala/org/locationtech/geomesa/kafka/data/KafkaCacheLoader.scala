@@ -3,24 +3,25 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{DistributionSummary, Metrics}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tag, Tags}
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, ConsumerRecord, ConsumerRecords}
 import org.apache.kafka.common.TopicPartition
-import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{ExpiryTimeConfig, MetricsPrefix}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer
 import org.locationtech.geomesa.kafka.versions.{KafkaConsumerVersions, RecordVersions}
+import org.locationtech.geomesa.metrics.micrometer.utils.GaugeUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -43,11 +44,22 @@ trait KafkaCacheLoader extends Closeable with LazyLogging {
 
 object KafkaCacheLoader extends LazyLogging {
 
+  private val MetricsPrefix = s"${KafkaDataStore.MetricsPrefix}.consumer"
+
+  /**
+   * Object for tracking the initial load status of data stores
+   */
   object LoaderStatus {
 
     private val loading = Collections.newSetFromMap(new ConcurrentHashMap[AnyRef, java.lang.Boolean]())
     private val firstLoadStartTime = new AtomicLong(0L)
 
+    /**
+     * Register a loader starting
+     *
+     * @param loader loader instance
+     * @return
+     */
     def startLoad(loader: AnyRef): Boolean = synchronized {
       if (!loading.add(loader)) {
         logger.warn(s"Called startLoad for a loader that was already registered and has not yet completed: $loader")
@@ -55,6 +67,11 @@ object KafkaCacheLoader extends LazyLogging {
       firstLoadStartTime.compareAndSet(0L, System.currentTimeMillis())
     }
 
+    /**
+     * De-register a loader as having completed
+     *
+     * @param loader loader instance
+     */
     def completedLoad(loader: AnyRef): Unit = synchronized {
       if (!loading.remove(loader)) {
         logger.warn(s"Called completedLoad for a loader that was not registered or already deregistered: $loader")
@@ -65,6 +82,11 @@ object KafkaCacheLoader extends LazyLogging {
       }
     }
 
+    /**
+     * Indicates if any active loads are ongoing
+     *
+     * @return
+     */
     def allLoaded(): Boolean = loading.isEmpty
   }
 
@@ -83,6 +105,7 @@ object KafkaCacheLoader extends LazyLogging {
       serializer: GeoMessageSerializer,
       initialLoad: Option[scala.concurrent.duration.Duration],
       initialLoadConfig: ExpiryTimeConfig,
+      tags: Tags,
     ) extends ThreadedConsumer(consumers, frequency, offsetCommitInterval) with KafkaCacheLoader {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -91,23 +114,10 @@ object KafkaCacheLoader extends LazyLogging {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    private val tags = KafkaDataStore.tags(sft)
-    private val updates = Metrics.counter(s"$MetricsPrefix.read.updates", tags)
-    private val deletes = Metrics.counter(s"$MetricsPrefix.read.deletes", tags)
-    private val clears = Metrics.counter(s"$MetricsPrefix.read.clears", tags)
-    private val dtgMetrics = sft.getDtgIndex.map { i =>
-      val last = Metrics.gauge(s"$MetricsPrefix.read.dtg.latest", tags, new AtomicLong())
-      val latency =
-        DistributionSummary
-          .builder(s"$MetricsPrefix.read.dtg.latency")
-          .baseUnit("milliseconds")
-          .tags(tags)
-          .publishPercentileHistogram()
-          .minimumExpectedValue(1d)
-          .maximumExpectedValue(24 * 60 * 60 * 1000d) // 1 day
-          .register(Metrics.globalRegistry)
-      DateMetrics(i, last, latency)
-    }
+    private val updates = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "update"))
+    private val deletes = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "delete"))
+    private val clears = Metrics.counter(s"$MetricsPrefix.consumed", tags.and("op", "clear"))
+    private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, tags))
 
     // for the initial load, don't bother spatially indexing until we have the final state
     private val initialLoader = initialLoad.map(readBack => new InitialLoader(readBack))
@@ -140,15 +150,7 @@ object KafkaCacheLoader extends LazyLogging {
           cache.fireChange(timestamp, m.feature)
           cache.put(m.feature)
           updates.increment()
-          println("update")
-          dtgMetrics.foreach { case DateMetrics(index, dtg, latency) =>
-            val date = m.feature.getAttribute(index).asInstanceOf[Date]
-            println(s"dtg update: ${date}")
-            if (date != null) {
-              dtg.updateAndGet(prev => Math.max(prev, date.getTime))
-              latency.record(System.currentTimeMillis() - date.getTime)
-            }
-          }
+          latency.foreach(_.apply(m.feature))
 
         case m: Delete =>
           cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull)
@@ -168,6 +170,10 @@ object KafkaCacheLoader extends LazyLogging {
      * Handles initial loaded 'from-beginning' without indexing features in the spatial index. Will still
      * trigger message events.
      *
+     * Since the entire consumer group is in this process, we shouldn't usually get rebalance events after the initial assignment.
+     * However, it can still occur if the number of partitions is administratively altered. Note that we don't try to
+     * re-read the topic if a partition is revoked and then reassigned.
+     *
      * @param readBack initial load read back
      */
     private class InitialLoader(readBack: scala.concurrent.duration.Duration)
@@ -178,20 +184,18 @@ object KafkaCacheLoader extends LazyLogging {
       private val cache = KafkaFeatureCache.nonIndexing(sft, initialLoadConfig)
       private val toLoad = KafkaCacheLoaderImpl.this
 
-      private val updates = Metrics.counter(s"$MetricsPrefix.readback.updates", tags)
-      private val deletes = Metrics.counter(s"$MetricsPrefix.readback.deletes", tags)
-      private val clears = Metrics.counter(s"$MetricsPrefix.readback.clears", tags)
+      private val updates = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "update"))
+      private val deletes = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "delete"))
+      private val clears = Metrics.counter(s"$MetricsPrefix.readback", tags.and("op", "clear"))
 
       // track the offsets that we want to read to
-      private val offsets = new ConcurrentHashMap[Int, Long]()
+      private val offsets = new ConcurrentHashMap[Int, java.lang.Long]()
       private val assignment = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean]())
       @volatile
       private var done: Boolean = false
       private var latch: CountDownLatch = _
       @volatile
       private var submission: Future[_] = _
-
-      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
 
       override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
         logger.debug(s"Partitions assigned: ${topicPartitions.asScala.mkString(", ")}")
@@ -209,31 +213,47 @@ object KafkaCacheLoader extends LazyLogging {
                 val end = consumer.position(tp)
                 logger.debug(s"Setting max offset to [${tp.topic}:${tp.partition}:${end - 1}]")
                 offsets.put(tp.partition(), end - 1)
-                if (!readBack.isFinite) {
-                  KafkaConsumerVersions.seekToBeginning(consumer, tp)
-                } else {
-                  val offset = Try {
-                    val time = System.currentTimeMillis() - readBack.toMillis
-                    KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
-                  }
-                  offset match {
-                    case Success(Some(o)) =>
-                      logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
-                      consumer.seek(tp, o)
+                try {
+                  if (!readBack.isFinite) {
+                    KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                  } else {
+                    val offset = Try {
+                      val time = System.currentTimeMillis() - readBack.toMillis
+                      KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
+                    }
+                    offset match {
+                      case Success(Some(o)) =>
+                        logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
+                        consumer.seek(tp, o)
 
-                    case Success(None) =>
-                      logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
-                        "reading from head of queue")
+                      case Success(None) =>
+                        logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
+                          "reading from head of queue")
 
-                    case Failure(e) =>
-                      logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
-                      KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                      case Failure(e) =>
+                        logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
+                        KafkaConsumerVersions.seekToBeginning(consumer, tp)
+                    }
                   }
+                } finally {
+                  checkComplete(consumer, tp)
                 }
               } finally {
                 KafkaConsumerVersions.resume(consumer, tp)
               }
             }
+          }
+        }
+      }
+
+      override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+        logger.debug(s"Partitions revoked: ${topicPartitions.asScala.mkString(", ")}")
+        topicPartitions.asScala.foreach { tp =>
+          if (offsets.remove(tp.partition) != null) {
+            latch.countDown()
+            logger.info(
+              s"Stopping initial load due to revocation of assignment for [$topic:${tp.partition}], " +
+                s"${latch.getCount} partitions remaining")
           }
         }
       }
@@ -256,7 +276,6 @@ object KafkaCacheLoader extends LazyLogging {
               toLoad.cache.fireChange(timestamp, m.feature)
               cache.put(m.feature)
               updates.increment()
-              println("initial load update")
 
             case m: Delete =>
               toLoad.cache.fireDelete(timestamp, m.id, cache.query(m.id).orNull)
@@ -319,6 +338,22 @@ object KafkaCacheLoader extends LazyLogging {
       }
 
       /**
+       * Checks the current position of the consumer, and notifies through the countdown latch when the initial load
+       * is complete
+       *
+       * @param consumer consumer
+       * @param tp topic and partition to check
+       */
+      private def checkComplete(consumer: Consumer[Array[Byte], Array[Byte]], tp: TopicPartition): Unit = {
+        val position = consumer.position(tp)
+        // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
+        if (position > offsets.getOrDefault(tp.partition(), Long.MaxValue) && offsets.remove(tp.partition) != null) {
+          latch.countDown()
+          logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
+        }
+      }
+
+      /**
        * Consumer runnable that tracks when we have completed the initial load
        *
        * @param id id
@@ -327,27 +362,45 @@ object KafkaCacheLoader extends LazyLogging {
        */
       private class InitialLoaderConsumerRunnable(id: String, consumer: Consumer[Array[Byte], Array[Byte]], handler: ConsumerErrorHandler)
           extends ConsumerRunnable(id, consumer, handler) {
-
         override protected def processPoll(result: ConsumerRecords[Array[Byte], Array[Byte]]): Unit = {
-          try {
-            super.processPoll(result)
-          } finally {
-            result.partitions().asScala.foreach { tp =>
-              val position = consumer.position(tp)
-              // once we've hit the max offset for the partition, remove from the offset map so we don't double count it
-              if (position >= offsets.getOrDefault(tp.partition(), Long.MaxValue)) {
-                offsets.remove(tp.partition)
-                latch.countDown()
-                logger.info(s"Initial load: consumed [$topic:${tp.partition}:${position - 1}]")
-                logger.info(s"Initial load completed for [$topic:${tp.partition}], ${latch.getCount} partitions remaining")
-              }
-            }
+          try { super.processPoll(result) } finally {
+            result.partitions().asScala.foreach(checkComplete(consumer, _))
           }
         }
       }
     }
   }
 
-  private case class DateMetrics(i: Int, last: AtomicLong, latency: DistributionSummary)
-}
+  /**
+   * Latency metrics tracker
+   *
+   * @param dtgIndex index of the date attribute to track in the feature type
+   * @param tags metrics tags
+   */
+  private class LatencyMetrics(dtgIndex: Int, tags: java.lang.Iterable[Tag]) {
 
+    private val date = GaugeUtils.timeGauge(s"$MetricsPrefix.dtg.latest", tags)
+
+    private val latency =
+      DistributionSummary.builder(s"$MetricsPrefix.dtg.latency")
+        .tags(tags)
+        .publishPercentileHistogram()
+        .baseUnit("milliseconds")
+        .minimumExpectedValue(1d)
+        .maximumExpectedValue(Duration.ofDays(1).toMillis.toDouble)
+        .register(Metrics.globalRegistry)
+
+    /**
+     * Record latency for a feature
+     *
+     * @param feature feature
+     */
+    def apply(feature: SimpleFeature): Unit = {
+      val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      if (dtg != null) {
+        date.set(dtg.getTime)
+        latency.record(System.currentTimeMillis() - dtg.getTime)
+      }
+    }
+  }
+}

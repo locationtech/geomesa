@@ -4,7 +4,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
@@ -20,6 +20,8 @@ import scala.collection.JavaConverters._
 
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
     extends TableBasedMetadata[T] {
+
+  // note: session gets closed by datastore dispose
 
   override protected def checkIfTableExists: Boolean = {
     val m = session.getCluster.getMetadata
@@ -80,6 +82,4 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     val values = session.execute(select).all().iterator.asScala.map(row => (row.getString("sft"), row.getString("key")))
     CloseableIterator(values)
   }
-
-  override def close(): Unit = {} // session gets closed by datastore dispose
 }

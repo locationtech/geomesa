@@ -3,18 +3,18 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.metrics.micrometer
 package prometheus
 
-import com.typesafe.config.Config
-import com.typesafe.scalalogging.LazyLogging
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import io.micrometer.core.instrument.{MeterRegistry, Tag}
 import io.micrometer.prometheusmetrics.{PrometheusMeterRegistry, PrometheusRenameFilter}
 import io.prometheus.metrics.exporter.httpserver.HTTPServer
 import io.prometheus.metrics.exporter.pushgateway.{Format, PushGateway, Scheme}
+import org.locationtech.geomesa.metrics.micrometer.RegistryFactory.BaseRegistryFactory
 import pureconfig.generic.semiauto.deriveReader
 import pureconfig.{ConfigReader, ConfigSource}
 
@@ -23,11 +23,11 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import scala.util.control.NonFatal
 
-object PrometheusFactory extends RegistryFactory with LazyLogging {
+object PrometheusFactory extends BaseRegistryFactory(RegistryFactory.Prometheus) {
 
   import scala.collection.JavaConverters._
 
-  override def apply(conf: Config): MeterRegistry = {
+  override protected def createRegistry(conf: Config): MeterRegistry = {
     // noinspection ScalaUnusedSymbol
     implicit val gatewayReader: ConfigReader[PushGatewayConfig] = deriveReader[PushGatewayConfig]
     implicit val prometheusReader: ConfigReader[PrometheusConfig] = deriveReader[PrometheusConfig]
@@ -70,6 +70,55 @@ object PrometheusFactory extends RegistryFactory with LazyLogging {
         dependentClose.set(() => pushGateway.pushAdd())
     }
     registry
+  }
+
+  /**
+   * Register for a registry with the given settings
+   *
+   * @param port port used to serve metrics
+   * @param application application tag used for metrics
+   * @param rename rename metrics for prometheus
+   * @return
+   */
+  def register(port: Int = 9090, application: String = "geomesa", rename: Boolean = true): Closeable = {
+    val config =
+      ConfigFactory.empty()
+        .withValue("common-tags", ConfigValueFactory.fromMap(java.util.Map.of("application", application)))
+        .withValue("port", ConfigValueFactory.fromAnyRef(port))
+        .withValue("rename", ConfigValueFactory.fromAnyRef(rename))
+    register(config)
+  }
+
+  /**
+   * Register for a registry with the given settings
+   *
+   * @param host push gateway host + port
+   * @param job job name
+   * @param scheme push scheme
+   * @param format push format
+   * @param application application tag used for metrics
+   * @param rename rename metrics for prometheus
+   * @return
+   */
+  def registerPushGateway(
+      host: String,
+      job: String,
+      scheme: Scheme = Scheme.HTTP,
+      format: Format = Format.PROMETHEUS_PROTOBUF,
+      application: String = "geomesa",
+      rename: Boolean = true): Closeable = {
+    val pgConfig =
+      ConfigFactory.empty()
+        .withValue("host", ConfigValueFactory.fromAnyRef(host))
+        .withValue("job", ConfigValueFactory.fromAnyRef(job))
+        .withValue("scheme", ConfigValueFactory.fromAnyRef(scheme.toString))
+        .withValue("format", ConfigValueFactory.fromAnyRef(format.toString))
+    val config =
+      ConfigFactory.empty()
+        .withValue("common-tags", ConfigValueFactory.fromMap(java.util.Map.of("application", application)))
+        .withValue("rename", ConfigValueFactory.fromAnyRef(rename))
+        .withValue("push-gateway", pgConfig.root())
+    register(config)
   }
 
   private case class PrometheusConfig(

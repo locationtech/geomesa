@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect
@@ -20,13 +20,13 @@ class TruncateToPartition extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      """CREATE OR REPLACE FUNCTION truncate_to_partition(dtg timestamp without time zone, hours int)
-        |RETURNS timestamp without time zone AS
-        |  $BODY$
-        |    SELECT date_trunc('day', dtg) +
-        |      (hours * INTERVAL '1 HOUR' * floor(date_part('hour', dtg) / hours));
-        |  $BODY$
-        |LANGUAGE sql;""".stripMargin
+      s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.truncate_to_partition(dtg timestamp without time zone, hours int)
+         |RETURNS timestamp without time zone AS
+         |  $$BODY$$
+         |    SELECT date_trunc('day', dtg) +
+         |      (hours * INTERVAL '1 HOUR' * floor(date_part('hour', dtg) / hours));
+         |  $$BODY$$
+         |LANGUAGE sql;""".stripMargin
     )
   }
 

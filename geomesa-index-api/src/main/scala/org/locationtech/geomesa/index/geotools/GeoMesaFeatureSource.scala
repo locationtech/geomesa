@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
@@ -81,7 +81,8 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
 
   override def getQueryCapabilities: QueryCapabilities = GeoMesaQueryCapabilities
 
-  override def getFeatures: SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
+  // noinspection JavaAccessorMethodOverriddenAsEmptyParen
+  override def getFeatures(): SimpleFeatureCollection = getFeatures(Filter.INCLUDE)
 
   override def getFeatures(filter: Filter): SimpleFeatureCollection =
     getFeatures(new Query(sft.getTypeName, filter))

@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.data
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, FileSystem, Path}
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.`type`.Name
 import org.geotools.api.feature.simple.SimpleFeatureType
@@ -37,20 +37,6 @@ import scala.util.control.NonFatal
  */
 class FileSystemDataStore(fs: FileSystem, config: FileSystemDataStoreConfig)
     extends ContentDataStore with HasGeoMesaStats with LazyLogging {
-
-  // noinspection ScalaUnusedSymbol
-  @deprecated("Use FileSystem instead of FileContext")
-  def this(
-      fc: FileContext,
-      conf: Configuration,
-      root: Path,
-      readThreads: Int,
-      writeTimeout: Duration,
-      defaultEncoding: Option[String],
-      namespace: Option[String]) = {
-    this(FileSystem.get(root.toUri, conf),
-      FileSystemDataStoreConfig(conf, root, readThreads, writeTimeout, None, defaultEncoding, namespace))
-  }
 
   config.namespace.foreach(setNamespaceURI)
 

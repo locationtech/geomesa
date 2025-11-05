@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro.serialization
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro.serialization
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
 import org.geotools.api.feature.simple.SimpleFeature
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.avro.AbstractAvroSimpleFeatureTest
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.specs2.mock.Mockito
@@ -80,17 +80,16 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
     }
 
     "serialize user data when requested" >> {
-      import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
       val vis = "private&groupA"
-      sf.visibility = vis
+      sf.getUserData.put("geomesa.feature.visibility", vis)
 
       val userData = sf.getUserData
       userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
-      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOption.WithUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)
@@ -104,7 +103,7 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
       there was 2.times(encoder).writeNull()
 
       // visibility data
-      there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
+      there was one(encoder).writeString("geomesa.feature.visibility")
       there was one(encoder).writeString(vis)
 
       // key = 55, value = null
@@ -117,17 +116,16 @@ class SimpleFeatureDatumWriterTest extends Specification with Mockito with Abstr
     }
 
     "use unmangled names when requested" >> {
-      import org.locationtech.geomesa.security._
       val sf = createSimpleFeature
 
       val vis = "private&groupA"
-      sf.visibility = vis
+      sf.getUserData.put("geomesa.feature.visibility", vis)
 
       val userData = sf.getUserData
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 
-      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOptions.withUserData)
+      val afw = new SimpleFeatureDatumWriter(sf.getType, SerializationOption.WithUserData)
       val encoder = mock[Encoder]
 
       afw.write(sf, encoder)

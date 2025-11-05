@@ -4,7 +4,7 @@ This is not the GeoMesa documentation itself, but rather notes on how to build i
 
 ## Setup
 
-The documentation is built using Python's [Sphinx](http://sphinx-doc.org/) module. It is tested to work with Python
+The documentation is built using Python's [Sphinx](https://sphinx-doc.org/) module. It is tested to work with Python
 3.10.
 
 Installing Sphinx and its dependencies in a Python ``virtualenv``:
@@ -60,14 +60,14 @@ There are currently two main manuals: the User Manual (``user``) and Tutorials (
 In each manual, the root page of the documentation is ``index.rst``. Any static files included go in
 the ``_static`` directory. 
 
-The files themselves are written in [reStructuredText](http://docutils.sourceforge.net/rst.html) (RST) and have ``*.rst``
+The files themselves are written in [reStructuredText](https://docutils.sourceforge.net/rst.html) (RST) and have ``*.rst``
 extensions. Markdown files are also supported but do not support any of Docutils or Sphinx's special directives
 (cross-references, admonitions, variable substitution, etc.).
 
 For the most part, the syntax of RST is pretty similar to Markdown. Two particular sticking points are links and
 code blocks. Inline links should be written like this:
 ```
-`Link text <http://example.com/>`_
+`Link text <https://example.com/>`_
 ```
 The final underscore is important!
 
@@ -92,4 +92,4 @@ example, this adds line numbers to a code block:
     val ds = new DataStore()
 ```
 
-See the [Sphinx reStructuredText Primer](http://sphinx-doc.org/rest.html) for more information.
+See the [Sphinx reStructuredText Primer](https://sphinx-doc.org/rest.html) for more information.

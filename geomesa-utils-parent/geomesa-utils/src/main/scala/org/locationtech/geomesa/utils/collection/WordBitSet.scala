@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.collection
@@ -38,7 +38,7 @@ object WordBitSet {
     * @return
     */
   def apply(length: Int): WordBitSet = {
-    IntBitSet.size(length) match {
+    size(length) match {
       case 1 => new WordBitSet32()
       case 2 => new WordBitSet64()
       case 3 => new WordBitSet96()
@@ -48,6 +48,14 @@ object WordBitSet {
       case n => new WordBitSetN(n)
     }
   }
+
+  /**
+   * Gets the number of ints (words) required to hold numbers up to `length`
+   *
+   * @param length max int to be stored in the bit set
+   * @return
+   */
+  def size(length: Int): Int = ((length - 1) >> Divisor) + 1
 
   /**
     * A single word in the bit set

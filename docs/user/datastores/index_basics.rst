@@ -211,7 +211,7 @@ was consistent across back-ends in a given GeoMesa release, so if you know the G
 the index format from the tables above. Refer to the archived `GeoMesa 2.2 documentation`_ to see the
 back-end-specific index version numbers.
 
-.. _GeoMesa 2.2 documentation: https://www.geomesa.org/documentation/2.2.2/user/datastores/index_basics.html#index-versioning
+.. _GeoMesa 2.2 documentation: https://www.geomesa.org/documentation/2.2/user/datastores/index_basics.html#index-versioning
 
 Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
 the Z indices and is no longer supported.

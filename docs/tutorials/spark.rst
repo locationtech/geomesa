@@ -33,16 +33,16 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop |hadoop_version| installation with Yarn as well as an Accumulo |accumulo_required_version| database.
+    You will need access to a Hadoop {{hadoop_required_version}} installation with Yarn as well as an Accumulo {{accumulo_required_version}} instance.
 
     You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-examples-gdelt`.
 
 You will also need:
 
--  a `Spark <https://spark.apache.org/>`__ |spark_required_version| distribution
+-  a `Spark <https://spark.apache.org/>`__ {{spark_required_version}} distribution
 -  an Accumulo user that has appropriate permissions to query your data
--  `Java JDK 11 <https://adoptium.net/temurin/releases/>`__,
--  `Apache Maven <https://maven.apache.org/>`__ |maven_version|, and
+-  `Java <https://adoptium.net/temurin/releases/>`__ JDK {{java_required_version}}
+-  `Apache Maven <https://maven.apache.org/>`__ {{maven_required_version}}, and
 -  a `git <https://git-scm.com/>`__ client
 
 
@@ -187,11 +187,7 @@ We can submit the job to our Yarn cluster using ``spark-submit``:
 
     $ /path/to/spark/bin/spark-submit --master yarn \
       --class com.example.geomesa.spark.CountByDay \
-      target/geomesa-examples-spark-$VERSION.jar
-
-.. note::
-
-    Note that ``$VERSION`` is the geomesa-tutorials version, not the GeoMesa version.
+      target/geomesa-examples-spark-{{release}}.jar
 
 Alternatively, you may run the Spark job locally by setting ``--master 'local[*]``.
 You should see a lot of Spark logging, and then the counts:

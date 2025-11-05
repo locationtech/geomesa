@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.confluent
@@ -18,7 +18,6 @@ import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.geotools.api.data.{DataStoreFinder, Transaction}
-import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.confluent.ConfluentKafkaDataStoreTest._
 import org.locationtech.geomesa.kafka.confluent.SchemaParser._
@@ -29,7 +28,6 @@ import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
-import org.specs2.runner.JUnitRunner
 
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
@@ -37,7 +35,6 @@ import java.util.{Collections, Date, Properties}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-@RunWith(classOf[JUnitRunner])
 class ConfluentKafkaDataStoreTest extends ConfluentContainerTest {
 
   private val geomFactory = new GeometryFactory()

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.data
@@ -13,24 +13,18 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore.FileSystemDataStoreConfig
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
-import org.locationtech.geomesa.utils.classpath.ServiceLoader
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, ReadWriteFlag, SystemPropertyDurationParam}
 import org.locationtech.geomesa.utils.hadoop.HadoopUtils
 
 import java.awt.RenderingHints
-import java.io.{ByteArrayInputStream, StringReader, StringWriter}
+import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
-import java.util.{Collections, Properties}
-import scala.concurrent.duration.Duration
+import java.util.Collections
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
-  import FileSystemDataStoreFactory.FileSystemDataStoreParams._
+  import org.locationtech.geomesa.fs.data.FileSystemDataStoreParams._
 
   override def createDataStore(params: java.util.Map[String, _]): DataStore = {
 
@@ -91,116 +85,27 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
 object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
-  import scala.collection.JavaConverters._
-
   override val DisplayName: String = "File System (GeoMesa)"
   override val Description: String = "File System Data Store"
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
-      FileSystemDataStoreParams.PathParam,
-      FileSystemDataStoreParams.EncodingParam,
-      FileSystemDataStoreParams.ReadThreadsParam,
-      FileSystemDataStoreParams.WriteTimeoutParam,
-      FileSystemDataStoreParams.QueryTimeoutParam,
-      FileSystemDataStoreParams.ConfigPathsParam,
-      FileSystemDataStoreParams.ConfigsParam,
-      FileSystemDataStoreParams.AuthsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.PathParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.EncodingParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ReadThreadsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.WriteTimeoutParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.QueryTimeoutParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigPathsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.ConfigsParam,
+      org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.AuthsParam,
     )
 
   // lazy to avoid masking classpath errors with missing hadoop
   private lazy val configuration = new Configuration()
 
   override def canProcess(params: java.util.Map[String, _]): Boolean =
-    FileSystemDataStoreParams.PathParam.exists(params)
+    org.locationtech.geomesa.fs.data.FileSystemDataStoreParams.PathParam.exists(params)
 
-  object FileSystemDataStoreParams extends NamespaceParams {
-
-    val WriterFileTimeout: SystemProperty = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
-
-    val DeprecatedConfParam = new ConvertedParam[String, String]("fs.config", convertPropsToXml)
-
-    val PathParam =
-      new GeoMesaParam[String](
-        "fs.path",
-        "Root of the filesystem hierarchy",
-        optional = false,
-        supportsNiFiExpressions = true
-      )
-
-    val EncodingParam =
-      new GeoMesaParam[String](
-        "fs.encoding",
-        "Encoding of data",
-        default = "", // needed to prevent geoserver from selecting something
-        enumerations = ServiceLoader.load[FileSystemStorageFactory]().map(_.encoding),
-        supportsNiFiExpressions = true,
-        readWrite = ReadWriteFlag.WriteOnly
-      )
-
-    val ConfigPathsParam =
-      new GeoMesaParam[String](
-        "fs.config.paths",
-        "Additional Hadoop configuration resource files (comma-delimited)",
-        supportsNiFiExpressions = true
-      )
-
-    val ConfigsParam =
-      new GeoMesaParam[String](
-        "fs.config.xml",
-        "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
-        largeText = true,
-        deprecatedParams = Seq(DeprecatedConfParam),
-        supportsNiFiExpressions = true
-      )
-
-    val ReadThreadsParam =
-      new GeoMesaParam[Integer](
-        "fs.read-threads",
-        "Read Threads",
-        default = 4,
-        supportsNiFiExpressions = true,
-        readWrite = ReadWriteFlag.ReadOnly
-      )
-
-    val WriteTimeoutParam =
-      new GeoMesaParam[Duration](
-        "fs.writer.partition.timeout",
-        "Timeout for closing a partition file after write, e.g. '60 seconds'",
-        default = Duration("60s"),
-        systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)),
-        supportsNiFiExpressions = true,
-        readWrite = ReadWriteFlag.WriteOnly
-      )
-
-    val QueryTimeoutParam: GeoMesaParam[Duration] = GeoMesaDataStoreFactory.QueryTimeoutParam
-
-    val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
-
-    @deprecated("ConfigsParam")
-    val ConfParam =
-      new GeoMesaParam[Properties](
-        "fs.config",
-        "Values to set in the root Configuration, in Java properties format",
-        largeText = true
-      )
-
-    /**
-      * Convert java properties format to *-site.xml
-      *
-      * @param properties props
-      * @return
-      */
-    private def convertPropsToXml(properties: String): String = {
-      val conf = new Configuration(false)
-
-      val props = new Properties()
-      props.load(new StringReader(properties))
-      props.asScala.foreach { case (k, v) => conf.set(k, v) }
-
-      val out = new StringWriter()
-      conf.writeXml(out)
-      out.toString
-    }
-  }
+  @deprecated("Moved to org.locationtech.geomesa.fs.data.FileSystemDataStoreParams")
+  object FileSystemDataStoreParams extends org.locationtech.geomesa.fs.data.FileSystemDataStoreParams
 }

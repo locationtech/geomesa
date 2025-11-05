@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.utils
@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -72,22 +72,6 @@ object GeoMessageSerializer {
   private val Empty = Array.empty[Byte]
 
   /**
-    * Create a message serializer
-    *
-    * @param sft simple feature type
-    * @param serialization serialization type (avro or kryo)
-    * @param `lazy` use lazy deserialization
-    * @return
-    */
-  @deprecated("Use apply(SimpleFeatureType, SerializationType, Set[SerializationOption])")
-  def apply(
-      sft: SimpleFeatureType,
-      serialization: SerializationType = SerializationType.KRYO,
-      `lazy`: Boolean = false): GeoMessageSerializer = {
-    apply(sft, serialization, if (`lazy`) { Set(SerializationOption.Lazy) } else { Set.empty[SerializationOption] })
-  }
-
-  /**
    * Create a message serializer
    *
    * @param sft simple feature type
@@ -97,9 +81,9 @@ object GeoMessageSerializer {
    */
   def apply(
       sft: SimpleFeatureType,
-      serialization: SerializationType,
-      opts: Set[SerializationOption]): GeoMessageSerializer = {
-    val options = SerializationOptions.builder.withoutId.withUserData.immutable.build ++ opts
+      serialization: SerializationType = SerializationType.KRYO,
+      opts: Set[SerializationOption] = Set.empty): GeoMessageSerializer = {
+    val options = SerializationOption.builder.withoutId.withUserData.immutable.build() ++ opts
     val kryoSerializer = KryoFeatureSerializer.builder(sft).opts(options).build()
     val avroSerializer = AvroFeatureSerializer.builder(sft).opts(options).build()
     val (serializer, version) = serialization match {

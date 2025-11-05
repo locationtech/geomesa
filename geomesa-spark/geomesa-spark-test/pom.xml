@@ -3,19 +3,26 @@
     <parent>
         <artifactId>geomesa-spark_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>GeoMesa Spark Test</name>
     <artifactId>geomesa-spark-test_2.12</artifactId>
-    <packaging>pom</packaging>
 
     <description>This module provides the classpath isolation needed to run spark with the GeoMesa runtime shaded jars</description>
 
     <properties>
         <!-- version used by spark - our json4s is shaded and relocated -->
         <json4s.version>3.6.12</json4s.version>
+        <!-- spark uses slf4j 2, only test scoped -->
+        <slf4j.version>2.0.17</slf4j.version>
+        <maven.test.opens>
+          --add-opens=java.base/java.nio=ALL-UNNAMED
+          --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+          --add-opens=java.base/java.util=ALL-UNNAMED
+        </maven.test.opens>
     </properties>
 
     <dependencies>
@@ -31,6 +38,13 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- we're using reload4j -->
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j2-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
@@ -63,11 +77,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
-            <classifier>tests</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-accumulo-distributed-runtime_${scala.binary.version}</artifactId>
             <scope>test</scope>
         </dependency>
@@ -75,17 +84,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
-            <classifier>tests</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -106,6 +104,10 @@
             <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-spark</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
             <artifactId>scala-logging_${scala.binary.version}</artifactId>
             <scope>test</scope>
@@ -113,49 +115,23 @@
     </dependencies>
 
     <build>
-        <!-- enable the normal test lifecycle, which is not bound by default b/c this module has <packaging>pom</packaging> -->
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testResources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <systemPropertyVariables>
-                        <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
-                        <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
-                        <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <spark.serializer>org.apache.spark.serializer.KryoSerializer</spark.serializer>
+                            <spark.kryo.registrator>org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator</spark.kryo.registrator>
+                            <spark.worker.cores>${test.spark.worker.cores}</spark.worker.cores>
+                            <spark.worker.memory>${test.spark.worker.memory}</spark.worker.memory>
+                        </systemPropertyVariables>
+                        <reuseForks>false</reuseForks> <!-- spark contexts interfere with each other if re-using forks -->
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
 </project>

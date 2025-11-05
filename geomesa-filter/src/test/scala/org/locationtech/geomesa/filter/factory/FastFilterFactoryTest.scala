@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 
@@ -11,11 +11,11 @@ package org.locationtech.geomesa.filter.factory
 
 import org.geotools.api.filter.expression.Literal
 import org.geotools.api.filter.spatial.BBOX
+import org.geotools.data.DataUtilities
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.{FastPropertyIsEqualTo, FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.execute.Result
@@ -54,10 +54,10 @@ class FastFilterFactoryTest extends Specification {
       val or = FastFilterFactory.toFilter(sft, "name = 'foo' OR name = 'bar' OR name = 'baz'")
       or must beAnInstanceOf[OrSequentialEquality]
       foreach(Seq("foo", "bar", "baz")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beTrue
       }
       foreach(Seq("blu", "qux")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beFalse
       }
     }
     "create hash OR filter for > 4 values" >> {
@@ -66,10 +66,10 @@ class FastFilterFactoryTest extends Specification {
           "OR name = 'bar2' OR name = 'baz2' OR name = 'foo3'")
       or must beAnInstanceOf[OrHashEquality]
       foreach(Seq("foo", "bar", "baz", "foo2", "bar2", "baz2", "foo3")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beTrue
       }
       foreach(Seq("blu", "qux")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beFalse
       }
     }
     "fall back to standard OR filters" >> {
@@ -78,10 +78,10 @@ class FastFilterFactoryTest extends Specification {
       or must not(beAnInstanceOf[OrHashEquality])
       or must not(beAnInstanceOf[OrSequentialEquality])
       foreach(Seq("foo", "bar")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beTrue
       }
       foreach(Seq("blu", "qux")) { name =>
-        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
+        or.evaluate(DataUtilities.parse(sft, "1", name, "POINT (45 55)")) must beFalse
       }
     }
     "kick out bad filters from optimize" >> {
@@ -107,14 +107,14 @@ class FastFilterFactoryTest extends Specification {
       val filterGeoTools = ECQL.toFilter(ecql)
       Result.foreach(1 to 10) { i =>
         Result.foreach(1 to 10) { j =>
-          val sf = ScalaSimpleFeature.create(sft, s"${i}_${j}", i, j)
+          val sf = DataUtilities.parse(sft, s"${i}_$j", i.toString, j.toString)
           filterGeoMesa.evaluate(sf) mustEqual filterGeoTools.evaluate(sf)
         }
       }
     }
     "comparison operators should have consistent semantics" >> {
       val sft = SimpleFeatureTypes.createType("test", "s:String")
-      val sf = ScalaSimpleFeature.create(sft, "id", "5")
+      val sf = DataUtilities.parse(sft, "id", "5")
       FastFilterFactory.toFilter(sft, "s > '100'").evaluate(sf) must beTrue
       FastFilterFactory.toFilter(sft, "s >= '100'").evaluate(sf) must beTrue
       FastFilterFactory.toFilter(sft, "s < '100'").evaluate(sf) must beFalse

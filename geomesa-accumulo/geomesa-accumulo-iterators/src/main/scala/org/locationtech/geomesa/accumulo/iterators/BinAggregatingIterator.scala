@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
@@ -11,21 +11,12 @@ package org.locationtech.geomesa.accumulo.iterators
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
-import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
-import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
 import java.util.Map.Entry
@@ -37,7 +28,6 @@ class BinAggregatingIterator extends BaseAggregatingIterator[ResultCallback] wit
 
 object BinAggregatingIterator extends LazyLogging {
 
-  import BinaryOutputEncoder.BinEncodedSft
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val DEFAULT_PRIORITY = 25
@@ -63,55 +53,6 @@ object BinAggregatingIterator extends LazyLogging {
       case (k, v) => is.addOption(k, v)
     }
     is
-  }
-
-  /**
-   * Fallback for when we can't use the aggregating iterator (for example, if the features are avro encoded).
-   * Instead, do bin conversion in client.
-   *
-   * Only encodes one bin (or one bin line) per feature
-   */
-  def nonAggregatedKvsToFeatures(
-      sft: SimpleFeatureType,
-      index: GeoMesaFeatureIndex[_, _],
-      hints: Hints,
-      serializationType: SerializationType): Entry[Key, Value] => SimpleFeature = {
-
-    // don't use return sft from query hints, as it will be bin_sft
-    val returnSft = hints.getTransformSchema.getOrElse(sft)
-
-    val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(returnSft.indexOf)
-    val geom = hints.getBinGeomField.map(returnSft.indexOf)
-    val dtg = hints.getBinDtgField.map(returnSft.indexOf)
-    val label = hints.getBinLabelField.map(returnSft.indexOf)
-
-    val encoder = BinaryOutputEncoder(returnSft, EncodingOptions(geom, dtg, trackId, label))
-
-    // noinspection ScalaDeprecation
-    if (index.serializedWithId) {
-      val deserializer = serializationType match {
-        case SerializationType.KRYO => KryoFeatureSerializer(returnSft)
-        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft)
-      }
-      e: Entry[Key, Value] => {
-        val deserialized = deserializer.deserialize(e.getValue.get())
-        val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
-      }
-    } else {
-      val deserializer = serializationType match {
-        case SerializationType.KRYO => KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
-        case SerializationType.AVRO => new AvroFeatureSerializer(returnSft, SerializationOptions.withoutId)
-      }
-      e: Entry[Key, Value] => {
-        val deserialized = deserializer.deserialize(e.getValue.get())
-        val row = e.getKey.getRow
-        val id = index.getIdFromRow(row.getBytes, 0, row.getLength, deserialized)
-        deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
-        val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
-      }
-    }
   }
 
   /**

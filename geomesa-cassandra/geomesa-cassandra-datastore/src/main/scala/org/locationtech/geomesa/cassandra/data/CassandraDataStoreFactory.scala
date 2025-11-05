@@ -4,7 +4,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.data
@@ -16,7 +16,7 @@ import org.geotools.api.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.{CassandraDataStoreConfig, CassandraQueryConfig}
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -51,6 +51,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     } else {
       None
     }
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
 
     val clusterBuilder =
       Cluster.builder()
@@ -95,7 +96,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    val cfg = CassandraDataStoreConfig(catalog, generateStats, authProvider, audit, queries, ns)
+    val cfg = CassandraDataStoreConfig(catalog, generateStats, authProvider, audit, metrics, queries, ns)
 
     new CassandraDataStore(session, cfg)
   }
@@ -142,6 +143,8 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.PasswordParam,
       Params.GenerateStatsParam,
       Params.AuditQueriesParam,
+      Params.MetricsRegistryParam,
+      Params.MetricsRegistryConfigParam,
       Params.LooseBBoxParam,
       Params.PartitionParallelScansParam,
       Params.QueryThreadsParam,
@@ -200,6 +203,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       generateStats: Boolean,
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
+      metrics: Option[MetricsConfig],
       queries: CassandraQueryConfig,
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig

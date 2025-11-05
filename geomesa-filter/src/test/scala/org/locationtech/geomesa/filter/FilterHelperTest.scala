@@ -3,17 +3,18 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.filter
 
 import org.geotools.api.filter._
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl, OrImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -44,8 +45,9 @@ class FilterHelperTest extends Specification {
   "FilterHelper" should {
 
     "optimize the inArray function" >> {
-      val sf = new ScalaSimpleFeature(sft, "1",
-        Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
+      val sf = new SimpleFeatureImpl(
+        java.util.List.of(new Date(), Int.box(1), Int.box(2), Int.box(3), Int.box(4), WKTUtils.read("POINT(1 5)"), "foo"),
+        sft, new FeatureIdImpl("1"))
 
       val originalFilter = ff.equals(
         ff.function("inArray", ff.property("name"), ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar")))),
@@ -53,9 +55,9 @@ class FilterHelperTest extends Specification {
       )
       val optimizedFilter = updateFilter(originalFilter)
 
-      optimizedFilter.isInstanceOf[OrImpl] mustEqual(true)
-      originalFilter.evaluate(sf) mustEqual(true)
-      optimizedFilter.evaluate(sf) mustEqual(true)
+      optimizedFilter.isInstanceOf[OrImpl] must  beTrue
+      originalFilter.evaluate(sf) must  beTrue
+      optimizedFilter.evaluate(sf) must  beTrue
 
       // Show that either order works.
       val reverseOrder = ff.equals(
@@ -65,9 +67,9 @@ class FilterHelperTest extends Specification {
           ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar"))))
       )
       val optimizedReverseOrder = updateFilter(reverseOrder)
-      optimizedReverseOrder.isInstanceOf[OrImpl] mustEqual(true)
-      reverseOrder.evaluate(sf) mustEqual(true)
-      optimizedReverseOrder.evaluate(sf) mustEqual(true)
+      optimizedReverseOrder.isInstanceOf[OrImpl] must beTrue
+      reverseOrder.evaluate(sf) must beTrue
+      optimizedReverseOrder.evaluate(sf) must beTrue
     }
 
     "evaluate functions with 0 arguments" >> {

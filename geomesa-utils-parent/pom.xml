@@ -3,7 +3,7 @@
   <parent>
     <artifactId>geomesa_2.12</artifactId>
     <groupId>org.locationtech.geomesa</groupId>
-    <version>5.4.0-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -15,7 +15,6 @@
     <module>geomesa-bom</module>
     <module>geomesa-hadoop-utils</module>
     <module>geomesa-utils</module>
-    <module>geomesa-zk-utils</module>
   </modules>
 
 </project>

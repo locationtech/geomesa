@@ -92,9 +92,19 @@ Math Functions
 -  ``subtract``
 -  ``multiply``
 -  ``divide``
+-  ``modulo``
 -  ``mean``
 -  ``min``
 -  ``max``
+-  ``sin``
+-  ``cos``
+-  ``tan``
+-  ``asin``
+-  ``acos``
+-  ``atan``
+-  ``ln``
+-  ``exp``
+-  ``sqrt``
 
 List and Map Functions
 ~~~~~~~~~~~~~~~~~~~~~~

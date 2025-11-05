@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
@@ -17,7 +17,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptio
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecConfig
-import org.locationtech.geomesa.utils.stats.Cardinality
+import org.locationtech.geomesa.utils.index.Cardinality
 import org.locationtech.geomesa.utils.text.KVPairParser
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -60,20 +60,20 @@ class SimpleFeatureTypesTest extends Specification {
       }
       "encode an sft properly with geomesa user data" >> {
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
-        encoded must contain("geomesa.index.dtg='dtg'")
-        encoded must contain("geomesa.table.sharing='true'")
-        encoded must not(contain("hello="))
+        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='true'"
       }
       "encode an sft properly with specified user data" >> {
         import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
         sft.setUserDataPrefixes(Seq("hello"))
         val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-        encoded must startWith("id:Integer,dtg:Date,*geom:Point:srid=4326;")
-        encoded must contain("geomesa.user-data.prefix='hello'")
-        encoded must contain("geomesa.index.dtg='dtg'")
-        encoded must contain("geomesa.table.sharing='true'")
-        encoded must contain("hello='goodbye'")
+        encoded mustEqual "id:Integer,dtg:Date,*geom:Point:srid=4326;" +
+          "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.user-data.prefix='hello',hello='goodbye'"
+      }
+      "encode an sft and preserve spaces in user data" >> {
+        val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
+        sft.getUserData.get("geomesa.foo") mustEqual "1 day"
+        val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+        SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
       }
     }
 
@@ -362,16 +362,16 @@ class SimpleFeatureTypesTest extends Specification {
 
     "return meaningful error messages" >> {
       Try(SimpleFeatureTypes.createType("test", null)) must
-          beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec string: null"))
+          beAFailedTry.withThrowable[IllegalArgumentException](Pattern.quote("Invalid spec: null"))
       val failures = Seq(
-        ("foo:Strong", "7. Expected attribute type binding"),
-        ("foo:String,*bar:String", "16. Expected geometry type binding"),
-        ("foo:String,bar:String;;", "22. Expected one of: specification, feature type option, end of spec"),
-        ("foo:String,bar,baz:String", "14. Expected one of: attribute name, attribute, attribute type binding, geometry type binding"),
-        ("foo:String:bar,baz:String", "14. Expected attribute option")
+        ("foo:Strong", "7 - expected attribute type binding"),
+        ("foo:String,*bar:String", "16 - expected geometry type binding"),
+        ("foo:String,bar:String;;", "22 - expected one of: specification, feature type option, end of spec"),
+        ("foo:String,bar,baz:String", "14 - expected one of: attribute name, attribute, attribute type binding, geometry type binding"),
+        ("foo:String:bar,baz:String", "14 - expected attribute option")
       )
       forall(failures) { case (spec, message) =>
-        val pattern = Pattern.quote(s"Invalid spec string at index $message.")
+        val pattern = Pattern.quote(s"Invalid spec at index $message\n$spec\n") + " *\\^"
         val result = Try(SimpleFeatureTypes.createType("test", spec))
         result must beAFailedTry.withThrowable[IllegalArgumentException](pattern)
       }
@@ -664,13 +664,5 @@ class SimpleFeatureTypesTest extends Specification {
         "geomesa.table.sharing.prefix" -> "\u0001"
       )
     }
-
-    "preserve spaces in user data" >> {
-      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
-      sft.getUserData.get("geomesa.foo") mustEqual "1 day"
-      val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-      SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
-    }
   }
-
 }

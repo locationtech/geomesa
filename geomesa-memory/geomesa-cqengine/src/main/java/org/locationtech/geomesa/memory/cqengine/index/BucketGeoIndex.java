@@ -3,21 +3,19 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.index;
 
 import com.googlecode.cqengine.attribute.Attribute;
-import com.googlecode.cqengine.query.option.QueryOptions;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.feature.type.AttributeDescriptor;
 import org.locationtech.geomesa.memory.cqengine.index.param.BucketIndexParam;
-import org.locationtech.geomesa.utils.index.BucketIndex;
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex;
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex$;
-import org.locationtech.geomesa.utils.index.SpatialIndex;
+import org.locationtech.geomesa.memory.index.SpatialIndex;
+import org.locationtech.geomesa.memory.index.impl.BucketIndex;
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -42,7 +40,7 @@ public class BucketGeoIndex<A extends Geometry, O extends SimpleFeature> extends
         if (descriptor.getType().getBinding() == Point.class) {
             return new BucketIndex<>(xBuckets, params.getyBuckets(), new Envelope(-180.0, 180.0, -90.0, 90.0));
         } else {
-            return new SizeSeparatedBucketIndex<>(SizeSeparatedBucketIndex$.MODULE$.DefaultTiers(),
+            return new SizeSeparatedBucketIndex<>(SizeSeparatedBucketIndex.DefaultTiers(),
                                                    xBuckets / 360d,
                                                    yBuckets / 180d,
                                                    new Envelope(-180.0, 180.0, -90.0, 90.0));

@@ -3,13 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.jdbc
 
 import com.typesafe.config.Config
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.convert.jdbc.JdbcConverter.JdbcConfig
 import org.locationtech.geomesa.convert.jdbc.JdbcConverterFactory.JdbcConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
@@ -19,17 +18,8 @@ import org.locationtech.geomesa.convert2.transforms.Expression
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.ConfigReaderFailures
 
-import java.io.InputStream
-import scala.util.{Failure, Try}
-
 class JdbcConverterFactory extends AbstractConverterFactory[JdbcConverter, JdbcConfig, BasicField, BasicOptions](
-  "jdbc", JdbcConfigConvert, BasicFieldConvert, BasicOptionsConvert) {
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new UnsupportedOperationException())
-}
+  "jdbc", JdbcConfigConvert, BasicFieldConvert, BasicOptionsConvert)
 
 object JdbcConverterFactory {
 

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
@@ -11,10 +11,9 @@ package org.locationtech.geomesa.convert2
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 
 import java.io.InputStream
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait SimpleFeatureConverterFactory extends LazyLogging {
 
@@ -28,24 +27,7 @@ trait SimpleFeatureConverterFactory extends LazyLogging {
   def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter]
 
   /**
-    * Infer a configuration and simple feature type from an input stream, if possible
-    *
-    * @param is input
-    * @param sft simple feature type, if known ahead of time
-    * @param path file path, if there is a file available
-    * @return
-    */
-  @deprecated("replaced with `infer(InputStream, Option[SimpleFeatureType], Map[String, Any])`")
-  def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType] = None,
-      path: Option[String] = None): Option[(SimpleFeatureType, Config)] = None
-
-  /**
    * Infer a configuration and simple feature type from an input stream, if possible.
-   *
-   * The default implementation delegates to the deprecated `infer` method to help back-compatibility, but
-   * should be overridden by implementing classes
    *
    * @param is input
    * @param sft simple feature type, if known ahead of time
@@ -56,9 +38,6 @@ trait SimpleFeatureConverterFactory extends LazyLogging {
       is: InputStream,
       sft: Option[SimpleFeatureType],
       hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = {
-    infer(is, sft, hints.get(EvaluationContext.InputFilePathKey).map(_.toString)) match {
-      case Some(result) => Success(result)
-      case None => Failure(new RuntimeException("Could not infer converter from input data"))
-    }
+    Failure(new UnsupportedOperationException("Not implemented"))
   }
 }

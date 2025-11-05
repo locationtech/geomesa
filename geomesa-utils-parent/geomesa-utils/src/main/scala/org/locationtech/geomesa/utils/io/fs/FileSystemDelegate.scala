@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.io.fs
@@ -127,20 +127,6 @@ object FileSystemDelegate extends LazyLogging {
       * @param mode write mode
       */
     def write(mode: CreateMode): OutputStream
-
-    /**
-     * Open the file for writing
-     *
-     * @param mode write mode
-     * @param createParents create parent dirs as necessary
-     */
-    @deprecated("createParents is always true")
-    def write(mode: CreateMode, createParents: Boolean): OutputStream = {
-      if (!createParents) {
-        logger.warn("Call to write with createParents=false, which is not supported")
-      }
-      write(mode)
-    }
 
     /**
       * Delete the file

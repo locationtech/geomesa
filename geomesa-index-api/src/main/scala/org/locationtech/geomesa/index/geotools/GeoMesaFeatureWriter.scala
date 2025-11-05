@@ -3,12 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.{Metrics, Timer}
 import org.geotools.api.data.{Query, Transaction}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -21,13 +22,14 @@ import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.WriteException
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.locationtech.geomesa.utils.uuid.{FeatureIdGenerator, Z3FeatureIdGenerator}
 
-import java.io.Flushable
+import java.io.{Closeable, Flushable}
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
-import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends FastSettableFeatureWriter with Flushable with LazyLogging {
@@ -36,57 +38,95 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends FastSettableFeatu
   def sft: SimpleFeatureType
   def indices: Seq[GeoMesaFeatureIndex[_, _]]
 
-  private val exceptions: ArrayBuffer[Throwable] = ArrayBuffer.empty[Throwable]
+  // flushables/closeables defined in subclasses, so we can manage them here
+  protected def flushables(): Seq[Flushable]
+  protected def closeables(): Seq[Closeable]
+
+  private val appendTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "append")
+  private val updateTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "update")
+  private val deleteTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "delete")
+  private val flushTimer = GeoMesaFeatureWriter.writeTimer(ds, sft, "flush")
 
   protected val statUpdater: StatUpdater = ds.stats.writer.updater(sft)
 
   override def getFeatureType: SimpleFeatureType = sft
 
+  override def flush(): Unit = {
+    val start = System.nanoTime()
+    try {
+      val errors = flushables().flatMap(FlushQuietly(_))
+      if (errors.nonEmpty) {
+        propagateExceptions(errors)
+      }
+    } finally {
+      flushTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+    }
+  }
+
+  override def close(): Unit = {
+    val start = System.nanoTime()
+    try {
+      val errors = closeables().flatMap(CloseQuietly(_))
+      if (errors.nonEmpty) {
+        propagateExceptions(errors)
+      }
+    } finally {
+      // we count closes as flushes for timing purposes
+      flushTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+    }
+  }
+
   protected def getWriter(feature: SimpleFeature): IndexWriter
 
   protected def updateFeature(update: FastSettableFeature, previous: SimpleFeature): Unit = {
-    // see if there's a suggested ID to use for this feature, else create one based on the feature
-    val writable = GeoMesaFeatureWriter.featureWithFid(update)
+    val start = System.nanoTime()
     try {
-      val writer = getWriter(writable)
-      val remover = getWriter(previous)
-      if (writer.eq(remover)) {
-        // `update` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
-        writer.update(writable, previous)
-      } else {
-        remover.delete(previous)
-        writer.append(writable)
+      // see if there's a suggested ID to use for this feature, else create one based on the feature
+      val writable = GeoMesaFeatureWriter.featureWithFid(update)
+      try {
+        val writer = getWriter(writable)
+        val remover = getWriter(previous)
+        if (writer.eq(remover)) {
+          // `update` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
+          writer.update(writable, previous)
+        } else {
+          remover.delete(previous)
+          writer.append(writable)
+        }
+      } catch {
+        case NonFatal(e) => throwWriteErrors(e, writable)
       }
-    } catch {
-      case NonFatal(e) => throwWriteErrors(e, writable)
+      statUpdater.add(writable)
+    } finally {
+      updateTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
-    statUpdater.add(writable)
   }
 
   protected def appendFeature(feature: FastSettableFeature): Unit = {
-    // see if there's a suggested ID to use for this feature, else create one based on the feature
-    val writable = GeoMesaFeatureWriter.featureWithFid(feature)
-    // `append` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
-    try { getWriter(writable).append(writable) } catch {
-      case NonFatal(e) => throwWriteErrors(e, writable)
+    val start = System.nanoTime()
+    try {
+      // see if there's a suggested ID to use for this feature, else create one based on the feature
+      val writable = GeoMesaFeatureWriter.featureWithFid(feature)
+      try {
+        // `append` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
+        getWriter(writable).append(writable)
+      } catch {
+        case NonFatal(e) => throwWriteErrors(e, writable)
+      }
+      statUpdater.add(writable)
+    } finally {
+      appendTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
-    statUpdater.add(writable)
   }
 
   protected def removeFeature(feature: SimpleFeature): Unit = {
-    // the feature has come directly from our reader, so it should be valid and already have a FID
-    getWriter(feature).delete(feature)
-    statUpdater.remove(feature)
-  }
-
-  protected def suppressException(e: Throwable): Unit = exceptions += e
-
-  protected def propagateExceptions(): Unit = {
-    if (exceptions.nonEmpty) {
-      val all = new RuntimeException(s"Error writing features:")
-      exceptions.foreach(all.addSuppressed)
-      exceptions.clear()
-      throw all
+    val start = System.nanoTime()
+    try {
+      // the feature has come directly from our reader, so it should be valid and already have a FID
+      getWriter(feature).delete(feature)
+      statUpdater.remove(feature)
+    } finally {
+      deleteTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
   }
 
@@ -95,12 +135,18 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends FastSettableFeatu
 
   @throws[Exception]
   private def throwWriteErrors(e: Throwable, feature: SimpleFeature): Unit = {
-    val msg = s"Error indexing feature '${feature.getID}:${DataUtilities.encodeFeature(feature, false)}'"
+    lazy val msg = s"Error indexing feature '${feature.getID}:${DataUtilities.encodeFeature(feature, false)}'"
     e match {
       case _: WriteException => throw e
       case _: IllegalArgumentException => throw new IllegalArgumentException(msg, e)
       case _ => throw new RuntimeException(msg, e)
     }
+  }
+
+  private def propagateExceptions(errors: Seq[Throwable]): Unit = {
+    val all = new RuntimeException(s"Error writing features:")
+    errors.foreach(all.addSuppressed)
+    throw all
   }
 }
 
@@ -204,6 +250,22 @@ object GeoMesaFeatureWriter extends LazyLogging {
   }
 
   /**
+   * Gets a timer
+   *
+   * @param ds datastore
+   * @param sft sft
+   * @param operation operation tag
+   * @tparam DS datastore type
+   * @return
+   */
+  private def writeTimer[DS <: GeoMesaDataStore[DS]](ds: DS, sft: SimpleFeatureType, operation: String): Timer = {
+    Timer.builder("geomesa.write")
+      .tags(ds.tags(sft.getTypeName).and("op", operation))
+      .description("Time spent writing features")
+      .register(Metrics.globalRegistry)
+  }
+
+  /**
    * Marker class to allow specific exceptions to bubble up
    *
    * @param msg error message
@@ -227,17 +289,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
 
     override protected def getWriter(feature: SimpleFeature): IndexWriter = writer
 
-    override def flush(): Unit = {
-      FlushQuietly(writer).foreach(suppressException)
-      FlushQuietly(statUpdater).foreach(suppressException)
-      propagateExceptions()
-    }
-
-    override def close(): Unit = {
-      CloseQuietly(writer).foreach(suppressException)
-      CloseQuietly(statUpdater).foreach(suppressException)
-      propagateExceptions()
-    }
+    override protected def flushables(): Seq[Flushable] = Seq(writer, statUpdater)
+    override protected def closeables(): Seq[Closeable] = Seq(writer, statUpdater)
   }
 
   /**
@@ -275,17 +328,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
       writer
     }
 
-    override def flush(): Unit = {
-      view.foreach { case (_, writer) => FlushQuietly(writer).foreach(suppressException) }
-      FlushQuietly(statUpdater).foreach(suppressException)
-      propagateExceptions()
-    }
-
-    override def close(): Unit = {
-      view.foreach { case (_, writer) => CloseQuietly(writer).foreach(suppressException) }
-      CloseQuietly(statUpdater).foreach(suppressException)
-      propagateExceptions()
-    }
+    override protected def flushables(): Seq[Flushable] = view.values.toSeq :+ statUpdater
+    override protected def closeables(): Seq[Closeable] = view.values.toSeq :+ statUpdater
   }
 
   /**
@@ -319,8 +363,6 @@ object GeoMesaFeatureWriter extends LazyLogging {
     */
   private trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
-    import org.locationtech.geomesa.security.SecureSimpleFeature
-
     def filter: Filter
 
     private val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
@@ -350,7 +392,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
       live = GeoMesaFeatureWriter.featureWithFid(live)
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
-      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) || live.visibility != original.visibility) {
+      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) ||
+            SecurityUtils.getVisibility(live) != SecurityUtils.getVisibility(original)) {
         updateFeature(live, original)
       }
       original = null
@@ -366,9 +409,6 @@ object GeoMesaFeatureWriter extends LazyLogging {
       live = null
     }
 
-    abstract override def close(): Unit = {
-      CloseQuietly(reader).foreach(suppressException)
-      super.close() // closes writer
-    }
+    abstract override protected def closeables(): Seq[Closeable] = super.closeables() :+ reader
   }
 }

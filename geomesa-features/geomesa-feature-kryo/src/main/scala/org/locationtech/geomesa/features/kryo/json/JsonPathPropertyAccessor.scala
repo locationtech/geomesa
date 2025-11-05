@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo.json
@@ -11,6 +11,7 @@ package org.locationtech.geomesa.features.kryo.json
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.jayway.jsonpath.Configuration
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, SUPPRESS_EXCEPTIONS}
+import com.typesafe.scalalogging.LazyLogging
 import net.minidev.json.JSONObject
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.feature.AttributeTypeBuilder
@@ -33,14 +34,21 @@ import scala.util.control.NonFatal
   * Note: this class is optimized for `KryoBufferSimpleFeature`s. It will work on standard simple features,
   * but will incur a serialization cost.
   */
-trait JsonPathPropertyAccessor extends PropertyAccessor {
+trait JsonPathPropertyAccessor extends PropertyAccessor with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
   override def canHandle(obj: AnyRef, xpath: String, target: Class[_]): Boolean = {
-    val path = try { JsonPathPropertyAccessor.paths.get(xpath) } catch { case NonFatal(e) => e.printStackTrace; JsonPath(Seq.empty, None) }
+    val path =
+      try {
+        JsonPathPropertyAccessor.paths.get(xpath)
+      } catch {
+        case NonFatal(e) =>
+          logger.warn(s"Error parsing path: $xpath", e)
+          JsonPath(Seq.empty, None)
+      }
 
     if (path.isEmpty) { false } else {
       path.head match {

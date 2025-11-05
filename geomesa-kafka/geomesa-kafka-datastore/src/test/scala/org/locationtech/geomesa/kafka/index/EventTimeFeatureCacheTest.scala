@@ -3,17 +3,19 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
 
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
@@ -34,12 +36,15 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
   val res = IndexResolution(180, 90)
 
+  // ensure the tags we use here match KafkaDataStore otherwise it can cause errors in registering metrics
+  private val tags = Tags.of("store", "test", "catalog", "test").and(TagUtils.typeNameTag("test"))
+
   "EventTimeFeatureCache" should {
     "order by event time" in {
       val ex = EventTimeConfig(Duration.Inf, "dtg", ordered = true)
       val config = IndexConfig(ex, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
         cache.put(sf1)
 
@@ -62,7 +67,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ex = EventTimeConfig(Duration.Inf, "dateToLong(dtg)", ordered = true)
       val config = IndexConfig(ex, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
         cache.put(sf1)
 
@@ -84,7 +89,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
     "order by message time" in {
       val config = IndexConfig(NeverExpireConfig, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", "2018-01-01T12:00:00.000Z", "POINT (-78.0 35.0)")
         cache.put(sf1)
 
@@ -109,7 +114,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = true)
       val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(ticker.millis), "POINT (-78.0 35.0)")
 
         val expire1 = new WrappedRunnable(100L)
@@ -172,7 +177,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = true)
       val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(), "POINT (-78.0 35.0)")
         cache.put(sf1)
         cache.query("1") must beSome(sf1.asInstanceOf[SimpleFeature])
@@ -189,7 +194,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       val ev = EventTimeConfig(Duration("100ms"), "dtg", ordered = false)
       val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(ticker.millis), "POINT (-78.0 35.0)")
 
         val expire1 = new WrappedRunnable(100L)
@@ -258,7 +263,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
       ))
       val config = IndexConfig(ev, res, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
-      WithClose(KafkaFeatureCache(sft, config)) { cache =>
+      WithClose(KafkaFeatureCache(sft, config, tags = tags)) { cache =>
         val sf1 = ScalaSimpleFeature.create(sft, "1", "first", new Date(ticker.millis), "POINT (-78.0 35.0)")
 
         val expire1 = new WrappedRunnable(100L)

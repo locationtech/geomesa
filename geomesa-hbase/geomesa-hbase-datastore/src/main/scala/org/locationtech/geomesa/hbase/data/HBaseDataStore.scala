@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
@@ -27,13 +27,13 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils._
+import org.locationtech.geomesa.index.zk.ZookeeperLocking
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.index.IndexCoverage
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats.IndexCoverage
-import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 
 import java.util.Collections
 import scala.util.control.NonFatal
@@ -69,8 +69,6 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
   override def dispose(): Unit = try { super.dispose() } finally { con.close() }
 
   override protected def loadIteratorVersions: Set[String] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-
     // just check the first table available
     val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
       manager.indices(sft).iterator.flatMap { index =>
@@ -97,7 +95,7 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
         }
       }
     }
-    versions.headOption.toSet
+    versions.find(_ != null).toSet
   }
 
   override protected def transitionIndices(sft: SimpleFeatureType): Unit = {

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.stats
@@ -11,9 +11,10 @@ package org.locationtech.geomesa.tools.stats
 import com.beust.jcommander.ParameterException
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.index.stats.Stat
+import org.locationtech.geomesa.index.stats.impl._
 import org.locationtech.geomesa.tools.stats.StatsAnalyzeCommand.StatsAnalyzeParams
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, TypeNameParam}
-import org.locationtech.geomesa.utils.stats._
 import org.locationtech.jts.geom.Geometry
 
 trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {

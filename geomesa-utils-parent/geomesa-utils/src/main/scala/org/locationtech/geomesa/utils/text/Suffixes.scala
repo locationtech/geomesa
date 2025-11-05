@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.text
@@ -32,7 +32,6 @@ object Suffixes {
     def days(s: String): Try[Long]    = duration(s).map(_.toDays)
 
     // provide back compatibility with joda period parsing, which accepts 'm' for minutes
-    @deprecated("joda parsing")
     private def jodaMinute(s: String): Try[Duration] = {
       if (s == null) { Failure(new NullPointerException()) } else {
         val replaced = s.replaceAll("m", "min") // scala parsing requires 'min', 'mins', 'minute' or 'minutes'

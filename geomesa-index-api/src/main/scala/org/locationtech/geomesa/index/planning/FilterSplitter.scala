@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.planning
@@ -115,7 +115,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
           } else if (simpleOptions.nonEmpty) {
             // if there's not a clear option for the complex scans, ignore them and just return the simple ones
             logger.warn("Not considering complex OR predicates in query planning: " +
-                s"${complex.map(filterToString).mkString("(", ") AND (", ")")}")
+                s"${complex.map(FilterHelper.toString).mkString("(", ") AND (", ")")}")
             simpleOptions
           } else {
             // if there aren't any simple plans or clear options for the complex plans,
@@ -135,7 +135,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
         val groups = o.getChildren.asScala.groupBy(getGroup).values.map(g => ff.or(g.asJava)).toSeq
         val perAttributeOptions = groups.flatMap { g =>
           val options = getSimpleQueryOptions(g, hints, requestedIndex)
-          require(options.length < 2, s"Expected only a single option for ${filterToString(g)} but got $options")
+          require(options.length < 2, s"Expected only a single option for ${FilterHelper.toString(g)} but got $options")
           options.headOption
         }
         if (perAttributeOptions.exists(_.isFullTableScan)) {
@@ -311,14 +311,14 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
         case Some(i) => return i.copy(secondary = secondary)
       }
     }
-    throw new UnsupportedOperationException(s"Configured indices do not support the query ${filterToString(filter)}")
+    throw new UnsupportedOperationException(s"Configured indices do not support the query ${FilterHelper.toString(filter)}")
   }
 
   private def addSecondaryPredicates(filter: FilterStrategy, predicates: Seq[Filter]): FilterStrategy =
     filter.copy(secondary = andOption(filter.secondary.toSeq ++ predicates))
 
   private def getExpandReduceLog(filter: Filter, permutations: Int): String =
-    s"expand/reduce query splitting with $permutations permutations for filter ${filterToString(filter)}"
+    s"expand/reduce query splitting with $permutations permutations for filter ${FilterHelper.toString(filter)}"
 
 }
 

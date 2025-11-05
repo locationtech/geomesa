@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,13 +13,18 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.sgr</groupId>
-            <artifactId>s2-geometry-library-java</artifactId>
+            <groupId>org.datasyslab</groupId>
+            <artifactId>s2-geometry-library</artifactId>
         </dependency>
+        <!-- guava required for s2, but mark provided so we don't propagate it across our entire codebase -->
+        <!-- all end use cases (geoserver, CLI, etc) will already have guava available -->
         <dependency>
-            <groupId>com.typesafe.scala-logging</groupId>
-            <artifactId>scala-logging_${scala.binary.version}</artifactId>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
         </dependency>
+
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
@@ -27,6 +32,11 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_${scala.binary.version}</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

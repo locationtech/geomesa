@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.arrow
@@ -36,9 +36,6 @@ package object io {
   }
 
   object FormatVersion {
-
-    @deprecated("Replaced with DefaultVersion")
-    val LatestVersion = "18.3.0"
 
     // default format version, currently the only thing we care about here is whether it is before or after 0.15
     val DefaultVersion = "1.0.0"

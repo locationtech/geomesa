@@ -63,11 +63,6 @@ Map/Reduce Jobs
 The following instructions require that you use the ``-libjars`` argument to ensure the correct JARs
 are available on the distributed classpath.
 
-.. note::
-
-  In the following examples, replace ``${VERSION}`` with the appropriate Scala plus GeoMesa versions
-  (e.g. |scala_release_version|).
-
 .. _attribute_indexing_job:
 
 Attribute Indexing
@@ -84,7 +79,7 @@ The job can be invoked through Yarn as follows:
 
 .. code-block:: shell
 
-    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_{{scala_binary_version}}-{{release}}.jar \
         org.locationtech.geomesa.accumulo.jobs.index.AttributeIndexJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.input.zookeepers <zookeepers> \
@@ -117,7 +112,7 @@ slightly):
 
 .. code-block:: shell
 
-    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_${VERSION}.jar \
+    geomesa-accumulo$ yarn jar geomesa-accumulo-jobs/target/geomesa-accumulo-jobs_{{scala_binary_version}}-{{release}}.jar \
         org.locationtech.geomesa.accumulo.jobs.index.SchemaCopyJob \
         --geomesa.input.instanceId <instance> \
         --geomesa.output.instanceId <instance> \

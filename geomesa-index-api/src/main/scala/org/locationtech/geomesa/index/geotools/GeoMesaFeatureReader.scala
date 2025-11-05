@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsImpl}
+import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
@@ -50,9 +50,10 @@ object GeoMesaFeatureReader extends MethodProfiling {
     audit match {
       case None => new GeoMesaFeatureReader(qp.runQuery(sft, query))
       case Some(a) =>
-        val timings = new TimingsImpl()
-        val result = profile(time => timings.occurrence("planning", time))(qp.runQuery(sft, query))
-        new GeoMesaFeatureReaderWithAudit(result, timings, a, sft.getTypeName, query.getFilter)
+        // TODO consolidate auditing with metrics in QueryPlanner
+        val start = System.nanoTime()
+        val result = qp.runQuery(sft, query)
+        new GeoMesaFeatureReaderWithAudit(result, a, sft.getTypeName, query.getFilter, System.nanoTime() - start)
     }
   }
 
@@ -73,24 +74,29 @@ object GeoMesaFeatureReader extends MethodProfiling {
         query: Query): GeoMesaFeatureReader
   }
 
-  class GeoMesaFeatureReaderWithAudit(
+  private class GeoMesaFeatureReaderWithAudit(
       result: QueryResult,
-      timings: Timings,
       auditWriter: AuditWriter,
       typeName: String,
-      filter: Filter
+      filter: Filter,
+      initialTime: Long,
     ) extends GeoMesaFeatureReader(result) {
 
     override def reader(): SimpleFeatureReader = new ResultReaderWithAudit()
 
     private class ResultReaderWithAudit extends SimpleFeatureReader with MethodProfiling {
 
+      private var planningTime = initialTime
+      private var queryTime = 0L
+
       private val start = System.currentTimeMillis()
       private val user = auditWriter.auditProvider.getCurrentUserId
       private val closed = new AtomicBoolean(false)
       private val count = new AtomicLong(0L)
-      private val iter = profile(time => timings.occurrence("planning", time)) {
+      private val iter = {
+        val start = System.nanoTime()
         val base = result.iterator()
+        planningTime += (System.nanoTime() - start)
         // note: has to be done after running the query so hints are set
         if (result.schema == BinaryOutputEncoder.BinEncodedSft) {
           // bin queries pack multiple records into each feature
@@ -104,8 +110,18 @@ object GeoMesaFeatureReader extends MethodProfiling {
 
       override def getFeatureType: SimpleFeatureType = result.schema
 
-      override def hasNext: Boolean = profile(time => timings.occurrence("hasNext", time))(iter.hasNext)
-      override def next(): SimpleFeature = profile(time => timings.occurrence("next", time))(iter.next())
+      override def hasNext: Boolean = {
+        val start = System.nanoTime()
+        val result = iter.hasNext
+        queryTime += (System.nanoTime() - start)
+        result
+      }
+      override def next(): SimpleFeature = {
+        val start = System.nanoTime()
+        val result = iter.next()
+        queryTime += (System.nanoTime() - start)
+        result
+      }
 
       override def close(): Unit = {
         if (closed.compareAndSet(false, true)) {
@@ -116,7 +132,7 @@ object GeoMesaFeatureReader extends MethodProfiling {
             }
             // note: implementations should be asynchronous
             auditWriter.writeQueryEvent(typeName, user, filter, hints, plans, start, System.currentTimeMillis(),
-              timings.time("planning"), timings.time("next") + timings.time("hasNext"), count.get)
+              planningTime / 1000000L, queryTime / 1000000L, count.get)
           }
         }
       }

@@ -22,6 +22,7 @@ User Manual
    accumulo/index
    hbase/index
    cassandra/index
+   scylladb/index
    postgis/index
    kafka/index
    redis/index
@@ -39,5 +40,4 @@ Appendix
    appendix/utils
    appendix/memory
    appendix/metrics
-   appendix/metrics_dropwizard
    appendix/site

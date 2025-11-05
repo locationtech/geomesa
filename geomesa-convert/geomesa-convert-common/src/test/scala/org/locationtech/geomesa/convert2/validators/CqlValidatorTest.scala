@@ -3,13 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2.validators
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
@@ -22,10 +21,10 @@ class CqlValidatorTest extends Specification {
 
   "CqlValidator" should {
     "require ecql expression" in {
-      SimpleFeatureValidator(sft, Seq("cql"), ConverterMetrics.empty) must throwAn[IllegalArgumentException]
+      SimpleFeatureValidator(sft, Seq("cql")) must throwAn[IllegalArgumentException]
     }
     "validate ecql expressions" in {
-      val validator = SimpleFeatureValidator(sft, Seq("cql(bbox(geom,45,-90,55,90))"), ConverterMetrics.empty)
+      val validator = SimpleFeatureValidator(sft, Seq("cql(bbox(geom,45,-90,55,90))"))
       validator must not(beNull)
       val sf = ScalaSimpleFeature.create(sft, "0", "2018-01-01T00:00:00.000Z", "POINT (50 45)")
       validator.validate(sf) must beNull

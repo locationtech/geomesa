@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.export
@@ -12,7 +12,6 @@ import com.beust.jcommander.Parameters
 import org.apache.hadoop.mapreduce.Job
 import org.geotools.api.data.Query
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.jobs.AccumuloJobUtils
 import org.locationtech.geomesa.accumulo.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreCommand.AccumuloDistributedCommand
 import org.locationtech.geomesa.accumulo.tools.AccumuloDataStoreParams
@@ -28,7 +27,7 @@ class AccumuloExportCommand extends ExportCommand[AccumuloDataStore] with Accumu
   override val params = new AccumuloExportParams
 
   override protected def configure(job: Job, ds: AccumuloDataStore, query: Query): Unit =
-    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, connection.asJava, AccumuloJobUtils.getSingleQueryPlan(ds, query))
+    GeoMesaAccumuloInputFormat.configure(job.getConfiguration, connection.asJava, ds.getSingleQueryPlan(query))
 }
 
 object AccumuloExportCommand {

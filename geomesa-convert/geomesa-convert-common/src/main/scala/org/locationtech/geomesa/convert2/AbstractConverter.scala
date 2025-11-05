@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
@@ -11,17 +11,18 @@ package org.locationtech.geomesa.convert2
 import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import io.micrometer.core.instrument.{Metrics, TimeGauge, Timer}
+import io.micrometer.core.instrument.{DistributionSummary, Metrics, Tag, Timer}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext.{EvaluationError, StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
-import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, addDependencies, topologicalOrder}
+import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, LatencyMetrics, addDependencies, topologicalOrder}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.validators.{IdValidatorFactory, SimpleFeatureValidator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.metrics.micrometer.utils.{GaugeUtils, TagUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
@@ -30,7 +31,6 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.time.Duration
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -131,12 +131,9 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     builder.result
   }
 
-  // deprecated converter metrics
-  private val metrics = ConverterMetrics(sft, options.reporters)
-
   private val tags = config match {
-    case ConverterName(name) => ConverterMetrics.typeNameTag(sft).and(ConverterMetrics.converterNameTag(name))
-    case _                   => ConverterMetrics.typeNameTag(sft)
+    case ConverterName(name) => TagUtils.typeNameTag(sft.getTypeName).and(ConverterMetrics.converterNameTag(name))
+    case _                   => TagUtils.typeNameTag(sft.getTypeName)
   }
 
   private val validators =
@@ -144,24 +141,30 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
+  private val parseTimer =
+    Timer.builder(ConverterMetrics.name("parse"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(10))
+      .register(Metrics.globalRegistry)
+
+  private val convertTimer =
+    Timer.builder(ConverterMetrics.name("convert"))
+      .tags(tags)
+      .publishPercentileHistogram()
+      .minimumExpectedValue(Duration.ofNanos(1))
+      .maximumExpectedValue(Duration.ofMillis(2))
+      .register(Metrics.globalRegistry)
+
+  private val latency = sft.getDtgIndex.map(i => new LatencyMetrics(i, tags))
+
   override def targetSft: SimpleFeatureType = sft
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, Stats(tags))
-
-  override def createEvaluationContext(globalParams: Map[String, Any], success: Counter, failure: Counter): EvaluationContext = {
-    val stats = Stats.wrap(success, failure, tags)
-    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, metrics, stats)
-  }
+    new StatefulEvaluationContext(requiredFields, globalParams.asInstanceOf[Map[String, AnyRef]], caches, Stats(tags))
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val parseTimer =
-      Timer.builder(ConverterMetrics.name("parse.duration"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(10))
-        .register(Metrics.globalRegistry)
     val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec, parseTimer), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
@@ -170,32 +173,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val duration =
-      Timer.builder(ConverterMetrics.name("conversion.duration"))
-        .tags(tags)
-        .publishPercentileHistogram()
-        .minimumExpectedValue(Duration.ofNanos(1))
-        .maximumExpectedValue(Duration.ofMillis(2))
-        .register(Metrics.globalRegistry)
-    val dtgMetrics = sft.getDtgIndex.map { i =>
-      val date = new AtomicLong(0)
-      TimeGauge.builder(ConverterMetrics.name("dtg.last"), () => date.get, TimeUnit.MILLISECONDS)
-        .tags(tags)
-        .register(Metrics.globalRegistry)
-      val latency =
-        Timer.builder(ConverterMetrics.name("dtg.latency"))
-          .tags(tags)
-          .publishPercentileHistogram()
-          .minimumExpectedValue(Duration.ofMillis(1))
-          .maximumExpectedValue(Duration.ofHours(24)) // latency may vary widely, but histograms require a min/max expected value
-          .register(Metrics.globalRegistry)
-      (i, date, latency)
-    }
-
     this.values(values, ec).flatMap { raw =>
       val start = System.nanoTime()
-      try { convert(raw.asInstanceOf[Array[AnyRef]], ec, dtgMetrics) } finally {
-        duration.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+      try { convert(raw.asInstanceOf[Array[AnyRef]], ec) } finally {
+        convertTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
       }
     }
   }
@@ -233,11 +214,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     * @param ec evaluation context
     * @return
     */
-  private def convert(
-      rawValues: Array[AnyRef],
-      ec: EvaluationContext,
-      dtgMetrics: Option[(Int, AtomicLong, Timer)]): CloseableIterator[SimpleFeature] = {
-
+  private def convert(rawValues: Array[AnyRef], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val result = ec.evaluate(rawValues).right.flatMap { values =>
       val sf = new ScalaSimpleFeature(sft, "")
 
@@ -272,13 +249,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     result match {
       case Right(feature) =>
         ec.stats.success()
-        dtgMetrics.foreach { case (index, dtg, latency) =>
-          val date = feature.getAttribute(index).asInstanceOf[Date]
-          if (date != null) {
-            dtg.set(date.getTime)
-            latency.record(System.currentTimeMillis() - date.getTime, TimeUnit.MILLISECONDS)
-          }
-        }
+        latency.foreach(_.apply(feature))
         CloseableIterator.single(feature)
 
       case Left(error) =>
@@ -306,7 +277,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   override def close(): Unit = {
     CloseWithLogging(caches.values)
-    CloseWithLogging(metrics)
     CloseWithLogging(validators)
   }
 }
@@ -356,14 +326,12 @@ object AbstractConverter {
     * Basic converter options implementation, useful if a converter doesn't have additional options
     *
     * @param validators validator
-    * @param reporters metric reporters
     * @param parseMode parse mode
     * @param errorMode error mode
     * @param encoding file/stream encoding
     */
   case class BasicOptions(
       validators: Seq[String],
-      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
@@ -371,9 +339,39 @@ object AbstractConverter {
 
   object BasicOptions {
     // keep as a function to pick up system property changes
-    def default: BasicOptions = {
-      val validators = SimpleFeatureValidator.default
-      BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+    def default: BasicOptions = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+  }
+
+  /**
+   * Latency metrics tracker
+   *
+   * @param dtgIndex index of the date attribute to track in the feature type
+   * @param tags metrics tags
+   */
+  private class LatencyMetrics(dtgIndex: Int, tags: java.lang.Iterable[Tag]) {
+
+    private val date = GaugeUtils.timeGauge(ConverterMetrics.name("dtg.latest"), tags)
+
+    private val latency =
+      DistributionSummary.builder(ConverterMetrics.name("dtg.latency"))
+        .tags(tags)
+        .publishPercentileHistogram()
+        .baseUnit("milliseconds")
+        .minimumExpectedValue(1d)
+        .maximumExpectedValue(Duration.ofDays(1).toMillis.toDouble)
+        .register(Metrics.globalRegistry)
+
+    /**
+     * Record latency for a feature
+     *
+     * @param feature feature
+     */
+    def apply(feature: SimpleFeature): Unit = {
+      val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
+      if (dtg != null) {
+        date.set(dtg.getTime)
+        latency.record(System.currentTimeMillis() - dtg.getTime)
+      }
     }
   }
 

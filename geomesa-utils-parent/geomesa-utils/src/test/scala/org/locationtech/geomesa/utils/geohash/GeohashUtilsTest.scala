@@ -3,13 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geohash
 
 import com.typesafe.scalalogging.LazyLogging
-import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -92,81 +91,28 @@ class GeohashUtilsTest extends Specification with LazyLogging {
   )
 
   // (reasonable) odd GeoHash resolutions
-  val oddResolutions = new ResolutionRange(5, 63, 2)
+  val oddResolutions = ResolutionRange(5, 63, 2)
 
   // GeoHash resolutions for decomposition
-  val indexResolutions = new ResolutionRange(5, 40, 5)
+  val indexResolutions = ResolutionRange(5, 40, 5)
 
   def wkt2geom(wkt: String): Geometry = WKTUtils.read(wkt)
 
   // testing resolution recommendation and decomposition
-  testData.map({
-    case (name, (resolution, numDecompositions, firstDecompositionHash, wkt)) => {
-      val geom: Geometry = WKTUtils.read(wkt)
-
+  testData.map {
+    case (name, (_, numDecompositions, firstDecompositionHash, wkt)) =>
       name should {
         // all geometry types should test decomposition
         "decompose into " + numDecompositions + " GeoHashes, the first of which should be '" + firstDecompositionHash + "'" in {
-          val decomposedGHs = decomposeGeometry(geom, 100, indexResolutions)
-          if (DEBUG_OUTPUT)
-            decomposedGHs.map(gh => logger.debug(name + "\t" + gh.hash + "\t" + WKTUtils.write(gh)))
-          decomposedGHs.size must equalTo(numDecompositions)
-          decomposedGHs(0).hash must equalTo(firstDecompositionHash)
+          val decomposedGHs = decomposeGeometry(WKTUtils.read(wkt), 100, indexResolutions)
+          if (DEBUG_OUTPUT) {
+            decomposedGHs.foreach(gh => logger.debug(name + "\t" + gh))
+          }
+          decomposedGHs must haveSize(numDecompositions)
+          BoundingBox(decomposedGHs.head._1, decomposedGHs.head._3, decomposedGHs.head._2, decomposedGHs.head._4) mustEqual
+            GeoHash(firstDecompositionHash).bbox
         }
       }
-    }
-  })
-
-  "getUniqueGeohashSubstringsInPolygon" should {
-    val polygonCharlottesville = wkt2geom(testData(
-      "[POLYGON] Charlottesville")._4).asInstanceOf[Polygon]
-
-    def testGeohashSubstringsInCharlottesville(offset: Int, bits: Int): Int = {
-      val ghSubstrings = getUniqueGeohashSubstringsInPolygon(
-        polygonCharlottesville, offset, bits)
-
-      ghSubstrings must beASuccessfulTry
-
-      if (DEBUG_OUTPUT)
-        ghSubstrings.get.foreach { gh => logger.debug(s"[unique Charlottesville gh($offset,$bits)] " + gh)}
-
-      ghSubstrings.get.size
-    }
-
-    "compute (0,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 2) mustEqual 3
-    }
-
-    "compute (2,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(2, 3) mustEqual 9
-    }
-
-    "compute (0,3) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(0, 3) mustEqual 4
-    }
-
-    "compute (3,2) correctly for Charlottesville" in {
-      testGeohashSubstringsInCharlottesville(3, 2) mustEqual 8
-    }
-
-    "not die when Geohash strings of more than 5 characters are requested" in {
-      testGeohashSubstringsInCharlottesville(0, 6) mustEqual 83
-      testGeohashSubstringsInCharlottesville(0, 7) mustEqual 1762
-    }
-
-    "not die when a point is provided" in {
-      val point = WKTUtils.read("POINT(0.0 0.0)")
-      forall(Seq((0, 3), (3, 2), (5, 2), (0, 7))) { case (offset, length) =>
-        getUniqueGeohashSubstringsInPolygon(point, offset, length) must beASuccessfulTry
-      }
-    }
-
-    "not die when a single-point collection is provided" in {
-      val pointCollection = WKTUtils.read("GEOMETRYCOLLECTION( POINT(0.0 0.0) )")
-      forall(Seq((0, 3), (3, 2), (5, 2), (0, 7))) { case (offset, length) =>
-        getUniqueGeohashSubstringsInPolygon(pointCollection, offset, length) must beASuccessfulTry
-      }
-    }
   }
 
   internationalDateLineSafeGeometryTestData.map { case (name, (geomString, incl, excl)) =>
@@ -187,96 +133,6 @@ class GeohashUtilsTest extends Specification with LazyLogging {
             decomposed.contains(excludedPoint) must equalTo(false)
         }
       }
-    }
-  }
-}
-
-@Ignore
-@RunWith(classOf[JUnitRunner])
-class GeohashUtilsTimeTest extends Specification with LazyLogging {
-
-  def wkt2geom(wkt: String): Geometry = WKTUtils.read(wkt)
-
-  "performance test for getUniqueGeohashSubstringsInPolygon" should {
-    val poly = wkt2geom("POLYGON((-170 -80, -170 0, -170 80, 0 80, 170 80, 170 0, 170 -80, 0 -80, -170 -80))").asInstanceOf[Polygon]
-    val burnInTrials = 100
-    val collectTrials = 100
-
-    def getTime(burnInTrials: Int,
-                collectTrials: Int,
-                label: String,
-                expectedCount: Int,
-                fnx: () => Seq[String],
-                useDotted: Boolean = true): Long = {
-
-      logger.debug(s"[TIMING POLYGON $label] $poly")
-
-      def runTest() {
-        val substrings = fnx()
-        val runCount = substrings.size
-        if (runCount != expectedCount)
-          throw new Exception("Wrong number of GeoHash sub-string results " +
-            s"$label:  $runCount (expected $expectedCount)")
-        if (useDotted) {
-          for (i <- 1 until substrings.headOption.map(_.length).getOrElse(0)) {
-            val rightDotted = "." * i
-            if (substrings.find(_.takeRight(i) == rightDotted).isEmpty)
-              throw new Exception(s"Missing '$rightDotted' among GeoHash sub-string results " +
-                s"$label:  $runCount (expected $expectedCount)")
-          }
-        }
-      }
-
-      // perform a few trials to get everything warmed up
-      (0 until burnInTrials).foreach(i => runTest())
-
-      // perform the trials you want to time
-      val msStart = System.currentTimeMillis()
-      (0 until collectTrials).foreach(i => runTest())
-      val msStop = System.currentTimeMillis()
-      val msElapsed = msStop - msStart
-
-      // output results
-      logger.debug(s"\n[TIMING SUBSTRINGS $label] $collectTrials invocations over " +
-        (msElapsed / 1000.0) + " seconds" +
-        " -> " + (msElapsed / collectTrials) + " ms/invocation\n\n"
-      )
-
-      msElapsed / collectTrials
-    }
-
-    def timeTest(offset: Int,
-                 bits: Int,
-                 expectedCount: Int,
-                 useDotted: Boolean = false) {
-
-      val fnxCandidate: () => Seq[String] = () =>
-        getUniqueGeohashSubstringsInPolygon(poly, offset, bits, 2 << (bits * 5), useDotted).getOrElse(Seq())
-
-      val length =
-        getTime(burnInTrials,
-          collectTrials,
-          s"getUniqueGeohashSubstringsInPolygon ($offset, $bits)",
-          expectedCount,
-          fnxCandidate,
-          useDotted)
-      length must not(beNull)
-    }
-
-    "collect timing data" in {
-      //                                        RGHI   current   old version
-      timeTest(0, 3, 27588, false)  //    50     48         83
-      timeTest(0, 3, 28581, true)   //     -     78        118
-      timeTest(3, 2, 1024, false)   //   777      2        545
-      timeTest(3, 2, 1057, true)    //   777      5        -
-      timeTest(3, 3, 32768, false)  //   N/A*    29        N/A*
-      timeTest(3, 3, 33825, true)   //     -     51          -
-      timeTest(5, 2, 1024, false)   //   N/A*     2        N/A*
-      val last = timeTest(5, 2, 1057, true)    //     -      3          -
-
-      last must not(beNull)
-      // *"N/A" simply means that the test took more than 5 minutes without
-      // finishing.
     }
   }
 }

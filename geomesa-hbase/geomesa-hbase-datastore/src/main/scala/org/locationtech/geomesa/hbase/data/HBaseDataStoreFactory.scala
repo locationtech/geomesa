@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
@@ -22,7 +22,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorCon
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.audit.AuditWriter.AuditLogger
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, MetricsConfig}
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -45,6 +45,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(new AuditLogger("hbase", AuditProvider.Loader.loadOrNone(params)))
     }
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
     val auths = if (!EnableSecurityParam.lookup(params)) { NoAuthsProvider } else {
       HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params)
     }
@@ -76,6 +77,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       coprocessors = coprocessors,
       authProvider = auths,
       audit = audit,
+      metrics = metrics,
       namespace = NamespaceParam.lookupOpt(params)
     )
 
@@ -118,21 +120,6 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val ConfigPathProperty: SystemProperty = HBaseSystemProperties.ConfigPathProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteFilterProperty: SystemProperty = HBaseSystemProperties.RemoteFilterProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteArrowProperty: SystemProperty = HBaseSystemProperties.RemoteArrowProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteBinProperty: SystemProperty = HBaseSystemProperties.RemoteBinProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteDensityProperty: SystemProperty = HBaseSystemProperties.RemoteDensityProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val RemoteStatsProperty: SystemProperty = HBaseSystemProperties.RemoteStatsProperty
-  @deprecated("moved to org.locationtech.geomesa.hbase.HBaseSystemProperties")
-  val YieldPartialResultsProperty: SystemProperty = HBaseSystemProperties.YieldPartialResultsProperty
-
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"
 
@@ -158,6 +145,8 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      MetricsRegistryParam,
+      MetricsRegistryConfigParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
@@ -180,6 +169,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       coprocessors: CoprocessorConfig,
       authProvider: AuthorizationsProvider,
       audit: Option[AuditWriter],
+      metrics: Option[MetricsConfig],
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig
 

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.index;
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.memory.cqengine.index;
 import com.googlecode.cqengine.attribute.Attribute;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
-import org.locationtech.geomesa.utils.index.WrappedQuadtree;
+import org.locationtech.geomesa.memory.index.impl.WrappedQuadtree;
 import org.locationtech.jts.geom.Geometry;
 
 public class QuadTreeGeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractGeoIndex<A, O> {

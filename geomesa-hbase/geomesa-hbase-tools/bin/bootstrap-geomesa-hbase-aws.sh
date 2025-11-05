@@ -5,7 +5,7 @@
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
-# http://www.opensource.org/licenses/apache2.0.php.
+# https://www.apache.org/licenses/LICENSE-2.0
 #
 
 # Verify that we are running in sudo mode
@@ -62,8 +62,9 @@ chown -R $GMUSER:$GMUSER ${GMDIR}
 DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime-hbase2_%%scala.binary.version%%-%%project.version%%.jar
 
 NL=$'\n'
-echo The HBase Root dir is ${ROOTDIR}.
-echo "# Auto-registration for geomesa coprocessors ${NL}export CUSTOM_JAVA_OPTS=\"${JAVA_OPTS} ${CUSTOM_JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}/lib/${DISTRIBUTED_JAR_NAME}\" ${NL}" >> /opt/geomesa/conf/geomesa-env.sh
+echo "The HBase Root dir is ${ROOTDIR}."
+echo "# Auto-registration for geomesa coprocessors" >> /opt/geomesa/conf/geomesa-env.sh
+echo "export GEOMESA_OPTS=\"\$GEOMESA_OPTS -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}/lib/${DISTRIBUTED_JAR_NAME}\"" >> /opt/geomesa/conf/geomesa-env.sh
 
 # Deploy the GeoMesa HBase distributed runtime to the HBase root directory
 if [[ "$ROOTDIR" = s3* ]]; then

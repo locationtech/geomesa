@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.`export`
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.tools.`export`
 import org.geotools.api.data.Query
 import org.geotools.api.filter.Filter
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.tools.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
 import org.locationtech.geomesa.features.exporters.{AvroExporter, DelimitedExporter}
@@ -26,7 +26,7 @@ import java.util.Date
 import java.util.zip.Deflater
 
 @RunWith(classOf[JUnitRunner])
-class FeatureExporterTest extends TestWithFeatureType {
+class FeatureExporterTest extends TestWithDataStore {
 
   override val spec = "name:String,geom:Point:srid=4326,dtg:Date"
 

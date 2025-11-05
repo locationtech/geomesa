@@ -4,7 +4,7 @@
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
-# http://www.opensource.org/licenses/apache2.0.php.
+# https://www.apache.org/licenses/LICENSE-2.0
 #
 
 # This file lists the dependencies required for running the geomesa-accumulo command-line tools.
@@ -71,7 +71,10 @@ function dependencies() {
     local micrometer_version
     local opentelemetry_version
 
-    if version_ge "${accumulo_version}" 2.1.3; then
+    if version_ge "${accumulo_version}" 2.1.4; then
+      micrometer_version="1.14.5"
+      opentelemetry_version="1.48.0"
+    elif version_ge "${accumulo_version}" 2.1.3; then
       micrometer_version="1.12.2"
       opentelemetry_version="1.34.1"
     else

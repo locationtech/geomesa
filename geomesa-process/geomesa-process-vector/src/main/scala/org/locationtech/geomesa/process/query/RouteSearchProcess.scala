@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.process.query
@@ -21,8 +21,8 @@ import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
-import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
+import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKTUtils

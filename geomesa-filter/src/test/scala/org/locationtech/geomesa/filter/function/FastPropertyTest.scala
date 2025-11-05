@@ -3,18 +3,18 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 
 package org.locationtech.geomesa.filter.function
 
+import org.geotools.data.DataUtilities
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.{AttributeTypeBuilder, NameImpl}
 import org.geotools.filter.spatial.BBOXImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Point
@@ -28,8 +28,7 @@ class FastPropertyTest extends Specification {
     "evaluate" >> {
       val filter = ECQL.toFilter("bbox(geom,-180,-90,180,90)")
       val sft = SimpleFeatureTypes.createType("FastPropertyTest", "name:String,*geom:Point:srid=4326")
-      val sf = new ScalaSimpleFeature(sft, "id")
-      sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
+      val sf = DataUtilities.parse(sft, "id", "myname", "POINT(45 45)")
       filter.asInstanceOf[BBOXImpl].setExpression1(new FastProperty(1))
       filter.evaluate(sf)
       filter.evaluate(sf)
@@ -46,8 +45,7 @@ class FastPropertyTest extends Specification {
       builder.setName("FastPropertyNsTest")
       val sft = builder.buildFeatureType()
 
-      val sf = new ScalaSimpleFeature(sft, "id")
-      sf.setAttributes(Array[AnyRef]("myname", "POINT(45 45)"))
+      val sf = DataUtilities.parse(sft, "id", "myname", "POINT(45 45)")
 
       val filter = FastFilterFactory.toFilter(sft, "testns:name = 'myname'")
       filter.evaluate(sf) must beTrue

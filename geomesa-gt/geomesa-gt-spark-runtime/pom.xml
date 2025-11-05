@@ -3,12 +3,19 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-gt_2.12</artifactId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>GeoMesa GeoTools Spark Runtime</name>
     <artifactId>geomesa-gt-spark-runtime_2.12</artifactId>
+
+    <properties>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -76,6 +83,15 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>skip-spark-runtimes</id>
+            <properties>
+                <maven.shade.skip>true</maven.shade.skip>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -83,6 +99,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>spark-runtime</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
@@ -108,6 +125,10 @@
                                 <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.google.common</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.gson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.codec</pattern>

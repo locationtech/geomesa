@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.filter
@@ -16,6 +16,7 @@ import org.geotools.api.filter.spatial._
 import org.geotools.api.filter.temporal.{After, Before, During, TEquals}
 import org.geotools.api.temporal.Period
 import org.geotools.data.DataUtilities
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
@@ -27,6 +28,7 @@ import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 object FilterHelper {
 
@@ -237,7 +239,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${toString(f)}'", e)
             FilterValues.empty
         }
 
@@ -359,7 +361,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${toString(f)}'", e)
             FilterValues.empty
         }
 
@@ -372,7 +374,7 @@ object FilterHelper {
           }
         } catch {
           case e: Exception =>
-            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${filterToString(f)}'", e)
+            FilterHelperLogger.log.warn(s"Unable to extract bounds from filter '${toString(f)}'", e)
             FilterValues.empty
         }
 
@@ -384,7 +386,7 @@ object FilterHelper {
         } else if (inverted.disjoint) {
           FilterValues(Seq(Bounds.everything[T])) // equivalent to not null
         } else if (!inverted.precise) {
-          FilterHelperLogger.log.warn(s"Falling back to full table scan for inverted query: '${filterToString(f)}'")
+          FilterHelperLogger.log.warn(s"Falling back to full table scan for inverted query: '${toString(f)}'")
           FilterValues(Seq(Bounds.everything[T]), precise = false)
         } else {
           // NOT(A OR B) turns into NOT(A) AND NOT(B)
@@ -581,6 +583,8 @@ object FilterHelper {
     }
     result
   }
+
+  def toString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
 
   private object SpatialOpOrder extends Enumeration {
     type SpatialOpOrder = Value

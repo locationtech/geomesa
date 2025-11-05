@@ -3,78 +3,86 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2
 
 import io.micrometer.core.instrument.{Counter, Metrics, Tags}
-import org.geotools.api.feature.simple.SimpleFeature
+import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
-import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-import org.locationtech.geomesa.utils.text.WKTUtils
-import org.locationtech.jts.geom.Geometry
-
-import java.time.Instant
-import java.util.Date
 
 package object validators {
 
   /**
-   * Create a counter with the standard validator prefix
+   * Create a counter for successful validations
    *
-   * @param name counter name
-   * @param tags tags
+   * @param validator validator name
+   * @param attribute attribute name
+   * @param tags common tags
    * @return
    */
-  def counter(name: String, tags: Tags): Counter = Metrics.counter(ConverterMetrics.name(s"validator.$name"), tags)
+  def successCounter(validator: String, attribute: String, tags: Tags): Counter =
+    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, "pass")))
 
   /**
-    * Validates an attribute is not null
-    *
-    * @param i attribute index
-    * @param error error message
-    * @param counter optional counter for validation failures
-    */
-  class NullValidator(i: Int, error: String, counter: Counter) extends SimpleFeatureValidator {
+   * Create a counter for failed validations
+   *
+   * @param validator validator name
+   * @param attribute attribute name
+   * @param result result tag
+   * @param tags common tags
+   * @return
+   */
+  def failureCounter(validator: String, attribute: String, result: String, tags: Tags): Counter =
+    Metrics.counter(ConverterMetrics.name("validate"), tags.and(this.tags(validator, attribute, result)))
+
+  /**
+   * Standardized tags
+   */
+  private def tags(validator: String, attribute: String, result: String): Tags =
+    Tags.of("validator", validator, "attribute", attribute, "result", result)
+
+  /**
+   * Holder for an attribute name + index
+   *
+   * @param name name
+   * @param i index
+   */
+  case class Attribute(name: String, i: Int)
+
+  object Attribute {
+    def apply(sft: SimpleFeatureType, i: Int): Attribute = Attribute(sft.getDescriptor(i).getLocalName, i)
+  }
+
+  /**
+   * Validates an attribute is not null
+   *
+   * @param attribute attribute to validate
+   * @param name attribute name
+   * @param error error message
+   * @param tags metric tags
+   */
+  class NullValidator(name: String, attribute: Attribute, error: String, tags: Tags) extends SimpleFeatureValidator {
+
+    private val success = successCounter(name, attribute.name, tags)
+    private val failure = failureCounter(name, attribute.name, "null", tags)
+
     override def validate(sf: SimpleFeature): String = {
-      if (sf.getAttribute(i) != null) { null } else {
-        counter.increment()
+      if (sf.getAttribute(attribute.i) != null) {
+        success.increment()
+        null
+      } else {
+        failure.increment()
         error
       }
     }
+
     override def close(): Unit = {}
   }
 
   case object NoValidator extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String = null
     override def close(): Unit = {}
-  }
-
-  @deprecated("Replaced with IdValidatorFactory")
-  case object IdValidator extends SimpleFeatureValidator {
-    override def validate(sf: SimpleFeature): String =
-      if (sf.getID == null || sf.getID.isEmpty) { "feature ID is null" } else { null }
-    override def close(): Unit = {}
-  }
-
-  object Errors {
-
-    val GeomNull = "geometry is null"
-    val DateNull = "date is null"
-
-    private def format(d: Date): String = GeoToolsDateFormat.format(Instant.ofEpochMilli(d.getTime))
-
-    def geomBounds(geom: Geometry): String =
-      s"geometry exceeds world bounds ([-180,180][-90,90]): ${WKTUtils.write(geom)}"
-
-    def dateBoundsLow(minDate: Date): Date => String = {
-      val base = s"date is before minimum indexable date (${format(minDate)}): "
-      date => base + format(date)
-    }
-    def dateBoundsHigh(maxDate: Date): Date => String = {
-      val base = s"date is after maximum indexable date (${format(maxDate)}): "
-      date => base + format(date)
-    }
   }
 }

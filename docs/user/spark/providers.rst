@@ -9,15 +9,8 @@ Accumulo RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^
 
 The ``AccumuloSpatialRDDProvider`` is a spatial RDD provider for Accumulo data stores. The core code is in
-the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are available in the
-``geomesa-accumulo-spark-runtime-accumulo20`` and ``geomesa-accumulo-spark-runtime-accumulo21`` modules.
-
-.. note::
-
-    The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
-    There are two Accumulo Spark runtime JARs, one for Accumulo 2.0.x (``geomesa-accumulo-spark-runtime-accumulo20``)
-    and one for Accumulo 2.1.x (``geomesa-accumulo-spark-runtime-accumulo21``). Make sure that you use the JAR
-    corresponding to your Accumulo version.
+the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies is available in the
+``geomesa-accumulo-spark-runtime-accumulo21`` module.
 
 This provider can read from and write to a GeoMesa ``AccumuloDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`accumulo_parameters` for details.
@@ -64,7 +57,7 @@ are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hb
 
     .. code-block:: bash
 
-        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+        $ spark-shell --jars file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase2_{{scala_binary_version}}-{{release}}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
     Alternatively, you may specify the zookeepers in the data store parameter map. However, this may not work
     for every HBase setup.

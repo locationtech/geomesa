@@ -1,6 +1,14 @@
 Installing Partitioned PostGIS
 ==============================
 
+.. note::
+
+    GeoMesa currently supports PostgreSQL {{postgres_supported_versions}}.
+
+.. warning::
+
+    When using PostgreSQL 17, PostGIS must be version 3.5.2 or later.
+
 The partitioned PostGIS data store is bundled with the ``geomesa-gt`` command-line tools. See :ref:`gt_tools` for
 installation instructions.
 
@@ -20,7 +28,7 @@ Installing Partitioned PostGIS in GeoServer
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 The partitioned PostGIS GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
-``$GEOMESA_GT_HOME/dist/gs-plugins/geomesa-gt-gs-plugin_${VERSION}-install.tar.gz`` into GeoServer's
+``$GEOMESA_GT_HOME/dist/gs-plugins/geomesa-gt-gs-plugin_{{scala_binary_version}}-{{release}}-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
 Restart GeoServer after the JARs are installed.

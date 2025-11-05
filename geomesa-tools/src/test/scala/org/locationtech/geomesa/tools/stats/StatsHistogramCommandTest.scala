@@ -3,24 +3,25 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.stats
 
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, Stat}
+import org.locationtech.geomesa.index.stats.impl.Histogram
+import org.locationtech.geomesa.index.stats.impl.MinMax.MinMaxGeometry
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
-import org.locationtech.geomesa.utils.stats.{Histogram, Stat}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class StatsHistogramCommandTest extends Specification {
+class StatsHistogramCommandTest extends Specification with LazyLogging {
 
   "StatsHistogramCommand" should {
     "put points on the map" >> {
@@ -53,7 +54,7 @@ class StatsHistogramCommandTest extends Specification {
 
       addPoint(-76, 44)
 
-      println(StatsHistogramCommand.geomHistToString("geom", histogram))
+      logger.info(StatsHistogramCommand.geomHistToString("geom", histogram))
 
       ok
     }

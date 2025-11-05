@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.utils.bin
@@ -26,7 +26,7 @@ class BinSorterTest extends Specification {
 
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
   val sft = SimpleFeatureTypes.createType(getClass.getSimpleName, spec)
-  val seed = 10 // new Random().nextLong(); println("SEED " + seed)
+  val seed = 10 // new Random().nextLong(); logger.info("SEED " + seed)
   val r = new Random(seed)
 
   val features = (0 until r.nextInt(100) + 1).map { i =>

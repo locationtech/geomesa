@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert2.transforms
@@ -12,7 +12,9 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.{StatefulEvaluationContext, Stats}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
+import org.locationtech.geomesa.convert2.Field
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression.{FunctionExpression, Literal}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -539,27 +541,25 @@ class ExpressionTest extends Specification {
       }
     }
     "handle named values" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("baz", None),
         BasicField("foo", Some(Expression("$1"))),
         BasicField("bar", Some(Expression("capitalize($foo)")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "bar"))
       result must beRight
       result.right.get mustEqual Array("", "bar", "Bar")
     }
     "handle named values with spaces and dots" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("foo.bar", Some(Expression("$1"))),
         BasicField("foo bar", Some(Expression("$2"))),
         BasicField("dot", Some(Expression("${foo.bar}"))),
         BasicField("space", Some(Expression("${foo bar}")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "baz", "blu"))
       result must beRight
@@ -691,6 +691,55 @@ class ExpressionTest extends Specification {
       val exp1 = Expression("max($0,$1,$2)")
       exp1.apply(Array.tabulate(3)(i => new Date(i))) mustEqual new Date(2)
     }
+    "calculate sin" >> {
+      val exp = Expression("sin($1)")
+      exp.apply(Array("", Double.box(Math.PI / 2))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+    }
+    "calculate asin" >> {
+      val exp = Expression("asin($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.PI / 2, 0.0001)
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+    }
+    "calculate cos" >> {
+      val exp = Expression("cos($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.PI))).asInstanceOf[Double] must beCloseTo(-1.0, 0.0001)
+    }
+    "calculate acos" >> {
+      val exp = Expression("acos($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(-1.0))).asInstanceOf[Double] must beCloseTo(Math.PI, 0.0001)
+    }
+    "calculate tan" >> {
+      val exp = Expression("tan($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.PI / 4))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+    }
+    "calculate atan" >> {
+      val exp = Expression("atan($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.PI / 4, 0.0001)
+    }
+    "calculate ln" >> {
+      val exp = Expression("ln($1)")
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(0.0, 0.0001)
+      exp.apply(Array("", Double.box(Math.E))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+    }
+    "calculate exp" >> {
+      val exp = Expression("exp($1)")
+      exp.apply(Array("", Double.box(0.0))).asInstanceOf[Double] must beCloseTo(1.0, 0.0001)
+      exp.apply(Array("", Double.box(1.0))).asInstanceOf[Double] must beCloseTo(Math.E, 0.0001)
+    }
+    "calculate sqrt" >> {
+      val exp = Expression("sqrt($1)")
+      exp.apply(Array("", Double.box(4.0))).asInstanceOf[Double] must beCloseTo(2.0, 0.0001)
+      exp.apply(Array("", Double.box(2.0))).asInstanceOf[Double] must beCloseTo(Math.sqrt(2), 0.0001)
+    }
+    "calculate modulo" >> {
+      val exp = Expression("modulo($1, $2)")
+      exp.apply(Array("", Int.box(5), Int.box(2))).asInstanceOf[Int] mustEqual 1
+    }
     "allow for number formatting using printf" >> {
       val exp = Expression("printf('%.2f', divide($1,$2,$3))")
       exp.apply(Array("","-1","2","3.0")) mustEqual "-0.17"
@@ -791,14 +840,13 @@ class ExpressionTest extends Specification {
       exp.apply(Array("", "18", null)) mustEqual null
     }
     "return null for non-existing fields" >> {
-      val fields = Seq(
+      val fields = Array[Field](
         BasicField("foo", Some(Expression("$1"))),
         BasicField("bar", Some(Expression("$2"))),
         BasicField("missing", Some(Expression("$b"))),
         BasicField("found", Some(Expression("$bar")))
       )
-      val metrics = ConverterMetrics.empty
-      val ctx = EvaluationContext(fields, Map.empty, Map.empty, metrics, metrics.counter("s"), metrics.counter("f"))
+      val ctx = new StatefulEvaluationContext(fields, Map.empty, Map.empty, Stats())
 
       val result = ctx.evaluate(Array("", "5", "10"))
       result must beRight

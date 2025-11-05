@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
@@ -20,7 +20,6 @@ import org.locationtech.geomesa.accumulo.iterators.{AttributeKeyValueIterator, F
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -78,7 +77,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
         val fs = ds.getFeatureSource(sft.getTypeName)
         val rws = SelfClosingIterator(fs.getFeatures(query).features).toList
         rws must haveLength(3)
-        val alice = rws.filter(_.get[String]("name") == "alice").head
+        val alice = rws.filter(_.getAttribute("name") == "alice").head
         alice.getID mustEqual "alice"
         alice.getAttributeCount mustEqual 3
       }

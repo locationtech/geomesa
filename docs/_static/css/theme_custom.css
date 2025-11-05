@@ -62,6 +62,11 @@ a:hover {
   color: #6f91b8;
 }
 
+details summary {
+  cursor: pointer;
+  padding-bottom: 20px;
+}
+
 .rst-content tt.literal,.rst-content code.literal {
   color: #2a6ebb
 }
@@ -267,8 +272,13 @@ div.admonition.warning, div.admonition.note {
   border-right: 2px solid #c9c9c9;
 }
 
-.wy-table-responsive th.head {
+.wy-table-responsive th.head, .wy-table-responsive th.stub {
   background-color: #c9c9c9 !important;
+  color: #000;
+}
+
+.wy-table-responsive.centered-cells th, .wy-table-responsive.centered-cells td {
+  text-align: center;
 }
 
 .wy-table-responsive table td, .wy-table-responsive table th {

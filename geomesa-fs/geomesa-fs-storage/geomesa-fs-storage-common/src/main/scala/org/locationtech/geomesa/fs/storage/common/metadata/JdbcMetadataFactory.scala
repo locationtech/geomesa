@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.common.metadata
@@ -13,7 +13,6 @@ import org.apache.commons.dbcp2._
 import org.apache.commons.pool2.impl.{GenericObjectPool, GenericObjectPoolConfig}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import java.util.Properties
 import scala.util.control.NonFatal
@@ -66,7 +65,7 @@ class JdbcMetadataFactory extends StorageMetadataFactory {
   }
 }
 
-object JdbcMetadataFactory extends MethodProfiling with LazyLogging {
+object JdbcMetadataFactory extends LazyLogging {
 
   /**
     * Create a jdbc data source based on a configuration

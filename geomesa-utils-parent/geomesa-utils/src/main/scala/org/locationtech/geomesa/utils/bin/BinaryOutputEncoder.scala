@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.bin
@@ -49,28 +49,6 @@ class BinaryOutputEncoder private (toValues: ToValues) {
     } else {
       val callback = new ByteStreamCallback(os)
       f.foreach(toValues(_, callback))
-      callback.result
-    }
-  }
-
-  @deprecated("Can leak resources - use non-CloseableIterator version and close any resources outside this function")
-  def encode(f: CloseableIterator[SimpleFeature], os: OutputStream, sort: Boolean = false): Long = {
-    if (sort) {
-      val byteStream = new ByteArrayOutputStream
-      val callback = new ByteStreamCallback(byteStream)
-      try { f.foreach(toValues(_, callback)) } finally {
-        f.close()
-      }
-      val count = callback.result
-      val bytes = byteStream.toByteArray
-      val size = (bytes.length / count).toInt
-      bytes.grouped(size).toSeq.sorted(BinaryOutputEncoder.DateOrdering).foreach(os.write)
-      count
-    } else {
-      val callback = new ByteStreamCallback(os)
-      try { f.foreach(toValues(_, callback)) } finally {
-        f.close()
-      }
       callback.result
     }
   }

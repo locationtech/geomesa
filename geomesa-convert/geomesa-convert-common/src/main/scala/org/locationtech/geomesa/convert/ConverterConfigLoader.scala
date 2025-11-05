@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert
@@ -42,17 +42,6 @@ object ConverterConfigLoader extends LazyLogging {
   def listConverterNames: List[String] = confs.keys.toList
   def getAllConfigs: Map[String, Config] = confs
   def configForName(name: String): Option[Config] = confs.get(name)
-
-  // Rebase a config to the converter root...allows standalone
-  // configurations to start with "converter", "input-converter"
-  // or optional other prefix string
-  @deprecated("unused")
-  def rebaseConfig(conf: Config, pathOverride: Option[String] = None): Config = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions._
-    (pathOverride.toSeq ++ Seq(path, "converter", "input-converter"))
-      .foldLeft(conf)( (c, p) => c.getConfigOpt(p).map(c.withFallback).getOrElse(c))
-  }
-
 }
 
 trait GeoMesaConvertParser extends LazyLogging {

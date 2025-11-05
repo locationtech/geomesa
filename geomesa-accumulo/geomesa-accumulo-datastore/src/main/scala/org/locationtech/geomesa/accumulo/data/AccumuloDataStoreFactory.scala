@@ -5,7 +5,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  * This software was produced for the U. S. Government under Basic
  * Contract No. W56KGU-18-D-0004, and is subject to the Rights in
  * Noncommercial Computer Software and Noncommercial Computer Software
@@ -21,14 +21,13 @@ import org.apache.accumulo.core.conf.ClientProperty
 import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.api.data.DataAccessFactory.Param
 import org.geotools.api.data.{DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.accumulo.AccumuloProperties.{BatchWriterProperties, RemoteProcessingProperties}
+import org.locationtech.geomesa.accumulo.AccumuloProperties.BatchWriterProperties
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditWriter, ParamsAuditProvider}
 import org.locationtech.geomesa.index.audit.AuditWriter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.{AuthUtils, AuthorizationsProvider}
 import org.locationtech.geomesa.utils.audit.AuditProvider
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import java.awt.RenderingHints
@@ -72,15 +71,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   import scala.collection.JavaConverters._
 
-  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
-  val RemoteArrowProperty   : SystemProperty = RemoteProcessingProperties.RemoteArrowProperty
-  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
-  val RemoteBinProperty     : SystemProperty = RemoteProcessingProperties.RemoteBinProperty
-  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
-  val RemoteDensityProperty : SystemProperty = RemoteProcessingProperties.RemoteDensityProperty
-  @deprecated("Moved to org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties")
-  val RemoteStatsProperty   : SystemProperty = RemoteProcessingProperties.RemoteStatsProperty
-
   override val DisplayName = "Accumulo (GeoMesa)"
   override val Description = "Apache Accumulo\u2122 distributed key/value store"
 
@@ -103,6 +93,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       RemoteStatsParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      MetricsRegistryParam,
+      MetricsRegistryConfigParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
       AuthsParam,
@@ -239,6 +231,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val auditProvider = buildAuditProvider(params)
     val auditWriter =
       new AccumuloAuditWriter(client, s"${catalog}_queries", auditProvider, AuditQueriesParam.lookup(params).booleanValue())
+    val metrics = MetricsRegistryParam.lookupRegistry(params)
 
     val queries = AccumuloQueryConfig(
       threads = QueryThreadsParam.lookup(params),
@@ -260,6 +253,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       generateStats = GenerateStatsParam.lookup(params),
       authProvider = authProvider,
       auditWriter = auditWriter,
+      metrics = metrics,
       queries = queries,
       remote = remote,
       writeThreads = WriteThreadsParam.lookup(params),
@@ -309,6 +303,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
    * @param generateStats write stats on data during ingest
    * @param authProvider provides the authorizations used to access data
    * @param auditWriter to audit queries
+   * @param metrics registry factory for metrics
    * @param queries query config
    * @param remote remote query configs
    * @param writeThreads number of threads used for writing
@@ -318,6 +313,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       generateStats: Boolean,
       authProvider: AuthorizationsProvider,
       auditWriter: AccumuloAuditWriter,
+      metrics: Option[MetricsConfig],
       queries: AccumuloQueryConfig,
       remote: RemoteScansEnabled,
       writeThreads: Int,

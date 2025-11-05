@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
@@ -14,7 +14,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 
 import scala.collection.JavaConverters._
 
@@ -31,7 +31,7 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
 
   override protected def checkIfTableExists: Boolean = WithClose(connection.getAdmin)(_.tableExists(catalog))
 
-  override protected def createTable(): Unit = {
+  override protected def createTable(): Unit = synchronized {
     WithClose(connection.getAdmin) { admin =>
       if (!admin.tableExists(catalog)) {
         HBaseVersions.createTableAsync(admin, catalog, Seq(ColumnFamily), None, None, None, Some(true), None, Seq.empty)
@@ -63,7 +63,10 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
     CloseableIterator(results, scanner.close())
   }
 
-  override def close(): Unit = table.close()
+  override def close(): Unit = {
+    CloseWithLogging(table)
+    super.close()
+  }
 }
 
 object HBaseBackedMetadata {

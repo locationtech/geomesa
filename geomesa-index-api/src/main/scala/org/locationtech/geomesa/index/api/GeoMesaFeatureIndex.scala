@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.api
@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.{ExcludeFilter, Filter}
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -347,7 +348,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     if (!isFullTableScan(strategy)) {
       return None
     }
-    lazy val filterString = org.locationtech.geomesa.filter.filterToString(strategy.filter.filter.getOrElse(Filter.INCLUDE))
+    lazy val filterString = FilterHelper.toString(strategy.filter.filter.getOrElse(Filter.INCLUDE))
     val block = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName)
     if (block.getOrElse(blockByDefault)) {
       Some(new IllegalArgumentException(s"Full-table scans are disabled. Query being stopped for ${sft.getTypeName}: $filterString"))

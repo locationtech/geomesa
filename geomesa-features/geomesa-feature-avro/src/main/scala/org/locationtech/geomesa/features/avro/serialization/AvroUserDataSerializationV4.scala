@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro.serialization
@@ -24,7 +24,7 @@ object AvroUserDataSerializationV4 extends LazyLogging {
   val NullMarkerString = "<null>"
 
   @deprecated("does not match declared schema")
-  def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+  private[serialization] def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     // may not be able to write all entries - must pre-filter to know correct count
     val filtered = map.asScala.filter { case (key, value) =>
       if (canSerialize(key)) {

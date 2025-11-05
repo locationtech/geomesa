@@ -48,7 +48,7 @@ Example Usage
 -------------
 
 This example is for the Tiger US States boundary file available from the
-`US Census Bureau <https://www.census.gov/geo/maps-data/data/cbf/cbf_state.html>`__.
+`US Census Bureau <https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html>`__.
 
 The shapefile has the following columns::
 

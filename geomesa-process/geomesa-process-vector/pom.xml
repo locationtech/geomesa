@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-process_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -11,10 +11,6 @@
     <name>GeoMesa Vector Processes</name>
 
     <dependencies>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-arrow-gt_${scala.binary.version}</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
@@ -25,13 +21,7 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-process</artifactId>
-        </dependency>
-
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
+            <artifactId>gt-process-feature</artifactId>
         </dependency>
 
         <!-- test dependencies -->

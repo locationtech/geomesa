@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect
@@ -27,7 +27,7 @@ object UpdateTrigger extends SqlTriggerFunction {
     val updateFields = info.cols.all.map(c => s"${c.quoted} = NEW.${c.quoted}").mkString(",")
     val where = s"fid = OLD.fid AND ${info.cols.dtg.quoted} = OLD.${info.cols.dtg.quoted}"
 
-    s"""CREATE OR REPLACE FUNCTION ${name(info).quoted}() RETURNS trigger AS
+    s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.${name(info).quoted}() RETURNS trigger AS
        |  $$BODY$$
        |    DECLARE
        |      del_count integer;

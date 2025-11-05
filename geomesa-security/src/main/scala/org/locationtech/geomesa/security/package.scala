@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa
@@ -49,6 +49,7 @@ package object security {
     val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
   }
 
+  @deprecated("Use org.locationtech.geomesa.security.SecurityUtils directly")
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
 
     /**
@@ -70,8 +71,4 @@ package object security {
      */
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
-
-  @deprecated("Use AuthUtils.getProvider")
-  def getAuthorizationsProvider(params: java.util.Map[String, _], auths: Seq[String]): AuthorizationsProvider =
-    AuthUtils.getProvider(params, auths)
 }

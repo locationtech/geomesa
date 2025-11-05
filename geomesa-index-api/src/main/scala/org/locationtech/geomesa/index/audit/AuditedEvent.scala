@@ -3,14 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.audit
 
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geoserver.ViewParams
 
 import java.util.Collections
@@ -79,7 +79,7 @@ object AuditedEvent {
         scanTime: Long,
         hits:     Long
       ): QueryEvent = {
-      val filterString = filterToString(filter)
+      val filterString = FilterHelper.toString(filter)
       val readableHints = ViewParams.getReadableHints(hints)
       val metadata = Collections.emptyMap[String, AnyRef]()
       QueryEvent(storeType, typeName, user, filterString, readableHints, metadata, start, end, planTime, scanTime, hits)

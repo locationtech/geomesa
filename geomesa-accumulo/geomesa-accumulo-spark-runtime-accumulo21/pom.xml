@@ -3,12 +3,19 @@
     <parent>
         <artifactId>geomesa-accumulo_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>GeoMesa Accumulo Spark Runtime, Accumulo 2.1.x</name>
     <artifactId>geomesa-accumulo-spark-runtime-accumulo21_2.12</artifactId>
+
+    <properties>
+        <!-- triggers creation of javadocs for maven central, even though there is no source -->
+        <maven.empty.javadoc.phase>package</maven.empty.javadoc.phase>
+        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
+        <maven.scoverage.phase>none</maven.scoverage.phase>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -112,6 +119,15 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>skip-spark-runtimes</id>
+            <properties>
+                <maven.shade.skip>true</maven.shade.skip>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -119,6 +135,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>spark-runtime</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
@@ -192,6 +209,10 @@
                                 <relocation>
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.gson</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

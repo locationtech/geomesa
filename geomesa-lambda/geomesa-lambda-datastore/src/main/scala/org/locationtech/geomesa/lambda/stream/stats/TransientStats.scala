@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.lambda.stream.stats
@@ -13,10 +13,10 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter}
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter, Stat}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.stats._
 
 import scala.reflect.ClassTag
 

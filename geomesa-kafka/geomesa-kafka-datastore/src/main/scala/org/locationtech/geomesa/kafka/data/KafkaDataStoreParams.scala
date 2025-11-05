@@ -3,22 +3,21 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
 import com.github.benmanes.caffeine.cache.Ticker
+import com.typesafe.config.Config
 import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
-import org.locationtech.geomesa.metrics.micrometer.cloudwatch.CloudwatchSetup
-import org.locationtech.geomesa.metrics.micrometer.prometheus.PrometheusSetup
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import java.util.{Locale, Properties}
@@ -30,17 +29,6 @@ object KafkaDataStoreParams extends NamespaceParams {
   private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
   private val DeprecatedEarliest = ConvertedParam[Duration, java.lang.Boolean]("kafka.consumer.from-beginning", v => if (v) { Duration.Inf } else { null })
   private val DeprecatedExpiry = ConvertedParam[Duration, java.lang.Long]("expirationPeriod", v => Duration(v, "ms"))
-  private val DeprecatedConsistency = ConvertedParam[Duration, java.lang.Long]("consistencyCheck", v => Duration(v, "ms"))
-  // noinspection TypeAnnotation
-  private val DeprecatedCleanup = new DeprecatedParam[Duration] {
-    override val key = "cleanUpCache"
-    override def lookup(params: java.util.Map[String, _], required: Boolean): Duration = {
-      val param = new GeoMesaParam[java.lang.Boolean](key, default = false)
-      if (!param.lookup(params)) { Duration.Inf } else {
-        Duration(new GeoMesaParam[String]("cleanUpCachePeriod", default = "10s").lookup(params))
-      }
-    }
-  }
 
   val Brokers =
     new GeoMesaParam[String](
@@ -81,7 +69,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[Properties](
       "kafka.producer.config",
       "Configuration options for kafka producer, in Java properties format. " +
-          "See http://kafka.apache.org/documentation.html#producerconfigs",
+          "See https://kafka.apache.org/documentation.html#producerconfigs",
       largeText = true,
       deprecatedKeys = Seq("producerConfig"),
       readWrite = ReadWriteFlag.WriteOnly
@@ -91,7 +79,7 @@ object KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[Properties](
       "kafka.consumer.config",
       "Configuration options for kafka consumer, in Java properties format. " +
-          "See http://kafka.apache.org/documentation.html#consumerconfigs",
+          "See https://kafka.apache.org/documentation.html#consumerconfigs",
       largeText = true,
       deprecatedKeys = Seq("consumerConfig"),
       readWrite = ReadWriteFlag.ReadWrite // used for reading the catalog topic, if not using zk
@@ -166,7 +154,8 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Type of serialization to use. Must be one of 'kryo', 'avro', or 'avro-native'",
       default = SerializationTypes.Types.head,
       enumerations = SerializationTypes.Types,
-      supportsNiFiExpressions = true
+      supportsNiFiExpressions = true,
+      readWrite = ReadWriteFlag.WriteOnly
     )
 
   object SerializationTypes {
@@ -203,16 +192,6 @@ object KafkaDataStoreParams extends NamespaceParams {
       "Provide multiple views of a single layer via TypeSafe configuration",
       largeText = true,
       readWrite = ReadWriteFlag.ReadOnly
-    )
-
-  val MetricsRegistry =
-    new GeoMesaParam[String](
-      "kafka.metrics.registry",
-      "Specify the type of registry used to publish metrics. See " +
-        "https://www.geomesa.org/documentation/stable/user/appendix/metrics.html",
-      default = "none",
-      enumerations = Seq("none", PrometheusSetup.name, CloudwatchSetup.name),
-      readWrite = ReadWriteFlag.ReadOnly,
     )
 
   // TODO these should really be per-feature, not per datastore...
@@ -312,6 +291,8 @@ object KafkaDataStoreParams extends NamespaceParams {
 
   val LooseBBox: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.LooseBBoxParam
   val AuditQueries: GeoMesaParam[java.lang.Boolean] = GeoMesaDataStoreFactory.AuditQueriesParam
+  val MetricsRegistry: GeoMesaDataStoreFactory.MetricsRegistryParam = GeoMesaDataStoreFactory.MetricsRegistryParam
+  val MetricsRegistryConfig: GeoMesaParam[Config] = GeoMesaDataStoreFactory.MetricsRegistryConfigParam
   val Authorizations: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
 
   val ExecutorTicker =
@@ -333,8 +314,12 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly,
     )
 
-  @deprecated val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = Boolean.box(false), deprecatedKeys = Seq("useCQCache"))
-  @deprecated val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s"), deprecatedParams = Seq(DeprecatedCleanup))
-  @deprecated val CacheConsistency = new GeoMesaParam[Duration]("kafka.cache.consistency", "Check the feature cache for consistency at this interval", deprecatedParams = Seq(DeprecatedConsistency))
-  @deprecated val CacheTicker      = new GeoMesaParam[AnyRef]("kafka.cache.ticker", "Ticker to use for expiring/cleaning feature cache")
+  @deprecated
+  val CqEngineCache =
+    new GeoMesaParam[java.lang.Boolean](
+      "kafka.cache.cqengine",
+      "Use CQEngine-based implementation of live feature cache",
+      default = Boolean.box(false),
+      deprecatedKeys = Seq("useCQCache"),
+    )
 }

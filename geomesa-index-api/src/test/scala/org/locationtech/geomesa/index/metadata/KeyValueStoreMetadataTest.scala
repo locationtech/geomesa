@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.metadata
@@ -11,43 +11,64 @@ package org.locationtech.geomesa.index.metadata
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.concurrent.duration.DurationInt
 
 @RunWith(classOf[JUnitRunner])
 class KeyValueStoreMetadataTest extends Specification {
 
-  "CachedLazyMetadata" should {
+  "KeyValueStoreMetadata" should {
 
     "handle invalid rows in getTypeNames" in {
-      val metadata = new TestMetadata
-      metadata.getFeatureTypes mustEqual Array.empty
-      metadata.tableExists.set(true)
-      metadata.data.put("foo".getBytes(StandardCharsets.UTF_8), "foo".getBytes(StandardCharsets.UTF_8))
-      metadata.getFeatureTypes mustEqual Array.empty
-      metadata.insert("bar", GeoMesaMetadata.AttributesKey, "bar")
-      metadata.insert("bar", "bar", "bar")
-      metadata.insert("baz", GeoMesaMetadata.AttributesKey, "baz")
-      metadata.insert("baz", "baz", "baz")
-      metadata.getFeatureTypes mustEqual Array("bar", "baz")
+      WithClose(new TestMetadata()) { metadata =>
+        metadata.getFeatureTypes mustEqual Array.empty
+        metadata.tableExists.set(true)
+        metadata.data.put("foo".getBytes(StandardCharsets.UTF_8), "foo".getBytes(StandardCharsets.UTF_8))
+        metadata.getFeatureTypes mustEqual Array.empty
+        metadata.insert("bar", GeoMesaMetadata.AttributesKey, "bar")
+        metadata.insert("bar", "bar", "bar")
+        metadata.insert("baz", GeoMesaMetadata.AttributesKey, "baz")
+        metadata.insert("baz", "baz", "baz")
+        metadata.getFeatureTypes mustEqual Array("bar", "baz")
+      }
     }
 
     "cache scan results correctly" in {
-      val metadata = new TestMetadata
-      metadata.insert("foo", "p.1", "v1")
-      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1")
-      metadata.insert("foo", "p.2", "v2")
-      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
-      metadata.invalidateCache("foo", "p.1")
-      metadata.invalidateCache("foo", "p.2")
-      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
-      metadata.invalidateCache("foo", "p.1")
-      metadata.invalidateCache("foo", "p.2")
-      metadata.readRequired("foo", "p.2") mustEqual "v2"
-      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+      WithClose(new TestMetadata()) { metadata =>
+        metadata.insert("foo", "p.1", "v1")
+        metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1")
+        metadata.insert("foo", "p.2", "v2")
+        metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+        metadata.invalidateCache("foo", "p.1")
+        metadata.invalidateCache("foo", "p.2")
+        metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+        metadata.invalidateCache("foo", "p.1")
+        metadata.invalidateCache("foo", "p.2")
+        metadata.readRequired("foo", "p.2") mustEqual "v2"
+        metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+      }
+    }
+
+    "check the cache for table existing" in {
+      TableBasedMetadata.Expiry.threadLocalValue.set("100ms")
+      try {
+        WithClose(new TestMetadata()) { metadata =>
+          metadata.getFeatureTypes must beEmpty
+          metadata.data.put(
+            KeyValueStoreMetadata.encodeRow("test", GeoMesaMetadata.AttributesKey, metadata.typeNameSeparator),
+            "*geom:Point:srid=4326".getBytes(StandardCharsets.UTF_8))
+          metadata.getFeatureTypes must beEmpty
+          metadata.tableExists.set(true)
+          eventually(10, 100.millis)(metadata.getFeatureTypes mustEqual Array("test"))
+        }
+      } finally {
+        TableBasedMetadata.Expiry.threadLocalValue.remove()
+      }
     }
   }
 
@@ -86,7 +107,5 @@ class KeyValueStoreMetadataTest extends Specification {
           CloseableIterator(filtered)
       }
     }
-
-    override def close(): Unit = {}
   }
 }

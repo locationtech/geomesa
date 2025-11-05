@@ -3,14 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.all
 
 import com.typesafe.config.Config
 import org.geotools.api.feature.simple.SimpleFeatureType
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory
 import org.locationtech.geomesa.convert.json.JsonConverterFactory
 import org.locationtech.geomesa.convert.parquet.ParquetConverterFactory
@@ -34,24 +33,6 @@ object TypeAwareInference {
     "shp"     -> classOf[ShapefileConverterFactory],
     "xml"     -> classOf[XmlConverterFactory]
   )
-
-  /**
-    * Infer a converter based on a data sample
-    *
-    * @param format data format (e.g. csv, avro, json, etc)
-    * @param is input stream to convert
-    * @param sft simple feature type, if known
-    * @param path file path, if known
-    * @return
-    */
-  @deprecated("replaced with `infer(String, () => InputStream, Option[SimpleFeatureType], Map[String, Any])`")
-  def infer(
-      format: String,
-      is: () => InputStream,
-      sft: Option[SimpleFeatureType],
-      path: Option[String]): Option[(SimpleFeatureType, Config)] =
-    infer(format, is, sft, path.map(EvaluationContext.inputFileParam).getOrElse(Map.empty)).toOption
-
 
   /**
    * Infer a converter based on a data sample

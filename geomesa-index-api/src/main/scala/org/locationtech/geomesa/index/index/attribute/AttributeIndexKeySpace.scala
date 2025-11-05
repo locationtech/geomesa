@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.index.attribute
@@ -12,14 +12,14 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.{FilterHelper, filterToString}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.utils.index.{ByteArrays, VisibilityLevel}
 import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteArray}
+import org.locationtech.geomesa.utils.index.{ByteArrays, VisibilityLevel}
 
 import java.nio.charset.StandardCharsets
 import java.util.Collections
@@ -141,7 +141,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
 
     if (bounds.isEmpty) {
       // we have an attribute, but weren't able to extract any bounds
-      logger.warn(s"Unable to extract any attribute bounds from: ${filterToString(filter)}")
+      logger.warn(s"Unable to extract any attribute bounds from: ${FilterHelper.toString(filter)}")
     }
 
     AttributeIndexValues[Any](attributeField, fieldIndex, bounds, binding.asInstanceOf[Class[Any]])

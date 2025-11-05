@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo
@@ -37,13 +37,15 @@ trait TestWithDataStore extends Specification {
     AccumuloDataStoreParams.UserParam.key         -> AccumuloContainer.user,
     AccumuloDataStoreParams.PasswordParam.key     -> AccumuloContainer.password,
     AccumuloDataStoreParams.CatalogParam.key      -> catalog
-  )
+  ) ++ extraParams
 
   lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
   lazy val root  = AccumuloContainer.Users.root
   lazy val admin = AccumuloContainer.Users.admin
   lazy val user  = AccumuloContainer.Users.user
+
+  def extraParams: Map[String, String] = Map.empty
 
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
     ds.delete()

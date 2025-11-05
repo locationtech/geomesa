@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis
@@ -43,6 +43,14 @@ object PartitionedPostgisDataStoreParams {
           "See https://www.postgresql.org/docs/15/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT",
       false
     ) with TimeoutParam
+
+  val ReadAccessRoles =
+    new Param(
+      "read_access_roles",
+      classOf[String],
+      "List of database roles that will be granted read access to any schemas created by this store, comma-separated",
+      false
+    )
 
   // note: need a default string constructor so geotools can create it from the param
   class Timeout(repr: String) {

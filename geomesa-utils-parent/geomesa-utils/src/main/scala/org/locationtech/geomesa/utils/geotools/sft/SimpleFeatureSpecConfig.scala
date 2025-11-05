@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools.sft
@@ -40,10 +40,9 @@ object SimpleFeatureSpecConfig {
     * @return
     */
   def parse(conf: Config, path: Option[String]): (Option[String], SimpleFeatureSpec) = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions._
 
-    val toParse = path match {
-      case Some(p) => conf.getConfigOpt(p).map(conf.withFallback).getOrElse(conf)
+    val toParse = path.filter(conf.hasPath) match {
+      case Some(p) => conf.withFallback(conf.getConfig(p))
       case None    => conf
     }
     parse(toParse)
@@ -119,10 +118,13 @@ object SimpleFeatureSpecConfig {
   private def parse(conf: Config): (Option[String], SimpleFeatureSpec) = {
     import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
 
-    val name = conf.getStringOpt(TypeNamePath)
-    val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField).toSeq
+    val name = if (conf.hasPath(TypeNamePath)) { Option(conf.getString(TypeNamePath)) } else { None }
+    val attributes = {
+      val fields = if (conf.hasPath("fields")) { conf.getConfigList("fields") } else { conf.getConfigList(AttributesPath) }
+      fields.asScala.map(buildField).toSeq
+    }
     val opts = {
-      val userDataConfig = conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty)
+      val userDataConfig = if (conf.hasPath(UserDataPath)) { conf.getConfig(UserDataPath) } else { ConfigFactory.empty }
       val base = userDataConfig.toStringMap()
       if (!base.contains(Keywords)) { base } else {
         // special case to handle keywords

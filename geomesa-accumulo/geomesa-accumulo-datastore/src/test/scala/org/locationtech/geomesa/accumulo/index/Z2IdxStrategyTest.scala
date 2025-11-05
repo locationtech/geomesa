@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
@@ -32,7 +33,7 @@ import org.specs2.runner.JUnitRunner
 import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
-class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
+class Z2IdxStrategyTest extends Specification with TestWithFeatureType with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -60,17 +61,16 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
   "Z2IdxStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      println()
       ds.manager.indices(sft).filter(_.name == Z2Index.name).flatMap(_.getTableNames()).foreach { table =>
-        println(table)
+        logger.info(table)
         ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val keyZ = ByteArrays.readLong(bytes.drop(2))
           val (x, y) = Z2SFC.invert(keyZ)
-          println(s"row: $x $y")
+          logger.info(s"row: $x $y")
         }
       }
-      println()
+      logger.info("")
       success
     }
 
@@ -226,7 +226,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
@@ -234,7 +234,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
@@ -243,7 +243,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling with transformations" in {
       val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
@@ -252,7 +252,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
@@ -261,7 +261,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
     "support sampling by thread" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
@@ -276,7 +276,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(BIN_TRACK, "track")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
 
@@ -298,6 +298,8 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
     WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
   }
 
-  def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] =
-    queryPlanner.planQuery(sft, query, Some(Z2Index.name), output).asInstanceOf[Seq[AccumuloQueryPlan]]
+  def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] = {
+    query.getHints.put(QUERY_INDEX, Z2Index.name)
+    queryPlanner.planQuery(sft, query, output).asInstanceOf[Seq[AccumuloQueryPlan]]
+  }
 }

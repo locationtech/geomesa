@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kafka.data
 import org.apache.kafka.clients.admin._
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.ConfigResource
-import org.apache.kafka.common.errors.{InterruptException, WakeupException}
+import org.apache.kafka.common.errors.{InterruptException, TopicExistsException, WakeupException}
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.versions.{KafkaAdminVersions, KafkaConsumerVersions}
@@ -23,8 +23,8 @@ import java.io.Closeable
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.time.temporal.ChronoUnit
+import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Future, TimeUnit}
 import java.util.{Collections, Properties, UUID}
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -39,7 +39,7 @@ import scala.util.control.NonFatal
 class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
-  import KafkaMetadata.{CompactCleanupPolicy, CleanupPolicyConfig}
+  import KafkaMetadata.{CleanupPolicyConfig, CompactCleanupPolicy}
   import org.apache.kafka.clients.consumer.ConsumerConfig.{AUTO_OFFSET_RESET_CONFIG, GROUP_ID_CONFIG}
 
   import scala.collection.JavaConverters._
@@ -48,36 +48,30 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
   private val consumer = new LazyCloseable(new TopicMap())
 
   override protected def checkIfTableExists: Boolean = {
-    adminClientOp { adminClient=>
+    adminClientOp { adminClient =>
       val exists = adminClient.listTopics().names().get.contains(config.catalog)
-      // ensure that the topic has compaction enabled, in case it was created externally
-      if (exists && !checkCompactionPolicy(adminClient)){
-        setCompactionPolicy(adminClient)
+      if (exists){
+        // ensure that the topic has compaction enabled, in case it was created externally
+        ensureCompactionPolicy(adminClient)
       }
       exists
     }
   }
 
-  private def checkCompactionPolicy(kClient: AdminClient): Boolean = {
-    val cr = Collections.singleton(new ConfigResource(ConfigResource.Type.TOPIC, config.catalog))
-    val catalogConfigs = kClient.describeConfigs(cr).all().get().values()
-    catalogConfigs.asScala.exists { config =>
-      config.get(CleanupPolicyConfig) != null && config.get(CleanupPolicyConfig).value() == CompactCleanupPolicy
-    }
-  }
-
-  private def setCompactionPolicy(kClient: AdminClient): Unit ={
-    val catalogResource = new ConfigResource(ConfigResource.Type.TOPIC, config.catalog)
-    val catalogConfigEntry = new ConfigEntry(CleanupPolicyConfig, CompactCleanupPolicy)
-    val alterOps = Collections.singleton(new AlterConfigOp(catalogConfigEntry, AlterConfigOp.OpType.SET))
-    kClient.incrementalAlterConfigs(Collections.singletonMap(catalogResource, alterOps), new AlterConfigsOptions()).all().get()
-  }
-
-  override protected def createTable(): Unit = {
+  override protected def createTable(): Unit = synchronized {
     val newTopic =
       new NewTopic(config.catalog, 1, config.topics.replication.toShort)
           .configs(Collections.singletonMap(CleanupPolicyConfig, CompactCleanupPolicy))
-    adminClientOp(_.createTopics(Collections.singletonList(newTopic)).all().get)
+    adminClientOp { adminClient =>
+      try {
+        adminClient.createTopics(Collections.singletonList(newTopic)).all().get()
+      } catch {
+        case e: ExecutionException if e.getCause.isInstanceOf[TopicExistsException] =>
+          // already created somewhere else
+          // ensure that the topic has compaction enabled, in case it was created externally
+          ensureCompactionPolicy(adminClient)
+      }
+    }
   }
 
   override protected def createEmptyBackup(timestamp: String): KafkaMetadata[T] =
@@ -106,7 +100,28 @@ class KafkaMetadata[T](val config: KafkaDataStoreConfig, val serializer: Metadat
     }
   }
 
-  override def close(): Unit = CloseWithLogging(Seq(producer, consumer))
+  override def close(): Unit = {
+    CloseWithLogging(Seq(producer, consumer))
+    super.close()
+  }
+
+  /**
+   * Ensure that the topic has a cleanup policy of 'compact', so that feature types aren't aged off
+   *
+   * @param adminClient admin client
+   */
+  private def ensureCompactionPolicy(adminClient: AdminClient): Unit = {
+    val catalogResource = new ConfigResource(ConfigResource.Type.TOPIC, config.catalog)
+    val catalogConfigs = adminClient.describeConfigs(Collections.singleton(catalogResource)).all().get().values()
+    val isCompact = catalogConfigs.asScala.exists { config =>
+      config.get(CleanupPolicyConfig) != null && config.get(CleanupPolicyConfig).value() == CompactCleanupPolicy
+    }
+    if (!isCompact) {
+      val catalogConfigEntry = new ConfigEntry(CleanupPolicyConfig, CompactCleanupPolicy)
+      val alterOps = Collections.singleton(new AlterConfigOp(catalogConfigEntry, AlterConfigOp.OpType.SET))
+      adminClient.incrementalAlterConfigs(Collections.singletonMap(catalogResource, alterOps)).all().get()
+    }
+  }
 
   private def adminClientOp[V](fn: AdminClient => V): V = {
     val props = new Properties()

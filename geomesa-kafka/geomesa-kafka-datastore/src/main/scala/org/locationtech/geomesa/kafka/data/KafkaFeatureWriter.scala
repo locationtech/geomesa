@@ -3,12 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.{Metrics, Tags}
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.apache.kafka.common.TopicPartition
@@ -37,16 +38,21 @@ object KafkaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
   private val FeatureIdHints = Seq(Hints.USE_PROVIDED_FID, Hints.PROVIDED_FID)
+  private val MetricsPrefix = s"${KafkaDataStore.MetricsPrefix}.producer"
 
   class AppendKafkaFeatureWriter(
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
-      protected val serializer: GeoMessageSerializer
+      protected val serializer: GeoMessageSerializer,
+      tags: Tags
     ) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
+
+    private val writeCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "update"))
+    private val clearCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "clear"))
 
     override def getFeatureType: SimpleFeatureType = sft
 
@@ -66,6 +72,7 @@ object KafkaFeatureWriter {
       val record = new ProducerRecord(topic, key, value)
       headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
       producer.send(record)
+      writeCounter.increment()
     }
 
     override def remove(): Unit = throw new UnsupportedOperationException()
@@ -80,6 +87,7 @@ object KafkaFeatureWriter {
       val record = new ProducerRecord(topic, key, value)
       headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
       producer.send(record)
+      clearCounter.increment()
     }
 
     protected def reset(id: String): Unit = {
@@ -97,8 +105,9 @@ object KafkaFeatureWriter {
       sft: SimpleFeatureType,
       producer: KafkaFeatureProducer,
       serializer: GeoMessageSerializer,
+      tags: Tags,
       filter: Filter
-    ) extends AppendKafkaFeatureWriter(sft, producer, serializer) {
+    ) extends AppendKafkaFeatureWriter(sft, producer, serializer, tags) {
 
     import scala.collection.JavaConverters._
 
@@ -107,11 +116,12 @@ object KafkaFeatureWriter {
       case _ => throw new UnsupportedOperationException("Only modify by ID is supported")
     }
 
+    private val deleteCounter = Metrics.counter(s"$MetricsPrefix.produced", tags.and("op", "delete"))
+
     override def hasNext: Boolean = ids.hasNext
 
     override def next(): FastSettableFeature = {
-      import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
-      reset(ids.headOption.getOrElse(featureIds.getAndIncrement().toString))
+      reset(if (ids.hasNext) { ids.next() } else { featureIds.getAndIncrement().toString })
       // default to using the provided fid
       feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       feature
@@ -124,6 +134,7 @@ object KafkaFeatureWriter {
       val record = new ProducerRecord(topic, key, value)
       headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
       producer.send(record)
+      deleteCounter.increment()
     }
   }
 

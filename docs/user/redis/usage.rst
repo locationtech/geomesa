@@ -30,6 +30,10 @@ Parameter                              Type    Description
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
+``geomesa.metrics.registry``           String  Specify the type of registry used to publish metrics. Must be one of ``none``,
+                                               ``prometheus``, or ``cloudwatch``. See :ref:`geomesa_metrics` for registry details.
+``geomesa.metrics.registry.config``    String  Override the default registry config. See :ref:`geomesa_metrics` for configuration
+                                               details.
 ====================================== ======= ====================================================================================
 
 Creating a Data Store

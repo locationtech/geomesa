@@ -3,17 +3,18 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.{Metrics, Timer}
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -22,22 +23,23 @@ import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
+import org.locationtech.geomesa.index.stats.impl.StatParser
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
-import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection, SortingSimpleFeatureIterator}
+import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
-import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
+import org.locationtech.geomesa.utils.iterators.{ExceptionalIterator, TimedIterator}
 
+import java.time.Duration
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import scala.collection.JavaConverters._
 
 /**
  * Plans and executes queries against geomesa
  */
-class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with MethodProfiling with LazyLogging {
+class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with LazyLogging {
 
   override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
@@ -46,112 +48,122 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     *
     * @param sft simple feature type
     * @param query query to plan
-    * @param index override index to use for executing the query
-    * @param output planning explanation output
+    * @param explain planning explanation output
     * @return
     */
-  def planQuery(
-      sft: SimpleFeatureType,
-      query: Query,
-      index: Option[String] = None,
-      output: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] =
-    getQueryPlans(sft, configureQuery(sft, query), query.getFilter, index, output).toList // toList forces evaluation of entire iterator
+  def planQuery(sft: SimpleFeatureType, query: Query, explain: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] =
+    runQuery(sft, query, explain).plans.toList // toList forces evaluation of all plans
 
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryPlanResult[DS] = {
+    val start = System.nanoTime()
     val query = configureQuery(sft, original)
-    val plans = getQueryPlans(sft, query, original.getFilter, None, explain)
-    new QueryPlanResult(query.getHints.getReturnSft, query.getHints, plans, run(query, plans))
+    val hints = query.getHints
+
+    explain.pushLevel(s"Planning '${query.getTypeName}' ${FilterHelper.toString(query.getFilter)}")
+    explain(s"Original filter: ${FilterHelper.toString(original.getFilter)}")
+    explain(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
+      s"stats[${hints.isStatsQuery}] " +
+      s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
+    explain(s"Sort: ${hints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
+    explain(s"Transforms: ${hints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
+    explain(s"Max features: ${hints.getMaxFeatures.getOrElse("none")}")
+    hints.getFilterCompatibility.foreach(c => explain(s"Filter compatibility: $c"))
+
+    explain.pushLevel("Strategy selection:")
+    // TODO requested index
+    val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, hints.getRequestedIndex, explain)
+    explain.popLevel()
+
+    var strategyCount = 1
+    val plans = strategies.map { strategy =>
+      explain.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
+      strategyCount += 1
+      explain(s"Strategy filter: $strategy")
+      val start = System.nanoTime()
+      val qs = strategy.getQueryStrategy(explain)
+      val plan = ds.adapter.createQueryPlan(qs)
+      plan.explain(explain)
+      explain(s"Plan creation took ${(System.nanoTime() - start) / 1000000L}ms").popLevel()
+      plan
+    }
+    val planCreateTime = System.nanoTime() - start
+    explain(s"Query planning took ${planCreateTime / 1000000L}ms")
+    new QueryPlanResult(hints.getReturnSft, hints, plans, run(query, plans, planCreateTime))
   }
 
-  private def run(query: Query, plans: Seq[QueryPlan[DS]])(): CloseableIterator[SimpleFeature] = {
-    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
+  private def run(query: Query, plans: Seq[QueryPlan[DS]], planCreationTime: Long)(): CloseableIterator[SimpleFeature] = {
+    val start = System.nanoTime()
+    try {
+      var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
 
-    if (!query.getHints.isSkipReduce) {
-      plans.headOption.flatMap(_.reducer).foreach { reducer =>
-        require(plans.tail.forall(_.reducer.contains(reducer)), "Reduce must be the same in all query plans")
-        iterator = reducer.apply(iterator)
+      if (!query.getHints.isSkipReduce) {
+        plans.headOption.flatMap(_.reducer).foreach { reducer =>
+          require(plans.tail.forall(_.reducer.contains(reducer)), "Reduce must be the same in all query plans")
+          iterator = reducer.apply(iterator)
+        }
       }
-    }
 
-    plans.headOption.flatMap(_.sort).foreach { sort =>
-      require(plans.tail.forall(_.sort.contains(sort)), "Sort must be the same in all query plans")
-      iterator = new SortingSimpleFeatureIterator(iterator, sort)
-    }
-
-    plans.headOption.flatMap(_.maxFeatures).foreach { maxFeatures =>
-      require(plans.tail.forall(_.maxFeatures.contains(maxFeatures)),
-        "Max features must be the same in all query plans")
-      if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
-        // bin queries pack multiple records into each feature
-        // to count the records, we have to count the total bytes coming back, instead of the number of features
-        val label = query.getHints.getBinLabelField.isDefined
-        iterator = new BinaryOutputEncoder.FeatureLimitingIterator(iterator, maxFeatures, label)
-      } else {
-        iterator = iterator.take(maxFeatures)
+      plans.headOption.flatMap(_.sort).foreach { sort =>
+        require(plans.tail.forall(_.sort.contains(sort)), "Sort must be the same in all query plans")
+        iterator = new SortingSimpleFeatureIterator(iterator, sort)
       }
-    }
 
-    plans.headOption.flatMap(_.projection).foreach { projection =>
-      require(plans.tail.forall(_.projection.contains(projection)), "Projection must be the same in all query plans")
-      val project = Reprojection(query.getHints.getReturnSft, projection)
-      iterator = iterator.map(project.apply)
-    }
+      plans.headOption.flatMap(_.maxFeatures).foreach { maxFeatures =>
+        require(plans.tail.forall(_.maxFeatures.contains(maxFeatures)),
+          "Max features must be the same in all query plans")
+        if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
+          // bin queries pack multiple records into each feature
+          // to count the records, we have to count the total bytes coming back, instead of the number of features
+          val label = query.getHints.getBinLabelField.isDefined
+          iterator = new BinaryOutputEncoder.FeatureLimitingIterator(iterator, maxFeatures, label)
+        } else {
+          iterator = iterator.take(maxFeatures)
+        }
+      }
 
-    // wrap in an exceptional iterator to prevent geoserver from suppressing any exceptions
-    ExceptionalIterator(iterator)
+      plans.headOption.flatMap(_.projection).foreach { projection =>
+        require(plans.tail.forall(_.projection.contains(projection)), "Projection must be the same in all query plans")
+        val project = Reprojection(query.getHints.getReturnSft, projection)
+        iterator = iterator.map(project.apply)
+      }
+
+      val timer = Timers.scanning(query.getTypeName)
+      // wrap in an exceptional iterator to prevent geoserver from suppressing any exceptions
+      ExceptionalIterator(new TimedIterator(iterator, timer.record(_, TimeUnit.NANOSECONDS)))
+    } finally {
+      Timers.planning(query.getTypeName).record((System.nanoTime() - start) + planCreationTime, TimeUnit.NANOSECONDS)
+    }
   }
 
   /**
-    * Set up the query plans and strategies used to execute them
-    *
-    * @param sft simple feature type
-    * @param query query to plan - must have been run through `configureQuery` to set expected hints, etc
-    * @param requested override index to use for executing the query
-    * @param output planning explanation output
-    * @return
-    */
-  private def getQueryPlans(
-      sft: SimpleFeatureType,
-      query: Query,
-      original: Filter,
-      requested: Option[String],
-      output: Explainer): Seq[QueryPlan[DS]] = {
-    import org.locationtech.geomesa.filter.filterToString
+   * Holder for per-instance cached timers
+   */
+  private object Timers {
 
-    profile(time => output(s"Query planning took ${time}ms")) {
-      val hints = query.getHints
+    private val scanTimers = new ConcurrentHashMap[String, Timer]()
+    private val planTimers = new ConcurrentHashMap[String, Timer]()
 
-      output.pushLevel(s"Planning '${query.getTypeName}' ${filterToString(query.getFilter)}")
-      output(s"Original filter: ${filterToString(original)}")
-      output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
-          s"stats[${hints.isStatsQuery}] " +
-          s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
-      output(s"Sort: ${hints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
-      output(s"Transforms: ${hints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
-      output(s"Max features: ${hints.getMaxFeatures.getOrElse("none")}")
-      hints.getFilterCompatibility.foreach(c => output(s"Filter compatibility: $c"))
+    def scanning(typeName: String): Timer =
+      scanTimers.computeIfAbsent(typeName, _ =>
+        Timer.builder("geomesa.query.execution")
+          .tags(ds.tags(typeName))
+          .description("Time spent executing a query")
+          .publishPercentileHistogram()
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofMinutes(5))
+          .register(Metrics.globalRegistry)
+      )
 
-      output.pushLevel("Strategy selection:")
-      val requestedIndex = requested.orElse(hints.getRequestedIndex)
-      val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, requestedIndex, output)
-      output.popLevel()
-
-      var strategyCount = 1
-      strategies.map { strategy =>
-        def complete(plan: QueryPlan[DS], time: Long): Unit = {
-          plan.explain(output)
-          output(s"Plan creation took ${time}ms").popLevel()
-        }
-
-        output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
-        strategyCount += 1
-        output(s"Strategy filter: $strategy")
-        profile(complete _) {
-          val qs = strategy.getQueryStrategy(output)
-          ds.adapter.createQueryPlan(qs)
-        }
-      }
-    }
+    def planning(typeName: String): Timer =
+      planTimers.computeIfAbsent(typeName, _ =>
+        Timer.builder("geomesa.query.planning")
+          .tags(ds.tags(typeName))
+          .description("Time spent planning a query")
+          .publishPercentileHistogram()
+          .minimumExpectedValue(Duration.ofMillis(1))
+          .maximumExpectedValue(Duration.ofSeconds(1))
+          .register(Metrics.globalRegistry)
+      )
   }
 }
 
@@ -159,20 +171,10 @@ object QueryPlanner extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private[planning] val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
-
   object CostEvaluation extends Enumeration {
     type CostEvaluation = Value
     val Stats, Index = Value
   }
-
-  // threaded hints were used as a work-around with wfs output formats, but now we use GetFeatureCallback instead
-  @deprecated("Deprecated with no replacement")
-  def setPerThreadQueryHints(hints: Map[AnyRef, AnyRef]): Unit = threadedHints.put(hints)
-  @deprecated("Deprecated with no replacement")
-  def getPerThreadQueryHints: Option[Map[AnyRef, AnyRef]] = threadedHints.get
-  @deprecated("Deprecated with no replacement")
-  def clearPerThreadQueryHints(): Unit = threadedHints.clear()
 
   /**
    * Checks for attribute transforms in the query and sets them as hints if found

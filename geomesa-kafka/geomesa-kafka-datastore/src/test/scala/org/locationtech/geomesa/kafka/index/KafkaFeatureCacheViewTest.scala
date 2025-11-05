@@ -3,12 +3,13 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
 
 import com.github.benmanes.caffeine.cache.Ticker
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -16,6 +17,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{IndexConfig, IndexResolution, IngestTimeConfig, NeverExpireConfig}
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory, KafkaDataStoreParams}
+import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
@@ -62,6 +64,9 @@ class KafkaFeatureCacheViewTest extends Specification with Mockito {
 
   val track3v0 = track("track3", "POINT (0 60)")
 
+  // ensure the tags we use here match KafkaDataStore otherwise it can cause errors in registering metrics
+  private val tags = Tags.of("store", "test", "catalog", "test").and(TagUtils.typeNameTag("test"))
+
   def track(id: String, track: String): SimpleFeature = ScalaSimpleFeature.create(sft, id, id, track)
 
   def createCache(expiry: Option[(Duration, ScheduledExecutorService, Ticker)] = None): KafkaFeatureCache = {
@@ -69,7 +74,7 @@ class KafkaFeatureCacheViewTest extends Specification with Mockito {
       case None => IndexConfig(NeverExpireConfig, res, Seq.empty, Seq.empty, lazyDeserialization = true, None)
       case Some((e, es, t)) => IndexConfig(IngestTimeConfig(e), res, Seq.empty, Seq.empty, lazyDeserialization = true, Some((es, t)))
     }
-    KafkaFeatureCache(sft, config, views)
+    KafkaFeatureCache(sft, config, views, tags)
   }
 
   "KafkaFeatureCacheView" should {

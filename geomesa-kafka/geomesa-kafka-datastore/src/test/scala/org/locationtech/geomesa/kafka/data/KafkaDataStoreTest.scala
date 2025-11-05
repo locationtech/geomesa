@@ -3,14 +3,11 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
-import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import io.micrometer.core.instrument.{Counter, Gauge, Metrics}
 import org.apache.commons.lang3.StringUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -25,33 +22,32 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType}
-import org.locationtech.geomesa.index.InMemoryMetadata
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.KafkaContainerTest
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
 import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
-import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.{KafkaFeatureChanged, KafkaFeatureCleared, KafkaFeatureRemoved}
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
-import org.locationtech.geomesa.metrics.core.GeoMesaMetrics
+import org.locationtech.geomesa.memory.index.impl.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
-import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.mockito.ArgumentMatchers
 import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
+import java.net.{ServerSocket, URL}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
-import java.util.{Collections, Date, Properties, UUID}
+import java.util.{Collections, Date, Properties}
+import scala.io.{Codec, Source}
 
 @RunWith(classOf[JUnitRunner])
 class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
@@ -60,7 +56,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
   import scala.concurrent.duration._
 
   lazy val baseParams = Map(
-//    "kafka.serialization.type" -> "avro",
+    // "kafka.serialization.type" -> "avro",
     "kafka.brokers"            -> brokers,
     "kafka.topic.partitions"   -> 1,
     "kafka.topic.replication"  -> 1,
@@ -129,20 +125,6 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
     }
 
-    "clean up metrics" >> {
-      val reporter = mock[ScheduledReporter]
-      val metrics = new GeoMesaMetrics(new MetricRegistry(), "", Seq(reporter))
-      val config = {
-        val orig = KafkaDataStoreFactory.buildConfig(baseParams.asJava)
-        CloseQuietly(orig.metrics)
-        orig.copy(metrics = Some(metrics))
-      }
-      val serializer = new GeoMessageSerializerFactory(SerializationType.KRYO)
-      new KafkaDataStore(config, new InMemoryMetadata[String](), serializer).dispose()
-
-      there was one(reporter).close()
-    }
-
     "use namespaces" >> {
       import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val path = s"geomesa/namespace/test/${paths.getAndIncrement()}"
@@ -203,6 +185,25 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "support multiple stores creating schemas on the same catalog topic" >> {
+      val (producer, consumer, sft) = createStorePair()
+      val sft2 = SimpleFeatureTypes.renameSft(sft, "consumer")
+
+      consumer must not(beNull)
+      producer must not(beNull)
+      try {
+        producer.createSchema(sft)
+        consumer.createSchema(sft2)
+        foreach(Seq(producer, consumer)) { ds =>
+          ds.metadata.resetCache()
+          ds.getTypeNames.toSeq must containAllOf(Seq(sft.getTypeName, sft2.getTypeName))
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 
@@ -268,51 +269,45 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
     }
 
     "support metrics" >> {
-      val registry = new SimpleMeterRegistry()
-      Metrics.addRegistry(registry)
+      val port = getFreePort
+      val params = Map("geomesa.metrics.registry" -> "prometheus", "geomesa.metrics.registry.config" -> s"port = $port")
+      val (producer, consumer, sft) = createStorePair(params)
       try {
-        val (producer, consumer, originalSft) = createStorePair()
-        try {
-          val sft = SimpleFeatureTypes.renameSft(originalSft, s"metrics-${UUID.randomUUID()}")
-          producer.createSchema(sft)
-          consumer.metadata.resetCache()
-          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+        producer.createSchema(sft)
+        consumer.metadata.resetCache()
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
 
-          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
-          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
 
-          // initial write
-          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-          }
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
-          // write a second time so that our "live" metrics get updated, vs we may have hit the initial loader in our first write
-          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-          }
-
-          // delete
-          producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
-          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
-
-          val meters = registry.getMeters.asScala.filter(_.getId.getTags.asScala.exists(_.getValue == sft.getTypeName))
-          meters must haveLength(10)
-          eventually {
-            meters.collectFirst { case g: Gauge if g.getId.getName.contains("index.size") => g.value() } must beSome(1d)
-            meters.collectFirst { case c: Counter if c.getId.getName.contains("index.expirations") => c.count() } must beSome(0d)
-            meters.collectFirst { case g: Gauge if g.getId.getName.contains("dtg.latest") => g.value() } must
-              beSome(f1.getAttribute("dtg").asInstanceOf[Date].getTime)
-            meters.collectFirst { case c: Counter if c.getId.getName.contains("read.updates") => c.count() } must
-              beSome(beGreaterThanOrEqualTo(2d)) // may have been between 2-4 reads, due to timing around initial loading
-            meters.collectFirst { case c: Counter if c.getId.getName.contains("read.deletes") => c.count() } must beSome(1d)
-          }
-        } finally {
-          consumer.dispose()
-          producer.dispose()
+        // initial write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+        // write a second time so that our "live" metrics get updated, vs we may have hit the initial loader in our first write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        // delete
+        producer.getFeatureSource(sft.getTypeName).removeFeatures(ECQL.toFilter("IN('sm')"))
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must beEqualTo(Seq(f1)))
+
+        val metrics = WithClose(Source.fromURL(new URL(s"http://localhost:$port/metrics"))(Codec.UTF8))(_.getLines().toList)
+        val indexTagsRegex = s"""\\{.*catalog="${producer.config.catalog}".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
+        metrics must contain(beMatching(s"""^geomesa_kafka_index_size$indexTagsRegex 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_index_expirations_total$indexTagsRegex 0\\.0$$"""))
+        def msgTagsRegex(op: String) = s"""\\{.*catalog="${producer.config.catalog}".*op="$op".*store="kafka".*type_name="${sft.getTypeName}".*\\}"""
+        // may have been between 2-4 reads, due to timing around initial loading
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_consumed_total${msgTagsRegex("update")} [2-4]\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_consumed_total${msgTagsRegex("delete")} 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_consumer_dtg_latest_seconds$indexTagsRegex 1\\.4833152E9$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_producer_produced_total${msgTagsRegex("delete")} 1\\.0$$"""))
+        metrics must contain(beMatching(s"""^geomesa_kafka_producer_produced_total${msgTagsRegex("update")} 4\\.0$$"""))
       } finally {
-        Metrics.removeRegistry(registry)
-        registry.close()
+        consumer.dispose()
+        producer.dispose()
       }
     }
 
@@ -342,6 +337,28 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "support topic read-back with multiple partitions, some empty" >> {
+      val params = Map("kafka.consumer.read-back" -> "2 minutes", "kafka.topic.partitions" -> "2")
+      val (producer, consumer, sft) = createStorePair(params)
+      try {
+        producer.createSchema(sft)
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+
+        // initial write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        consumer.metadata.resetCache()
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0))
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 
@@ -1125,7 +1142,7 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
       }
       val ds = getStore(path, 0)
       try {
-        ds.getTypeNames()
+        ds.getTypeNames
         //Verify the compaction policy
         WithClose(AdminClient.create(props)) { admin =>
           val configs =
@@ -1177,6 +1194,13 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
         producer.dispose()
         consumer.dispose()
       }
+    }
+  }
+
+  private def getFreePort: Int = {
+    val socket = new ServerSocket(0)
+    try { socket.getLocalPort } finally {
+      socket.close()
     }
   }
 }

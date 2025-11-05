@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.lambda.stream.kafka
@@ -18,7 +18,7 @@ import org.geotools.api.data.{DataStore, Query}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
@@ -54,12 +54,12 @@ class KafkaStore(
 
   private val producer = KafkaStore.producer(sft, config.producerConfig)
 
-  private val cache = new KafkaFeatureCache(ds, sft, offsetManager, topic, config.expiry, config.persistBatchSize)
+  private val cache = new KafkaFeatureCache(ds, sft, offsetManager, topic, config.persistence)
 
   private val serializer = {
     // use immutable so we can return query results without copying or worrying about user modification
     // use lazy so that we don't create lots of objects that get replaced/updated before actually being read
-    val options = SerializationOptions.builder.withUserData.withoutFidHints.immutable.`lazy`.build
+    val options = SerializationOption.builder.withUserData.withoutFidHints.immutable.`lazy`.build()
     KryoFeatureSerializer(sft, options)
   }
 
@@ -149,12 +149,6 @@ object KafkaStore {
     val Write:  Byte = 0
     val Delete: Byte = 1
   }
-
-  @deprecated("Replaced with LambdaDataStore.topic")
-  def topic(ns: String, sft: SimpleFeatureType): String = LambdaDataStore.topic(sft, ns)
-
-  @deprecated("Does not return correct topic if topic is overridden in the feature type - replaced with LambdaDataStore.topic")
-  def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
   def producer(sft: SimpleFeatureType, connect: Map[String, String]): Producer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.producer.ProducerConfig._
@@ -289,7 +283,7 @@ object KafkaStore {
         case s: String => s
         case s => throw new IllegalStateException(s"Invalid spec config for $SimpleFeatureSpecConfig: $s")
       }
-      val options = SerializationOptions.builder.immutable.`lazy`.build
+      val options = SerializationOption.builder.immutable.`lazy`.build()
       serializer = KryoFeatureSerializer(SimpleFeatureTypes.createType("", spec), options)
     }
 

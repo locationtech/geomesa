@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.fs.storage.api
 
+import org.apache.hadoop.fs.Path
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.api.filter.Filter
@@ -147,6 +148,9 @@ trait FileSystemStorage extends Compactable with Closeable {
 
 object FileSystemStorage {
 
+  /**
+   * Append writer
+   */
   trait FileSystemWriter extends Closeable with Flushable {
 
     /**
@@ -157,6 +161,9 @@ object FileSystemStorage {
     def write(feature: SimpleFeature): Unit
   }
 
+  /**
+   * Update writer
+   */
   trait FileSystemUpdateWriter extends Iterator[SimpleFeature] with Closeable with Flushable {
 
     /**
@@ -168,5 +175,12 @@ object FileSystemStorage {
       * Deletes the last feature returned by `next`
       */
     def remove(): Unit
+  }
+
+  /**
+   * Reader trait
+   */
+  trait FileSystemPathReader {
+    def read(path: Path): Iterator[SimpleFeature] with Closeable
   }
 }

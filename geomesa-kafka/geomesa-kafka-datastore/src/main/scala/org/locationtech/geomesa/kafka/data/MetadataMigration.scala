@@ -3,13 +3,14 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.data
 
+import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.zk.CuratorHelper
 
 import java.nio.charset.StandardCharsets
 
@@ -25,7 +26,13 @@ class MetadataMigration(ds: KafkaDataStore, zkPath: String, zookeepers: String) 
   override def run(): Unit = {
     import scala.collection.JavaConverters._
 
-    val client = CuratorHelper.client(zookeepers).namespace(zkPath).build()
+    val client =
+      CuratorFrameworkFactory.builder()
+        .connectString(zookeepers)
+        .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+        .dontUseContainerParents()
+        .namespace(zkPath)
+        .build()
 
     try {
       client.start()

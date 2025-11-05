@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect
@@ -20,12 +20,12 @@ class TruncateToTenMinutes extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
     Seq(
-      """CREATE OR REPLACE FUNCTION truncate_to_ten_minutes(dtg timestamp without time zone)
-        |RETURNS timestamp without time zone AS
-        |  $BODY$
-        |    SELECT date_trunc('hour', dtg) + INTERVAL '10 MINUTES' * floor(date_part('minute', dtg) / 10);
-        |  $BODY$
-        |LANGUAGE sql;""".stripMargin
+      s"""CREATE OR REPLACE FUNCTION ${info.schema.quoted}.truncate_to_ten_minutes(dtg timestamp without time zone)
+         |RETURNS timestamp without time zone AS
+         |  $$BODY$$
+         |    SELECT date_trunc('hour', dtg) + INTERVAL '10 MINUTES' * floor(date_part('minute', dtg) / 10);
+         |  $$BODY$$
+         |LANGUAGE sql;""".stripMargin
     )
   }
 

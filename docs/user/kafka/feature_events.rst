@@ -52,6 +52,7 @@ following listener simply prints out the events it receives:
 
     import org.geotools.api.data.FeatureEvent;
     import org.geotools.api.data.FeatureListener;
+    import org.geotools.api.data.SimpleFeatureSource;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureRemoved;
     import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureCleared;
@@ -75,7 +76,7 @@ following listener simply prints out the events it receives:
         }
       }
     };
-    store.addFeatureListener(listener);
+    source.addFeatureListener(listener);
 
 At cleanup time, it is important to unregister the feature listener with ``removeFeatureListener()``.
 For example, for code run in a bean in GeoServer, the ``javax.annotation.PreDestroy`` annotation may
@@ -85,7 +86,7 @@ be used to mark the method that does the deregistration:
 
     @PreDestroy
     public void dispose() throws Exception {
-        store.removeFeatureListener(listener);
+        source.removeFeatureListener(listener);
         // other cleanup
     }
 

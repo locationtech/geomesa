@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.xml
@@ -20,7 +20,6 @@ import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.text.TextTools
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.{ErrorHandler, InputSource, SAXParseException}
 
@@ -116,7 +115,7 @@ object XmlConverter extends StrictLogging {
       val lines = IOUtils.lineIterator(bis, encoding)
       val elements = lines.asScala.flatMap { line =>
         ec.line += 1
-        if (TextTools.isWhitespace(line)) { Iterator.empty } else {
+        if (line.isBlank) { Iterator.empty } else {
           Iterator.single(parser.parse(new StringReader(line)))
         }
       }
@@ -169,7 +168,6 @@ object XmlConverter extends StrictLogging {
 
   case class XmlOptions(
       validators: Seq[String],
-      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       lineMode: LineMode,

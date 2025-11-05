@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
@@ -12,6 +12,7 @@ import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -67,6 +68,16 @@ object IteratorCache extends StrictLogging {
       serializer
     }
   }
+
+  /**
+   * Returns a cached serializer, creating one if necessary
+   *
+   * @param spec simple feature type spec
+   * @param withId serialization option
+   * @return
+   */
+  def serializer(spec: String, withId: Boolean): KryoFeatureSerializer =
+    serializer(spec, if (withId) { SerializationOption.defaults } else { Set(SerializationOption.WithoutId) })
 
   /**
     * Returns a cached filter, creating one if necessary.

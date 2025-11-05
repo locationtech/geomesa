@@ -3,22 +3,19 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.index
 
 import com.typesafe.scalalogging.LazyLogging
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.data.{FeatureListener, SimpleFeatureSource}
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.api.filter.expression.Expression
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.index.SpatialIndexSupport
-import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
-import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
-import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 
 import java.io.Closeable
 import java.util.concurrent._
@@ -36,8 +33,6 @@ trait KafkaFeatureCache extends KafkaListeners with Closeable {
 
 object KafkaFeatureCache extends LazyLogging {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
   /**
    * Create a standard feature cache
    *
@@ -46,11 +41,11 @@ object KafkaFeatureCache extends LazyLogging {
    * @param views layer view config
    * @return
    */
-  def apply(sft: SimpleFeatureType, config: IndexConfig, views: Seq[LayerView] = Seq.empty): KafkaFeatureCache = {
+  def apply(sft: SimpleFeatureType, config: IndexConfig, views: Seq[LayerView] = Seq.empty, tags: Tags = Tags.empty()): KafkaFeatureCache = {
     if (config.expiry == ImmediatelyExpireConfig) {
       new NoOpFeatureCache(views.map(v => KafkaFeatureCacheView.empty(v.viewSft)))
     } else {
-      new KafkaFeatureCacheImpl(sft, config, views)
+      new KafkaFeatureCacheImpl(sft, config, views, tags)
     }
   }
 
@@ -88,26 +83,9 @@ object KafkaFeatureCache extends LazyLogging {
   }
 
   /**
-    * Create a CQEngine index support. Note that CQEngine handles points vs non-points internally
-    *
-    * @param sft simple feature type
-    * @param config index config
-    * @return
-    */
-  private [index] def cqIndexSupport(sft: SimpleFeatureType, config: IndexConfig): SpatialIndexSupport = {
-    val attributes = if (config.cqAttributes == Seq(KafkaDataStore.CqIndexFlag)) {
-      // deprecated boolean config to enable indices based on the stored simple feature type
-      CQIndexType.getDefinedAttributes(sft) ++ Option(sft.getGeomField).map((_, CQIndexType.GEOMETRY))
-    } else {
-      config.cqAttributes
-    }
-    GeoCQIndexSupport(sft, attributes, config.resolution.x, config.resolution.y)
-  }
-
-  /**
     * Non-indexing feature cache that just tracks the most recent feature
     */
-  class NonIndexingFeatureCache extends KafkaFeatureCache {
+  private class NonIndexingFeatureCache extends KafkaFeatureCache {
 
     private val state = new ConcurrentHashMap[String, SimpleFeature]
 
@@ -141,7 +119,7 @@ object KafkaFeatureCache extends LazyLogging {
     *
     * @param time event time expression
     */
-  class NonIndexingEventTimeFeatureCache(time: Expression) extends KafkaFeatureCache {
+  private class NonIndexingEventTimeFeatureCache(time: Expression) extends KafkaFeatureCache {
 
     private val state = new ConcurrentHashMap[String, (SimpleFeature, Long)]
 
@@ -196,7 +174,7 @@ object KafkaFeatureCache extends LazyLogging {
     override def removeListener(source: SimpleFeatureSource, listener: FeatureListener): Unit = {}
   }
 
-  class NoOpFeatureCache(val views: Seq[KafkaFeatureCacheView]) extends KafkaFeatureCache {
+  private class NoOpFeatureCache(val views: Seq[KafkaFeatureCacheView]) extends KafkaFeatureCache {
     override def put(feature: SimpleFeature): Unit = {}
     override def remove(id: String): Unit = {}
     override def clear(): Unit = {}

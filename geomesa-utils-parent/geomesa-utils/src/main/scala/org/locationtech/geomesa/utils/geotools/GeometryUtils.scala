@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
@@ -155,8 +155,7 @@ object GeometryUtils extends LazyLogging {
     try {
       // use `maxBitResolution | 1` to ensure oddness, which is required by GeohashUtils
       val resolution = ResolutionRange(0, maxBitResolution | 1, 5)
-      val geohashes = GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution, relaxFit = true)
-      geohashes.map(gh => (gh.bbox.ll.getX, gh.bbox.ll.getY, gh.bbox.ur.getX, gh.bbox.ur.getY))
+      GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution)
     } catch {
       case NonFatal(e) =>
         logger.error("Error decomposing geometry, falling back to envelope bounds:", e)

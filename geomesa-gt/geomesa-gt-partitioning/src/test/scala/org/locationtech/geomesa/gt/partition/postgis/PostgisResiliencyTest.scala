@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis
@@ -60,7 +60,8 @@ class PostgisResiliencyTest extends Specification with LazyLogging {
   def write(ds: DataStore, features: Seq[SimpleFeature]): Unit = {
     WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
       features.foreach { f =>
-        val toWrite = FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+        val toWrite = writer.next()
+        FeatureUtils.copyToFeature(toWrite, f, useProvidedFid = true)
         toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(toWrite.getID.substring(sft.getTypeName.length + 1))
         writer.write()
       }

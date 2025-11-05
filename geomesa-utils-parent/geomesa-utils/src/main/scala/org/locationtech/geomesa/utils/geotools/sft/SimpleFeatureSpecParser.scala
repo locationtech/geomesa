@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools.sft
@@ -36,25 +36,27 @@ object SimpleFeatureSpecParser {
 
   private def parse[T](spec: String, rule: Rule1[T], report: Boolean): T = {
     if (spec == null) {
-      throw new IllegalArgumentException("Invalid spec string: null")
+      throw new IllegalArgumentException("Invalid spec: null")
     }
     val runner = if (report) { ReportingParseRunner(rule) } else { BasicParseRunner(rule) }
     val parsing = runner.run(spec.stripMarginAndWhitespace())
-    parsing.result.getOrElse(throw new ParsingException(constructErrorMessage(parsing, report)))
+    parsing.result.getOrElse(throw new ParsingException(constructErrorMessage(parsing, report, spec)))
   }
 
-  private def constructErrorMessage[T](result: ParsingResult[T], report: Boolean): String = {
-    lazy val fallback = s"Invalid spec string: ${ErrorUtils.printParseErrors(result)}"
+  private def constructErrorMessage[T](result: ParsingResult[T], report: Boolean, spec: String): String = {
+    lazy val fallback = s"Invalid spec: ${ErrorUtils.printParseErrors(result)}\n$spec"
     if (!report) { fallback } else {
       result.parseErrors.collectFirst { case e: InvalidInputError =>
         import scala.collection.JavaConverters._
+        // add a caret pointing to the invalid location
+        val specAndIndex = s"$spec\n${Seq.fill(math.max(0, e.getStartIndex - 1))(" ").mkString}^"
         // determine what paths the parser partially matched
         val matchers = e.getFailedMatchers.asScala.map(getFailedMatcher).distinct
         if (matchers.isEmpty) {
-          s"Invalid spec string at index ${e.getStartIndex}."
+          s"Invalid spec at index ${e.getStartIndex}\n$specAndIndex"
         } else {
           val expected = if (matchers.lengthCompare(1) > 0) { s"one of: ${matchers.mkString(", ")}" } else { matchers.head }
-          s"Invalid spec string at index ${e.getStartIndex}. Expected $expected."
+          s"Invalid spec at index ${e.getStartIndex} - expected $expected\n$specAndIndex"
         }
       }.getOrElse(fallback)
     }

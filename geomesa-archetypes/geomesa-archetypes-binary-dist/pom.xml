@@ -5,7 +5,7 @@
     <parent>
         <artifactId>geomesa-archetypes_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>5.4.0-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>geomesa-archetypes-binary-dist_2.12</artifactId>
@@ -13,13 +13,6 @@
     <packaging>pom</packaging>
 
     <dependencies>
-        <!-- common models jar-->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-            <classifier>data</classifier>
-        </dependency>
-
         <!-- additional deps to manage in for deploying to lib dir-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -74,34 +67,52 @@
     </dependencies>
 
     <build>
-      <pluginManagement>
-          <plugins>
-              <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>binary-assembly</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>geomesa-${tools.module}_${scala.binary.version}-${project.version}</finalName>
-                            <tarLongFileMode>posix</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-binary-dist/binary-release.xml</descriptor>
-                            </descriptors>
-                            <delimiters>
-                                <delimiter>%%</delimiter>
-                            </delimiters>
-                            <attach>false</attach>
-                        </configuration>
-                    </execution>
-                </executions>
-              </plugin>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>make-assembly</id>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                            <phase>package</phase>
+                            <configuration>
+                                <finalName>geomesa-${tools.module}_${scala.binary.version}-${project.version}</finalName>
+                                <tarLongFileMode>posix</tarLongFileMode>
+                                <descriptors>
+                                    <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-binary-dist/binary-release.xml</descriptor>
+                                </descriptors>
+                                <delimiters>
+                                    <delimiter>%%</delimiter>
+                                </delimiters>
+                                <attach>false</attach>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.github.git-commit-id</groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <configuration>
+                        <skipPoms>false</skipPoms>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <!-- disable the assembly for this parent module -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <inherited>false</inherited>
+                <configuration>
+                    <skipAssembly>true</skipAssembly>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 </project>

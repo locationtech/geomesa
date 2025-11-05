@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.metadata
@@ -11,16 +11,18 @@ package org.locationtech.geomesa.index.metadata
 import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.DateParsing
 
+import java.io.Closeable
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.time.{Instant, ZoneOffset}
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+import scala.util.Try
 
 /**
   * Metadata persisted in a database table. The underlying table will be lazily created when required.
@@ -47,7 +49,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   protected def checkIfTableExists: Boolean
 
   /**
-    * Creates the underlying table
+    * Creates the underlying table. Must be idempotent.
     */
   protected def createTable(): Unit
 
@@ -72,7 +74,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     * @param typeName simple feature type name
     * @param keys keys
     */
-  protected def delete(typeName: String, keys: Seq[String])
+  protected def delete(typeName: String, keys: Seq[String]): Unit
 
   /**
     * Reads a value from the underlying table
@@ -99,10 +101,9 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     */
   protected def scanKeys(): CloseableIterator[(String, String)]
 
-  // only synchronize if table doesn't exist - otherwise it's ready only and we can avoid synchronization
-  private val tableExists: AtomicBoolean = new AtomicBoolean(checkIfTableExists)
-
   private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
+
+  private val tableExists = new TableExists().init()
 
   // cache for our metadata - invalidate every 10 minutes so we keep things current
   private val metaDataCache: LoadingCache[(String, String), Option[T]] =
@@ -190,7 +191,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   override def remove(typeName: String, key: String): Unit = remove(typeName, Seq(key))
 
   override def remove(typeName: String, keys: Seq[String]): Unit = {
-    if (tableExists.get) {
+    if (tableExists.get()) {
       delete(typeName, keys)
       // also remove from the cache
       keys.foreach(k => metaDataCache.invalidate((typeName, k)))
@@ -201,7 +202,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 
   override def delete(typeName: String): Unit = {
-    if (tableExists.get) {
+    if (tableExists.get()) {
       WithClose(scanValues(typeName)) { rows =>
         if (rows.nonEmpty) {
           delete(typeName, rows.map(_._1).toSeq)
@@ -214,7 +215,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 
   override def backup(typeName: String): Unit = {
-    if (tableExists.get) {
+    if (tableExists.get()) {
       WithClose(scanValues(typeName)) { rows =>
         if (rows.nonEmpty) {
           WithClose(createEmptyBackup(DateParsing.formatInstant(Instant.now, formatter))) { metadata =>
@@ -228,18 +229,18 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     }
   }
 
-  // checks that the table is already created, and creates it if not
-  def ensureTableExists(): Unit = {
-    if (tableExists.compareAndSet(false, true)) {
-      createTable()
-    }
-  }
+  /**
+   * Checks that the table is already created, and creates it if not
+   */
+  def ensureTableExists(): Unit = tableExists.createIfNeeded()
 
-  override def resetCache(): Unit={
-    tableExists.set(checkIfTableExists)
+  override def resetCache(): Unit = {
+    tableExists.run()
     metaDataCache.invalidateAll()
     metaDataScanCache.invalidateAll()
   }
+
+  override def close(): Unit = tableExists.close()
 
   /**
     * Invalidate all keys for the given feature type
@@ -254,8 +255,82 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
       }
     }
   }
+
+  /**
+   * Tracks existence of the metadata table
+   */
+  private class TableExists extends Runnable with Closeable {
+
+    @volatile
+    private var exists = false
+    private var es: ScheduledExecutorService = _
+    private var future: ScheduledFuture[_] = _
+
+    /**
+     * Initialization
+     *
+     * @return
+     */
+    def init(): TableExists = { run(); this }
+
+    /**
+     * Does the table exist
+     *
+     * @return
+     */
+    def get(): Boolean = exists
+
+    /**
+     * Create the table if it doesn't exist.
+     *
+     * Note that we don't synchronize this method, but creating the table should be idempotent
+     */
+    def createIfNeeded(): Unit = {
+      if (!exists) {
+        createTable()
+        run()
+      }
+    }
+
+    /**
+     * Check for table existence
+     */
+    override def run(): Unit = {
+      exists = checkIfTableExists
+      if (exists) {
+        cancel()
+      } else {
+        schedule()
+      }
+    }
+
+    override def close(): Unit = cancel()
+
+    private def schedule(): Unit = synchronized {
+      if (es == null) {
+        es = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
+      }
+      if (future == null) {
+        future = es.scheduleAtFixedRate(this, expiry, expiry, TimeUnit.MILLISECONDS)
+      }
+    }
+
+    /**
+     * Cancel any scheduled tasks
+     */
+    private def cancel(): Unit = synchronized {
+      if (future != null) {
+        Try(future.cancel(true))
+        future = null
+      }
+      if (es != null) {
+        CloseWithLogging(es)
+        es = null
+      }
+    }
+  }
 }
 
 object TableBasedMetadata {
-  val Expiry = SystemProperty("geomesa.metadata.expiry", "10 minutes")
+  val Expiry: SystemProperty = SystemProperty("geomesa.metadata.expiry", "10 minutes")
 }

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.geotools
@@ -27,10 +27,10 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.impl._
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, Stat}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.geomesa.utils.stats._
 
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicLong

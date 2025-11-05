@@ -12,7 +12,7 @@ and functions. This module can easily be included in other projects that want to
 work with geometries in Spark, as it only depends on the JTS library.
 
 Next, the ``geomesa-spark-core`` module (see :doc:`./core`) is an extension for Spark that takes
-`GeoTools`_ ``Query`` objects as input and produces resilient distributed datasets
+`GeoTools <https://geotools.org/>`_ ``Query`` objects as input and produces resilient distributed datasets
 (``RDD``\ s) containing serialized versions of SimpleFeatures. Multiple
 backends that target different types of feature stores are available,
 including ones for Accumulo, HBase, FileSystem, files readable by the :ref:`converters` library,

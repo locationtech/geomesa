@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.tools.`export`
@@ -39,8 +39,7 @@ import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, P
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
-import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, PathUtils, WithClose}
 
 import java.io._
 import java.util.Collections
@@ -49,7 +48,7 @@ import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
 trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
-    with DistributedCommand with InteractiveCommand with MethodProfiling {
+    with DistributedCommand with InteractiveCommand /*with MethodProfiling*/ {
 
   import ExportCommand.CountKey
 
@@ -59,19 +58,16 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
   override def libjarsFiles: Seq[String] = Seq("org/locationtech/geomesa/tools/export-libjars.list")
 
   override def execute(): Unit = {
-    def complete(result: JobResult, time: Long): Unit = {
-      result match {
-        case JobSuccess(message, counts) =>
-          val count = counts.get(CountKey).map(c => s" for $c features").getOrElse("")
-          Command.user.info(s"$message$count in ${time}ms")
+    val start = System.currentTimeMillis()
+    withDataStore(export) match {
+      case JobSuccess(message, counts) =>
+        val count = counts.get(CountKey).map(c => s" for $c features").getOrElse("")
+        Command.user.info(s"$message$count in ${System.currentTimeMillis() - start}ms")
 
-        case JobFailure(message) =>
-          Command.user.info(s"Feature export failed in ${time}ms: $message")
-          throw new CommandException(message) // propagate out and return an exit code error
-      }
+      case JobFailure(message) =>
+        Command.user.info(s"Feature export failed in ${System.currentTimeMillis() - start}ms: $message")
+        throw new CommandException(message) // propagate out and return an exit code error
     }
-
-    profile(complete _)(withDataStore(export))
   }
 
   private def export(ds: DS): JobResult = {

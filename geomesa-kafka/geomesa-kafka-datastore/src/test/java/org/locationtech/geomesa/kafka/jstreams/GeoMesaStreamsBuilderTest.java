@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.kafka.jstreams;
@@ -13,107 +13,55 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.common.serialization.Serdes.StringSerde;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.TestInputTopic;
-import org.apache.kafka.streams.TestOutputTopic;
-import org.apache.kafka.streams.TopologyTestDriver;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Produced;
-import org.apache.kafka.streams.kstream.Transformer;
+import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.apache.kafka.streams.test.TestRecord;
-import org.geotools.api.data.DataStoreFinder;
-import org.geotools.api.data.Query;
-import org.geotools.api.data.SimpleFeatureReader;
-import org.geotools.api.data.SimpleFeatureWriter;
-import org.geotools.api.data.Transaction;
+import org.geotools.api.data.*;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
+import org.locationtech.geomesa.kafka.KafkaContainerTest;
 import org.locationtech.geomesa.kafka.data.KafkaDataStore;
 import org.locationtech.geomesa.kafka.streams.GeoMesaMessage;
 import org.locationtech.geomesa.utils.geotools.FeatureUtils;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.kafka.KafkaContainer;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class GeoMesaStreamsBuilderTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(GeoMesaStreamsBuilderTest.class);
-
-    static KafkaContainer container = null;
+    @ClassRule
+    public static final KafkaContainer container =
+            new KafkaContainer(KafkaContainerTest.KafkaImage())
+                    .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")));
 
     static final SimpleFeatureType sft =
           SimpleFeatureTypes.createImmutableType("streams", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326");
 
     static final List<SimpleFeature> features = new ArrayList<>();
 
-    static final Set<String> zkPaths = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    static final Set<String> catalogs = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    static String zookeepers() {
-        return String.format("%s:%s", container.getHost(), container.getMappedPort(KafkaContainer.ZOOKEEPER_PORT));
-    }
     static String brokers() {
         return container.getBootstrapServers();
     }
 
-    public Map<String, String> getParams(String zkPath) {
-        if (!zkPaths.add(zkPath)) {
-            throw new IllegalArgumentException("zk path '" + zkPath + "' is reused between tests, may cause conflicts");
-        }
-        Map<String, String> params = new HashMap<>();
-        params.put("kafka.brokers", brokers());
-        params.put("kafka.zookeepers", zookeepers());
-        params.put("kafka.topic.partitions", "1");
-        params.put("kafka.topic.replication", "1");
-        params.put("kafka.consumer.read-back", "Inf");
-        params.put("kafka.zk.path", zkPath);
-        return params;
-    }
-
-    @BeforeClass
-    public static void init() {
-        DockerImageName image =
-              DockerImageName.parse("confluentinc/cp-kafka")
-                             .withTag(System.getProperty("confluent.docker.tag", "7.3.1"));
-        container = new KafkaContainer(image);
-        container.start();
-        container.followOutput(new Slf4jLogConsumer(logger));
-
+    static {
         for (int i = 0; i < 10; i ++) {
             ScalaSimpleFeature sf = new ScalaSimpleFeature(sft, "id" + i, null, null);
             sf.setAttribute(0, "name" + i);
@@ -124,11 +72,17 @@ public class GeoMesaStreamsBuilderTest {
         }
     }
 
-    @AfterClass
-    public static void destroy() {
-        if (container != null) {
-            container.stop();
+    public Map<String, String> getParams(String catalog) {
+        if (!catalogs.add(catalog)) {
+            throw new IllegalArgumentException("zk path '" + catalog + "' is reused between tests, may cause conflicts");
         }
+        Map<String, String> params = new HashMap<>();
+        params.put("kafka.brokers", brokers());
+        params.put("kafka.catalog.topic", catalog);
+        params.put("kafka.topic.partitions", "1");
+        params.put("kafka.topic.replication", "1");
+        params.put("kafka.consumer.read-back", "Inf");
+        return params;
     }
 
     @Test
@@ -275,7 +229,7 @@ public class GeoMesaStreamsBuilderTest {
             // initialize kafka consumers for the store
             ds.getFeatureReader(new Query(sft.getTypeName()), Transaction.AUTO_COMMIT).close();
             // send the mocked messages to the actual embedded kafka topic
-            try(Producer<byte[], byte[]> producer = KafkaDataStore.producer(ds.config())) {
+            try(Producer<byte[], byte[]> producer = KafkaDataStore.producer(ds.config().brokers(), ds.config().producers().properties())) {
                 kryoMessages.forEach(producer::send);
             }
 

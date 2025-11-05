@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.index.iterators
@@ -13,7 +13,6 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -47,9 +46,7 @@ trait AggregatingScan[T <: AggregatingScan.Result] extends SamplingIterator with
       case Some(ispec) => IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
     }
 
-    // noinspection ScalaDeprecation
-    val kryo = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-    reusableSf = IteratorCache.serializer(spec, kryo).getReusableFeature
+    reusableSf = IteratorCache.serializer(spec, index.serializedWithId).getReusableFeature
     reusableSf.setIdParser(index.getIdFromRow(_, _, _, null))
     aggregateSf = reusableSf
 

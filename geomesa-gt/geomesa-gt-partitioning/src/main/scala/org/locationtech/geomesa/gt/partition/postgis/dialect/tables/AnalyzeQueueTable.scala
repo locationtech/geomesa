@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.gt.partition.postgis.dialect
@@ -15,8 +15,9 @@ package tables
 object AnalyzeQueueTable extends SqlStatements {
 
   override protected def createStatements(info: TypeInfo): Seq[String] = {
+    val logging = if (info.tables.analyzeQueue.logged) { "" } else { "UNLOGGED" }
     val create =
-      s"""CREATE ${info.walLogSQL} TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
+      s"""CREATE $logging TABLE IF NOT EXISTS ${info.tables.analyzeQueue.name.qualified} (
          |  partition_name text,
          |  enqueued timestamp without time zone
          |);""".stripMargin

@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert
@@ -37,14 +37,6 @@ trait EvaluationContext {
     * @return
     */
   def cache: Map[String, EnrichmentCache]
-
-  /**
-    * Metrics registry, accessible for tracking any custom values
-    *
-    * @return
-    */
-  @deprecated("Use micrometer global registry for metrics")
-  def metrics: ConverterMetrics
 
   /**
     * Counter for tracking successes
@@ -110,30 +102,7 @@ object EvaluationContext extends LazyLogging {
     * @return
     */
   def empty: EvaluationContext =
-    new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, ConverterMetrics.empty, Stats())
-
-  /**
-   * Creates a new evaluation context with the given state
-   *
-   * @param fields converter fields, in topological dependency order
-   * @param globalValues global values
-   * @param caches enrichment caches
-   * @param metrics metrics
-   * @param success success counter
-   * @param failure failure counter
-   * @return
-   */
-  @deprecated("EvaluationContext should be accessed through a converter")
-  def apply(
-      fields: Seq[Field],
-      globalValues: Map[String, _ <: AnyRef],
-      caches: Map[String, EnrichmentCache],
-      metrics: ConverterMetrics,
-      success: com.codahale.metrics.Counter,
-      failure: com.codahale.metrics.Counter): EvaluationContext = {
-    val stats = Stats.wrap(success, failure, Tags.empty())
-    new StatefulEvaluationContext(fields.toArray, globalValues, caches, metrics, stats)
-  }
+    new StatefulEvaluationContext(Array.empty, Map.empty, Map.empty, Stats())
 
   /**
     * Gets a global parameter map containing the input file path
@@ -210,8 +179,10 @@ object EvaluationContext extends LazyLogging {
      * @param tags tags to apply to any metrics
      * @return
      */
-    def apply(tags: Tags = Tags.empty()): Stats =
-      MicrometerStats(Metrics.counter(ConverterMetrics.name("success"), tags), Metrics.counter(ConverterMetrics.name("failure"), tags))
+    def apply(tags: Tags = Tags.empty()): Stats = {
+      val name = ConverterMetrics.name("count")
+      MicrometerStats(Metrics.counter(name, tags.and("result", "success")), Metrics.counter(name, tags.and("result", "failure")))
+    }
 
     /**
      * Wraps dropwizard counters, for back-compatibility
@@ -307,7 +278,6 @@ object EvaluationContext extends LazyLogging {
    * @param fields fields to evaluate, in topological dependency order
    * @param globalValues global variable name/values
    * @param cache enrichment caches
-   * @param metrics deprecated metrics
    * @param stats metrics
    * @param errors error tracker
    */
@@ -315,7 +285,6 @@ object EvaluationContext extends LazyLogging {
       fields: Array[Field],
       globalValues: Map[String, _ <: AnyRef],
       val cache: Map[String, EnrichmentCache],
-      val metrics: ConverterMetrics,
       val stats: Stats,
       val errors: java.util.Queue[EvaluationError] = new java.util.ArrayDeque[EvaluationError]()
     ) extends EvaluationContext {
@@ -369,7 +338,7 @@ object EvaluationContext extends LazyLogging {
     }
 
     override def withListener(listener: ContextListener): EvaluationContext =
-      new StatefulEvaluationContext(fields, globalValues, cache, metrics, StatListener(stats, listener))
+      new StatefulEvaluationContext(fields, globalValues, cache, StatListener(stats, listener))
   }
 
   /**

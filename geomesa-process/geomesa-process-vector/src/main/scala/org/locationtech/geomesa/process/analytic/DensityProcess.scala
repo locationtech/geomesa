@@ -3,11 +3,12 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.process.analytic
 
+import org.eclipse.imagen.RasterFactory
 import org.geotools.api.coverage.grid.GridGeometry
 import org.geotools.api.data.Query
 import org.geotools.api.filter.Filter
@@ -26,7 +27,6 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.awt.image.DataBuffer
-import javax.media.jai.RasterFactory
 
 /**
  * Stripped down version of org.geotools.process.vector.HeatmapProcess

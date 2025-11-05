@@ -37,7 +37,7 @@ commands:
 
     mvn clean install -DskipTests
     mvn dependency:copy-dependencies -DincludeScope=compile -DoutputDirectory=$GEOMESA_HOME/lib
-    cp target/geomesa-convert-osm_2.12-$version.jar $GEOMESA_HOME/lib
+    cp target/geomesa-convert-osm_2.12-{{scala_binary_version}}-{{release}}.jar $GEOMESA_HOME/lib
 
 
 Check that the ``osm-nodes`` and ``osm-ways`` simple feature types are available on the GeoMesa

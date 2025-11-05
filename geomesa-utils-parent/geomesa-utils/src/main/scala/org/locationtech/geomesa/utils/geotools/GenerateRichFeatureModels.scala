@@ -3,18 +3,19 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
+import com.typesafe.scalalogging.StrictLogging
 import org.geotools.api.feature.`type`.AttributeDescriptor
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.locationtech.geomesa.utils.io.WithClose
 
 import java.io.{File, FileWriter, Writer}
 
-object GenerateRichFeatureModels {
+object GenerateRichFeatureModels extends StrictLogging {
 
   /**
    * Creates implicit wrappers for any typesafe config format files found under src/main/resources
@@ -31,13 +32,13 @@ object GenerateRichFeatureModels {
     val sfts = SimpleFeatureTypeLoader.sfts
 
     if (sfts.isEmpty) {
-      println("No formats found")
+      logger.info("No formats found")
     } else {
       sfts.foreach { sft =>
         val name = s"${safeIdentifier(sft.getTypeName)}Model"
         val classFilePath = s"$basedir/src/main/scala/${packageName.replaceAll("\\.", "/")}/$name.scala"
         val classFile = new File(classFilePath)
-        println(s"Writing class file $packageName.$name with feature type ${sft.getTypeName}")
+        logger.info(s"Writing class file $packageName.$name with feature type ${sft.getTypeName}")
         WithClose(new FileWriter(classFile)) { fw =>
           buildSingleClass(sft, name, packageName, fw)
         }

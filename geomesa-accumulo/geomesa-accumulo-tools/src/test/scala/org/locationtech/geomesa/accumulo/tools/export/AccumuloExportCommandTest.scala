@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.`export`
@@ -20,17 +20,16 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.tools.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.io.AvroDataFileReader
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
-import org.locationtech.geomesa.fs.storage.parquet.ParquetPathReader
+import org.locationtech.geomesa.fs.storage.orc.io.OrcFileSystemReader
+import org.locationtech.geomesa.fs.storage.parquet.io.{ParquetFileSystemReader, SimpleFeatureParquetSchema}
 import org.locationtech.geomesa.tools.`export`.ExportFormat
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -45,7 +44,7 @@ import java.util.{Collections, Date}
 import scala.util.{Failure, Success}
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloExportCommandTest extends TestWithFeatureType {
+class AccumuloExportCommandTest extends TestWithDataStore {
 
   import scala.collection.JavaConverters._
 
@@ -60,7 +59,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     ScalaSimpleFeature.create(sft, "id2", "name2", "2016-01-02T00:00:00.000Z", "POINT(0 2)")
   )
 
-  def createCommand(): AccumuloExportCommand = {
+  def withCommand[T](fn: AccumuloExportCommand => T): T = {
     val command = new AccumuloExportCommand()
     command.params.user        = dsParams(AccumuloDataStoreParams.UserParam.key)
     command.params.instance    = dsParams(AccumuloDataStoreParams.InstanceNameParam.key)
@@ -69,7 +68,7 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     command.params.catalog     = dsParams(AccumuloDataStoreParams.CatalogParam.key)
     command.params.featureName = sftName
     command.params.maxFeatures = 100 // suppress leaflet complaints
-    command
+    fn(command)
   }
 
   var out: java.nio.file.Path = _
@@ -83,29 +82,32 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     "export to different file formats" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/base/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.execute()
+        }
         readFeatures(format, file) must containTheSameElementsAs(features)
       }
     }
     "support filtering" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/filter/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.params.cqlFilter = ECQL.toFilter("dtg = '2016-01-01T00:00:00.000Z'")
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.params.cqlFilter = ECQL.toFilter("dtg = '2016-01-01T00:00:00.000Z'")
+          command.execute()
+        }
         readFeatures(format, file) must containTheSameElementsAs(features.take(1))
       }
     }
     "support relational projections" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/project/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.params.attributes = List("dtg", "geom", "id").asJava
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.params.attributes = List("dtg", "geom", "id").asJava
+          command.execute()
+        }
         val tsft = SimpleFeatureTypes.createType(sft.getTypeName, "dtg:Date,*geom:Point:srid=4326")
         readFeatures(format, file, tsft) must containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(tsft, _)))
       }
@@ -114,20 +116,22 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
       // exclude BIN as we only sort per-batch but not globally
       forall(formats.filter(_ != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/sort/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.params.sortFields = Collections.singletonList("dtg")
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.params.sortFields = Collections.singletonList("dtg")
+          command.execute()
+        }
         readFeatures(format, file) mustEqual features
       }
       // exclude BIN as we only support sort in ascending order
       forall(formats.filter(_ != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/sort-rev/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.params.sortFields = Collections.singletonList("dtg")
-        command.params.sortDescending = true
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.params.sortFields = Collections.singletonList("dtg")
+          command.params.sortDescending = true
+          command.execute()
+        }
         readFeatures(format, file) mustEqual features.reverse
       }
     }
@@ -135,14 +139,55 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
       // note: arrow and bin use server side aggregation, so we can't get an exact feature limit
       forall(formats.filter(f => f != ExportFormat.Arrow && f != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/max/out.${format.extensions.head}"
-        val command = createCommand()
-        command.params.file = file
-        command.params.maxFeatures = 1
-        command.execute()
+        withCommand { command =>
+          command.params.file = file
+          command.params.maxFeatures = 1
+          command.execute()
+        }
         val read = readFeatures(format, file)
         read must haveLength(1)
         features must containAllOf(read)
       }
+    }
+    "suppress or allow empty output files" in {
+      foreach(formats) { format =>
+        val file = s"$out/${format.name}/empty/out.${format.extensions.head}"
+        withCommand { command =>
+          command.params.file = file
+          command.params.suppressEmpty = true
+          command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
+          command.execute()
+        }
+        val empty = new File(file)
+        if (format == ExportFormat.Arrow) {
+          // arrow will still write out header/footer info to the file, but results will be empty
+          empty.exists() must beTrue
+          readFeatures(format, file) must beEmpty
+        } else {
+          empty.exists() must beFalse
+        }
+        withCommand { command =>
+          command.params.file = file
+          command.params.force = true // overwrite empty arrow file without prompting
+          command.params.suppressEmpty = false
+          command.params.cqlFilter = org.geotools.api.filter.Filter.EXCLUDE
+          command.execute()
+        }
+        empty.exists() must beTrue
+        readFeatures(format, file) must beEmpty
+      }
+    }
+    "support arrow with dictionaries and without feature ids" in {
+      val format = ExportFormat.Arrow
+      val file = s"$out/${format.name}/fid/out.${format.extensions.head}"
+      withCommand { command =>
+        command.params.file = file
+        command.params.hints = Map("ARROW_INCLUDE_FID" -> "false", "ARROW_DICTIONARY_FIELDS" -> "name").asJava
+        command.execute()
+      }
+      val result = readFeatures(format, file)
+      result.map(_.getAttributes) must containTheSameElementsAs(features.map(_.getAttributes))
+      foreach(features.map(_.getID))(id => result.map(_.getID) must not(contain(id)))
     }
   }
 
@@ -196,20 +241,21 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
-      case Failure(_) => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
-      case Success((s, c)) => SimpleFeatureConverter(s, c)
+    SimpleFeatureConverter.infer(() => new FileInputStream(file), None, EvaluationContext.inputFileParam(file)) match {
+      case Failure(_) => Seq.empty // empty json file
+      case Success((s, c)) =>
+        val converter = SimpleFeatureConverter(s, c)
+        val result = Seq.newBuilder[SimpleFeature]
+        val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+        WithClose(converter.process(new FileInputStream(file))) { features =>
+          features.foreach { f =>
+            val copy = new ScalaSimpleFeature(sft, f.getID)
+            names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
+            result += copy
+          }
+        }
+        result.result()
     }
-    val result = Seq.newBuilder[SimpleFeature]
-    val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
-    WithClose(converter.process(new FileInputStream(file))) { features =>
-      features.foreach { f =>
-        val copy = new ScalaSimpleFeature(sft, f.getID)
-        names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
-        result += copy
-      }
-    }
-    result.result()
   }
 
   def readLeaflet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
@@ -237,8 +283,8 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
   def readParquet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
     val path = new Path(PathUtils.getUrl(file).toURI)
     val conf = new Configuration()
-    StorageConfiguration.setSft(conf, sft)
-    WithClose(new ParquetPathReader(conf, sft, FilterCompat.NOOP, None, _ => true, None).read(path)) { iter =>
+    SimpleFeatureParquetSchema.setSft(conf, sft)
+    WithClose(new ParquetFileSystemReader(conf, sft, FilterCompat.NOOP, None, _ => true, None).read(path)) { iter =>
       iter.map(ScalaSimpleFeature.copy).toList
     }
   }

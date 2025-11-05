@@ -8,7 +8,7 @@
 # (the "License"); you may not use this file except in compliance with
 # the License.  You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+#    https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,7 @@
 set -e
 
 VALID_VERSIONS=("2.12" "2.13")
-FULL_VERSIONS=("2.12.19" "2.13.12") # note: 2.13.13 breaks the zinc compile server
+FULL_VERSIONS=("2.12.20" "2.13.16")
 
 usage() {
   echo "Usage: $(basename "$0") [-h|--help] <version>
@@ -79,5 +79,3 @@ sed "${sed_no_backup[@]}" "1,/<scala\.version>[0-9]\.[0-9][0-9]*\.[0-9][0-9]*</s
 
 # Update enforcer rules
 sed "${sed_no_backup[@]}" "s|<exclude>\*:\*_$TO_VERSION</exclude>|<exclude>*:*_$FROM_VERSION</exclude>|" "$BASEDIR/pom.xml"
-sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION\.\*</regex>|<regex>$TO_VERSION.*</regex>|" "$BASEDIR/pom.xml"
-sed "${sed_no_backup[@]}" "s|<regex>$FROM_VERSION</regex>|<regex>$TO_VERSION</regex>|" "$BASEDIR/pom.xml"

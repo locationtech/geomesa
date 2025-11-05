@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
- * http://www.opensource.org/licenses/apache2.0.php.
+ * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
 package org.locationtech.geomesa.convert.json
@@ -17,8 +17,6 @@ import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import pureconfig.{ConfigConvert, ConfigSource}
 
-import java.io.InputStream
-import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
 
 class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
@@ -49,11 +47,6 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
       }
     }
   }
-
-  override def infer(
-      is: InputStream,
-      sft: Option[SimpleFeatureType],
-      hints: Map[String, AnyRef]): Try[(SimpleFeatureType, Config)] = Failure(new UnsupportedOperationException())
 }
 
 object JsonCompositeConverterFactory {
