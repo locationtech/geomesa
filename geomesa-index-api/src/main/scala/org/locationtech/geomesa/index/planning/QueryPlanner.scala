@@ -70,9 +70,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     hints.getFilterCompatibility.foreach(c => explain(s"Filter compatibility: $c"))
 
     explain.pushLevel("Strategy selection:")
-    val strategies =
-      StrategyDecider.getFilterPlan(
-        ds, sft, query.getFilter, hints.getTransformSchema, hints.getCostEvaluation, hints.getRequestedIndex, explain)
+    val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, explain)
     explain.popLevel()
 
     var strategyCount = 1
@@ -81,9 +79,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
       strategyCount += 1
       explain(s"Strategy filter: $strategy")
       val start = System.nanoTime()
-      val qs = strategy.getQueryStrategy(hints, explain)
-      // query guard hook
-      interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
+      val qs = strategy.getQueryStrategy(explain)
       val plan = ds.adapter.createQueryPlan(qs)
       plan.explain(explain)
       explain(s"Plan creation took ${(System.nanoTime() - start) / 1000000L}ms").popLevel()

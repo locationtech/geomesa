@@ -14,7 +14,7 @@ import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
@@ -50,7 +50,7 @@ object CassandraQueryPlan {
 }
 
 // plan that will not actually scan anything
-case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
+case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
   override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
@@ -63,7 +63,7 @@ case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = N
 }
 
 case class StatementPlan(
-    filter: FilterStrategy,
+    strategy: QueryStrategy,
     tables: Seq[String],
     ranges: Seq[Statement],
     numThreads: Int,
@@ -76,6 +76,8 @@ case class StatementPlan(
     projection: Option[QueryReferenceSystems]
   ) extends CassandraQueryPlan {
 
-  override def scan(ds: CassandraDataStore): CloseableIterator[Row] =
+  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = {
+    strategy.runGuards(ds) // query guard hook - also handles full table scan checks
     CassandraBatchScan(this, ds.session, ranges, numThreads, ds.config.queries.timeout.map(Timeout.apply))
+  }
 }

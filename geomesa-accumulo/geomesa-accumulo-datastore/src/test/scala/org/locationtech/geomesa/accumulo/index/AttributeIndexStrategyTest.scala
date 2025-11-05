@@ -18,6 +18,7 @@ import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
@@ -1040,8 +1041,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     "merge PropertyIsEqualTo primary filters" >> {
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
-      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, temporal = false, 0L)
-      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L)
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, temporal = false, 0L, new Hints())
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L, new Hints())
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must not(beNull)
       res.primary must beSome(ff.or(q1, q2))
@@ -1051,9 +1052,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
       val q3 = ff.equals(ff.property("name"), ff.literal("3"))
-      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, temporal = false, 0L)
-      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L)
-      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), None, temporal = false, 0L)
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, temporal = false, 0L, new Hints())
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L, new Hints())
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), None, temporal = false, 0L, new Hints())
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -1064,9 +1065,9 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
       val q3 = ff.equals(ff.property("name"), ff.literal("3"))
-      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), temporal = false, 0L)
-      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), Some(bbox), temporal = false, 0L)
-      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), Some(bbox), temporal = false, 0L)
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), temporal = false, 0L, new Hints())
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), Some(bbox), temporal = false, 0L, new Hints())
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), Some(bbox), temporal = false, 0L, new Hints())
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -1077,8 +1078,8 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
       val bbox = ff.bbox(ff.property("geom"), new ReferencedEnvelope(1, 3, 2, 4, CRS_EPSG_4326))
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
-      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), temporal = false, 0L)
-      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L)
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), temporal = false, 0L, new Hints())
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, temporal = false, 0L, new Hints())
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must beNull
     }

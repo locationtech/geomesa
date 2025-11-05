@@ -17,7 +17,7 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
@@ -41,6 +41,8 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
   def scans: Seq[TableScan]
 
   override def scan(ds: HBaseDataStore): CloseableIterator[Results] = {
+    // query guard hook - also handles full table scan checks
+    strategy.runGuards(ds)
     // convert the relative timeout to an absolute timeout up front
     val timeout = ds.config.queries.timeout.map(Timeout.apply)
     val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
@@ -97,7 +99,7 @@ object HBaseQueryPlan {
   case class TableScan(table: TableName, scans: Seq[Scan])
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends HBaseQueryPlan {
+  case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends HBaseQueryPlan {
     override type Results = Result
     override val ranges: Seq[RowRange] = Seq.empty
     override val scans: Seq[TableScan] = Seq.empty
@@ -115,7 +117,7 @@ object HBaseQueryPlan {
   }
 
   case class ScanPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
       resultsToFeatures: ResultsToFeatures[Result],
@@ -139,7 +141,7 @@ object HBaseQueryPlan {
   }
 
   case class CoprocessorPlan(
-      filter: FilterStrategy,
+      strategy: QueryStrategy,
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
       coprocessorOptions: Map[String, String],

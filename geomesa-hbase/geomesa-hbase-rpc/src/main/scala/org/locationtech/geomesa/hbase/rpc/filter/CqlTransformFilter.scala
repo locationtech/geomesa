@@ -567,7 +567,7 @@ object CqlTransformFilter extends StrictLogging {
 
     override def tieredKeySpace: Option[IndexKeySpace[_, _]] = throw new UnsupportedOperationException()
 
-    override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] =
+    override def getFilterStrategy(filter: Filter, hints: Hints): Option[FilterStrategy] =
       throw new UnsupportedOperationException()
 
     override def getIdFromRow(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String = ""

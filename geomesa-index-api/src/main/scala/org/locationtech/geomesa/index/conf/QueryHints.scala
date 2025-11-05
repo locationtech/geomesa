@@ -36,7 +36,6 @@ object QueryHints {
 
   val STATS_STRING     = new ClassKey(classOf[java.lang.String])
   val ENCODE_STATS     = new ClassKey(classOf[java.lang.Boolean])
-  val MAP_AGGREGATION  = new ClassKey(classOf[java.lang.String])
 
   val EXACT_COUNT      = new ClassKey(classOf[java.lang.Boolean])
   val LOOSE_BBOX       = new ClassKey(classOf[java.lang.Boolean])
@@ -148,10 +147,7 @@ object QueryHints {
 
     def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]
-    // noinspection ExistsEquals
-    def isStatsEncode: Boolean = Option(hints.get(ENCODE_STATS).asInstanceOf[Boolean]).exists(_ == true)
-    def isMapAggregatingQuery: Boolean = hints.containsKey(MAP_AGGREGATION)
-    def getMapAggregatingAttribute: String = hints.get(MAP_AGGREGATION).asInstanceOf[String]
+    def isStatsEncode: Boolean = Option(hints.get(ENCODE_STATS).asInstanceOf[java.lang.Boolean]).exists(Boolean.unbox)
     def getTransformDefinition: Option[String] = Option(hints.get(Internal.TRANSFORMS).asInstanceOf[String])
     def getTransformSchema: Option[SimpleFeatureType] =
       Option(hints.get(Internal.TRANSFORM_SCHEMA).asInstanceOf[SimpleFeatureType])

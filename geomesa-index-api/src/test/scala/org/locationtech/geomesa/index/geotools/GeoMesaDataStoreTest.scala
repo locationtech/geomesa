@@ -118,7 +118,7 @@ class GeoMesaDataStoreTest extends Specification {
       val sft = SimpleFeatureTypes.createType("61b44359ddb84822983587389d6a28a4",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
-        "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
+        "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard")
 
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
@@ -152,18 +152,15 @@ class GeoMesaDataStoreTest extends Specification {
       }
       ds.dispose()
 
-      // create a new store so the sys prop gets evaluated when the query guards are loaded
-      val ds2 = new TestGeoMesaDataStore(true)
+      // verify override via sys prop
       System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
       try {
-        ds2.createSchema(sft)
         foreach(invalid.map(ECQL.toFilter)) { filter =>
-          SelfClosingIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
               beEmpty
         }
       } finally {
         System.clearProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table")
-        ds2.dispose()
       }
     }
     "block queries which would cause a full table scan via sys props" in {

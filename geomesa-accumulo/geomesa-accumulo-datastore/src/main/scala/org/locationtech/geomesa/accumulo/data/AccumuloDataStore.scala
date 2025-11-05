@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryStrategy}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -421,7 +421,9 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
       val queryPlans = getQueryPlan(query)
 
       if (queryPlans.isEmpty) {
-        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity))
+        val filter =
+          FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity, query.getHints)
+        EmptyPlan(QueryStrategy(filter, Seq.empty, Seq.empty, Seq.empty, filter.filter, None))
       } else {
         val qps =
           if (queryPlans.lengthCompare(1) == 0) { queryPlans } else {

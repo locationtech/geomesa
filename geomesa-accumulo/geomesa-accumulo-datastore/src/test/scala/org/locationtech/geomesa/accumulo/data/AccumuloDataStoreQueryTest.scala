@@ -33,7 +33,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Coordinate
@@ -517,7 +517,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         }
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+          WithClose(CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features))(_.toList) must
+            throwA[RuntimeException]
         }
         // verify that we won't block if max features is set
         foreach(fullScans) { filter =>
@@ -538,7 +539,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "true")
         foreach(fullScans) { filter =>
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+          WithClose(CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features))(_.toList) must
+            throwA[RuntimeException]
         }
       } finally {
         QueryProperties.BlockFullTableScans.threadLocalValue.remove()
@@ -684,7 +686,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle Query.ALL" in {
-      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must not(throwAn[IllegalArgumentException]())
+      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features().close() must not(throwAn[IllegalArgumentException]())
       ds.getFeatureReader(Query.ALL, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
     }
   }

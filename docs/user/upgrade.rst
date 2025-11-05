@@ -93,6 +93,12 @@ The following dependencies have been upgraded:
 * scala 2.13 ``2.13.12`` -> ``2.13.16``
 * spark ``3.5.5`` -> ``3.5.7``
 
+StrategyDecider API Update
+--------------------------
+
+The ``org.locationtech.geomesa.index.planning.StrategyDecider`` API has been changed slightly to provide more context for
+implementations to use. The old API method has been deprecated and will be removed in a future version.
+
 Removed Modules
 ---------------
 
@@ -125,6 +131,10 @@ Deprecated Classes
 * ``org.locationtech.geomesa.utils.stats.Cardinality`` - replaced with ``org.locationtech.geomesa.utils.index.Cardinality``
 * ``org.locationtech.geomesa.utils.stats.IndexCoverage`` - replaced with ``org.locationtech.geomesa.utils.index.IndexCoverage``
 
+Deprecated Methods
+------------------
+
+* ``org.locationtech.geomesa.index.planning.StrategyDecider.selectFilterPlan``
 
 Internal API Changes
 --------------------

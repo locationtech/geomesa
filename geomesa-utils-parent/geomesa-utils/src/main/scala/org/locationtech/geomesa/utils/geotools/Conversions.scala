@@ -324,6 +324,8 @@ object RichSimpleFeatureType extends Conversions {
       userData[String](s"$key.$indexName").orElse(userData[String](key))
     }
 
+    def getQueryInterceptors: Seq[String] = userData[String](QueryInterceptors).toSeq.flatMap(_.split(","))
+
     def getKeywords: Set[String] =
       userData[String](Keywords).map(_.split(KeywordsDelimiter).toSet).getOrElse(Set.empty)
 

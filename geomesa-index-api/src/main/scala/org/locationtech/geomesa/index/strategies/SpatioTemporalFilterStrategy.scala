@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.index.strategies
 
-import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
@@ -19,16 +19,16 @@ trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
   // attributes are assumed to be a geometry field and a date field
   lazy private val Seq(geom, dtg) = attributes
 
-  override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
+  override def getFilterStrategy(filter: Filter, hints: Hints): Option[FilterStrategy] = {
     if (filter == Filter.INCLUDE) {
-      Some(FilterStrategy(this, None, None, temporal = false, Float.PositiveInfinity))
+      Some(FilterStrategy(this, None, None, temporal = false, Float.PositiveInfinity, hints))
     } else {
       val (temporal, nonTemporal) = FilterExtractingVisitor(filter, dtg, sft)
       val intervals = temporal.map(FilterHelper.extractIntervals(_, dtg)).getOrElse(FilterValues.empty)
 
       if (!intervals.disjoint && !intervals.exists(_.isBounded)) {
         // if there aren't any intervals then we would have to do a full table scan
-        Some(FilterStrategy(this, None, Some(filter), temporal = false, Float.PositiveInfinity))
+        Some(FilterStrategy(this, None, Some(filter), temporal = false, Float.PositiveInfinity, hints))
       } else {
         val (spatial, others) = nonTemporal match {
           case Some(f) => FilterExtractingVisitor(f, geom, sft, SpatialFilterStrategy.spatialCheck)
@@ -41,7 +41,7 @@ trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
         // de-prioritize non-spatial and one-sided date filters
         val priority = if (spatial.isDefined && intervals.forall(_.isBoundedBothSides)) { 1.1f } else { 3f }
-        Some(FilterStrategy(this, Some(primary), others, temporal = true, priority))
+        Some(FilterStrategy(this, Some(primary), others, temporal = true, priority, hints))
       }
     }
   }
