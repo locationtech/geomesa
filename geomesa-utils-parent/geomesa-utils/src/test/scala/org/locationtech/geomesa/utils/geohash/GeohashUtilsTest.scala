@@ -91,32 +91,29 @@ class GeohashUtilsTest extends Specification with LazyLogging {
   )
 
   // (reasonable) odd GeoHash resolutions
-  val oddResolutions = new ResolutionRange(5, 63, 2)
+  val oddResolutions = ResolutionRange(5, 63, 2)
 
   // GeoHash resolutions for decomposition
-  val indexResolutions = new ResolutionRange(5, 40, 5)
+  val indexResolutions = ResolutionRange(5, 40, 5)
 
   def wkt2geom(wkt: String): Geometry = WKTUtils.read(wkt)
 
   // testing resolution recommendation and decomposition
-  testData.map({
-    case (name, (resolution, numDecompositions, firstDecompositionHash, wkt)) => {
-      val geom: Geometry = WKTUtils.read(wkt)
-
+  testData.map {
+    case (name, (_, numDecompositions, firstDecompositionHash, wkt)) =>
       name should {
         // all geometry types should test decomposition
         "decompose into " + numDecompositions + " GeoHashes, the first of which should be '" + firstDecompositionHash + "'" in {
-          val decomposedGHs = decomposeGeometry(geom, 100, indexResolutions)
+          val decomposedGHs = decomposeGeometry(WKTUtils.read(wkt), 100, indexResolutions)
           if (DEBUG_OUTPUT) {
             decomposedGHs.foreach(gh => logger.debug(name + "\t" + gh))
           }
-          decomposedGHs.size must equalTo(numDecompositions)
-          // TODO
-//          decomposedGHs(0).hash must equalTo(firstDecompositionHash)
+          decomposedGHs must haveSize(numDecompositions)
+          BoundingBox(decomposedGHs.head._1, decomposedGHs.head._3, decomposedGHs.head._2, decomposedGHs.head._4) mustEqual
+            GeoHash(firstDecompositionHash).bbox
         }
       }
-    }
-  })
+  }
 
   internationalDateLineSafeGeometryTestData.map { case (name, (geomString, incl, excl)) =>
     "getInternationalDateLineSafeGeometry" should {

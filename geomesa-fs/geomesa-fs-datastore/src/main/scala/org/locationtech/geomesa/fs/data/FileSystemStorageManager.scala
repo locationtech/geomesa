@@ -15,7 +15,6 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.CloseQuietly
-import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.control.NonFatal
@@ -28,7 +27,7 @@ import scala.util.control.NonFatal
   * @param root root path for the data store
   */
 class FileSystemStorageManager private (fs: FileSystem, conf: Configuration, root: Path, namespace: Option[String])
-    extends MethodProfiling with LazyLogging {
+    extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -94,22 +93,20 @@ class FileSystemStorageManager private (fs: FileSystem, conf: Configuration, roo
     * @return
     */
   private def loadPath(path: Path): Option[FileSystemStorage] = {
-
-    def complete(storage: Option[FileSystemStorage], time: Long): Unit =
-      logger.debug(s"${ if (storage.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms")
-
-    profile(complete _) {
-      val context = FileSystemContext(fs, conf, path, namespace)
-      StorageMetadataFactory.load(context).map { meta =>
-        try {
-          val storage = FileSystemStorageFactory(context, meta)
-          register(path, storage)
-          storage
-        } catch {
-          case NonFatal(e) => CloseQuietly(meta).foreach(e.addSuppressed); throw e
-        }
+    val start = System.nanoTime()
+    val context = FileSystemContext(fs, conf, path, namespace)
+    val storage = StorageMetadataFactory.load(context).map { meta =>
+      try {
+        val storage = FileSystemStorageFactory(context, meta)
+        register(path, storage)
+        storage
+      } catch {
+        case NonFatal(e) => CloseQuietly(meta).foreach(e.addSuppressed); throw e
       }
     }
+    logger.debug(
+      s"${ if (storage.isDefined) "Loaded" else "No" } storage at path '$path' in ${(System.nanoTime() - start) / 1000000L}ms")
+    storage
   }
 }
 

@@ -267,7 +267,6 @@ object GeoHash extends LazyLogging {
     encode(lonIndex, latIndex, lonDeltaMap(prec), latDeltaMap(prec), prec)
   }
 
-
   def next(gh: GeoHash): GeoHash = GeoHash(GeoHash.next(gh.bitset), gh.prec)
 
   def next(bs:BitSet, precision:Int=63) : BitSet = {

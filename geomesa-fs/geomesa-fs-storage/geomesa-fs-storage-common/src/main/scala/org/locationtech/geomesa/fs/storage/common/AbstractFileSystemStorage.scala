@@ -28,7 +28,6 @@ import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly, WithClose}
-import org.locationtech.geomesa.utils.metrics.MethodProfiling
 import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import scala.collection.mutable.ListBuffer
@@ -45,7 +44,7 @@ abstract class AbstractFileSystemStorage(
     val context: FileSystemContext,
     val metadata: StorageMetadata,
     extension: String
-  ) extends FileSystemStorage with SizeableFileSystemStorage with MethodProfiling with LazyLogging {
+  ) extends FileSystemStorage with SizeableFileSystemStorage with LazyLogging {
 
   // don't require observers if we never write any data
   lazy private val observers = {

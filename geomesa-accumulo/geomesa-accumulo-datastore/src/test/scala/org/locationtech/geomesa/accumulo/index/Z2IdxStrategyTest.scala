@@ -226,7 +226,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
     "support sampling" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
@@ -234,7 +234,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
@@ -243,7 +243,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
     "support sampling with transformations" in {
       val query = new Query(sftName, Filter.INCLUDE, "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(30)
@@ -252,7 +252,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
     "support sampling with cql and transformations" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), "name", "geom")
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
       results.length must beLessThan(10)
@@ -261,7 +261,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
     "support sampling by thread" in {
       val query = new Query(sftName, Filter.INCLUDE)
-      query.getHints.put(SAMPLING, new java.lang.Float(.5f))
+      query.getHints.put(SAMPLING, Float.box(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
       val results = WithClose(queryPlanner.runQuery(sft, query, ExplainNull).iterator())(_.toList)
@@ -276,7 +276,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(BIN_TRACK, "track")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
-      query.getHints.put(SAMPLING, new java.lang.Float(.2f))
+      query.getHints.put(SAMPLING, Float.box(.2f))
       query.getHints.put(SAMPLE_BY, "track")
       query.getHints.put(QUERY_INDEX, Z2Index.name)
 
@@ -298,6 +298,8 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
     WithClose(queryPlanner.runQuery(sft, query, explain).iterator())(_.toList)
   }
 
-  def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] =
-    queryPlanner.planQuery(sft, query, Some(Z2Index.name), output).asInstanceOf[Seq[AccumuloQueryPlan]]
+  def getQueryPlans(query: Query): Seq[AccumuloQueryPlan] = {
+    query.getHints.put(QUERY_INDEX, Z2Index.name)
+    queryPlanner.planQuery(sft, query, output).asInstanceOf[Seq[AccumuloQueryPlan]]
+  }
 }

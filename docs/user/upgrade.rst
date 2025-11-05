@@ -204,6 +204,9 @@ Removed Classes
 * ``org.locationtech.geomesa.utils.index.SynchronizedQuadtree``
 * ``org.locationtech.geomesa.utils.io.ByteBuffers``
 * ``org.locationtech.geomesa.utils.iterators.PlaybackIterator``
+* ``org.locationtech.geomesa.utils.metrics.Timing``
+* ``org.locationtech.geomesa.utils.metrics.Timings``
+* ``org.locationtech.geomesa.utils.metrics.TimingsImpl``
 * ``org.locationtech.geomesa.utils.stats.AutoLoggingTimings``
 * ``org.locationtech.geomesa.utils.stats.CountingInputStream``
 * ``org.locationtech.geomesa.utils.stats.NoOpTimings``

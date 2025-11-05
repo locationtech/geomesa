@@ -140,7 +140,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
     byId.orElse(byName).orElse(byJoin).getOrElse(fallback)
   }
 
-  class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
+  class CostBasedStrategyDecider extends StrategyDecider {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

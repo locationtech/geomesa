@@ -17,14 +17,13 @@ import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSche
 import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
 import org.locationtech.geomesa.tools.status.{AutoCompleteCommand, ConfigureCommand, EnvironmentCommand, VersionCommand}
 import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
-import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.Locale
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
-trait Runner extends MethodProfiling with LazyLogging {
+trait Runner extends LazyLogging {
 
   def name: String
 

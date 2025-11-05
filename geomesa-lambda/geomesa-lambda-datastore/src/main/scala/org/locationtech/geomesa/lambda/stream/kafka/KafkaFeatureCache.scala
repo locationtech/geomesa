@@ -42,7 +42,7 @@ class KafkaFeatureCache(
     persist: Option[PersistenceConfig])
    (implicit clock: Clock = Clock.systemUTC())
   extends WritableFeatureCache with ReadableFeatureCache with OffsetListener
-    with Closeable with MethodProfiling with StrictLogging {
+    with Closeable with StrictLogging {
 
   import org.locationtech.geomesa.filter.ff
 
