@@ -70,8 +70,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     hints.getFilterCompatibility.foreach(c => explain(s"Filter compatibility: $c"))
 
     explain.pushLevel("Strategy selection:")
-    // TODO requested index
-    val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, hints.getRequestedIndex, explain)
+    val strategies = StrategyDecider.getFilterPlan(ds, sft, query.getFilter, hints, explain)
     explain.popLevel()
 
     var strategyCount = 1

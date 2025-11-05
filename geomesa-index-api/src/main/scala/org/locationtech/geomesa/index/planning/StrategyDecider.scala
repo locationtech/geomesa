@@ -75,8 +75,6 @@ trait StrategyDecider {
 
 object StrategyDecider extends MethodProfiling with LazyLogging {
 
-  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
   private val decider: StrategyDecider = SystemProperty("geomesa.strategy.decider").option match {
     case None       => new CostBasedStrategyDecider()
     case Some(clas) => Class.forName(clas).getConstructor().newInstance().asInstanceOf[StrategyDecider]
@@ -97,7 +95,6 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
     * @param sft simple feature type
     * @param filter filter to execute
     * @param hints query hints (transform, etc)
-    * @param requested requested index
     * @param explain for trace logging
     * @return
     */
@@ -106,8 +103,8 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
       sft: SimpleFeatureType,
       filter: Filter,
       hints: Hints,
-      requested: Option[String],
       explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     def complete(op: String, time: Long, count: Int): Unit = explain(s"$op took ${time}ms for $count options")
 
@@ -116,19 +113,19 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
 
     // get the various options that we could potentially use
     val options = profile((o: Seq[FilterPlan], t: Long) => complete("Query processing", t, o.length)) {
-      new FilterSplitter(sft, indices).getQueryOptions(filter, hints, requested)
+      new FilterSplitter(sft, indices).getQueryOptions(filter, hints)
     }
 
     val selected = profile(t => complete("Strategy selection", t, options.length)) {
-      if (requested.isDefined) {
-        val id = requested.get
+      val requested = hints.getRequestedIndex.orNull
+      if (requested != null) {
         // see if one of the normal plans matches the requested type - if not, force it
-        val forced = matchRequested(id, options).getOrElse {
+        val forced = matchRequested(requested, options).getOrElse {
           val index =
-            indices.find(_.identifier.equalsIgnoreCase(id))
-              .orElse(indices.find(_.name.equalsIgnoreCase(id)))
+            indices.find(_.identifier.equalsIgnoreCase(requested))
+              .orElse(indices.find(_.name.equalsIgnoreCase(requested)))
               .getOrElse {
-                throw new IllegalArgumentException(s"Invalid index strategy: $id. Valid values are " +
+                throw new IllegalArgumentException(s"Invalid index strategy: $requested. Valid values are " +
                   indices.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
               }
           val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
