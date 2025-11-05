@@ -13,6 +13,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption, SimpleFeatureSerializer}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter, RequiredVisibilityWriter}
@@ -40,7 +41,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
-  override val adapter: TestIndexAdapter = new TestIndexAdapter(this)
+  override val adapter: TestIndexAdapter = new TestIndexAdapter()
 
   override val stats: GeoMesaStats = new TestStats(this, new InMemoryMetadata[Stat]())
 
@@ -50,7 +51,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
 object TestGeoMesaDataStore {
 
-  class TestIndexAdapter(ds: TestGeoMesaDataStore) extends IndexAdapter[TestGeoMesaDataStore] {
+  class TestIndexAdapter extends IndexAdapter[TestGeoMesaDataStore] {
 
     import ByteArrays.ByteOrdering
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -165,7 +166,7 @@ object TestGeoMesaDataStore {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +
             s"${r.end.map(ByteArrays.toHex).mkString(";")})").mkString(",")}")
-      explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
+      explainer(s"ecql: ${ecql.fold("INCLUDE")(FilterHelper.toString)}")
     }
   }
 

@@ -298,7 +298,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       // even sure how to build this filter in (E)CQL
       new cqquery.logical.Not(new cqquery.simple.Equal(attribute, value))
     } else {
-      throw new RuntimeException(s"Can't parse not equal to values: ${filterToString(filter)}")
+      throw new RuntimeException(s"Can't parse not equal to values: ${FilterHelper.toString(filter)}")
     }
   }
 
@@ -310,7 +310,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val binding = sft.getDescriptor(name).getType.getBinding
     val values = FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse less than or equal to values ${filterToString(filter)}")
+      throw new RuntimeException(s"Can't parse less than or equal to values ${FilterHelper.toString(filter)}")
     }
     val between = (values.lower.value.get, values.upper.value.get)
 
@@ -349,7 +349,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   override def visit(filter: BBOX, data: scala.Any): AnyRef = {
     val name = getAttribute(filter)
     val geom = FilterHelper.extractGeometries(filter, name).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse bbox values ${filterToString(filter)}")
+      throw new RuntimeException(s"Can't parse bbox values ${FilterHelper.toString(filter)}")
     }
     val geomAttribute = lookup.lookup[Geometry](name)
 
@@ -362,7 +362,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   override def visit(filter: Intersects, data: scala.Any): AnyRef = {
     val name = getAttribute(filter)
     val geom = FilterHelper.extractGeometries(filter, name).values.headOption.getOrElse {
-      throw new RuntimeException(s"Can't parse intersects values ${filterToString(filter)}")
+      throw new RuntimeException(s"Can't parse intersects values ${FilterHelper.toString(filter)}")
     }
     val geomAttribute = lookup.lookup[Geometry](name)
 
@@ -387,7 +387,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case c if classOf[Date].isAssignableFrom(c) =>
         val attr = lookup.lookup[Date](name)
         FilterHelper.extractIntervals(after, name).values.headOption.getOrElse {
-          throw new RuntimeException(s"Can't parse after values ${filterToString(after)}")
+          throw new RuntimeException(s"Can't parse after values ${FilterHelper.toString(after)}")
         }.bounds match {
           case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
           case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
@@ -406,7 +406,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case c if classOf[Date].isAssignableFrom(c) =>
         val attr = lookup.lookup[Date](name)
         FilterHelper.extractIntervals(before, name).values.headOption.getOrElse {
-          throw new RuntimeException(s"Can't parse before values ${filterToString(before)}")
+          throw new RuntimeException(s"Can't parse before values ${FilterHelper.toString(before)}")
         }.bounds match {
           case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
           case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
@@ -425,7 +425,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case c if classOf[Date].isAssignableFrom(c) =>
         val attr = lookup.lookup[Date](name)
         val bounds = FilterHelper.extractIntervals(during, name).values.headOption.getOrElse {
-          throw new RuntimeException(s"Can't parse during values ${filterToString(during)}")
+          throw new RuntimeException(s"Can't parse during values ${FilterHelper.toString(during)}")
         }
         new cqquery.simple.Between[SimpleFeature, java.util.Date](attr, Date.from(bounds.lower.value.get.toInstant),
           bounds.lower.inclusive, Date.from(bounds.upper.value.get.toInstant), bounds.upper.inclusive)
@@ -447,6 +447,6 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
   }
 
   def getAttribute(filter: Filter): String = FilterHelper.propertyNames(filter, null).headOption.getOrElse {
-    throw new RuntimeException(s"Can't parse filter ${filterToString(filter)}")
+    throw new RuntimeException(s"Can't parse filter ${FilterHelper.toString(filter)}")
   }
 }

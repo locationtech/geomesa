@@ -17,6 +17,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, FormatVersion}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -64,7 +65,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
   }
 
   private def run(sft: SimpleFeatureType, query: Query, explain: Explainer)(): CloseableIterator[SimpleFeature] = {
-    explain.pushLevel(s"$name query: '${sft.getTypeName}' ${org.locationtech.geomesa.filter.filterToString(query.getFilter)}")
+    explain.pushLevel(s"$name query: '${sft.getTypeName}' ${FilterHelper.toString(query.getFilter)}")
     explain(s"bin[${query.getHints.isBinQuery}] arrow[${query.getHints.isArrowQuery}] " +
         s"density[${query.getHints.isDensityQuery}] stats[${query.getHints.isStatsQuery}] " +
         s"sampling[${query.getHints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")

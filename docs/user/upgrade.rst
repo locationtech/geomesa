@@ -225,6 +225,7 @@ Removed Methods
 * ``org.locationtech.geomesa.convert.all.TypeAwareInference#infer(String,() => InputStream,Option[SimpleFeatureType],Option[String])``
 * ``org.locationtech.geomesa.convert2.SimpleFeatureConverter#createEvaluationContext(Map,Counter,Counter)``
 * ``org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory#infer(InputStream,Option[SimpleFeatureType],Option[String])``
+* ``org.locationtech.geomesa.filter.filterToString``
 * ``org.locationtech.geomesa.fs.data.FileSystemDataStore#this(FileContext)``
 * ``org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme#apply(DateTimeFormatter)``
 * ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties

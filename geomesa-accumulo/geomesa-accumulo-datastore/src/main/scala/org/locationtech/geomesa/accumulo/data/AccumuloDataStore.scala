@@ -24,7 +24,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
-import org.locationtech.geomesa.filter.filterToString
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -433,7 +433,7 @@ class AccumuloDataStore(val connector: AccumuloClient, override val config: Accu
         if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
           logger.error("The query being executed requires multiple scans, which is not currently " +
             "supported by GeoMesa. Your result set will be partially incomplete. " +
-            s"Query: ${filterToString(query.getFilter)}")
+            s"Query: ${FilterHelper.toString(query.getFilter)}")
         }
         qps.head
       }

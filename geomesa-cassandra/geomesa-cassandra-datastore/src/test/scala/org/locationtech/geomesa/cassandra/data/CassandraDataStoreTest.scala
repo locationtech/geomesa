@@ -16,6 +16,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.Params
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.LooseBBoxParam
 import org.locationtech.geomesa.index.utils.{ExplainString, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -150,7 +151,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
         if (loose) {
           clientSideFilter must beSome("none")
         } else {
-          clientSideFilter must beSome(org.locationtech.geomesa.filter.filterToString(filter))
+          clientSideFilter must beSome(FilterHelper.toString(filter))
         }
       }
 
