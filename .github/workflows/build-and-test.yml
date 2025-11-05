@@ -261,7 +261,7 @@ jobs:
       - name: Set Scala version
         run: ./build/scripts/change-scala-version.sh ${{ matrix.scala-version }}
       - name: Build with Maven
-        run: mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts
+        run: mvn $MAVEN_COMPILE_ARGS $MAVEN_CLI_OPTS -am -pl ${{ matrix.projects.list }},geomesa-arrow/geomesa-arrow-jts
       - name: Build scaladocs
         run: mvn $MAVEN_SCALADOC_ARGS $MAVEN_CLI_OPTS -pl ${{ matrix.projects.list }}
       - name: Build javadocs
