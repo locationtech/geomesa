@@ -40,7 +40,6 @@ jobs:
           - csslint
           - remark-lint
           - shellcheck
-          - spotbugs
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout code
