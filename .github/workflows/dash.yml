@@ -19,7 +19,6 @@ jobs:
   license-check:
     name: license-check
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
@@ -34,62 +33,35 @@ jobs:
         id: dependency_changes
         run: |
           changed="false"
-          # get the changed files
-          git fetch --depth=1 origin ${{ github.base_ref }}
-          IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
-          echo "Changed files:"
-          for file in "${changedFiles[@]}"; do
-            echo "  $file"
-            if [[ -z "$changed" ]] && [[ $file =~ .*pom.xml ]]; then
-              changed="pom"
-            elif [[ "$file" == "build/dependencies.txt" ]]; then
-              changed="true"
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            # get the changed files
+            git fetch --depth=1 origin ${{ github.base_ref }}
+            IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
+            echo "Changed files:"
+            for file in "${changedFiles[@]}"; do
+              echo "  $file"
+              if [[ -z "$changed" ]] && [[ $file =~ .*pom.xml ]]; then
+                changed="pom"
+              elif [[ "$file" == "build/dependencies.txt" ]]; then
+                changed="true"
+              fi
+            done
+            if [[ "$changed" == "pom" ]]; then
+              mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
+              ./build/scripts/calculate-cqs.sh
+              git diff --exit-code --quiet || {
+                echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
+                exit 1
+              }
+              changed="false"
             fi
-          done
-          if [[ "$changed" == "pom" ]]; then
-            mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
-            ./build/scripts/calculate-cqs.sh
-            git diff --exit-code --quiet || {
-              echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
-              exit 1
-            }
-            changed="false"
+          else
+            # weekly or dispatch requests
+            changed="true"
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
       - name: License check
         if: steps.dependency_changes.outputs.changed == 'true'
-        run: |
-          mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
-          mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
-      - name: Show license
-        if: success() || failure()
-        run: |
-          if [[ -f target/dash/summary ]]; then
-            cat target/dash/summary
-          else
-            echo "No dependency changes detected - skipping license check"
-          fi
-      - name: Remove geomesa artifacts
-        if: success() || failure()
-        run: |
-          if [[ -d ~/.m2/repository/org/locationtech/geomesa ]]; then
-            rm -rf ~/.m2/repository/org/locationtech/geomesa
-          fi
-  weekly-check:
-    name: weekly-check
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
-        with:
-          distribution: temurin
-          java-version: "${{ env.JAVA_VERSION }}"
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          key: ${{ hashFiles('**/pom.xml') }}-dash-weekly
-          path: ~/.m2/repository/
-      - name: License check
         run: |
           mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
           mvn $MAVEN_DASH_ARGS $MAVEN_CLI_OPTS
