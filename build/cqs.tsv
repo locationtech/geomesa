@@ -324,7 +324,7 @@ org.codehaus.groovy:groovy-jsr223	3.0.20	test
 org.duckdb:duckdb_jdbc	1.2.2.0	test
 org.geomesa.testcontainers:testcontainers-accumulo	1.5.0	test
 org.geomesa.testcontainers:testcontainers-hbase	1.1.0	test
-org.geomesa.testcontainers:testcontainers-spark	1.0.1	test
+org.geomesa.testcontainers:testcontainers-spark	1.0.0	test
 org.geotools:gt-epsg-hsql	34.0	test
 org.geotools:gt-render	34.0	test
 org.jruby:jruby	9.4.5.0	test

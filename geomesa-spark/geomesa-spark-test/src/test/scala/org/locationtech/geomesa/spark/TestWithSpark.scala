@@ -18,12 +18,17 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.Network
 
+import java.net.URI
+import java.nio.file.Paths
+
 trait TestWithSpark extends SpecificationWithJUnit with BeforeAfterAll with StrictLogging {
 
   import org.locationtech.geomesa.spark.jts._
 
+  import scala.collection.JavaConverters._
+
   val network = Network.newNetwork()
-  val cluster = new SparkCluster().withNetwork(network)
+  val cluster = new SparkCluster(TestWithSpark.RuntimeJars.asJava).withNetwork(network)
 
   // TODO enforce only a single instance at once
   lazy val spark: SparkSession = cluster.getOrCreateSession().withJTS
@@ -43,4 +48,22 @@ trait TestWithSpark extends SpecificationWithJUnit with BeforeAfterAll with Stri
     // world. Probably a better/easier way of doing this.
     spark.createDataFrame(spark.sparkContext.makeRDD(Seq(Row())), StructType(Seq.empty))
   }
+}
+
+object TestWithSpark {
+
+  import scala.collection.JavaConverters._
+
+  // TODO we can remove this once testcontainers-spark:1.0.1 is released
+  lazy val RuntimeJars =
+    classOf[TestWithSpark].getClassLoader.getResources("org/locationtech/geomesa/geomesa.properties").asScala.toSeq.flatMap { url =>
+      val uri = url.toURI
+      if ("jar" == uri.getScheme && uri.toString.contains("-runtime.jar")) {
+        // uris look like: jar://file://foo.jar!/path/in/jar
+        val jar = uri.toString.substring(4).replaceAll("\\.jar!.*", ".jar")
+        Some(Paths.get(URI.create(jar)).toFile)
+      } else {
+        None
+      }
+    }
 }

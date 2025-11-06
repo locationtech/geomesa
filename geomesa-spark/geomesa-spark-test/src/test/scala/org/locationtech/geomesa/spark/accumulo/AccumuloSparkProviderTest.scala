@@ -19,6 +19,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.spark.TestWithSpark
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -41,7 +42,7 @@ class AccumuloSparkProviderTest extends SpecificationWithJUnit with BeforeAfterA
       .withNetwork(network)
 
   private val cluster =
-    new SparkCluster()
+    new SparkCluster(TestWithSpark.RuntimeJars.asJava)
       .withNetwork(network)
 
   // these params will work in the spark executor, but not locally outside the docker network
