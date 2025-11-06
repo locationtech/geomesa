@@ -99,11 +99,25 @@ StrategyDecider API Update
 The ``org.locationtech.geomesa.index.planning.StrategyDecider`` API has been changed slightly to provide more context for
 implementations to use. The old API method has been deprecated and will be removed in a future version.
 
+Spark Runtime JAR Changes
+-------------------------
+
+The various GeoMesa Spark runtime JARs have changed Maven coordinates, and now use a ``runtime`` classifier:
+
+* ``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo21_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-accumulo-spark_2.12:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-fs-spark-runtime_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-fs-spark_2.12:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-gt-spark-runtime_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-gt-spark_2.12:jar:runtime``
+* ``org.locationtech.geomesa:geomesa-hbase-spark-runtime-hbase2_2.12:jar`` -> ``org.locationtech.geomesa:geomesa-hbase-spark_2.12:jar:runtime``
+
 Removed Modules
 ---------------
 
 The following modules have been removed:
 
+* ``geomesa-accumulo-spark-runtime-accumulo21`` (see above)
+* ``geomesa-fs-spark-runtime`` (see above)
+* ``geomesa-gt-spark-runtime`` (see above)
+* ``geomesa-hbase-spark-runtime-hbase2`` (see above)
 * ``geomesa-metrics-core``
 * ``geomesa-metrics-cloudwatch``
 * ``geomesa-metrics-graphite``

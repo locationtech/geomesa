@@ -49,25 +49,19 @@ geospatial analytics.
 
 ### Verifying Downloads
 
-Downloads hosted on GitHub include SHA-256 hashes and gpg signatures (.asc files). To verify a download using gpg,
-import the appropriate key:
+Downloads hosted on GitHub include SHA-256 hashes and `gpg` signatures (`.asc` files). To verify a download using `gpg`,
+import the appropriate key then verify:
 
 ```bash
-gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
+gpg --verify geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz.asc geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz
 ```
 
-Then verify the file:
-
-```bash
-gpg2 --verify geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz.asc geomesa-accumulo_${scala.binary.version}-${geomesa.release.version}-bin.tar.gz
+The keys used for signing are:
 ```
-
-The keys currently used for signing are:
-
-| Key ID     | Name                                               |
-|------------|----------------------------------------------------|
-| `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
-| `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt;           |
+CD24F317 Emilio Lahr-Vivaz <elahrvivaz(-at-)ccri.com>
+1E679A56 James Hughes <jnh5y(-at-)ccri.com>
+```
 
 ## Maven Integration
 
@@ -144,11 +138,11 @@ DataStore implementations:
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+  <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
+  <classifier>runtime</classifier>
   <version>${geomesa.release.version}</version>
   <exclusions>
     <exclusion>
-      <!-- if groupId wildcards are not supported, the two main ones are jline:* and org.geotools:* -->
       <groupId>*</groupId>
       <artifactId>*</artifactId>
     </exclusion>

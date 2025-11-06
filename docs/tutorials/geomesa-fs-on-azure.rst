@@ -304,7 +304,7 @@ Back inside the Apache Spark container on your master node run the following:
   jupyter toree install \
     --spark_home=/home/spark-current \
     --replace \
-    --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_{{scala_binary_version}}-{{release}}/dist/spark/geomesa-fs-spark-runtime_{{scala_binary_version}}-{{release}}.jar,/mnt/geomesa/geomesa-spark-jupyter-leaflet_{{scala_binary_version}}-{{release}}.jar"
+    --spark_opts="--master spark://`hostname -i`:7077 --num-executors 2 --conf spark.dynamicAllocation.enabled=false --jars /mnt/geomesa/geomesa-fs_{{scala_binary_version}}-{{release}}/dist/spark/geomesa-fs-spark_{{scala_binary_version}}-{{release}}-runtime.jar,/mnt/geomesa/geomesa-spark-jupyter-leaflet_{{scala_binary_version}}-{{release}}.jar"
 
 If you have increased the size of your cluster, you should also increase ``--num-executors`` accordingly. You can also
 set other executor and driver options by editing the ``spark_opts`` contents.

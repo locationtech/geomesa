@@ -17,7 +17,6 @@
         <module>geomesa-gt-gs-plugin</module>
         <module>geomesa-gt-partitioning</module>
         <module>geomesa-gt-spark</module>
-        <module>geomesa-gt-spark-runtime</module>
         <module>geomesa-gt-tools</module>
     </modules>
 

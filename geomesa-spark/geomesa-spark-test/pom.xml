@@ -72,7 +72,8 @@
 
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
+            <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -82,12 +83,14 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
+            <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
+            <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>

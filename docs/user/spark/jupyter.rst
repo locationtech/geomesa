@@ -68,7 +68,7 @@ GeoMesa:
 
     # bundled GeoMesa Accumulo Spark and Spark SQL runtime JAR
     # (contains geomesa-accumulo-spark, geomesa-spark-core, geomesa-spark-sql, and dependencies)
-    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime-accumulo21_{{scala_binary_version}}-{{release}}.jar"
+    jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark_{{scala_binary_version}}-{{release}}-runtime.jar"
 
     # uncomment to use the converter RDD provider
     #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-converter_{{scala_binary_version}}-{{release}}.jar"

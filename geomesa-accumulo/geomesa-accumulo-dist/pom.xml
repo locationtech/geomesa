@@ -62,7 +62,8 @@
         <!-- Spark (dist)-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
+            <classifier>runtime</classifier>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>

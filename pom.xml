@@ -126,7 +126,7 @@
         <testcontainers.version>1.21.3</testcontainers.version>
         <testcontainers.accumulo.version>1.5.0</testcontainers.accumulo.version>
         <testcontainers.hbase.version>1.1.0</testcontainers.hbase.version>
-        <testcontainers.spark.version>1.0.0</testcontainers.spark.version>
+        <testcontainers.spark.version>1.0.2</testcontainers.spark.version>
 
         <!-- provided artifacts, not bundled to support multiple environments -->
         <accumulo.version>2.1.4</accumulo.version>
@@ -548,7 +548,8 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-spark-runtime-accumulo21_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-accumulo-spark_${scala.binary.version}</artifactId>
+                <classifier>runtime</classifier>
                 <version>${project.version}</version>
                 <exclusions>
                     <exclusion>
@@ -712,7 +713,13 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
+                <classifier>runtime</classifier>
                 <version>${project.version}</version>
                 <exclusions>
                     <exclusion>
@@ -720,11 +727,6 @@
                         <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -783,7 +785,8 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
+                <classifier>runtime</classifier>
                 <version>${project.version}</version>
                 <exclusions>
                     <exclusion>
@@ -844,6 +847,18 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-hbase-spark_${scala.binary.version}</artifactId>
+                <classifier>runtime</classifier>
+                <version>${project.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>*</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>

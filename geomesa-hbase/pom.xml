@@ -27,7 +27,6 @@
         <module>geomesa-hbase-server</module>
         <module>geomesa-hbase-server-hbase2</module>
         <module>geomesa-hbase-spark</module>
-        <module>geomesa-hbase-spark-runtime-hbase2</module>
         <module>geomesa-hbase-tools</module>
     </modules>
 
