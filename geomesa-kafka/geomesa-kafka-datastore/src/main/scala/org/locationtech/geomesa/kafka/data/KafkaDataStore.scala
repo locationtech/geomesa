@@ -277,10 +277,10 @@ class KafkaDataStore(
     WithClose(AdminClient.create(props)) { admin =>
       if (admin.listTopics().names().get.contains(topic)) {
         if (config.onSchemaDeleteTruncate) {
-          logger.info(s"truncating $topic")
+          logger.info(s"Truncating topic $topic")
           KafkaTruncateTopic(admin).truncate(topic)
         } else {
-          logger.info(s"deleting $topic")
+          logger.info(s"Deleting topic $topic")
           admin.deleteTopics(Collections.singletonList(topic)).all().get
         }
       } else {

@@ -13,7 +13,6 @@ import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo
 import org.apache.kafka.clients.admin._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.{ConfigResource, TopicConfig}
-import org.locationtech.geomesa.kafka.data.KafkaTruncateTopic.{CLEANUP_POLICY, CLEANUP_POLICY_DELETE}
 
 import java.util
 import java.util.Collections
@@ -30,17 +29,7 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
   def truncate(topic: String): Unit = {
 
     val topicPartitions = getTopicPartitions(topic)
-    val earliestOffsets = getEarliestOffsets(topicPartitions)
     val latestOffsets = getLatestOffsets(topicPartitions)
-
-    val count = numberOfMessages(topic, earliestOffsets, latestOffsets)
-
-    if (count == 0) {
-      logger.debug(s"truncate: topic: $topic has no messages to delete")
-      return
-    }
-
-    logger.debug(s"truncate: topic: $topic has $count messages to be deleted over ${topicPartitions.size} partitions")
 
     val deleteCleanupPolicy = hasDeleteCleanupPolicy(topic)
 
@@ -62,18 +51,6 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
     logger.info(s"$topic truncated.")
 
   }
-
-  /**
-   * return the number of messages over all partitions for the given topic.
-   */
-  private def numberOfMessages(topic: String,
-                               earliestOffsets: Map[TopicPartition, ListOffsetsResultInfo],
-                               latestOffsets: Map[TopicPartition, ListOffsetsResultInfo]): Long =
-    getTopicPartitions(topic).map { tp =>
-      val earliestOffset = earliestOffsets(tp).offset()
-      val latestOffset = latestOffsets(tp).offset()
-      latestOffset - earliestOffset
-    }.sum
 
   private def deleteRecords(latestOffsets: Map[TopicPartition, ListOffsetsResultInfo]): Unit =
     try {
@@ -101,14 +78,6 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
    */
   private def getLatestOffsets(partitions: List[TopicPartition]): Map[TopicPartition, ListOffsetsResultInfo] = {
     val input = partitions.map(tp => tp -> OffsetSpec.latest()).toMap
-    getOffsets(input)
-  }
-
-  /**
-   * for the list of partitions, return the earliest offsets.
-   */
-  private def getEarliestOffsets(partitions: List[TopicPartition]): Map[TopicPartition, ListOffsetsResultInfo] = {
-    val input = partitions.map(tp => tp -> OffsetSpec.earliest()).toMap
     getOffsets(input)
   }
 
@@ -150,7 +119,7 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
       val configsResult = admin.describeConfigs(Collections.singleton(configResource))
       val config = configsResult.all().get().get(configResource)
 
-      config.get(TopicConfig.CLEANUP_POLICY_CONFIG).value().contains(CLEANUP_POLICY_DELETE)
+      config.get(TopicConfig.CLEANUP_POLICY_CONFIG).value().contains(TopicConfig.CLEANUP_POLICY_DELETE)
     } catch {
       case _: InterruptedException =>
         Thread.currentThread().interrupt()
@@ -165,7 +134,7 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
   private def addDeleteCleanupPolicy(topic: String): Unit =
     try {
       val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
-      val alterConfigOp = new AlterConfigOp(new ConfigEntry(CLEANUP_POLICY, CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.APPEND)
+      val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.APPEND)
       val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
       admin.incrementalAlterConfigs(configs).all().get()
     } catch {
@@ -179,18 +148,11 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
   /**
    * Remove the 'delete' cleanup policy to the topic's 'cleanup.policy' config.
    */
-  private def removeDeleteCleanupPolicy(topic: String): Unit =
-    try {
+  private def removeDeleteCleanupPolicy(topic: String): Unit = {
       val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
-      val alterConfigOp = new AlterConfigOp(new ConfigEntry(CLEANUP_POLICY, CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.SUBTRACT)
+      val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.SUBTRACT)
       val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
       admin.incrementalAlterConfigs(configs).all().get()
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("incrementalAlterConfigs operation interrupted, was not able to remove the 'delete' cleanup.policy.")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
     }
 
   /**
@@ -209,8 +171,5 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
 }
 
 object KafkaTruncateTopic {
-  val CLEANUP_POLICY = "cleanup.policy"
-  val CLEANUP_POLICY_DELETE = "delete"
-
   def apply(admin: Admin): KafkaTruncateTopic = new KafkaTruncateTopic(admin)
 }

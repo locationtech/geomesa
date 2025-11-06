@@ -161,7 +161,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStore.ProducerConfig(props)
     }
     val clearOnStart = ClearOnStart.lookup(params)
-    val onSchemaDeleteTruncate = OnSchemaDeleteTruncate.lookup(params)
+    val truncateOnDelete = TruncateOnDelete.lookup(params)
 
     val indices = {
       val cqEngine = {
@@ -245,7 +245,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
     }
 
-    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, onSchemaDeleteTruncate, topics,
+    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, truncateOnDelete, topics,
       indices, looseBBox, layerViews, authProvider, audit, metrics, ns)
   }
 

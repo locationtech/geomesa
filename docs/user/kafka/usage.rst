@@ -39,6 +39,7 @@ Parameter                                    Type    Description
                                                      which may require significant memory overhead.
 ``kafka.topic.partitions``                   Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``                  Integer Replication factor to use in new kafka topics
+``kafka.topic.truncate-on-delete``           Boolean Instead of deleting the kafka topic on schema change, just truncate (delete all messages) on that kafka topic.
 ``kafka.serialization.type``                 String  Internal serialization format to use for kafka messages. Must be one of ``kryo``, ``avro``
                                                      or ``avro-native``
 ``kafka.cache.expiry``                       String  Expire features from in-memory cache after this delay, e.g. ``10 minutes``. See :ref:`kafka_expiry`
