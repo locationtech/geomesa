@@ -60,7 +60,7 @@ You will need a keyspace in ScyllaDB to contain the tutorial tables. Connect usi
 
 Then create a keyspace:
 
-.. code-block:: cql
+.. code-block:: bash
 
     CREATE KEYSPACE geomesa WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor' : 1};
 
