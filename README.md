@@ -57,11 +57,11 @@ gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 gpg --verify geomesa-accumulo_2.12-5.4.0-bin.tar.gz.asc geomesa-accumulo_2.12-5.4.0-bin.tar.gz
 ```
 
-The keys currently used for signing are:
-
-| &nbsp;                                                        | &nbsp;                                              |
-|---------------------------------------------------------------|-----------------------------------------------------|
-| `CD24F317` Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; | `1E679A56` James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
+The keys used for signing are:
+```
+CD24F317 Emilio Lahr-Vivaz <elahrvivaz(-at-)ccri.com>
+1E679A56 James Hughes <jnh5y(-at-)ccri.com>
+```
 
 ## Maven Integration
 
