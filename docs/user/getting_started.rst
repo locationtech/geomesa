@@ -8,9 +8,11 @@ If you want a near real-time view of streaming data, then consider using
 :doc:`Kafka </tutorials/geomesa-quickstart-kafka>` or :doc:`Redis </tutorials/geomesa-quickstart-redis>`.
 
 Otherwise, you can get similar functionality through :doc:`HBase </tutorials/geomesa-quickstart-hbase>`,
-:doc:`Accumulo </tutorials/geomesa-quickstart-accumulo>` or :doc:`Cassandra </tutorials/geomesa-quickstart-cassandra>`.
+:doc:`Accumulo </tutorials/geomesa-quickstart-accumulo>`, :doc:`Cassandra </tutorials/geomesa-quickstart-cassandra>`,
+or :doc:`ScyllaDB </tutorials/geomesa-quickstart-scylladb>`.
 HBase and Accumulo support distributed processing, so may be faster for certain operations. HBase and Cassandra
 are the most widely-used technologies, while Accumulo is often chosen for its advanced security features.
+ScyllaDB is a drop-in replacement for Cassandra.
 
 Another option is the :doc:`FileSystem </tutorials/geomesa-quickstart-fsds>` data store, which has a very low
 barrier to entry, and can read existing data in a variety of file formats. The FileSystem data store can provide

@@ -31,6 +31,7 @@ geospatial analytics.
   [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
   [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
+  [ScyllaDB](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-scylladb.html) |
   [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
   [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
   [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)

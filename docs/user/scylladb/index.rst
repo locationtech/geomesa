@@ -16,6 +16,8 @@ while maintaining full compatibility with the Cassandra Query Language (CQL)
 and wire protocol. This means GeoMesa can use ScyllaDB without any code changes,
 simply by connecting to a ScyllaDB cluster instead of Cassandra.
 
+To get started with the ScyllaDB Data Store, try the :doc:`/tutorials/geomesa-quickstart-scylladb`.
+
 .. _ScyllaDB: https://www.scylladb.com/
 
 .. toctree::
