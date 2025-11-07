@@ -94,6 +94,14 @@ object KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.WriteOnly
     )
 
+  val TruncateOnDelete =
+    new GeoMesaParam[java.lang.Boolean](
+      "kafka.topic.truncate-on-delete",
+      "Instead of deleting a topic when when removing a schema, truncate the topic by deleting to the latest offset",
+      default = Boolean.box(false),
+      readWrite = ReadWriteFlag.WriteOnly
+    )
+
   val ConsumerReadBack =
     new GeoMesaParam[Duration](
       "kafka.consumer.read-back",

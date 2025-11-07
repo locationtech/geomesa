@@ -11,8 +11,12 @@ package org.locationtech.geomesa.kafka.data
 import org.apache.commons.lang3.StringUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, ListOffsetsResult, NewTopic, OffsetSpec, TopicDescription}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.ConfigResource
+import org.apache.kafka.common.serialization.StringSerializer
 import org.geotools.api.data._
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
@@ -180,6 +184,82 @@ class KafkaDataStoreTest extends KafkaContainerTest with Mockito {
           }
           WithClose(AdminClient.create(props)) { admin =>
             eventually(40, 100.millis)(admin.listTopics().names().get.asScala must not(contain(topic)))
+          }
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      }
+    }
+
+    "allow schemas to be created and truncated" >> {
+
+      foreach(Seq(true, false)) { zk =>
+        TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
+        val (producer, consumer, _) = try {
+          createStorePair(if (zk) {
+            Map(
+              "kafka.zookeepers" -> zookeepers,
+              "kafka.topic.truncate-on-delete" -> "true"
+            )
+          } else {
+            Map(
+              "kafka.topic.truncate-on-delete" -> "true"
+            )
+          })
+        } finally {
+          TableBasedMetadata.Expiry.threadLocalValue.remove()
+        }
+        consumer must not(beNull)
+        producer must not(beNull)
+
+        try {
+          val sft = SimpleFeatureTypes.createImmutableType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
+          producer.createSchema(sft)
+          consumer.metadata.resetCache()
+          foreach(Seq(producer, consumer)) { ds =>
+            ds.getTypeNames.toSeq mustEqual Seq(sft.getTypeName)
+            val schema = ds.getSchema(sft.getTypeName)
+            schema must not(beNull)
+            schema mustEqual sft
+          }
+          val topic = producer.getSchema(sft.getTypeName).getUserData.get(KafkaDataStore.TopicKey).asInstanceOf[String]
+
+          val props = Collections.singletonMap[String, AnyRef](AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, brokers)
+          WithClose(AdminClient.create(props)) { admin =>
+            admin.listTopics().names().get.asScala must contain(topic)
+          }
+
+
+          val pprops = Map[String, Object](
+            CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG -> brokers,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName
+          ).asJava
+          WithClose(new KafkaProducer[String, String](pprops)) { p =>
+            p.send(new ProducerRecord(topic, null, "dummy1"))
+            p.send(new ProducerRecord(topic, null, "dummy2"))
+            p.flush()
+          }
+
+          consumer.removeSchema(sft.getTypeName)
+          foreach(Seq(consumer, producer)) { ds =>
+            eventually(40, 100.millis)(ds.getTypeNames.toSeq must beEmpty)
+            ds.getSchema(sft.getTypeName) must beNull
+          }
+          WithClose(AdminClient.create(props)) { admin =>
+            // topic is not deleted, so it should remain.
+            admin.listTopics().names().get.asScala must (contain(topic))
+
+            var topicInfo: TopicDescription = admin.describeTopics(Collections.singleton(topic)).allTopicNames().get().get(topic)
+            val pl: Seq[TopicPartition] = topicInfo.partitions().asScala.map(info => new TopicPartition(topic, info.partition())).toList
+            val e: Map[TopicPartition, ListOffsetsResult.ListOffsetsResultInfo] = admin.listOffsets(pl.map(tp => tp -> OffsetSpec.earliest()).toMap.asJava).all().get().asScala.toMap
+            val l: Map[TopicPartition, ListOffsetsResult.ListOffsetsResultInfo] = admin.listOffsets(pl.map(tp => tp -> OffsetSpec.latest()).toMap.asJava).all().get().asScala.toMap
+
+            // the earliest offset must not match the latest offset, since all others were deleted, when the topic was truncated.
+            e(new TopicPartition(topic, 0)).offset() must beGreaterThan(1L)
+            l(new TopicPartition(topic, 0)).offset() must beGreaterThan(1L)
+
           }
         } finally {
           consumer.dispose()
