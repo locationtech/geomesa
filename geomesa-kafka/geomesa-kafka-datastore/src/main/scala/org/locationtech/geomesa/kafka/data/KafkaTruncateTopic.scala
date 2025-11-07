@@ -49,19 +49,11 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
     }
 
     logger.info(s"$topic truncated.")
-
   }
 
-  private def deleteRecords(latestOffsets: Map[TopicPartition, ListOffsetsResultInfo]): Unit =
-    try {
+  private def deleteRecords(latestOffsets: Map[TopicPartition, ListOffsetsResultInfo]): Unit = {
       val recordsToDelete = generateRecordsToDelete(latestOffsets)
       admin.deleteRecords(recordsToDelete.asJava).all().get()
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("the deleteRecords operation was interrupted, aborting; it may have still completed.")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
     }
 
   /**
@@ -84,76 +76,48 @@ class KafkaTruncateTopic(private val admin: Admin) extends LazyLogging {
   /**
    * used by getLatestOffsets() and getEarliestOffsets() for obtaining the offsets
    */
-  private def getOffsets(offsetSpecs: Map[TopicPartition, OffsetSpec]): Map[TopicPartition, ListOffsetsResultInfo] =
-    try {
+  private def getOffsets(offsetSpecs: Map[TopicPartition, OffsetSpec]): Map[TopicPartition, ListOffsetsResultInfo] = {
       admin.listOffsets(offsetSpecs.asJava).all().get().asScala.toMap
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("listOffsets operation interrupted, deleteRecords will not executed.")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
     }
 
   /**
    * Get all TopicPartitions for the given topic; truncation is performed is performed at the partition level.
    */
-  private def getTopicPartitions(topic: String): List[TopicPartition] =
-    try {
+  private def getTopicPartitions(topic: String): List[TopicPartition] = {
       val topicInfo = admin.describeTopics(Collections.singleton(topic)).allTopicNames().get().get(topic)
       topicInfo.partitions().asScala.map(info => new TopicPartition(topic, info.partition())).toList
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("describeTopics operation interrupted, deleteRecords will not executed.")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
     }
 
   /**
    * Check if the topic has the 'delete' cleanup policy.
    */
-  private def hasDeleteCleanupPolicy(topicName: String): Boolean =
-    try {
-      val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName)
-      val configsResult = admin.describeConfigs(Collections.singleton(configResource))
-      val config = configsResult.all().get().get(configResource)
+  private def hasDeleteCleanupPolicy(topicName: String): Boolean = {
+    val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topicName)
+    val configsResult = admin.describeConfigs(Collections.singleton(configResource))
+    val config = configsResult.all().get().get(configResource)
 
-      config.get(TopicConfig.CLEANUP_POLICY_CONFIG).value().contains(TopicConfig.CLEANUP_POLICY_DELETE)
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("describeTopics operation interrupted, deleteRecords will not executed.")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
-    }
+    config.get(TopicConfig.CLEANUP_POLICY_CONFIG).value().contains(TopicConfig.CLEANUP_POLICY_DELETE)
+  }
 
   /**
    * Add the 'delete' cleanup policy to the topic's 'cleanup.policy' config.
    */
-  private def addDeleteCleanupPolicy(topic: String): Unit =
-    try {
-      val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
-      val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.APPEND)
-      val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
-      admin.incrementalAlterConfigs(configs).all().get()
-    } catch {
-      case _: InterruptedException =>
-        Thread.currentThread().interrupt()
-        throw new RuntimeException("incrementalAlterConfigs operation interrupted, ...")
-      case e: ExecutionException =>
-        throw convertExecutionException(e)
-    }
+  private def addDeleteCleanupPolicy(topic: String): Unit = {
+    val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
+    val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.APPEND)
+    val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
+    admin.incrementalAlterConfigs(configs).all().get()
+  }
 
   /**
    * Remove the 'delete' cleanup policy to the topic's 'cleanup.policy' config.
    */
   private def removeDeleteCleanupPolicy(topic: String): Unit = {
-      val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
-      val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.SUBTRACT)
-      val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
-      admin.incrementalAlterConfigs(configs).all().get()
-    }
+    val configResource = new ConfigResource(ConfigResource.Type.TOPIC, topic)
+    val alterConfigOp = new AlterConfigOp(new ConfigEntry(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE), AlterConfigOp.OpType.SUBTRACT)
+    val configs: util.Map[ConfigResource, util.Collection[AlterConfigOp]] = Map(configResource -> alterConfigOpColl(alterConfigOp)).asJava
+    admin.incrementalAlterConfigs(configs).all().get()
+  }
 
   /**
    * Singleton wrapper for AlertConfigOp.
