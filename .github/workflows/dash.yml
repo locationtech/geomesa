@@ -32,8 +32,9 @@ jobs:
       - name: Check for dependency changes
         id: dependency_changes
         run: |
-          changed="false"
+          changed=""
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            echo "Checking for dependency changes"
             # get the changed files
             git fetch --depth=1 origin ${{ github.base_ref }}
             IFS=$'\n' read -r -d '' -a changedFiles < <( git diff --name-only origin/${{ github.base_ref }} && printf '\0' )
@@ -43,20 +44,24 @@ jobs:
               if [[ -z "$changed" ]] && [[ $file =~ .*pom.xml ]]; then
                 changed="pom"
               elif [[ "$file" == "build/dependencies.txt" ]]; then
+                echo "Detected dependency change"
                 changed="true"
               fi
             done
             if [[ "$changed" == "pom" ]]; then
+              echo "Detected pom change, double-checking dependencies"
               mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               ./build/scripts/calculate-cqs.sh
               git diff --exit-code --quiet || {
                 echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
                 exit 1
               }
+              echo "Dependencies are ok, skipping dash check"
               changed="false"
             fi
           else
             # weekly or dispatch requests
+            echo "Always running dash check for scheduled jobs"
             changed="true"
           fi
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
