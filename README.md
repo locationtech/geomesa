@@ -19,13 +19,17 @@ geospatial analytics.
 
 ## Join the Community
 
-* <a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></a>
-* GeoMesa [Users](https://accounts.eclipse.org/mailing-list/geomesa-users) and [Dev](https://accounts.eclipse.org/mailing-list/geomesa-dev) mailing lists
-* GeoMesa [JIRA](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC) for issue tracking
+**<a href="https://gitter.im/locationtech/geomesa?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge" target="_blank"><sub><img src="https://badges.gitter.im/Join%20Chat.svg" alt="Join the chat at https://gitter.im/locationtech/geomesa"></img></sub></a>** |
+  [**User list**](https://accounts.eclipse.org/mailing-list/geomesa-users) |
+  [**Developer list**](https://accounts.eclipse.org/mailing-list/geomesa-dev) |
+  [**JIRA issue tracking**](https://geomesa.atlassian.net/issues/?jql=order+by+created+DESC)
 
 ## Documentation
 
-<b>[Documentation](https://www.geomesa.org/documentation/) | [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html) | [Quick Starts](https://www.geomesa.org/documentation/stable/tutorials/index.html#quick-starts) | [Tutorials](https://www.geomesa.org/tutorials/) | [Nightly snapshots](https://geomesa.org/documentation/latest/)</b>
+[**Documentation**](https://www.geomesa.org/documentation/) |
+  [**Upgrade Guide**](https://www.geomesa.org/documentation/user/upgrade.html) |
+  [**Quick Starts**](https://www.geomesa.org/documentation/stable/tutorials/index.html#quick-starts) |
+  [**Tutorials**](https://www.geomesa.org/tutorials/)
 
 ## Downloads
 
@@ -102,23 +106,6 @@ GeoMesa in your project, add the following repositories to your pom:
 </repositories>
 ```
 
-### Nightly Snapshots
-
-Snapshot versions are published nightly to the Eclipse repository:
-
-```xml
-<repository>
-  <id>geomesa-snapshots</id>
-  <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots</url>
-  <releases>
-    <enabled>false</enabled>
-  </releases>
-  <snapshots>
-    <enabled>true</enabled>
-  </snapshots>
-</repository>
-```
-
 ### Spark Runtimes
 
 GeoMesa publishes `spark-runtime` JARs for integration with Spark environments like Databricks. These
@@ -158,6 +145,28 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.locationtech.geomesa" %% "geomesa-utils" % "5.4.0"
 )
+```
+
+## Development Snapshots
+
+Unreleased features are available for testing or early adoption using development snapshots. Note that development snapshots do
+not carry any of the normal guarantees around compatibility and stability.
+
+Documentation is published nightly to [https://geomesa.org/documentation/latest/](https://geomesa.org/documentation/latest/).
+
+Maven artifacts are published nightly to the Eclipse Maven repository:
+
+```xml
+<repository>
+  <id>geomesa-snapshots</id>
+  <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots</url>
+  <releases>
+    <enabled>false</enabled>
+  </releases>
+  <snapshots>
+    <enabled>true</enabled>
+  </snapshots>
+</repository>
 ```
 
 ## Building from Source
