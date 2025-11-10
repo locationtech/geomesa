@@ -3437,9 +3437,9 @@
         <!-- include central so that it is searched before our alternate repos -->
         <repository>
             <id>central</id>
-            <name>Maven Repository Switchboard</name>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
             <layout>default</layout>
-            <url>https://repo1.maven.org/maven2</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -3487,9 +3487,7 @@
             <id>central</id>
             <name>Central Repository</name>
             <url>https://repo.maven.apache.org/maven2</url>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
+            <layout>default</layout>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
