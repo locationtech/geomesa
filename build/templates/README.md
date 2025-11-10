@@ -25,16 +25,7 @@ geospatial analytics.
 
 ## Documentation
 
-* [Main documentation](https://www.geomesa.org/documentation/)
-* [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html)
-* Quick Starts:
-  [Accumulo](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
-  [HBase](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
-  [Cassandra](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-cassandra.html) |
-  [Kafka](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
-  [Redis](https://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
-  [FileSystem](https://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
-* [Tutorials](https://www.geomesa.org/tutorials/)
+<b>[Documentation](https://www.geomesa.org/documentation/) | [Upgrade Guide](https://www.geomesa.org/documentation/user/upgrade.html) | [Quick Starts](https://www.geomesa.org/documentation/stable/tutorials/index.html#quick-starts) | [Tutorials](https://www.geomesa.org/tutorials/) | [Nightly snapshots](https://geomesa.org/documentation/latest/)</b>
 
 ## Downloads
 

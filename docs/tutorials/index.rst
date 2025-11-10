@@ -12,6 +12,7 @@ Quick Starts
     geomesa-quickstart-hbase
     geomesa-quickstart-accumulo
     geomesa-quickstart-cassandra
+    geomesa-quickstart-scylladb
     geomesa-quickstart-kafka
     geomesa-quickstart-kafka-streams
     geomesa-quickstart-redis
