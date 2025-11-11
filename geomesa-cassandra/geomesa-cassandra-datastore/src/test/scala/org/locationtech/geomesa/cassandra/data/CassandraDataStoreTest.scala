@@ -27,8 +27,7 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.BeforeAfterAll
-import org.testcontainers.cassandra.CassandraContainer
-import org.testcontainers.cassandra.delegate.CassandraDatabaseDelegate
+import org.testcontainers.cassandra.{CassandraContainer, CassandraDatabaseDelegate}
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.utility.{DockerImageName, MountableFile}
