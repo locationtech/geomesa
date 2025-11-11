@@ -23,8 +23,9 @@ import org.apache.kafka.streams.test.TestRecord;
 import org.geotools.api.data.*;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.ClassRule;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
 import org.locationtech.geomesa.kafka.KafkaContainerTest;
@@ -45,7 +46,6 @@ import java.util.stream.Collectors;
 
 public class GeoMesaStreamsBuilderTest {
 
-    @ClassRule
     public static final KafkaContainer container =
             new KafkaContainer(KafkaContainerTest.KafkaImage())
                     .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("kafka")));
@@ -83,6 +83,16 @@ public class GeoMesaStreamsBuilderTest {
         params.put("kafka.topic.replication", "1");
         params.put("kafka.consumer.read-back", "Inf");
         return params;
+    }
+
+    @BeforeClass
+    public static void beforeAll() {
+        container.start();
+    }
+
+    @AfterClass
+    public static void afterAll() {
+        container.stop();
     }
 
     @Test
