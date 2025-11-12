@@ -59,7 +59,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     AccumuloDataStoreFactory.ParameterInfo ++
         Array(AccumuloDataStoreParams.NamespaceParam, AccumuloDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
-  override def canProcess(params: java.util.Map[String,_]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null

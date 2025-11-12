@@ -10,9 +10,6 @@ geomesa
 gson
 gt
 joda
-json4s-ast
-json4s-core
-json4s-native
 json-path
 json-simple
 json-smart

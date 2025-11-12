@@ -44,6 +44,7 @@ import scala.util.control.NonFatal
   * @param cached an optional cached RDD, used to speed up queries when enabled
   * @param partitioned an optional spatially partitioned RDD, used to speed up spatial joins when enabled
   */
+@SerialVersionUID(5903335864840136924L)
 case class GeoMesaRelation(
     sqlContext: SQLContext,
     sft: SimpleFeatureType,

@@ -18,7 +18,6 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.locationtech.jts</groupId>
@@ -53,6 +52,11 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-wkt</artifactId>
+            <scope>provided</scope> <!-- allow for other epsg impls at runtime -->
         </dependency>
 
         <!-- Spark SQL support powered by Apache Sedona -->

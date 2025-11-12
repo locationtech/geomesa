@@ -26,7 +26,7 @@ trait SpatialRDDProvider {
     * @param params data store parameters
     * @return
     */
-  def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean
+  def canProcess(params: java.util.Map[String, _]): Boolean
 
   /**
     * Load an RDD for the given query.
@@ -40,7 +40,7 @@ trait SpatialRDDProvider {
     * @param query query for features to load
     * @return
     */
-  def rdd(conf: Configuration, sc: SparkContext, params: Map[String, String], query: Query) : SpatialRDD
+  def rdd(conf: Configuration, sc: SparkContext, params: Map[String, String], query: Query): SpatialRDD
 
   /**
     * Persist an RDD to long-term storage.
