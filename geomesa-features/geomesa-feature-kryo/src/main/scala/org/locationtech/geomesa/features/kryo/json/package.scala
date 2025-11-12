@@ -8,9 +8,8 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 
 package object json {
-  // TODO configure??
-  private[json] val mapper = new ObjectMapper()
+  private[json] val mapper = new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 }
