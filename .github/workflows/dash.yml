@@ -52,8 +52,9 @@ jobs:
               echo "Detected pom change, double-checking dependencies"
               mvn $MAVEN_COMPILE_NO_OP_ARGS $MAVEN_CLI_OPTS
               ./build/scripts/calculate-cqs.sh
-              git diff --exit-code --quiet || {
+              git diff --exit-code --quiet build/dependencies.txt || {
                 echo 'Detected dependency changes - please run `./build/scripts/calculate-cqs.sh` and commit the results'
+                git diff build/dependencies.txt
                 exit 1
               }
               echo "Dependencies are ok, skipping dash check"
