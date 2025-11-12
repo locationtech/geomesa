@@ -21,7 +21,7 @@ env:
 
 jobs:
   integration-tests:
-    name: integration-tests / ${{ matrix.projects.name }} / ${{ matrix.scala-version }}
+    name: test / ${{ matrix.projects.name }} / ${{ matrix.scala-version }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
