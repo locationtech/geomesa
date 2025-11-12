@@ -73,9 +73,6 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   override def beforeAll(): Unit = {
     Startables.deepStart(hadoop, cluster).get()
 
-    // note: the host reach-back networking required for spark seems to mess up the hadoop networking unless hadoop starts first
-//    cluster.start()
-
     // note: have to create all data up front to avoid caching issues in the spark executor
     formats.foreach { format =>
       val sft = SimpleFeatureTypes.createType(format,

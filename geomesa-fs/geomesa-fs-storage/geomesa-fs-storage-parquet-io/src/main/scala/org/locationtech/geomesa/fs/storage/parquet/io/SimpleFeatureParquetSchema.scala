@@ -108,11 +108,16 @@ object SimpleFeatureParquetSchema extends LazyLogging {
     val metadata = new java.util.HashMap[String, String]()
     // copy in the file level metadata - note, do this before copying in the conf so that transform schemas are applied correctly
     context.getKeyValueMetadata.asScala.foreach { case (k, v) => if (!v.isEmpty) { metadata.put(k, v.iterator.next) }}
-    // noinspection ScalaDeprecation - use the older method for spark compatibility
-    val conf = context.getConfiguration
     // noinspection ScalaDeprecation
     Seq(SftNameKey, SftSpecKey, GeometryEncodingKey, SchemaVersionKey).foreach { key =>
-      Option(conf.get(key)).foreach(metadata.put(key, _))
+      val value =
+        try { context.getParquetConfiguration.get(key) } catch {
+          // noinspection ScalaDeprecation - use the older method for spark compatibility
+          case _: NoSuchMethodError => context.getConfiguration.get(key)
+        }
+      if (value != null) {
+        metadata.put(key, value)
+      }
     }
     read(context.getFileSchema, metadata)
   }

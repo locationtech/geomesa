@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -45,7 +44,6 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
   protected def configure(scanner: ScannerBase): Unit = {
     iterators.foreach(scanner.addScanIterator)
     columnFamily.foreach(scanner.fetchColumnFamily)
-    scanner.setConsistencyLevel(ConsistencyLevel.EVENTUAL)
   }
 }
 

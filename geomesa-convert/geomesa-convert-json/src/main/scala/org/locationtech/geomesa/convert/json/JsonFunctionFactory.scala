@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert.json
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import com.google.gson._
 import com.jayway.jsonpath.JsonPath
 import com.typesafe.scalalogging.LazyLogging
@@ -26,7 +26,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
   import scala.collection.JavaConverters._
 
   private val gson = new Gson()
-  private val mapper = new ObjectMapper()
+  private val mapper = new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
