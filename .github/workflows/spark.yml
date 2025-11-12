@@ -25,8 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scala-version: [ "2.12" ] # note: spark 3.x doesn't support scala 2.13
-        # TODO we don't have any tests for hbase spark runtime
+        scala-version: [ "2.12" ] # note: spark 3.x doesn't have dockers for scala 2.13
         projects:
           - name: accumulo
             list: geomesa-accumulo/geomesa-accumulo-spark
@@ -34,6 +33,7 @@ jobs:
             list: geomesa-fs/geomesa-fs-spark
           - name: gt
             list: geomesa-gt/geomesa-gt-spark
+          # TODO we don't have any tests for hbase spark runtime
           - name: hbase
             list: geomesa-hbase/geomesa-hbase-spark
     steps:
