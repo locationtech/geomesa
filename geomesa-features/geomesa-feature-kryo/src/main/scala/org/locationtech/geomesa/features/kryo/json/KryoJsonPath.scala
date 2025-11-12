@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import com.esotericsoftware.kryo.io.Input
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.typesafe.scalalogging.LazyLogging
-import org.json4s.JsonAST._
-import org.json4s.native.JsonMethods.{parse => _, _}
 import org.locationtech.geomesa.features.kryo.json.KryoJsonPath.ValuePointer
+
+import java.util.Collections
 
 /**
  * Deserializes the results of json-paths. Not thread-safe. The input may end up positioned at arbitrary locations
@@ -218,11 +219,9 @@ class KryoJsonPath(in: Input, root: ValuePointer) extends LazyLogging {
   }
 }
 
-object KryoJsonPath {
+object KryoJsonPath extends LazyLogging {
 
   import KryoJsonSerialization._
-
-  import scala.collection.JavaConverters._
 
   /**
    * Pointer to a serialized value
@@ -258,12 +257,10 @@ object KryoJsonPath {
    * @return value
    */
   private def readPathValue(in: Input, typed: Byte, position: Int): Any = {
-    import org.json4s.native.JsonMethods._
-
     in.setPosition(position)
     typed match {
       case StringByte   => readString(in)
-      case DocByte      => compact(render(readDocument(in)))
+      case DocByte      => mapper.writeValueAsString(readDocument(in))
       case ArrayByte    => unwrapArray(readArray(in))
       case DoubleByte   => in.readDouble()
       case IntByte      => in.readInt()
@@ -280,17 +277,48 @@ object KryoJsonPath {
    * @param array array to unwrap
    * @return
    */
-  private def unwrapArray(array: JArray): java.util.List[Any] = {
-    array.arr.map {
-      case JString(s)              => s
-      case j: JObject              => compact(render(j))
-      case j: JArray               => unwrapArray(j)
-      case JDouble(d)              => d
-      case JInt(i) if i.isValidInt => i.intValue // note: this check needs to be a separate line to avoid auto-casting to long
-      case JInt(i)                 => i.longValue
-      case JLong(i)                => i
-      case JNull                   => null
-      case JBool(b)                => b
-    }.asJava
+  private def unwrapArray(array: ArrayNode): java.util.List[Any] = {
+    val list = new java.util.ArrayList[Any](array.size())
+    var i = 0
+    while (i < array.size()) {
+      val value = array.get(i)
+      val unwrapped =
+        if (value.isTextual || value.isBinary) {
+          value.asText()
+        } else if (value.isObject) {
+          mapper.writeValueAsString(value)
+        } else if (value.isArray) {
+          unwrapArray(value.asInstanceOf[ArrayNode])
+        } else if (value.isDouble || value.isFloat) {
+          value.asDouble()
+        } else if (value.isInt || value.isShort) {
+          value.intValue()
+        } else if (value.isLong) {
+          value.longValue()
+        } else if (value.isNull) {
+          null
+        } else if (value.isBoolean) {
+          value.booleanValue()
+        } else if (value.isBigDecimal) {
+          value.asDouble()
+        } else if (value.isBigInteger) {
+          if (value.canConvertToInt) {
+            value.intValue()
+          } else if (value.canConvertToLong) {
+            value.longValue()
+          } else {
+            logger.warn(s"Skipping int value that does not fit in a long: $value")
+            null
+          }
+        } else {
+          logger.warn(s"Unhandled JsonNode: $value")
+          null
+        }
+      if (unwrapped != null) {
+        list.add(unwrapped)
+      }
+      i += 1
+    }
+    Collections.unmodifiableList(list)
   }
 }

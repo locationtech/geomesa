@@ -173,7 +173,7 @@ class KryoJsonSerializationTest extends Specification {
         val recovered = KryoJsonSerialization.deserializeAndRender(new Input(bytes))
         recovered mustEqual json
       }
-    }.pendingUntilFixed("json4s native doesn't support parsing primitives")
+    }
 
     "correctly deserialize json-path for documents" in {
       val out = new Output(512)

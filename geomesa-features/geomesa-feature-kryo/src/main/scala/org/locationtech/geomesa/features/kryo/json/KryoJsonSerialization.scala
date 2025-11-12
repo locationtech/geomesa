@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.features.kryo.json
 
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.typesafe.scalalogging.LazyLogging
-import org.json4s.JsonAST._
-import org.json4s.native.JsonMethods.{parse => _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
 
 import java.nio.charset.StandardCharsets
@@ -85,11 +85,9 @@ object KryoJsonSerialization extends LazyLogging {
     * @param json json string to serialize - must be a json object
     */
   def serialize(out: Output, json: String): Unit = {
-    import org.json4s._
-    import org.json4s.native.JsonMethods._
     val obj = if (json == null) { null } else {
       try {
-        parse(json)
+        mapper.readTree(json)
       } catch {
         case NonFatal(e) =>
           logger.warn(s"Error parsing json:\n$json", e)
@@ -105,11 +103,13 @@ object KryoJsonSerialization extends LazyLogging {
     * @param out output to write to
     * @param json object to serialize
     */
-  def serialize(out: Output, json: JValue): Unit = {
-    json match {
-      case null | JNull  => out.write(BooleanFalse)
-      case j: JObject    => out.write(BooleanTrue); writeDocument(out, j)
-      case j             => out.write(NonDoc); writeValue(out, "", j)
+  def serialize(out: Output, json: JsonNode): Unit = {
+    if (json == null || json.isNull) {
+      out.write(BooleanFalse)
+    } else if (json.isObject) {
+      out.write(BooleanTrue); writeDocument(out, json)
+    } else {
+      out.write(NonDoc); writeValue(out, "", json)
     }
   }
 
@@ -122,12 +122,11 @@ object KryoJsonSerialization extends LazyLogging {
     * @return json as a string
     */
   def deserializeAndRender(in: Input): String = {
-    import org.json4s.native.JsonMethods._
     val json = deserialize(in)
     if (json == null) {
       null
     } else {
-      compact(render(json))
+      mapper.writeValueAsString(json)
     }
   }
 
@@ -139,7 +138,7 @@ object KryoJsonSerialization extends LazyLogging {
     * @param in input, pointing to the start of the json object
     * @return parsed json object
     */
-  def deserialize(in: Input): JValue = {
+  def deserialize(in: Input): JsonNode = {
     try {
       in.readByte match {
         case BooleanFalse => null
@@ -176,19 +175,19 @@ object KryoJsonSerialization extends LazyLogging {
 
   // primitive writing functions - in general will write a byte identifying the type, the key and then the value
 
-  private def writeDocument(out: Output, name: String, value: JObject): Unit = {
+  private def writeDocument(out: Output, name: String, value: JsonNode): Unit = {
     out.writeByte(DocByte)
     out.writeName(name)
     writeDocument(out, value)
   }
 
-  // write a document without a name - used for the outer-most object which doesn't have a key
-  private def writeDocument(out: Output, value: JObject): Unit = {
+  // write a document without a name - used for the outermost object which doesn't have a key
+  private def writeDocument(out: Output, value: JsonNode): Unit = {
     val start = out.position()
     // write a placeholder that we will overwrite when we go back to write total length
     // note: don't just modify position, as that doesn't expand the buffer correctly
     out.writeInt(0)
-    value.obj.foreach { case (name, elem) => writeValue(out, name, elem) }
+    value.forEachEntry { case (name, elem) => writeValue(out, name, elem) }
     out.writeByte(TerminalByte) // marks the end of our object
     // go back and write the total length
     val end = out.position()
@@ -197,74 +196,82 @@ object KryoJsonSerialization extends LazyLogging {
     out.setPosition(end)
   }
 
-  private def writeValue(out: Output, name: String, value: JValue): Unit = {
-    value match {
-      case v: JString  => writeString(out, name, v)
-      case v: JObject  => writeDocument(out, name, v)
-      case v: JArray   => writeArray(out, name, v)
-      case v: JDouble  => writeDouble(out, name, v)
-      case v: JInt     => writeInt(out, name, v)
-      case v: JLong    => writeLong(out, name, v)
-      case JNull       => writeNull(out, name)
-      case v: JBool    => writeBoolean(out, name, v)
-      case v: JDecimal => writeDecimal(out, name, v)
+  private def writeValue(out: Output, name: String, value: JsonNode): Unit = {
+    if (value.isTextual || value.isBinary) {
+      writeString(out, name, value.asText())
+    } else if (value.isObject) {
+      writeDocument(out, name, value)
+    } else if (value.isArray) {
+      writeArray(out, name, value)
+    } else if (value.isDouble || value.isFloat) {
+      writeDouble(out, name, value.asDouble())
+    } else if (value.isInt || value.isShort) {
+      writeInt(out, name, value.intValue())
+    } else if (value.isLong) {
+      writeLong(out, name, value.longValue())
+    } else if (value.isNull) {
+      writeNull(out, name)
+    } else if (value.isBoolean) {
+      writeBoolean(out, name, value.booleanValue())
+    } else if (value.isBigDecimal) {
+      writeDouble(out, name, value.asDouble())
+    } else if (value.isBigInteger) {
+      if (value.canConvertToInt) {
+        writeInt(out, name, value.intValue())
+      } else if (value.canConvertToLong) {
+        writeLong(out, name, value.longValue())
+      } else {
+        logger.warn(s"Skipping int value that does not fit in a long: $value")
+      }
+    } else {
+      logger.warn(s"Unhandled JsonNode: $value")
     }
   }
 
-  private def writeArray(out: Output, name: String, value: JArray): Unit = {
+  private def writeArray(out: Output, name: String, value: JsonNode): Unit = {
     out.writeByte(ArrayByte)
     out.writeName(name)
     // we store as an object where array index is the key
-    var i = -1
-    val withKeys = value.arr.map { element => i += 1; (i.toString, element) } // note: side-effect in map
-    writeDocument(out, JObject(withKeys))
+    var i = 0
+    val obj = mapper.createObjectNode()
+    while (i < value.size()) {
+      obj.set(i.toString, value.get(i))
+      i += 1
+    }
+    writeDocument(out, obj)
   }
 
-  private def writeString(out: Output, name: String, value: JString): Unit = {
+  private def writeString(out: Output, name: String, value: String): Unit = {
     out.writeByte(StringByte)
     out.writeName(name)
-    val bytes = value.values.getBytes(StandardCharsets.UTF_8)
+    val bytes = value.getBytes(StandardCharsets.UTF_8)
     out.writeInt(bytes.length)
     out.write(bytes)
     out.writeByte(TerminalByte)
   }
 
-  private def writeDecimal(out: Output, name: String, value: JDecimal): Unit = {
+  private def writeDouble(out: Output, name: String, value: Double): Unit = {
     out.writeByte(DoubleByte)
     out.writeName(name)
-    out.writeDouble(value.values.toDouble)
+    out.writeDouble(value)
   }
 
-  private def writeDouble(out: Output, name: String, value: JDouble): Unit = {
-    out.writeByte(DoubleByte)
+  private def writeInt(out: Output, name: String, value: Int): Unit = {
+    out.writeByte(IntByte)
     out.writeName(name)
-    out.writeDouble(value.values)
+    out.writeInt(value)
   }
 
-  private def writeInt(out: Output, name: String, value: JInt): Unit = {
-    if (value.values.isValidInt) {
-      out.writeByte(IntByte)
-      out.writeName(name)
-      out.writeInt(value.values.intValue)
-    } else if (value.values.isValidLong) {
-      out.writeByte(LongByte)
-      out.writeName(name)
-      out.writeLong(value.values.longValue)
-    } else {
-      logger.warn(s"Skipping int value that does not fit in a long: $value")
-    }
-  }
-
-  private def writeLong(out: Output, name: String, value: JLong): Unit = {
+  private def writeLong(out: Output, name: String, value: Long): Unit = {
     out.writeByte(LongByte)
     out.writeName(name)
-    out.writeLong(value.values)
+    out.writeLong(value)
   }
 
-  private def writeBoolean(out: Output, name: String, v: JBool): Unit = {
+  private def writeBoolean(out: Output, name: String, value: Boolean): Unit = {
     out.writeByte(BooleanByte)
     out.writeName(name)
-    out.writeByte(if (v.values) BooleanTrue else BooleanFalse)
+    out.writeByte(if (value) BooleanTrue else BooleanFalse)
   }
 
   private def writeNull(out: Output, name: String): Unit = {
@@ -275,33 +282,39 @@ object KryoJsonSerialization extends LazyLogging {
   // primitive reading/skipping methods corresponding to the write methods above
   // assumes that the indicator byte and name have already been read
 
-  private[json] def readDocument(in: Input): JObject = {
+  private[json] def readDocument(in: Input): ObjectNode = {
     val end = in.position() + in.readInt() - 1 // last byte is the terminal byte
-    val elements = scala.collection.mutable.ArrayBuffer.empty[JField]
+    val obj = mapper.createObjectNode()
     while (in.position() < end) {
-      elements.append(readValue(in))
+      val (k, v) = readValue(in)
+      obj.set(k, v)
     }
     in.skip(1) // skip over terminal byte
-    JObject(elements.toList)
+    obj
   }
 
-  private[json] def readValue(in: Input): JField = {
+  private[json] def readValue(in: Input): (String, JsonNode) = {
     val switch = in.readByte()
     val name = in.readName()
     val value = switch match {
-      case StringByte   => JString(readString(in))
+      case StringByte   => mapper.getNodeFactory.textNode(readString(in))
       case DocByte      => readDocument(in)
       case ArrayByte    => readArray(in)
-      case DoubleByte   => JDouble(in.readDouble())
-      case IntByte      => JInt(in.readInt())
-      case LongByte     => JLong(in.readLong())
-      case NullByte     => JNull
-      case BooleanByte  => JBool(readBoolean(in))
+      case DoubleByte   => mapper.getNodeFactory.numberNode(in.readDouble())
+      case IntByte      => mapper.getNodeFactory.numberNode(in.readInt())
+      case LongByte     => mapper.getNodeFactory.numberNode(in.readLong())
+      case NullByte     => mapper.getNodeFactory.nullNode()
+      case BooleanByte  => mapper.getNodeFactory.booleanNode(readBoolean(in))
     }
-    JField(name, value)
+    (name, value)
   }
 
-  private[json] def readArray(in: Input): JArray = JArray(readDocument(in).obj.map(_._2))
+  private[json] def readArray(in: Input): ArrayNode = {
+    val obj = readDocument(in)
+    val array = mapper.getNodeFactory.arrayNode(obj.size())
+    obj.forEachEntry { case (_, v) => array.add(v) }
+    array
+  }
 
   private[json] def skipDocument(in: Input): Unit = in.skip(in.readInt - 4) // length includes bytes storing length
 
