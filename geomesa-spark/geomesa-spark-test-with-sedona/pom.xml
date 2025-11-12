@@ -10,17 +10,6 @@
     <name>GeoMesa Spark Test With Sedona</name>
     <artifactId>geomesa-spark-test-with-sedona_2.12</artifactId>
 
-    <properties>
-        <!-- version used by spark - our json4s is shaded and relocated -->
-        <json4s.version>3.6.12</json4s.version>
-        <maven.test.opens>
-          --add-opens=java.base/java.nio=ALL-UNNAMED
-          --add-opens=java.base/sun.nio.ch=ALL-UNNAMED
-          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
-          --add-opens=java.base/java.util=ALL-UNNAMED
-        </maven.test.opens>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>

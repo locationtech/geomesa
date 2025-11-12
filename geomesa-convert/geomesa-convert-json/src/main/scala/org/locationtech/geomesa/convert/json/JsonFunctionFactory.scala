@@ -8,11 +8,10 @@
 
 package org.locationtech.geomesa.convert.json
 
+import com.fasterxml.jackson.databind.{ObjectMapper, SerializationFeature}
 import com.google.gson._
 import com.jayway.jsonpath.JsonPath
 import com.typesafe.scalalogging.LazyLogging
-import org.json4s.JsonAST.{JNull, JValue}
-import org.json4s.{JBool, JDouble, JInt, JString}
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
@@ -27,6 +26,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
   import scala.collection.JavaConverters._
 
   private val gson = new Gson()
+  private val mapper = new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
   // noinspection ScalaDeprecation
   override def functions: Seq[TransformerFunction] =
@@ -103,22 +103,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
   }
 
   private val mapToJson = TransformerFunction.pure("map2Json", "mapToJson") { args =>
-
-    import org.json4s.JsonDSL._
-    import org.json4s.native.JsonMethods._
-
-    val map = args(0).asInstanceOf[java.util.Map[String, _]]
-    val ast: Map[String, JValue] = map.asScala.mapValues {
-      case null       => JNull
-      case x: Int     => JInt(x)
-      case x: Long    => JInt(x)
-      case x: Double  => JDouble(x)
-      case x: Float   => JDouble(x.toDouble)
-      case x: Boolean => JBool(x)
-      case x: String  => JString(x)
-      case x          => JString(x.toString)
-    }.toMap
-    compact(render(ast))
+    mapper.writeValueAsString(args(0).asInstanceOf[java.util.Map[String, _]])
   }
 
   private val jsonArrayToObject = TransformerFunction.pure("jsonArrayToObject") { args =>

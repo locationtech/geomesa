@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-fs_2.12</artifactId>
+        <artifactId>geomesa-archetypes-spark-runtime_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>6.0.0-SNAPSHOT</version>
+        <relativePath>../../geomesa-archetypes/geomesa-archetypes-spark-runtime/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>GeoMesa FileSystem Spark RDD Provider</name>
     <artifactId>geomesa-fs-spark_2.12</artifactId>
 
-    <properties>
-        <!-- scoverage messes up shaded jars in tests; there isn't any code here anyway, so it shouldn't matter -->
-        <maven.scoverage.phase>none</maven.scoverage.phase>
-    </properties>
-
     <dependencies>
+        <!-- declaring this first (even though it's a transitive dep) fixes an issue with objenesis not being included -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-kryo_${scala.binary.version}</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
@@ -28,97 +29,14 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-orc_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-sql_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-jobs_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-jupyter-leaflet_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-cqengine-datastore_${scala.binary.version}</artifactId>
-        </dependency>
-
-        <!-- bring in guava and relocate it -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- provided dependencies -->
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- test dependencies -->
+
         <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-core_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+            <groupId>org.geomesa.testcontainers</groupId>
+            <artifactId>testcontainers-accumulo</artifactId>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>skip-spark-runtimes</id>
-            <properties>
-                <maven.shade.skip>true</maven.shade.skip>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <!-- create a non-shaded runtime jar so dependency resolution still works -->
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>fake-spark-runtime</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <classifier>runtime</classifier>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <build>
         <plugins>
@@ -177,43 +95,18 @@
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
-                                <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
-                                <relocation>
-                                    <pattern>org.apache.parquet</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.parquet</shadedPattern>
-                                </relocation>
-                                <!-- spark also includes orc/hive, relocate to avoid version conflicts -->
-                                <relocation>
-                                    <pattern>org.apache.orc</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.orc</shadedPattern>
-                                </relocation>
-                                <!-- spark needs json4s to use the jsonpath function -->
-                                <relocation>
-                                    <pattern>org.json4s</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
-                                </relocation>
-                                <!-- paranamer and jackson conflict with spark 3 -->
-                                <relocation>
-                                    <pattern>com.thoughtworks.paranamer</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.com.thoughtworks.paranamer</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.shaded.com.fasterxml.jackson</shadedPattern>
-                                </relocation>
                                 <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
                                 <relocation>
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>runtime</shadedClassifierName>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
+
     </build>
 
 </project>

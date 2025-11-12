@@ -172,7 +172,7 @@ Maven artifacts are published nightly to the Eclipse Maven repository:
 ## Building from Source
 
   &nbsp;&nbsp;
-  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/main-build.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/main-build.yml?query=branch%3Amain) &nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test.yml/badge.svg?branch=main) &nbsp;
   [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa/badge)](https://api.securityscorecards.dev/projects/github.com/locationtech/geomesa)
 
 Requirements:

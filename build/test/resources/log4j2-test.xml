@@ -12,6 +12,8 @@
     <Logger name="org.apache.sedona.viz.core.Serde" level="warn"/>
     <Logger name="org.apache.sedona.core.joinJudgement" level="warn"/>
     <Logger name="org.apache.curator" level="warn"/>
+    <Logger name="org.apache.hadoop" level="warn"/>
+    <Logger name="org.apache.parquet.hadoop" level="warn"/>
     <Logger name="org.apache.zookeeper" level="warn"/>
     <Root level="info">
       <AppenderRef ref="Console"/>

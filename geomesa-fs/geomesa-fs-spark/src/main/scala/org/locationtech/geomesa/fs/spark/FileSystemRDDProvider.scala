@@ -30,12 +30,11 @@ import org.locationtech.geomesa.index.utils.FeatureWriterHelper
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 
-import java.io.Serializable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreFactory.canProcess(params)
 
   override def rdd(
