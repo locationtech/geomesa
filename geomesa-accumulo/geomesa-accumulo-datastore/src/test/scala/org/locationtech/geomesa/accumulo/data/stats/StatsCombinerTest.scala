@@ -40,11 +40,11 @@ class StatsCombinerTest extends TestWithFeatureType {
   "StatsCombiner" should {
     "add/remove configured combiners" in {
       statCount() must beSome(2L)
-      ds.stats.removeStatCombiner(ds.connector, sft)
+      ds.stats.removeStatCombiner(ds.client, sft)
       // the exact behavior here doesn't matter, it's just to verify that the combiner is not enabled
       // in this case, it will just return the first row
       statCount() must beSome(1L)
-      ds.stats.configureStatCombiner(ds.connector, sft)
+      ds.stats.configureStatCombiner(ds.client, sft)
       statCount() must beSome(2L)
     }
   }

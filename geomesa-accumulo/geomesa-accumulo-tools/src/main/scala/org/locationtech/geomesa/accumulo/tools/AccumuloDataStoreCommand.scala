@@ -15,6 +15,7 @@ import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 import java.io.File
+import java.util.Locale
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -27,13 +28,14 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   override def connection: Map[String, String] = {
     Map[String, String](
-      InstanceNameParam.key -> params.instance,
-      ZookeepersParam.key   -> params.zookeepers,
-      UserParam.key         -> params.user,
-      PasswordParam.key     -> params.password,
-      KeytabPathParam.key   -> params.keytab,
-      CatalogParam.key      -> params.catalog,
-      AuthsParam.key        -> params.auths
+      InstanceNameParam.key     -> params.instance,
+      ZookeepersParam.key       -> params.zookeepers,
+      UserParam.key             -> params.user,
+      PasswordParam.key         -> params.password,
+      KeytabPathParam.key       -> params.keytab,
+      CatalogParam.key          -> params.catalog,
+      AuthsParam.key            -> params.auths,
+      QueryConsistencyParam.key -> Option(params.consistency).map(_.name().toLowerCase(Locale.US)).orNull
     ).filter(_._2 != null)
   }
 }

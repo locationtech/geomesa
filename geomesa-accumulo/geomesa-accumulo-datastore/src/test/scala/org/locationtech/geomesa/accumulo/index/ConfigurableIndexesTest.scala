@@ -50,7 +50,7 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
       indices.head.name mustEqual Z3Index.name
       val z3Tables = indices.head.getTableNames()
       z3Tables must not(beEmpty)
-      foreach(z3Tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
+      foreach(z3Tables)(t => ds.client.tableOperations().exists(t) must beTrue)
     }
 
     "be able to use z3 for spatial queries" >> {
@@ -88,10 +88,10 @@ class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
       forall(indices) { i =>
         val tables = i.getTableNames()
         tables must not(beEmpty)
-        foreach(tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
+        foreach(tables)(t => ds.client.tableOperations().exists(t) must beTrue)
         if (i.name == Z2Index.name) {
           foreach(tables) { table =>
-            WithClose(ds.connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+            WithClose(ds.client.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
           }
         } else {
           ok

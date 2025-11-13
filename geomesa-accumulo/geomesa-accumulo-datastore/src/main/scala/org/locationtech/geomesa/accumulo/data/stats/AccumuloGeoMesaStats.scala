@@ -17,7 +17,6 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, Sta
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
-import org.locationtech.geomesa.utils.stats._
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
@@ -114,7 +113,7 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     */
   private [accumulo] def compact(wait: Boolean = true): Unit = {
     compactionScheduled.set(false)
-    ds.connector.tableOperations().compact(metadata.table, null, null, true, wait)
+    ds.client.tableOperations().compact(metadata.table, null, null, true, wait)
     lastCompaction.set(System.currentTimeMillis())
   }
 
@@ -126,8 +125,8 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
       // new rows after writing them, so the combiner does not need to be correct yet
       super.rename(sft, previous)
       // now remove the old sft and configure the new one
-      removeStatCombiner(ds.connector, previous)
-      configureStatCombiner(ds.connector, sft)
+      removeStatCombiner(ds.client, previous)
+      configureStatCombiner(ds.client, sft)
     }
 
     override def updater(sft: SimpleFeatureType): StatUpdater =
@@ -152,7 +151,8 @@ object AccumuloGeoMesaStats {
 
   def apply(ds: AccumuloDataStore): AccumuloGeoMesaStats = {
     val table = s"${ds.config.catalog}_stats"
-    new AccumuloGeoMesaStats(ds, new AccumuloBackedMetadata(ds.connector, table, new StatsMetadataSerializer(ds)))
+    val persistence = new AccumuloBackedMetadata(ds.client, table, new StatsMetadataSerializer(ds), ds.config.queries.consistency)
+    new AccumuloGeoMesaStats(ds, persistence)
   }
 
   private[stats] val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(3), force = true)

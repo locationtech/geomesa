@@ -24,10 +24,10 @@ General Arguments
 Most commands require you to specify the connection to Accumulo. This generally includes the instance name,
 zookeeper hosts, username, and password (or Kerberos keytab file). Specify the instance with ``--instance-name``
 and ``--zookeepers``, and the username and password with ``--user`` and ``--password``. The password argument may be
-omitted in order to avoid plaintext credentials in the bash history and process list - in this case it will be
-prompted case for later. To use Kerberos authentication instead of a password, use ``--keytab`` with a path to a
-Kerberos keytab file containing an entry for the specified user. Since a keytab file allows authentication
-without any further constraints, it should be protected appropriately.
+omitted in order to avoid plaintext credentials in the process list - in this case it will be prompted for. To use
+Kerberos authentication instead of a password, use ``--keytab`` with a path to a Kerberos keytab file containing an
+entry for the specified user. Since a keytab file allows authentication without any further constraints, it should be
+protected appropriately.
 
 Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties``
 may be added to the classpath. See the
@@ -36,7 +36,8 @@ for information on the necessary configuration keys. Any explicit command-line a
 the configuration file.
 
 The ``--auths`` argument corresponds to the ``AccumuloDataStore`` parameter ``geomesa.security.auths``. See
-:ref:`data_security` for more information.
+:ref:`data_security` for more information. The ``--consistency`` argument corresponds to the  ``AccumuloDataStore`` parameter
+``accumulo.query.consistency``.
 
 Commands
 --------

@@ -80,7 +80,7 @@ object TableConfCommand {
 
   def setValue(ds: AccumuloDataStore, table: String, key: String, value: String): Unit = {
     try {
-      ds.connector.tableOperations.setProperty(table, key, value)
+      ds.client.tableOperations.setProperty(table, key, value)
     } catch {
       case e: Exception => throw new RuntimeException(s"Error updating table property: ${e.getMessage}", e)
     }
@@ -88,7 +88,7 @@ object TableConfCommand {
 
   def getProperties(ds: AccumuloDataStore, table: String): Map[(String, String), String] = {
     try {
-      ds.connector.tableOperations.getProperties(table).asScala.map(e => ((table, e.getKey), e.getValue)).toMap
+      ds.client.tableOperations.getProperties(table).asScala.map(e => ((table, e.getKey), e.getValue)).toMap
     } catch {
       case e: TableNotFoundException =>
         throw new RuntimeException(s"Error: table $table does not exist: ${e.getMessage}", e)

@@ -63,7 +63,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
       skipped("used for debugging")
       ds.manager.indices(sft).filter(_.name == Z2Index.name).flatMap(_.getTableNames()).foreach { table =>
         logger.info(table)
-        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
+        ds.client.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val keyZ = ByteArrays.readLong(bytes.drop(2))
           val (x, y) = Z2SFC.invert(keyZ)

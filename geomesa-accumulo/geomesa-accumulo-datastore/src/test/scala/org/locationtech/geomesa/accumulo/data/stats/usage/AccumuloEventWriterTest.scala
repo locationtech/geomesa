@@ -39,7 +39,7 @@ class AccumuloEventWriterTest extends TestWithDataStore {
       // disable scheduled run, and call it manually
       AccumuloAuditWriter.WriteInterval.threadLocalValue.set("12 hours")
       val writer = try {
-        new AccumuloAuditWriter(ds.connector, catalog, new AuditProvider {
+        new AccumuloAuditWriter(ds.client, catalog, new AuditProvider {
           override def configure(params: java.util.Map[String, _]): Unit = {}
           override def getCurrentUserId: String = "user1"
           override def getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = null
@@ -47,7 +47,7 @@ class AccumuloEventWriterTest extends TestWithDataStore {
       } finally {
         AccumuloAuditWriter.WriteInterval.threadLocalValue.remove()
       }
-      val statReader = new AccumuloAuditReader(ds.connector, catalog, ds.config.authProvider)
+      val statReader = new AccumuloAuditReader(ds.client, catalog, ds.config.authProvider, ds.config.queries.consistency)
 
       writer.writeQueryEvent(featureName, "user", ECQL.toFilter("IN('query1')"), new Hints(QueryHints.QUERY_INDEX, "z3"), Seq.empty, 0L, 10L, 101L, 201L, 11)
       writer.writeQueryEvent(featureName, "user", ECQL.toFilter("IN('query2')"), new Hints(QueryHints.ARROW_ENCODE, true), Seq.empty, 0L, 10L, 102L, 202L, 12)

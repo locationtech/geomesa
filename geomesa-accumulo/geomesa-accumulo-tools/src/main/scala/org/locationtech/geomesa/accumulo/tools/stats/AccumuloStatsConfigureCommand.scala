@@ -23,7 +23,7 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
   override val params = new AccumuloStatsConfigureParams
 
   override protected def list(ds: AccumuloDataStore): Unit = {
-    val configured = StatsCombiner.list(ds.connector, s"${ds.config.catalog}_stats").map { case (k, v) => s"$k -> $v" }
+    val configured = StatsCombiner.list(ds.client, s"${ds.config.catalog}_stats").map { case (k, v) => s"$k -> $v" }
     Command.user.info(s"Configured stats iterator: ${configured.mkString("\n  ", "\n  ", "")}")
   }
 
@@ -33,7 +33,7 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
       ds.getTypeNames.map(ds.getSchema).foreach { sft =>
         Command.user.info(s"Configuring stats iterator for '${sft.getTypeName}'...")
         ds.adapter.ensureTableExists(ds.stats.metadata.table)
-        ds.stats.configureStatCombiner(ds.connector, sft)
+        ds.stats.configureStatCombiner(ds.client, sft)
       }
     } finally {
       lock.close()
@@ -49,7 +49,7 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
       try {
         ds.getTypeNames.map(ds.getSchema).foreach { sft =>
           Command.user.info(s"Removing stats iterator for '${sft.getTypeName}'...")
-          ds.stats.removeStatCombiner(ds.connector, sft)
+          ds.stats.removeStatCombiner(ds.client, sft)
         }
       } finally {
         lock.close()

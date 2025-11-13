@@ -52,7 +52,7 @@ class ZLineTest extends Specification with TestWithFeatureType with LazyLogging 
       skipped("testing")
       new Z3Index(ds, sft, "geom", "dtg", IndexMode.ReadWrite).getTableNames().foreach { table =>
         logger.info(table)
-        val scanner = ds.connector.createScanner(table, new Authorizations())
+        val scanner = ds.client.createScanner(table, new Authorizations())
         logger.info(scanner.asScala.toSeq.length.toString)
         scanner.close()
       }

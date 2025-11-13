@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -40,11 +41,6 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
 
   override def explain(explainer: Explainer, prefix: String = ""): Unit =
     AccumuloQueryPlan.explain(this, explainer, prefix)
-
-  protected def configure(scanner: ScannerBase): Unit = {
-    iterators.foreach(scanner.addScanIterator)
-    columnFamily.foreach(scanner.fetchColumnFamily)
-  }
 }
 
 object AccumuloQueryPlan extends LazyLogging {
@@ -110,52 +106,40 @@ object AccumuloQueryPlan extends LazyLogging {
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
       strategy.runGuards(ds)
-      // convert the relative timeout to an absolute timeout up front
-      val timeout = ds.config.queries.timeout.map(Timeout.apply)
-      // note: calculate authorizations up front so that multi-threading doesn't mess up auth providers
-      scan(ds.connector, ds.auths, ds.config.queries.parallelPartitionScans, timeout)
+      // note: calculate auths and convert the relative timeout to an absolute timeout up front
+      scan(ScanHelper(ds))
     }
 
     /**
      * Scan with pre-computed auths
      *
-     * @param connector connector
-     * @param auths auths
-     * @param partitionParallelScans parallelize scans across multiple partitions (vs execute them serially)
-     * @param timeout absolute stop time, as sys time
+     * @param helper scan helper
      * @return
      */
-    private[accumulo] def scan(
-        connector: AccumuloClient,
-        auths: Authorizations,
-        partitionParallelScans: Boolean,
-        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
-      if (partitionParallelScans) {
+    private[AccumuloQueryPlan] def scan(helper: ScanHelper): CloseableIterator[Entry[Key, Value]] = {
+      if (helper.parallel) {
         // kick off all the scans at once
-        tables.map(scanner(connector, _, auths, timeout)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
+        tables.map(scanner(_, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(connector, _, auths, timeout))
+        SelfClosingIterator(tables.iterator).flatMap(scanner(_, helper))
       }
     }
 
     /**
+     * Scan a table
      *
-     * @param connector connector
      * @param table table
-     * @param auths auths
-     * @param timeout absolute stop time, as sys time
+     * @param helper scan helper
      * @return
      */
-    private def scanner(
-        connector: AccumuloClient,
-        table: String,
-        auths: Authorizations,
-        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
-      val scanner = connector.createBatchScanner(table, auths, numThreads)
+    private def scanner(table: String, helper: ScanHelper): CloseableIterator[Entry[Key, Value]] = {
+      val scanner = helper.client.createBatchScanner(table, helper.auths, numThreads)
       scanner.setRanges(ranges.asJava)
-      configure(scanner)
-      timeout match {
+      iterators.foreach(scanner.addScanIterator)
+      columnFamily.foreach(scanner.fetchColumnFamily)
+      helper.consistency.foreach(scanner.setConsistencyLevel)
+      helper.timeout match {
         case None => new ScanIterator(scanner)
         case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, this)
       }
@@ -184,41 +168,46 @@ object AccumuloQueryPlan extends LazyLogging {
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
       strategy.runGuards(ds)
-      // convert the relative timeout to an absolute timeout up front
-      val timeout = ds.config.queries.timeout.map(Timeout.apply)
-      // calculate authorizations up front so that multi-threading doesn't mess up auth providers
-      val auths = ds.auths
+      // calculate auths and convert the relative timeout to an absolute timeout up front
+      val helper = ScanHelper(ds)
       val joinTables = joinQuery.tables.iterator
-      if (ds.config.queries.parallelPartitionScans) {
+      if (helper.parallel) {
         // kick off all the scans at once
-        tables.map(scanner(ds.connector, _, joinTables.next, auths, partitionParallelScans = true, timeout))
-            .foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
+        tables.map(scanner( _, joinTables.next, helper)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ concat _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator)
-            .flatMap(scanner(ds.connector, _, joinTables.next, auths, partitionParallelScans = false, timeout))
+        SelfClosingIterator(tables.iterator).flatMap(scanner(_, joinTables.next, helper))
       }
     }
 
-    private def scanner(
-        connector: AccumuloClient,
-        table: String,
-        joinTable: String,
-        auths: Authorizations,
-        partitionParallelScans: Boolean,
-        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
+    private def scanner(table: String, joinTable: String, helper: ScanHelper): CloseableIterator[Entry[Key, Value]] = {
       val primary = if (ranges.lengthCompare(1) == 0) {
-        val scanner = connector.createScanner(table, auths)
+        val scanner = helper.client.createScanner(table, helper.auths)
         scanner.setRange(ranges.head)
         scanner
       } else {
-        val scanner = connector.createBatchScanner(table, auths, numThreads)
+        val scanner = helper.client.createBatchScanner(table, helper.auths, numThreads)
         scanner.setRanges(ranges.asJava)
         scanner
       }
-      configure(primary)
-      val join = joinQuery.copy(tables = Seq(joinTable))
-      new BatchMultiScanner(connector, primary, join, joinFunction, auths, partitionParallelScans, timeout)
+      iterators.foreach(primary.addScanIterator)
+      columnFamily.foreach(primary.fetchColumnFamily)
+      helper.consistency.foreach(primary.setConsistencyLevel)
+      val join: Seq[Entry[Key, Value]] => CloseableIterator[Entry[Key, Value]] =
+        entries => joinQuery.copy(tables = Seq(joinTable), ranges = entries.map(joinFunction)).scan(helper)
+      new BatchMultiScanner(primary, join)
+    }
+  }
+
+  private case class ScanHelper(
+    client: AccumuloClient, auths: Authorizations, timeout: Option[Timeout], parallel: Boolean, consistency: Option[ConsistencyLevel])
+
+  private object ScanHelper {
+    def apply(ds: AccumuloDataStore): ScanHelper = {
+      // convert the relative timeout to an absolute timeout up front
+      val timeout = ds.config.queries.timeout.map(Timeout.apply)
+      // calculate authorizations up front so that multi-threading doesn't mess up auth providers
+      ScanHelper(ds.client, ds.auths, timeout, ds.config.queries.parallelPartitionScans, ds.config.queries.consistency)
     }
   }
 

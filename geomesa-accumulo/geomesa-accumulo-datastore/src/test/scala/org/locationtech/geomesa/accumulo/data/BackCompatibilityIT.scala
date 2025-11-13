@@ -34,16 +34,41 @@ import org.specs2.runner.JUnitRunner
 
 import java.io._
 
+/**
+ * Runs version tests against old data. To add more versions, generate a new data file by running
+ * 'BackCompatibilityWriter' against the git tag, then add another call to 'testVersion'.
+ */
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
 
   import scala.collection.JavaConverters._
-  /**
-    * Runs version tests against old data. To add more versions, generate a new data file by running
-    * 'BackCompatibilityWriter' against the git tag, then add another call to 'testVersion'.
-    */
 
   sequential
+
+  val versions =
+    Seq(
+      "1.2.0",
+      "1.2.1",
+      "1.2.2",
+      "1.2.3",
+      "1.2.4",
+      // note: data on disk is the same in 1.2.5 and 1.2.6
+      "1.2.6",
+      "1.2.7.3",
+      "1.3.1",
+      "1.3.2",
+      // note: data on disk is the same from 1.3.3 through 2.0.0-m.1
+      "2.0.0-m.1",
+      "2.1.0",
+      "2.3.1",
+    )
+
+  "GeoMesa" should {
+    versions.map { version =>
+      s"support backward compatibility to $version" in { runVersionTest(version) }
+    }
+    "delete invalid indexed data" in { testBoundsDelete() }
+  }
 
   val queries = Seq(
     ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
@@ -87,7 +112,10 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
     SimpleFeatureArrowFileReader.read(out.toByteArray).map(_.getID.toInt)
   }
 
-  def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
+  def runVersionTest(version: String): MatchResult[Any] = {
+    val tables = readVersion(getFile(s"data/versioned-data-$version.kryo"))
+    logger.info(s"Running back compatible test on version $version")
+
     val sftName = restoreTables(tables)
 
     // get the data store
@@ -208,11 +236,11 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
   def restoreTables(tables: Seq[TableMutations]): String = {
     // reload the tables
     tables.foreach { case TableMutations(table, mutations) =>
-      if (ds.connector.tableOperations.exists(table)) {
-        ds.connector.tableOperations.delete(table)
+      if (ds.client.tableOperations.exists(table)) {
+        ds.client.tableOperations.delete(table)
       }
-      ds.connector.tableOperations.create(table)
-      WithClose(ds.connector.createBatchWriter(table, new BatchWriterConfig)) { bw =>
+      ds.client.tableOperations.create(table)
+      WithClose(ds.client.createBatchWriter(table, new BatchWriterConfig)) { bw =>
         bw.addMutations(mutations.asJava)
       }
     }
@@ -228,10 +256,10 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
       bytes
     }
     val numTables = input.readInt
-    (0 until numTables).map { _ =>
+    Seq.fill(numTables) {
       val tableName = input.readString
       val numMutations = input.readInt
-      val mutations = (0 until numMutations).map { _ =>
+      val mutations = Seq.fill(numMutations) {
         val row = readBytes
         val cf = readBytes
         val cq = readBytes
@@ -244,31 +272,6 @@ class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
       }
       TableMutations(tableName, mutations)
     }
-  }
-
-  def testVersion(version: String): MatchResult[Any] = {
-    val data = readVersion(getFile(s"data/versioned-data-$version.kryo"))
-    logger.info(s"Running back compatible test on version $version")
-    runVersionTest(data)
-  }
-
-  "GeoMesa" should {
-    "support backward compatibility to 1.2.0"     >> { testVersion("1.2.0") }
-    "support backward compatibility to 1.2.1"     >> { testVersion("1.2.1") }
-    "support backward compatibility to 1.2.2"     >> { testVersion("1.2.2") }
-    "support backward compatibility to 1.2.3"     >> { testVersion("1.2.3") }
-    "support backward compatibility to 1.2.4"     >> { testVersion("1.2.4") }
-    // note: data on disk is the same in 1.2.5 and 1.2.6
-    "support backward compatibility to 1.2.6"     >> { testVersion("1.2.6") }
-    "support backward compatibility to 1.2.7.3"   >> { testVersion("1.2.7.3") }
-    "support backward compatibility to 1.3.1"     >> { testVersion("1.3.1") }
-    "support backward compatibility to 1.3.2"     >> { testVersion("1.3.2") }
-    // note: data on disk is the same from 1.3.3 through 2.0.0-m.1
-    "support backward compatibility to 2.0.0-m.1" >> { testVersion("2.0.0-m.1") }
-    "support backward compatibility to 2.1.0"     >> { testVersion("2.1.0") }
-    "support backward compatibility to 2.3.1"     >> { testVersion("2.3.1") }
-
-    "delete invalid indexed data" >> { testBoundsDelete() }
   }
 
   def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
@@ -300,31 +303,29 @@ class BackCompatibilityWriter extends TestWithFeatureType {
       })
 
       val dataFile = new File(s"src/test/resources/data/versioned-data-$version.kryo")
-      val fs = new FileOutputStream(dataFile)
-      val output = new Output(fs)
-
-      def writeText(text: Text): Unit = {
-        output.writeInt(text.getLength)
-        output.write(text.getBytes, 0, text.getLength)
-      }
-
-      val tables = ds.connector.tableOperations().list().asScala.filter(_.startsWith(sftName))
-      output.writeInt(tables.size)
-      tables.foreach { table =>
-        output.writeAscii(table)
-        output.writeInt(ds.connector.createScanner(table, new Authorizations()).asScala.size)
-        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { entry =>
-          val key = entry.getKey
-          Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
-          output.writeLong(key.getTimestamp)
-          val value = entry.getValue.get
-          output.writeInt(value.length)
-          output.write(value)
+      WithClose(new Output(new FileOutputStream(dataFile))) { output =>
+        def writeText(text: Text): Unit = {
+          output.writeInt(text.getLength)
+          output.write(text.getBytes, 0, text.getLength)
         }
+        val tables = ds.client.tableOperations().list().asScala.filter(_.startsWith(sftName))
+        output.writeInt(tables.size)
+        tables.foreach { table =>
+          output.writeAscii(table)
+          output.writeInt(WithClose(ds.client.createScanner(table, new Authorizations()))(_.asScala.size))
+          WithClose(ds.client.createScanner(table, new Authorizations())) { scanner =>
+            scanner.asScala.foreach { entry =>
+              val key = entry.getKey
+              Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
+              output.writeLong(key.getTimestamp)
+              val value = entry.getValue.get
+              output.writeInt(value.length)
+              output.write(value)
+            }
+          }
+        }
+        output.flush()
       }
-
-      output.flush()
-      output.close()
       ok
     }
   }

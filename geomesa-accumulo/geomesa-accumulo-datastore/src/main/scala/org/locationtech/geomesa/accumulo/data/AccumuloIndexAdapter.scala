@@ -53,13 +53,13 @@ import java.util.Map.Entry
   * @param ds data store
   */
 class AccumuloIndexAdapter(ds: AccumuloDataStore)
-    extends TableManager(ds.connector) with IndexAdapter[AccumuloDataStore] with LazyLogging {
+    extends TableManager(ds.client) with IndexAdapter[AccumuloDataStore] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
-  private val tableOps = ds.connector.tableOperations()
+  private val tableOps = ds.client.tableOperations()
 
   private val tableSizeCache =
     Caffeine.newBuilder().expireAfterWrite(TableCacheExpiry.toJavaDuration.get).build[String, Integer](
@@ -150,7 +150,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
     val auths = ds.auths // get the auths once up front
     def clearOne(table: String): Unit = {
       if (tableOps.exists(table)) {
-        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads)) { deleter =>
+        WithClose(ds.client.createBatchDeleter(table, auths, ds.config.queries.threads)) { deleter =>
           val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range())
           deleter.setRanges(Collections.singletonList(range))
           deleter.delete()

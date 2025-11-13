@@ -50,15 +50,15 @@ class AccumuloAtomicIndexWriter(
   private val writers: Array[ConditionalWriter] = {
     val config = new ConditionalWriterConfig()
     config.setAuthorizations(ds.auths)
-    val maxThreads = ClientProperty.BATCH_WRITER_THREADS_MAX.getInteger(ds.connector.properties())
+    val maxThreads = ClientProperty.BATCH_WRITER_THREADS_MAX.getInteger(ds.client.properties())
     if (maxThreads != null) {
       config.setMaxWriteThreads(maxThreads)
     }
-    val timeout = ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getTimeInMillis(ds.connector.properties())
+    val timeout = ClientProperty.BATCH_WRITER_TIMEOUT_MAX.getTimeInMillis(ds.client.properties())
     if (timeout != null) {
       config.setTimeout(timeout, TimeUnit.MILLISECONDS)
     }
-    tables.map(ds.connector.createConditionalWriter(_, config)).toArray
+    tables.map(ds.client.createConditionalWriter(_, config)).toArray
   }
 
   private val colFamilyMappings = indices.map(ColumnFamilyMapper.apply).toArray
@@ -146,7 +146,7 @@ class AccumuloAtomicIndexWriter(
    * @return true if the current state of the table reflects the mutation's intended result
    */
   private def verifyWrite(table: String, mutation: MutationBuilder): Boolean = {
-    WithClose(new IsolatedScanner(ds.connector.createScanner(table, ds.auths))) { scanner =>
+    WithClose(new IsolatedScanner(ds.client.createScanner(table, ds.auths))) { scanner =>
       val key = new Key(mutation.row)
       scanner.setRange(new org.apache.accumulo.core.data.Range(key, true, key.followingKey(PartialKey.ROW), false))
       val found = scanner.iterator().asScala.toList

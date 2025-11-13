@@ -410,7 +410,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         // deleting the "name" index table to show that the QUERY_INDEX hint is being passed through
         ds.manager.indices(sft).collectFirst {
           case i: AttributeJoinIndex if i.attributes.head == "name" => i.getTableName()
-        }.foreach { ds.connector.tableOperations().delete(_) }
+        }.foreach { ds.client.tableOperations().delete(_) }
 
         val filters = Seq("bbox(geom,0,0,10,5)", "name < '7'")
         forall(filters.map(ECQL.toFilter)) { filter =>

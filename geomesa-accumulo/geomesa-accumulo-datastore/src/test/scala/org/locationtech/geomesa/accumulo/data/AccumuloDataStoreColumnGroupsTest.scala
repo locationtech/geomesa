@@ -125,7 +125,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
     "create column groups" in {
       val tables = ds.getAllIndexTableNames(sft.getTypeName)
       foreach(tables) { table =>
-        ds.connector.tableOperations().getLocalityGroups(table).asScala.keys must containAllOf(Seq("x", "y"))
+        ds.client.tableOperations().getLocalityGroups(table).asScala.keys must containAllOf(Seq("x", "y"))
       }
     }
     "reject column groups that correspond to default columns" in {

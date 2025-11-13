@@ -107,7 +107,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     extends Callable[Instant] with ZookeeperLocking {
 
   override protected def zookeepers: String =
-    ds.connector.properties().getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)
+    ds.client.properties().getProperty(ClientProperty.INSTANCE_ZOOKEEPERS.getKey)
 
   /**
     * Runs stats for the simple feature type

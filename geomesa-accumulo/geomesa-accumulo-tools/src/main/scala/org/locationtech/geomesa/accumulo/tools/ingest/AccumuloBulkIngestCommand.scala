@@ -158,7 +158,7 @@ class AccumuloBulkIngestCommand extends IngestCommand[AccumuloDataStore] with Ac
             "Files may be imported for each table through the Accumulo shell with the `importdirectory` command")
         } else {
           Command.user.info("Importing RFiles into Accumulo")
-          val tableOps = ds.connector.tableOperations()
+          val tableOps = ds.client.tableOperations()
           val filesPath = new Path(output, GeoMesaAccumuloFileOutputFormat.FilesPath)
           val fc = FileContext.getFileContext(filesPath.toUri, new Configuration())
           val files = fc.listLocatedStatus(filesPath)

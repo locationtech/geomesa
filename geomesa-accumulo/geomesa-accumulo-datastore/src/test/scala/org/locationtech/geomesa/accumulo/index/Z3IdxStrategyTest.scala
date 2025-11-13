@@ -81,7 +81,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType with Lazy
 
       ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
         logger.info(table)
-        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
+        ds.client.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
           val keyZ = ByteArrays.readLong(bytes, prefix + 2)
