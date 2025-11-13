@@ -51,7 +51,7 @@ class AccumuloCompactCommand extends AccumuloDataStoreCommand {
 
     val executor = Executors.newFixedThreadPool(params.threads)
 
-    val ops = ds.connector.tableOperations()
+    val ops = ds.client.tableOperations()
 
     val msg = new StringBuilder(s"Starting incremental compaction using ${params.threads} simultaneous threads")
 

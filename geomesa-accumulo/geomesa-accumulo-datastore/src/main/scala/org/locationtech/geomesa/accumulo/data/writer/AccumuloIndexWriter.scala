@@ -31,7 +31,7 @@ class AccumuloIndexWriter(
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private val multiWriter = ds.connector.createMultiTableBatchWriter()
+  private val multiWriter = ds.client.createMultiTableBatchWriter()
   private val writers = indices.toArray.map { index =>
     // should always be writing to a single table here
     multiWriter.getBatchWriter(index.getTableName(partition))

@@ -536,7 +536,7 @@ object SchemaCopier {
       throw new IOException(s"Unable to load datastore using provided values: ${maskedParams.mkString(", ")}")
     }
 
-    val tableOps: TableOperations = ds.connector.tableOperations()
+    val tableOps: TableOperations = ds.client.tableOperations()
 
     override def close(): Unit = ds.dispose()
   }

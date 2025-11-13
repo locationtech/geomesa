@@ -9,13 +9,17 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.Parameter
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.locationtech.geomesa.tools.{CatalogParam, CredentialsParams, KerberosParams}
 
 /**
   * Shared Accumulo-specific command line parameters
   */
 
-trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam
+trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam {
+  @Parameter(names = Array("--consistency"), description = "Scan consistency level")
+  var consistency: ConsistencyLevel = _
+}
 
 trait InstanceNameParams extends ZookeepersParam {
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")

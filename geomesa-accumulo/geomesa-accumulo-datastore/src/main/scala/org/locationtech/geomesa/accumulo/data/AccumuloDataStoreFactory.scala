@@ -15,6 +15,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{Accumulo, AccumuloClient}
 import org.apache.accumulo.core.conf.ClientProperty
@@ -97,6 +98,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       MetricsRegistryConfigParam,
       LooseBBoxParam,
       PartitionParallelScansParam,
+      QueryConsistencyParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
@@ -238,7 +240,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads = RecordThreadsParam.lookup(params),
       timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
       looseBBox = LooseBBoxParam.lookup(params),
-      parallelPartitionScans = PartitionParallelScansParam.lookup(params)
+      parallelPartitionScans = PartitionParallelScansParam.lookup(params),
+      consistency = QueryConsistencyParam.lookupOpt(params).map(n => ConsistencyLevel.valueOf(n.toUpperCase(Locale.US)))
     )
 
     val remote = RemoteScansEnabled(
@@ -327,7 +330,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       recordThreads: Int,
       timeout: Option[Long],
       looseBBox: Boolean,
-      parallelPartitionScans: Boolean
+      parallelPartitionScans: Boolean,
+      consistency: Option[ConsistencyLevel],
     ) extends DataStoreQueryConfig
 
   case class RemoteScansEnabled(arrow: Boolean, bin: Boolean, density: Boolean, stats: Boolean)

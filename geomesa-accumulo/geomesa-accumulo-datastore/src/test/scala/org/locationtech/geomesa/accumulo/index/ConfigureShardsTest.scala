@@ -55,7 +55,7 @@ class ConfigureShardsTest extends Specification with TestWithFeatureType {
       val index = ds.manager.indices(sft).find(_.name == Z3Index.name)
       index must beSome
       index.get.getTableNames().foreach { table =>
-        ds.connector.createScanner(table, new Authorizations()).asScala.foreach { r =>
+        ds.client.createScanner(table, new Authorizations()).asScala.foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val shard = bytes(0).toInt
           shardSet = shardSet + shard

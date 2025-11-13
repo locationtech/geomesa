@@ -9,12 +9,15 @@
 package org.locationtech.geomesa.accumulo.data
 
 
+import org.apache.accumulo.core.client.ScannerBase.ConsistencyLevel
 import org.locationtech.geomesa.accumulo.AccumuloProperties.RemoteProcessingProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ReadWriteFlag, SystemPropertyBooleanParam, SystemPropertyStringParam}
+
+import java.util.Locale
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
 object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -74,6 +77,14 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       "Accumulo catalog table name, including Accumulo namespace (if any) separated with a period",
       optional = false,
       deprecatedKeys = Seq("tableName", "accumulo.tableName"),
+      supportsNiFiExpressions = true
+    )
+
+  val QueryConsistencyParam =
+    new GeoMesaParam[String](
+      "accumulo.query.consistency",
+      "Accumulo query consistency level",
+      enumerations = ConsistencyLevel.values().map(_.name().toLowerCase(Locale.US)).toSeq,
       supportsNiFiExpressions = true
     )
 

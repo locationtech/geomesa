@@ -103,12 +103,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val timestamp = System.currentTimeMillis()
 
       foreach(ds.getAllIndexTableNames(logical.getTypeName)) { index =>
-        foreach(ds.connector.createScanner(index, new Authorizations).asScala) { entry =>
+        foreach(ds.client.createScanner(index, new Authorizations).asScala) { entry =>
           entry.getKey.getTimestamp mustEqual 1L // logical time - incrementing counter
         }
       }
       foreach(ds.getAllIndexTableNames(millis.getTypeName)) { index =>
-        foreach(ds.connector.createScanner(index, new Authorizations).asScala) { entry =>
+        foreach(ds.client.createScanner(index, new Authorizations).asScala) { entry =>
           entry.getKey.getTimestamp must beCloseTo(timestamp, 10000L) // millis time - sys time
         }
       }
@@ -189,7 +189,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val recTables = ds.manager.indices(sft).find(_.name == IdIndex.name).toSeq.flatMap(_.getTableNames())
       recTables must not(beEmpty)
       foreach(recTables) { recTable =>
-        val splits = ds.connector.tableOperations().listSplits(recTable)
+        val splits = ds.client.tableOperations().listSplits(recTable)
         // note: first split is dropped, which creates 259 splits but 260 regions
         splits.size() mustEqual 259
         splits.asScala.head mustEqual new Text("a1")
@@ -271,7 +271,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val tables = ds.getAllIndexTableNames(sft.getTypeName)
         tables must haveLength(4)
         forall(Seq(Z2Index, Z3Index, AttributeIndex))(t => tables must contain(endWith(t.name)))
-        forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
+        forall(tables)(t => ds.client.tableOperations.exists(t) must beTrue)
       }
 
       val pt = WKTUtils.read("POINT (0 0)")
@@ -328,7 +328,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         }
       }
 
-      val c = ds.connector
+      val c = ds.client
 
       c.tableOperations().exists(ds.config.catalog) must beTrue
       forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { table =>
@@ -529,9 +529,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.createSchema(sft)
       val tables = ds.getAllIndexTableNames(sft.getTypeName) ++ Seq(catalog)
       tables must haveSize(5)
-      ds.connector.tableOperations().list().asScala.toSeq must containAllOf(tables)
+      ds.client.tableOperations().list().asScala.toSeq must containAllOf(tables)
       ds.delete()
-      ds.connector.tableOperations().list().asScala.toSeq must not(containAnyOf(tables))
+      ds.client.tableOperations().list().asScala.toSeq must not(containAnyOf(tables))
     }
 
     "query on bbox and unbounded temporal" in {
@@ -560,7 +560,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val dsWithNs = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType("test", "*geom:Point:srid=4326")
       dsWithNs.createSchema(sft)
-      dsWithNs.connector.namespaceOperations().exists("test") must beTrue
+      dsWithNs.client.namespaceOperations().exists("test") must beTrue
     }
 
     "only create catalog table when necessary" in {
@@ -568,7 +568,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> table)
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
       ds must not(beNull)
-      def exists = ds.connector.tableOperations().exists(table)
+      def exists = ds.client.tableOperations().exists(table)
       exists must beFalse
       ds.getTypeNames must beEmpty
       exists must beFalse
@@ -595,7 +595,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
           index must not(beNull)
           val tables = index.getTableNames()
           tables must haveLength(1)
-          ds.connector.tableOperations().getProperties(tables.head).asScala
+          ds.client.tableOperations().getProperties(tables.head).asScala
             .find(_.getKey == Property.TABLE_BLOCKCACHE_ENABLED.getKey).map(_.getValue).orNull
         }
         foreach(Seq(Z3Index, AttributeIndex)) { i =>

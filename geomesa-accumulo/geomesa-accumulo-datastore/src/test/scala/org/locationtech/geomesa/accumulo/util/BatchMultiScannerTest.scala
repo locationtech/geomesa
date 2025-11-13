@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.util
 
+import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.api.data.Query
 import org.geotools.filter.text.ecql.ECQL
@@ -15,7 +16,11 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
+
+import java.util.Map.Entry
 
 @RunWith(classOf[JUnitRunner])
 class BatchMultiScannerTest extends TestWithFeatureType {
@@ -45,16 +50,17 @@ class BatchMultiScannerTest extends TestWithFeatureType {
     qp must beAnInstanceOf[JoinPlan]
     qp.ranges must haveLength(sft.getAttributeShards)
 
-    foreach(qp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
-    val attrScanner = ds.connector.createBatchScanner(qp.tables.head, new Authorizations(), 1)
+    foreach(qp.tables)(table => ds.client.tableOperations.exists(table) must beTrue)
+    val attrScanner = ds.client.createBatchScanner(qp.tables.head, new Authorizations(), 1)
     attrScanner.setRanges(qp.ranges.asJava)
 
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
-    foreach(jp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
+    foreach(jp.tables)(table => ds.client.tableOperations.exists(table) must beTrue)
 
-    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, false, None, 5, batchSize)
+    val join: Seq[Entry[Key, Value]] => CloseableIterator[Entry[Key, Value]] =
+      entries => jp.copy(ranges = entries.map(qp.join.get._1)).scan(ds)
 
-    val retrieved = bms.map(jp.resultsToFeatures.apply).toList
+    val retrieved = WithClose(new BatchMultiScanner(attrScanner, join, 5, batchSize))(_.map(jp.resultsToFeatures.apply).toList)
     forall(retrieved)(_.getAttribute(attr) mustEqual value)
 
     retrieved.size

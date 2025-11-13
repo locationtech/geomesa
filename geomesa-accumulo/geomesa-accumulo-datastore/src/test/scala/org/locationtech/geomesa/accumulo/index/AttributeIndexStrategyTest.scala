@@ -148,7 +148,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
         if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
           index.getTableNames().foreach { table =>
             logger.info(table)
-            WithClose(ds.connector.createScanner(table, root.auths))(_.asScala.foreach(r => logger.info(r.toString)))
+            WithClose(ds.client.createScanner(table, root.auths))(_.asScala.foreach(r => logger.info(r.toString)))
           }
           logger.info("")
         }

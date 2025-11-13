@@ -46,7 +46,7 @@ class AccumuloAgeOffCommand extends AccumuloDataStoreCommand {
     }
     lazy val mutable = SimpleFeatureTypes.mutable(sft)
     if (params.list) {
-      val tableOps = ds.connector.tableOperations()
+      val tableOps = ds.client.tableOperations()
       val tables = ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists)
       val dtgAgeOff = tables.foldLeft[Option[IteratorSetting]](None) { (res, table) =>
         res.orElse(DtgAgeOffIterator.list(tableOps, table))
@@ -73,7 +73,7 @@ class AccumuloAgeOffCommand extends AccumuloDataStoreCommand {
       // clear the iterator configs if expiration wasn't configured in the schema,
       // as we can't detect that in updateSchema
       if (mutable.getUserData.remove(Configs.FeatureExpiration) == null) {
-        val tableOps = ds.connector.tableOperations()
+        val tableOps = ds.client.tableOperations()
         ds.getAllIndexTableNames(sft.getTypeName).filter(tableOps.exists).foreach { table =>
           AgeOffIterator.clear(tableOps, table)
           DtgAgeOffIterator.clear(tableOps, table)

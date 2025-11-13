@@ -9,38 +9,26 @@
 package org.locationtech.geomesa.accumulo.util
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.{AccumuloClient, ScannerBase}
+import org.apache.accumulo.core.client.ScannerBase
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.accumulo.core.security.Authorizations
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction}
-import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import java.util.Map.Entry
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
+import scala.collection.mutable.ListBuffer
 
 /**
  * Runs a join scan against two tables
  *
- * @param connector connector
  * @param in input scan
  * @param join join scan
- * @param joinFunction maps results of input scan to ranges for join scan
- * @param auths scan authorizations
- * @param partitionParallelScans parallelize scans against partitioned tables (vs execute sequentially)
- * @param timeout query timeout
  * @param numThreads threads
  * @param batchSize batch size
  */
 class BatchMultiScanner(
-    connector: AccumuloClient,
     in: ScannerBase,
-    join: BatchScanPlan,
-    joinFunction: JoinFunction,
-    auths: Authorizations,
-    partitionParallelScans: Boolean,
-    timeout: Option[Timeout],
+    join: Seq[Entry[Key, Value]] => CloseableIterator[Entry[Key, Value]],
     numThreads: Int = 12,
     batchSize: Int = 32768
   ) extends CloseableIterator[java.util.Map.Entry[Key, Value]] with LazyLogging {
@@ -96,15 +84,15 @@ class BatchMultiScanner(
   executor.submit(new Runnable {
     override def run(): Unit = {
       try {
-        val tasks = collection.mutable.ListBuffer.empty[Future[_]]
+        val tasks = ListBuffer.empty[Future[_]]
         while (!inDone.get || inQ.size() > 0) {
           val entry = inQ.poll(5, TimeUnit.MILLISECONDS)
           if (entry != null) {
-            val entries = collection.mutable.ListBuffer(entry)
+            val entries = ListBuffer(entry)
             inQ.drainTo(entries.asJava)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction).toSeq).scan(connector, auths, partitionParallelScans, timeout)
+                val iterator = join(entries.toSeq)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {

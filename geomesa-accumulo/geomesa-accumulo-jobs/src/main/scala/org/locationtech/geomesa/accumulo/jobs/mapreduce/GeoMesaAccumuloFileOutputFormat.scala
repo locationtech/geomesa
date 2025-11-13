@@ -96,7 +96,7 @@ object GeoMesaAccumuloFileOutputFormat extends LazyLogging {
 
     var numReducers = 0
     tables.foreach { table =>
-      val splits = ds.connector.tableOperations.listSplits(table).asScala
+      val splits = ds.client.tableOperations.listSplits(table).asScala
       TableRangePartitioner.setTableOffset(job.getConfiguration, table, numReducers)
       TableRangePartitioner.setTableSplits(job, table, splits)
       numReducers += (splits.size + 1) // add one for the region before the first split point
