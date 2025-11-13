@@ -33,7 +33,7 @@ Parameter                              Type    Description
 ``accumulo.write.threads``             Integer The number of threads to use for writing records
 ``geomesa.stats.enable``               Boolean Toggle collection of statistics for newly created feature types
 ``accumulo.query.consistency``         String  Specify the scan consistency to use for queries. Must be one of ``immediate`` or
-                                               ``eventual``. See the `Accumulo documentation <scan-consistency>`_ for details.
+                                               ``eventual``. See the `Accumulo documentation`_ for details.
 ``accumulo.remote.arrow.enable``       Boolean Process Arrow encoding in Accumulo tablets servers as a distributed call
 ``accumulo.remote.bin.enable``         Boolean Process binary encoding in Accumulo tablets servers as a distributed call
 ``accumulo.remote.density.enable``     Boolean Process heatmap encoding in Accumulo tablets servers as a distributed call
@@ -41,7 +41,7 @@ Parameter                              Type    Description
 ``geomesa.partition.scan.parallel``    Boolean For partitioned schemas, execute scans in parallel instead of sequentially
 ====================================== ======= ===================================================================================
 
-.. _scan-consistency: https://accumulo.apache.org/docs/2.x/apidocs/org/apache/accumulo/core/client/ScannerBase.ConsistencyLevel.html
+.. _Accumulo documentation: https://accumulo.apache.org/docs/2.x/apidocs/org/apache/accumulo/core/client/ScannerBase.ConsistencyLevel.html
 
 .. note::
 
@@ -49,7 +49,7 @@ Parameter                              Type    Description
 
 Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` may be added
 to the classpath. See the
-`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
+`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`__
 for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
 the configuration file.
 
@@ -70,4 +70,4 @@ that the GeoMesa code is on the classpath:
     org.geotools.api.data.DataStore dataStore =
         org.geotools.api.data.DataStoreFinder.getDataStore(parameters);
 
-More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`_.
+More information on using GeoTools can be found in the `GeoTools user guide <https://docs.geotools.org/stable/userguide/>`__.
