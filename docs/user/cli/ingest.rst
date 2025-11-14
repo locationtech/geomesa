@@ -41,7 +41,7 @@ Argument                   Description
 ``--converter-error-mode`` Override the error mode defined by the converter
 ``-t, --threads``          Number of parallel threads used
 ``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
-```--index``               Specify a particular GeoMesa index to write to, instead of all indices
+``--index``                Specify a particular GeoMesa index to write to, instead of all indices
 ``--no-tracking``          This application closes when ingest job is submitted. Useful for launching jobs with a script
 ``--run-mode``             Must be one of ``local`` or ``distributed`` (for map/reduce ingest)
 ``--combine-inputs``       Combine multiple input files into a single input split (distributed jobs only)
@@ -135,3 +135,24 @@ For example::
 
 For local ingests, feature writers will be pooled and only flushed periodically. The frequency of flushes can be
 controlled via the system property ``geomesa.ingest.local.batch.size``, and defaults to every 20,000 features.
+
+``update-features``
+-------------------
+
+The ``update-features`` command allows for bulk updating of attributes or visibilities in GeoMesa. For example, you may notice
+that records from a certain time period have an incorrect value due to a bug in your ingest process. ``update-features`` could
+be used to go back and correct the data.
+
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``-c, --catalog *``        The catalog table containing schema metadata
+``-f, --feature-name *``   The name of the schema
+``--set``                  Attributes names and values to update, e.g. ``--set age=30``
+``--set-visibility``       A visibility expression to apply to all updated features
+``-q, --cql``              A CQL filter used to select the features to update
+``--force``                Suppress any confirmation prompts
+========================== ==================================================================================================
+
+At least one of ``--set`` or ``--set-visibility`` must be specified. ``--set`` may be specified multiple times, in order
+to update multiple attributes at once.

@@ -36,6 +36,7 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
       new tools.ingest.AccumuloBulkIngestCommand,
       new tools.ingest.AccumuloDeleteFeaturesCommand,
       new tools.ingest.AccumuloIngestCommand,
+      new tools.ingest.AccumuloUpdateFeaturesCommand,
       new tools.schema.AccumuloCreateSchemaCommand,
       new tools.schema.AccumuloDeleteCatalogCommand,
       new tools.schema.AccumuloRemoveSchemaCommand,

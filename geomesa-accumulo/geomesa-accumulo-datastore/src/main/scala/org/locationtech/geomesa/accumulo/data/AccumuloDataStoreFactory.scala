@@ -283,7 +283,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
     if (invalidAuths.nonEmpty) {
-      throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
+      throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString("', '")}' " +
         "are not valid for the Accumulo connection being used")
     }
 

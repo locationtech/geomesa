@@ -23,8 +23,8 @@ object Prompt {
   lazy val SystemConsole: SystemConsole = {
     val console = System.console()
     if (console == null) {
-      throw new IllegalStateException("Unable to access console..." +
-          "Please ensure stdout is not redirected or --force flag is set")
+      throw new IllegalStateException(
+        "Unable to access console... Please ensure stdout is not redirected or --force flag is set")
     }
     console
   }
