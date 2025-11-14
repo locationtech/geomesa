@@ -18,6 +18,8 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.SpecificationWithJUnit
 
+import java.util.Collections
+
 class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
 
   val sft = SimpleFeatureTypes.createType("tools", "name:String,level:String,dtg:Date,*geom:Point:srid=4326")
@@ -47,7 +49,7 @@ class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
       }
       withCommand(ds) { command =>
         command.execute() must throwA[ParameterException](".*specify at least one.*") // no attributes to update
-        command.params.attributes = java.util.List.of("foo" -> "bar")
+        command.params.attributes = Collections.singletonList("foo" -> "bar")
         command.execute() must throwA[ParameterException](".* exist .*") // schema doesn't exist
         ds.createSchema(sft)
         command.execute() must throwA[ParameterException](".*do not exist.*") // attributes are not in the schema
@@ -61,7 +63,7 @@ class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
       ds.createSchema(sft)
       ds.addFeatures(features.map(ScalaSimpleFeature.copy): _*)
       withCommand(ds) { command =>
-        command.params.attributes = java.util.List.of("name" -> "bob")
+        command.params.attributes = Collections.singletonList("name" -> "bob")
         command.execute()
       }
       val updated = SelfClosingIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList.sortBy(_.getID)
@@ -79,7 +81,7 @@ class UpdateFeaturesCommandTest extends SpecificationWithJUnit {
       ds.createSchema(sft)
       ds.addFeatures(features.map(ScalaSimpleFeature.copy): _*)
       withCommand(ds) { command =>
-        command.params.attributes = java.util.List.of("name" -> "bob")
+        command.params.attributes = Collections.singletonList("name" -> "bob")
         command.params.cqlFilter = ECQL.toFilter("dtg AFTER 2016-01-01T04:00:00.000Z")
         command.execute()
       }

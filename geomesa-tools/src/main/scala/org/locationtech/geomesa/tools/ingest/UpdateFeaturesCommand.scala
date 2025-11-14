@@ -19,7 +19,6 @@ import org.locationtech.geomesa.tools.ingest.UpdateFeaturesCommand.UpdateFeature
 import org.locationtech.geomesa.tools.utils.{NoopParameterSplitter, Prompt}
 import org.locationtech.geomesa.utils.io.WithClose
 
-import java.io.Flushable
 import scala.util.Try
 
 trait UpdateFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
@@ -70,12 +69,8 @@ trait UpdateFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
             vis.foreach(next.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, _))
             writer.write()
             count += 1
-            if (count % 1000 == 0) {
+            if (count % 10000 == 0) {
               print('.')
-              writer match {
-                case f: Flushable => f.flush()
-                case _ =>
-              }
             }
           }
           println()
