@@ -15,7 +15,6 @@ import org.geotools.data.memory.MemoryDataStore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.exporters.DelimitedExporter
-import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -27,29 +26,19 @@ import org.specs2.runner.JUnitRunner
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Collections, Locale}
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedExportImportTest extends Specification {
 
-  private val counter = new AtomicInteger(0)
-
   def withCommand[T](ds: DataStore)(op: IngestCommand[DataStore] => T): T = {
-    val key = s"${getClass.getName}:${counter.getAndIncrement()}"
-    DataStoreRegistration.register(key, ds)
-
     val command: IngestCommand[DataStore] = new IngestCommand[DataStore]() {
       override val params: IngestParams = new IngestParams(){}
-      override def connection: Map[String, String] = Map(DataStoreRegistration.param.key -> key)
+      override def connection: Map[String, String] = Map.empty
+      override def loadDataStore(): DataStore = ds
     }
     command.params.force = true
-
-    try {
-      op(command)
-    } finally {
-      DataStoreRegistration.unregister(key, ds)
-    }
+    op(command)
   }
 
   def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: ExportFormat): String = {

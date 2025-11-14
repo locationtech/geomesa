@@ -6,7 +6,7 @@
  * https://www.apache.org/licenses/LICENSE-2.0
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.export
+package org.locationtech.geomesa.accumulo.tools.`export`
 
 import com.beust.jcommander.Parameters
 import org.apache.hadoop.mapreduce.Job

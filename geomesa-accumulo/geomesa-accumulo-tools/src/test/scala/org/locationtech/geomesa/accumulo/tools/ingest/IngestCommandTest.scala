@@ -53,7 +53,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features must haveSize(3)
           features.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
         } finally {
@@ -73,7 +73,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features.size mustEqual 3
           features.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
         } finally {
@@ -124,7 +124,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures().features).toList
           features.size mustEqual 3
           features.map(_.getAttribute(1)) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
         } finally {
@@ -153,7 +153,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features.size mustEqual 3
           features.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
         } finally {
@@ -194,7 +194,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades2").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades2").getFeatures().features).toList
           features must beEmpty
         } finally {
           ds.delete()
@@ -213,7 +213,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("geonames").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("geonames").getFeatures().features).toList
           features must haveSize(3)
         } finally {
           ds.delete()
@@ -232,7 +232,7 @@ class IngestCommandTest extends Specification {
 
        command.withDataStore { ds =>
          try {
-           val features = SelfClosingIterator(ds.getFeatureSource("geonames").getFeatures.features).toList
+           val features = SelfClosingIterator(ds.getFeatureSource("geonames").getFeatures().features).toList
            features must beEmpty
          } finally {
            ds.delete()
@@ -251,7 +251,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features must haveSize(5)
           features.map(_.getAttribute("name")) must
               containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))
@@ -272,7 +272,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features must haveSize(5)
           features.map(_.getAttribute("name")) must
               containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))
@@ -293,7 +293,7 @@ class IngestCommandTest extends Specification {
 
       command.withDataStore { ds =>
         try {
-          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures().features).toList
           features must haveSize(5)
           features.map(_.getAttribute("name")) must
               containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))

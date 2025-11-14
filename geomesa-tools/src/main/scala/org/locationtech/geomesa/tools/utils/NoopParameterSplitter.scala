@@ -13,5 +13,5 @@ import com.beust.jcommander.converters.IParameterSplitter
 import java.util.Collections
 
 class NoopParameterSplitter extends IParameterSplitter {
-  override def split(s : String): java.util.List[String] = new java.util.ArrayList(Collections.singletonList(s))
+  override def split(s: String): java.util.List[String] = new java.util.ArrayList(Collections.singletonList(s))
 }
