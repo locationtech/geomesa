@@ -12,9 +12,9 @@
 # Update the versions as required to match the target environment.
 
 hadoop_install_version="%%hadoop.version.recommended%%"
-aws_sdk_v1_install_version="1.12.780" # latest version as of 2025/01
-aws_sdk_v2_install_version="2.29.44" # latest version as of 2025/01
-aws_crt_install_version="0.33.7"
+aws_sdk_v1_install_version="%%aws.sdk.v1.version%%"
+aws_sdk_v2_install_version="%%aws.sdk.version%%"
+aws_crt_install_version="%%aws.crt.version%%"
 # this should match the parquet desired version
 snappy_install_version="1.1.1.6"
 
