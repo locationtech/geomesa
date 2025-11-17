@@ -21,7 +21,6 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.BeforeAfterAll
 import org.testcontainers.containers.Network
-import org.testcontainers.lifecycle.Startables
 
 import java.nio.file.{Files, Path}
 import java.util.Collections
@@ -71,7 +70,9 @@ class FileSystemRDDProviderIT extends SpecificationWithJUnit with BeforeAfterAll
   val formats = Seq(/*"orc",*/ "parquet") // TODO fix orc
 
   override def beforeAll(): Unit = {
-    Startables.deepStart(hadoop, cluster).get()
+    // note: the host reach-back networking required for spark seems to mess up the hadoop networking unless hadoop starts first
+    hadoop.start()
+    cluster.start()
 
     // note: have to create all data up front to avoid caching issues in the spark executor
     formats.foreach { format =>
