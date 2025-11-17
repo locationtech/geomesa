@@ -53,7 +53,7 @@ jobs:
           - name: redis
             list: geomesa-redis/geomesa-redis-datastore,geomesa-redis/geomesa-redis-dist,geomesa-redis/geomesa-redis-gs-plugin,geomesa-redis/geomesa-redis-tools
           - name: spark
-            list: geomesa-spark/geomesa_pyspark,geomesa-spark/geomesa-spark-converter,geomesa-spark/geomesa-spark-core,geomesa-spark/geomesa-spark-jts,geomesa-spark/geomesa-spark-jupyter-leaflet,geomesa-spark/geomesa-spark-sql,geomesa-spark/geomesa-spark-test,geomesa-spark/geomesa-spark-test-with-sedona
+            list: geomesa-spark/geomesa_pyspark,geomesa-spark/geomesa-spark-converter,geomesa-spark/geomesa-spark-core,geomesa-spark/geomesa-spark-jts,geomesa-spark/geomesa-spark-jupyter-leaflet,geomesa-spark/geomesa-spark-sql,geomesa-spark/geomesa-spark-test-with-sedona
           - name: utils
             list: geomesa-utils-parent/geomesa-bom,geomesa-utils-parent/geomesa-hadoop-utils,geomesa-utils-parent/geomesa-utils
     steps:
