@@ -4,10 +4,10 @@ Data Management
 Kafka Topic Name
 ----------------
 
-Each SimpleFeatureType (or schema) will be written to a unique Kafka topic. By default, the topic will be
-named based on the ``kafka.zk.path`` data store parameter and the SimpleFeatureType name, by appending
-the two together and replacing any ``/`` characters with ``-``. For example, with the default zookeeper path
-(``geomesa/ds/kafka``), a SimpleFeatureType name of 'foo' would result in the topic ``geomesa-ds-kafka-foo``.
+Each SimpleFeatureType (or schema) will be written to a unique Kafka topic. By default, the topic name will consist of the value
+of the ``kafka.catalog.topic`` data store parameter (or ``kafka.zk.path`` if using Zookeeper), and the SimpleFeatureType name,
+separated with a ``-``. Any ``/`` characters will be replaced with ``-``. For example, with the default catalog topic
+(``geomesa-catalog``), a SimpleFeatureType name of ``foo`` would result in the topic ``geomesa-catalog-foo``.
 
 If desired, the topic name can be set to an arbitrary value by setting the user data key ``geomesa.kafka.topic``
 before calling ``createSchema``:
