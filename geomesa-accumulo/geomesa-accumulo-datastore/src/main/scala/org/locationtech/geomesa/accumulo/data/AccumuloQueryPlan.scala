@@ -43,8 +43,7 @@ sealed trait AccumuloQueryPlan extends QueryPlan {
   def filter: FilterStrategy = strategy.filter
   def join: Option[(AccumuloQueryPlan.JoinFunction, AccumuloQueryPlan)] = None
 
-  override def explain(explainer: Explainer, prefix: String = ""): Unit =
-    AccumuloQueryPlan.explain(this, explainer, prefix)
+  override def explain(explainer: Explainer): Unit = AccumuloQueryPlan.explain(this, explainer)
 }
 
 object AccumuloQueryPlan extends LazyLogging {
@@ -54,8 +53,7 @@ object AccumuloQueryPlan extends LazyLogging {
   // scan result => range
   type JoinFunction = Entry[Key, Value] => org.apache.accumulo.core.data.Range
 
-  def explain(plan: AccumuloQueryPlan, explainer: Explainer, prefix: String): Unit = {
-    // TODO shouldn't this use prefix everywhere?
+  def explain(plan: AccumuloQueryPlan, explainer: Explainer, prefix: String = ""): Unit = {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Column Families: ${plan.columnFamily.getOrElse("all")}")

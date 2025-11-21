@@ -41,21 +41,19 @@ sealed trait RedisQueryPlan extends QueryPlan {
     */
   def ranges: Seq[BoundedByteRange]
 
-  override def explain(explainer: Explainer, prefix: String = ""): Unit =
-    RedisQueryPlan.explain(this, explainer, prefix)
+  override def explain(explainer: Explainer): Unit = RedisQueryPlan.explain(this, explainer)
 
-  // additional explaining, if any
-  protected def explain(explainer: Explainer): Unit = {}
+  protected def moreExplaining(explainer: Explainer): Unit = {}
 }
 
 object RedisQueryPlan {
 
-  def explain(plan: RedisQueryPlan, explainer: Explainer, prefix: String): Unit = {
-    explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
+  def explain(plan: RedisQueryPlan, explainer: Explainer): Unit = {
+    explainer.pushLevel(s"Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"ECQL: ${plan.localFilter.fold("none")(FilterHelper.toString)}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    plan.explain(explainer)
+    plan.moreExplaining(explainer)
     explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
     explainer.popLevel()
   }
@@ -114,7 +112,7 @@ object RedisQueryPlan {
       }
     }
 
-    override protected def explain(explainer: Explainer): Unit =
+    override def moreExplaining(explainer: Explainer): Unit =
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
 
     private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {

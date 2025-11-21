@@ -30,13 +30,12 @@ sealed trait CassandraQueryPlan extends QueryPlan {
   def ranges: Seq[Statement]
   def numThreads: Int
 
-  override def explain(explainer: Explainer, prefix: String): Unit =
-    CassandraQueryPlan.explain(this, explainer, prefix)
+  override def explain(explainer: Explainer): Unit = CassandraQueryPlan.explain(this, explainer)
 }
 
 object CassandraQueryPlan {
-  def explain(plan: CassandraQueryPlan, explainer: Explainer, prefix: String): Unit = {
-    explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
+  def explain(plan: CassandraQueryPlan, explainer: Explainer): Unit = {
+    explainer.pushLevel(s"Plan: ${plan.getClass.getName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
     explainer(s"Client-side filter: ${plan.localFilter.fold("none")(FilterHelper.toString)}")

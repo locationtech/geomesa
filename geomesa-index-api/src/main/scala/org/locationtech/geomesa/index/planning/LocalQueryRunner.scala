@@ -112,7 +112,14 @@ object LocalQueryRunner extends LazyLogging {
     override type Results = SimpleFeature
     override def localFilter: Option[Filter] = None
     override def scan(): CloseableIterator[SimpleFeature] = scanner()
-    override def explain(explainer: Explainer, prefix: String = ""): Unit = explainer(s"${prefix}LocalQuery")
+    override def explain(explainer: Explainer): Unit = {
+      explainer.pushLevel("LocalQuery:")
+      explainer(s"Transform: ${localTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
+      explainer(s"Sort: ${sort.fold("none")(_.mkString(", "))}")
+      explainer(s"Max Features: ${maxFeatures.getOrElse("none")}")
+      explainer(s"Reduce: ${reducer.getOrElse("none")}")
+      explainer.popLevel()
+    }
   }
 
   /**

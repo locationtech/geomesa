@@ -170,7 +170,7 @@ object TestGeoMesaDataStore {
       matches.iterator
     }
 
-    override def explain(explainer: Explainer, prefix: String): Unit = {
+    override def explain(explainer: Explainer): Unit = {
       explainer(s"tables: ${tables.keys.mkString(", ")}")
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +

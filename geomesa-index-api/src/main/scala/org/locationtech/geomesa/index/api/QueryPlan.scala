@@ -93,9 +93,8 @@ trait QueryPlan {
     * Explains details on how this query plan will be executed
     *
     * @param explainer explainer to use for explanation
-    * @param prefix prefix for explanation lines, used for nesting explanations
     */
-  def explain(explainer: Explainer, prefix: String = ""): Unit
+  def explain(explainer: Explainer): Unit
 }
 
 object QueryPlan {

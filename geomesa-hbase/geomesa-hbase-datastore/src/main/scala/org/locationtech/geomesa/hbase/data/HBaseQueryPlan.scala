@@ -61,14 +61,14 @@ sealed trait HBaseQueryPlan extends QueryPlan {
     }
   }
 
-  override def explain(explainer: Explainer, prefix: String = ""): Unit = {
-    explainer.pushLevel(s"${prefix}Plan: ${getClass.getSimpleName}")
+  override def explain(explainer: Explainer): Unit = {
+    explainer.pushLevel(s"Plan: ${getClass.getSimpleName}")
     explainer(s"Tables: ${scans.map(_.table).mkString(", ")}")
     explainer(s"Ranges (${ranges.size}): ${ranges.take(5).map(rangeToString).mkString(", ")}")
     explainer(s"Scans (${scans.headOption.map(_.scans.size).getOrElse(0)}): ${scans.headOption.toSeq.flatMap(_.scans.take(5)).map(scanToString).mkString(", ")}")
     explainer(s"Column families: ${scans.headOption.flatMap(_.scans.headOption).flatMap(r => Option(r.getFamilies)).getOrElse(Array.empty).map(Bytes.toString).mkString(",")}")
     explainer(s"Remote filters: ${scans.headOption.flatMap(_.scans.headOption).flatMap(r => Option(r.getFilter)).map(filterToString).getOrElse("none")}")
-    explain(explainer)
+    moreExplaining(explainer)
     explainer(s"Reduce: ${reducer.getOrElse("none")}")
     explainer.popLevel()
   }
@@ -82,7 +82,7 @@ sealed trait HBaseQueryPlan extends QueryPlan {
       timeout: Option[Timeout]): CloseableIterator[Results]
 
   // additional explaining, if any
-  protected def explain(explainer: Explainer): Unit = {}
+  protected def moreExplaining(explainer: Explainer): Unit = {}
 }
 
 object HBaseQueryPlan {
@@ -183,7 +183,7 @@ object HBaseQueryPlan {
       CoprocessorBatchScan(this, connection, scan.table, scan.scans, coprocessorOptions, scanThreads, threads, timeout)
     }
 
-    override protected def explain(explainer: Explainer): Unit =
+    override protected def moreExplaining(explainer: Explainer): Unit =
       explainer("Coprocessor options: " + coprocessorOptions.map(m => s"[${m._1}:${m._2}]").mkString(", "))
   }
 }
