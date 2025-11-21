@@ -1250,4 +1250,23 @@ object DeltaWriter extends StrictLogging {
 
     override def close(): Unit = CloseWithLogging(deltas)
   }
+
+//  class FeatureLimiter(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding, batchSize: Int) {
+//    def apply(batches: CloseableIterator[SimpleFeature], max: Int): CloseableIterator[SimpleFeature] = {
+//      val toLoad = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding, batchSize)
+//      val loader = new RecordBatchLoader(toLoad.underlying)
+//      val batch = batches.next
+//      // skip the dictionary batches
+//      var offset = 8 // initial threading key offset
+//      dictionaryFields.foreach { _ =>
+//        offset += ByteArrays.readInt(batch, offset) + 4
+//      }
+//      val messageLength = ByteArrays.readInt(batch, offset)
+//      offset += 4 // skip over message length bytes
+//      // load the record batch
+//      loader.load(batch, offset, messageLength)
+//      if (toLoad.reader.getValueCount > 0) {
+//      ???
+//    }
+//  }
 }

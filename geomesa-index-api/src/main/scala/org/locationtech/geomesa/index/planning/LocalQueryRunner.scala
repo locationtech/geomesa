@@ -80,14 +80,19 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
 
     val (processor, reducer) = LocalQueryRunner.plan(sft, hints)
 
-    val scanner = () => processor(features(sft, filter).filter(filterFunction.apply))
+    // handled max features here before any encoding complicates things
+    val maxFeatures = hints.getMaxFeatures
+    val scanner = () => {
+      val filtered = features(sft, filter).filter(filterFunction.apply)
+      val limited = maxFeatures.fold(filtered)(m => filtered.take(m))
+      processor(limited)
+    }
     val toFeatures = new IdentityResultsToFeatures(sft)
 
-    val maxFeatures = hints.getMaxFeatures
     val projection = hints.getProjection
     val sort = hints.getSortFields
 
-    Seq(LocalQueryPlan(scanner, toFeatures, hints.getTransform, reducer, sort, maxFeatures, projection))
+    Seq(LocalQueryPlan(scanner, toFeatures, hints.getTransform, reducer, sort, projection))
   }
 }
 
@@ -106,11 +111,11 @@ object LocalQueryRunner extends LazyLogging {
       localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems],
     ) extends QueryPlan {
     override type Results = SimpleFeature
     override def localFilter: Option[Filter] = None
+    override def maxFeatures: Option[Int] = None
     override def scan(): CloseableIterator[SimpleFeature] = scanner()
     override def explain(explainer: Explainer): Unit = {
       explainer.pushLevel("LocalQuery:")
@@ -199,8 +204,7 @@ object LocalQueryRunner extends LazyLogging {
   private def plan(sft: SimpleFeatureType, hints: Hints): LocalQueryScan = {
     val schema = hints.getTransformSchema.getOrElse(sft)
     if (hints.isArrowQuery) {
-      val reducer = new DeltaReducer(schema, hints, sorted = true)
-      (new ArrowProcessor(schema, hints), Some(reducer))
+      (new ArrowProcessor(schema, hints), Some(new DeltaReducer(schema, hints, sorted = true)))
     } else if (hints.isBinQuery) {
       (new BinProcessor(schema, hints), None)
     } else if (hints.isDensityQuery) {

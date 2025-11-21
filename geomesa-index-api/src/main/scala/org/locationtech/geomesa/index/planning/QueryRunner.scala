@@ -77,26 +77,28 @@ trait QueryRunner {
       require(plans.tail.forall(_.projection == plan.projection), "Projection must be the same in all query plans")
       require(plans.tail.forall(_.reducer == plan.reducer), "Reduce must be the same in all query plans")
 
-      val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
       val filter: Option[QueryStep] = plan.localFilter.map(f => _.filter(f.evaluate))
-      val transform: Option[QueryStep] = plan.localTransform.map { case (tdefs, tsft) =>
-        val transform = TransformSimpleFeature(sft, tsft, tdefs)
-        _.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
+      val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
       val limit: Option[QueryStep] = plan.maxFeatures.map { max =>
-        if (hints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
+        if (hints.getReturnSft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
+          // TODO handle arrow queries
+          _.take(max)
+        } else if (hints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
           // bin queries pack multiple records into each feature
           // to count the records, we have to count the total bytes coming back, instead of the number of features
           new BinaryOutputEncoder.FeatureLimitingIterator(_, max, hints.getBinLabelField.isDefined)
         } else {
-          // TODO handle arrow queries
           _.take(max)
         }
+      }
+      val transform: Option[QueryStep] = plan.localTransform.map { case (tdefs, tsft) =>
+        val transform = TransformSimpleFeature(sft, tsft, tdefs)
+        _.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
       }
       val reproject: Option[QueryStep] = plan.projection.map(Reprojection(hints.getReturnSft, _)).map(r => _.map(r.apply))
       val reduce: Option[QueryStep] = plan.reducer.filterNot(_ => hints.isSkipReduce).map(r => r.apply)
 
-      sort ++ filter ++ transform ++ limit ++ reproject ++ reduce
+      filter ++ sort ++ limit ++ transform ++ reproject ++ reduce
     }
 
     val timer: FinalQueryStep = new TimedIterator(_, Timers.scanning(query.getTypeName).record(_, TimeUnit.NANOSECONDS))
@@ -385,13 +387,16 @@ object QueryRunner {
     def iterator(): CloseableIterator[SimpleFeature] = ExceptionalIterator(runQuery())
 
     def iterator(timerCallback: Long => Unit, counterCallback: Long => Unit): CloseableIterator[SimpleFeature] = {
-      val counter: SimpleFeature => Int =
-        if (schema == BinaryOutputEncoder.BinEncodedSft) {
-          if (hints.getBinLabelField.isDefined) { BinWithLabelCounter } else { BinCounter }
-        } else {
+      val counter: SimpleFeature => Int = {
+        if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
           // TODO handle arrow queries
           StandardCounter
+        } else if (schema == BinaryOutputEncoder.BinEncodedSft) {
+          BinCounter(hints.getBinLabelField.isDefined)
+        } else {
+          StandardCounter
         }
+      }
       ExceptionalIterator(new CountingIterator(runQuery().addCallback(timerCallback), counter, counterCallback))
     }
 
@@ -410,12 +415,16 @@ object QueryRunner {
 
   // bin queries pack multiple records into each feature
   // to count the records, we have to count the total bytes coming back, instead of the number of features
+  private object BinCounter {
 
-  private object BinCounter extends (SimpleFeature => Int) {
-    override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 16
-  }
+    def apply(labels: Boolean): SimpleFeature => Int = if (labels) { BinWithLabelCounter } else { BinNoLabelCounter }
 
-  private object BinWithLabelCounter extends (SimpleFeature => Int) {
-    override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 24
+    private object BinNoLabelCounter extends (SimpleFeature => Int) {
+      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 16
+    }
+
+    private object BinWithLabelCounter extends (SimpleFeature => Int) {
+      override def apply(f: SimpleFeature): Int = f.getAttribute(0).asInstanceOf[Array[Byte]].length / 24
+    }
   }
 }
