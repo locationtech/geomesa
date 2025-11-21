@@ -60,5 +60,5 @@ class TimedIterator[T](delegate: CloseableIterator[T], callback: Long => Unit) e
 }
 
 object TimedIterator {
-  def empty[T](): TimedIterator[T] = new TimedIterator(CloseableIterator.empty, _ => Unit)
+  def empty[T](): TimedIterator[T] = new TimedIterator(CloseableIterator.empty, _ => ())
 }
