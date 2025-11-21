@@ -61,9 +61,6 @@ object QueryHints {
   val ARROW_PROCESS_DELTAS     = new ClassKey(classOf[java.lang.Boolean])
   val ARROW_FLATTEN_STRUCT     = new ClassKey(classOf[java.lang.Boolean])
 
-  val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
-  val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
-
   val FILTER_COMPAT            = new ClassKey(classOf[java.lang.String])
 
   val FLIP_AXIS_ORDER          = new ClassKey(classOf[java.lang.Boolean])
@@ -163,10 +160,6 @@ object QueryHints {
       Option(hints.get(Internal.REPROJECTION).asInstanceOf[String]).map(Internal.fromProjectionHint)
     def getMaxFeatures: Option[Int] = Option(hints.get(Internal.MAX_FEATURES).asInstanceOf[Integer]).map(_.intValue())
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
-    def isLambdaQueryPersistent: Boolean =
-      Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
-    def isLambdaQueryTransient: Boolean =
-      Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
 
     def getFilterCompatibility: Option[FilterCompatibility] = {
       Option(hints.get(FILTER_COMPAT).asInstanceOf[String]).map { c =>

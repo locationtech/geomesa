@@ -99,7 +99,7 @@ class MergedQueryRunner(
     stores.map { case (store, filter) =>
       val copy = new Query(query) // make sure to coy the hints so they aren't shared
       // suppress the reduce step for gm stores so that we can do the merge here
-      copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE) // TODO only for arrow and bin?
+      copy.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
       store.getFeatureReader(mergeFilter(sft, copy, filter), Transaction.AUTO_COMMIT)
     }
   }

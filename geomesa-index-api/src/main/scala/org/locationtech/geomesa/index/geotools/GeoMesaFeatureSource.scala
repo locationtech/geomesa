@@ -19,6 +19,7 @@ import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
+import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -51,20 +52,16 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
     import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCount
 
     // configure the query hints
-    // TODO configure query without getting the whole reader???
-    val hints = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query).hints
+    val hints = QueryRunner.configureQuery(sft, query).getHints
     val useExactCount = hints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
 
-    val count = if (useExactCount &&
-      !query.isMaxFeaturesUnlimited &&
-      query.getMaxFeatures < QueryExactCountMaxFeatures.get.toInt) {
+    val count = if (useExactCount && hints.getMaxFeatures.exists(_ < QueryExactCountMaxFeatures.get.toInt)) {
       SelfClosingIterator(getFeatures(query)).size
     } else {
       val statsCount = ds.stats.getCount(getSchema, query.getFilter, useExactCount, hints).getOrElse(-1L)
-      if (query.isMaxFeaturesUnlimited) {
-        statsCount
-      } else {
-        math.min(statsCount, query.getMaxFeatures)
+      hints.getMaxFeatures match {
+        case None => statsCount
+        case Some(m) => math.min(statsCount, m)
       }
     }
 

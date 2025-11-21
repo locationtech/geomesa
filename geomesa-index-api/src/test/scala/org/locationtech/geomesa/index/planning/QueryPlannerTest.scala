@@ -81,42 +81,42 @@ class QueryPlannerTest extends Specification {
     "be able to sort by id asc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.NATURAL_ORDER)
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", false)))
     }
 
     "be able to sort by id desc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.REVERSE_ORDER)
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", true)))
     }
 
     "be able to sort by an attribute asc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.ASCENDING))
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false)))
     }
 
     "be able to sort by an attribute desc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.DESCENDING))
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", true)))
     }
 
     "be able to sort by an attribute and id" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false), ("", false)))
     }
 
     "be able to sort by an multiple attributes" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
-      QueryRunner.setQuerySort(sft, query)
+      QueryRunner.configureQuery(sft, query)
       query.getHints.getSortFields must beSome(Seq(("age", true), ("name", false)))
     }
 

@@ -340,10 +340,4 @@ object LocalQueryRunner extends LazyLogging {
       CloseableIterator.single(sf)
     }
   }
-
-    // TODO
-//    if (hints.isSkipReduce) { arrows } else {
-//      val process = hints.isArrowProcessDeltas
-//      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true, process)(arrows)
-//    }
 }

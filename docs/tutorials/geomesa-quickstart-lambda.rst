@@ -219,17 +219,9 @@ the feature moving around.
 Transient vs Persistent Features
 --------------------------------
 
-The layer preview will merge the results of features from Kafka with features from Accumulo. You may disable
-results from one of the source by using the ``viewparams`` parameter:
-
-.. code-block:: bash
-
-    ...&viewparams=LAMBDA_QUERY_TRANSIENT:false
-    ...&viewparams=LAMBDA_QUERY_PERSISTENT:false
-
+The layer preview will merge the results of features from Kafka with features from Accumulo.
 While the quick start is running, all the features should be returned from the transient store (Kafka). After the quick
-start finishes, all the feature should be returned from the persistent store (Accumulo). You can play with the
-``viewparams`` to see the difference.
+start finishes, all the feature should be returned from the persistent store (Accumulo).
 
 Looking at the Code
 -------------------

@@ -266,7 +266,18 @@ object QueryRunner {
     override protected def tags(typeName: String): Tags = Tags.empty()
   }
 
-  def configureDefaultQuery(sft: SimpleFeatureType, original: Query): Query = default.configureQuery(sft, original)
+  @deprecated("Replaced with configureQuery, as 'default' is not relevant any more")
+  def configureDefaultQuery(sft: SimpleFeatureType, original: Query): Query = configureQuery(sft, original)
+
+  /**
+   * Configure a query, setting hints appropriately that we use in our query planning. Normally this is done
+   * automatically as part of running a query.
+   *
+   * @param sft feature type
+   * @param original query
+   * @return a new query
+   */
+  def configureQuery(sft: SimpleFeatureType, original: Query): Query = default.configureQuery(sft, original)
 
   /**
    * Extract and parse transforms from the query
@@ -275,7 +286,7 @@ object QueryRunner {
    * @param query query
    * @return
    */
-  def extractQueryTransforms(sft: SimpleFeatureType, query: Query): Option[(SimpleFeatureType, Seq[Transform], String)] = {
+  private def extractQueryTransforms(sft: SimpleFeatureType, query: Query): Option[(SimpleFeatureType, Seq[Transform], String)] = {
     // even if a transform is not specified, some queries only use a subset of attributes
     // specify them here so that it's easier to pick the best column group later
     def fromQueryType: Option[Seq[String]] = {
@@ -317,7 +328,7 @@ object QueryRunner {
    * @param sft sft
    * @param query query
    */
-  def setQuerySort(sft: SimpleFeatureType, query: Query): Unit = {
+  private def setQuerySort(sft: SimpleFeatureType, query: Query): Unit = {
     val sortBy = query.getSortBy
     if (sortBy != null && sortBy.nonEmpty) {
       val hints = query.getHints
