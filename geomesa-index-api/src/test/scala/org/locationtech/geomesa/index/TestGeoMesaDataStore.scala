@@ -87,7 +87,7 @@ object TestGeoMesaDataStore {
       }
     }
 
-    override def createQueryPlan(strategy: QueryStrategy): QueryPlan[TestGeoMesaDataStore] = {
+    override def createQueryPlan(strategy: QueryStrategy): QueryPlan = {
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter).flatMap(t => this.tables.get(t).map(t -> _))
@@ -104,7 +104,7 @@ object TestGeoMesaDataStore {
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
+      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
     }
 
     override def createWriter(
@@ -129,6 +129,7 @@ object TestGeoMesaDataStore {
   }
 
   case class TestQueryPlan(
+      ds: TestGeoMesaDataStore,
       strategy: QueryStrategy,
       tables: Map[String, SortedSet[SingleRowKeyValue[_]]],
       sft: SimpleFeatureType,
@@ -139,13 +140,15 @@ object TestGeoMesaDataStore {
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems]
-    ) extends QueryPlan[TestGeoMesaDataStore] {
+    ) extends QueryPlan {
 
     override type Results = SimpleFeature
 
+    def filter: FilterStrategy = strategy.filter
+
     override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(sft)
 
-    override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
+    override def scan(): CloseableIterator[SimpleFeature] = {
       strategy.runGuards(ds) // query guard hook - also handles full table scan checks
 
       def contained(range: TestRange, row: Array[Byte]): Boolean =

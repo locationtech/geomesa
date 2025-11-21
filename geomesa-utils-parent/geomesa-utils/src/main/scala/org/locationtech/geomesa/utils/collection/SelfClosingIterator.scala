@@ -13,25 +13,25 @@ import org.geotools.api.feature.Feature
 import org.geotools.api.feature.`type`.FeatureType
 import org.geotools.api.feature.simple.SimpleFeature
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator}
-import org.locationtech.geomesa.utils.collection.CloseableIterator.CloseableIteratorImpl
 
 import java.io.Closeable
 
 // By 'self-closing', we mean that the iterator will automatically call close once it is completely exhausted.
-trait SelfClosingIterator[+A] extends CloseableIterator[A] {
-  abstract override def hasNext: Boolean = {
-    val res = super.hasNext
+class SelfClosingIterator[+A](iter: Iterator[A], closeIter: => Unit) extends CloseableIterator[A] {
+  override def hasNext: Boolean = {
+    val res = iter.hasNext
     if (!res) {
       close()
     }
     res
   }
+  override def next(): A = iter.next()
+  override def close(): Unit = closeIter
 }
 
 object SelfClosingIterator {
 
-  def apply[A](iter: Iterator[A], closeIter: => Unit = {}): SelfClosingIterator[A] =
-    new CloseableIteratorImpl(iter, closeIter) with SelfClosingIterator[A]
+  def apply[A](iter: Iterator[A], closeIter: => Unit = {}): SelfClosingIterator[A] = new SelfClosingIterator(iter, closeIter)
 
   def apply[A](iter: Iterator[A] with Closeable): SelfClosingIterator[A] = apply(iter, iter.close())
 

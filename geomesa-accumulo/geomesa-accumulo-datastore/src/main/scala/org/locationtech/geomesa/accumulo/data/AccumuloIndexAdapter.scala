@@ -202,6 +202,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
             (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
           } else {
             if (hints.isSkipReduce) {
+              // TODO don't think this is true anymore
               // override the return sft to reflect what we're actually returning,
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
@@ -273,7 +274,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
           val max = hints.getMaxFeatures
           val project = hints.getProjection
 
-          BatchScanPlan(strategy, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
+          BatchScanPlan(ds, strategy, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
         }
     }
   }

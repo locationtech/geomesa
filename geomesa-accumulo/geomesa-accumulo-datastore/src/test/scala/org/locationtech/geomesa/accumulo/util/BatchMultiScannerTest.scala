@@ -58,7 +58,7 @@ class BatchMultiScannerTest extends TestWithFeatureType {
     foreach(jp.tables)(table => ds.client.tableOperations.exists(table) must beTrue)
 
     val join: Seq[Entry[Key, Value]] => CloseableIterator[Entry[Key, Value]] =
-      entries => jp.copy(ranges = entries.map(qp.join.get._1)).scan(ds)
+      entries => jp.copy(ranges = entries.map(qp.join.get._1)).scan()
 
     val retrieved = WithClose(new BatchMultiScanner(attrScanner, join, 5, batchSize))(_.map(jp.resultsToFeatures.apply).toList)
     forall(retrieved)(_.getAttribute(attr) mustEqual value)

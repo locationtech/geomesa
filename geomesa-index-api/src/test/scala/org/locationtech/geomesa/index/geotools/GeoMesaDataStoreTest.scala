@@ -106,7 +106,7 @@ class GeoMesaDataStoreTest extends Specification {
       ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features: _*))
 
       // INCLUDE should be re-written to EXCLUDE
-      forall(ds.getQueryPlan(new Query(sft.getTypeName)).map(_.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
+      forall(ds.getQueryPlan(new Query(sft.getTypeName)).map(_.strategy.filter.index))(_.getClass mustEqual classOf[EmptyIndex])
       var results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq
       results must beEmpty
 
@@ -231,8 +231,8 @@ class GeoMesaDataStoreTest extends Specification {
       )
 
       foreach(filters) { case (f, default, temporal) =>
-        ds.getQueryPlan(new Query("default", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(default.name)
-        ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(temporal.name)
+        ds.getQueryPlan(new Query("default", ECQL.toFilter(f))).map(_.strategy.filter.index.name) mustEqual Seq(default.name)
+        ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.strategy.filter.index.name) mustEqual Seq(temporal.name)
       }
     }
     "check provided fid hints during modifying writes" in {
@@ -291,7 +291,7 @@ class GeoMesaDataStoreTest extends Specification {
         ECQL.toFilter("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
       val plans = ds.getQueryPlan(new Query("test", filter))
       plans must haveLength(3)
-      foreach(plans)(_.filter.index.name mustEqual AttributeIndex.name)
+      foreach(plans)(_.strategy.filter.index.name mustEqual AttributeIndex.name)
     }
   }
 }

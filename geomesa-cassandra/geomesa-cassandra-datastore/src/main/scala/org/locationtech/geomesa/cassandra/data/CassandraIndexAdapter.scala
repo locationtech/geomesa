@@ -98,7 +98,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      StatementPlan(strategy, tables, statements, threads, strategy.ecql, rowsToFeatures, reducer, sort, max, project)
+      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, rowsToFeatures, reducer, sort, max, project)
     }
   }
 

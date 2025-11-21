@@ -17,14 +17,18 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.ByteArrays
 
-sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
+sealed trait HBaseQueryPlan extends QueryPlan {
+
+  def ds: HBaseDataStore
+
+  def strategy: QueryStrategy
 
   /**
     * Ranges being scanned
@@ -40,12 +44,12 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     */
   def scans: Seq[TableScan]
 
-  override def scan(ds: HBaseDataStore): CloseableIterator[Results] = {
+  override def scan(): CloseableIterator[Results] = {
     // query guard hook - also handles full table scan checks
     strategy.runGuards(ds)
     // convert the relative timeout to an absolute timeout up front
     val timeout = ds.config.queries.timeout.map(Timeout.apply)
-    val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
+    val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads, timeout))
     if (ds.config.queries.parallelPartitionScans) {
       // kick off all the scans at once
       iter.foldLeft(CloseableIterator.empty[Results])(_ concat _)
@@ -67,7 +71,7 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     explainer.popLevel()
   }
 
-  protected def threads(ds: HBaseDataStore): Int
+  protected def threads: Int
 
   protected def singleTableScan(
       scan: TableScan,
@@ -99,7 +103,7 @@ object HBaseQueryPlan {
   case class TableScan(table: TableName, scans: Seq[Scan])
 
   // plan that will not actually scan anything
-  case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends HBaseQueryPlan {
+  case class EmptyPlan(ds: HBaseDataStore, strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends HBaseQueryPlan {
     override type Results = Result
     override val ranges: Seq[RowRange] = Seq.empty
     override val scans: Seq[TableScan] = Seq.empty
@@ -107,8 +111,8 @@ object HBaseQueryPlan {
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
-    override def scan(ds: HBaseDataStore): CloseableIterator[Result] = CloseableIterator.empty
-    override protected def threads(ds: HBaseDataStore): Int = 0
+    override def scan(): CloseableIterator[Result] = CloseableIterator.empty
+    override protected def threads: Int = 0
     override protected def singleTableScan(
         scan: TableScan,
         connection: Connection,
@@ -117,6 +121,7 @@ object HBaseQueryPlan {
   }
 
   case class ScanPlan(
+      ds: HBaseDataStore,
       strategy: QueryStrategy,
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
@@ -129,7 +134,7 @@ object HBaseQueryPlan {
 
     override type Results = Result
 
-    override protected def threads(ds: HBaseDataStore): Int = ds.config.queries.threads
+    override protected def threads: Int = ds.config.queries.threads
 
     override protected def singleTableScan(
         scan: TableScan,
@@ -141,6 +146,7 @@ object HBaseQueryPlan {
   }
 
   case class CoprocessorPlan(
+      ds: HBaseDataStore,
       strategy: QueryStrategy,
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
@@ -157,7 +163,7 @@ object HBaseQueryPlan {
 
     override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
 
-    override protected def threads(ds: HBaseDataStore): Int = ds.config.coprocessors.threads
+    override protected def threads: Int = ds.config.coprocessors.threads
 
     override protected def singleTableScan(
         scan: TableScan,

@@ -20,10 +20,11 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-sealed trait CassandraQueryPlan extends QueryPlan[CassandraDataStore] {
+sealed trait CassandraQueryPlan extends QueryPlan {
 
   override type Results = Row
 
+  def strategy: QueryStrategy
   def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int
@@ -59,10 +60,11 @@ case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = 
   override val sort: Option[Seq[(String, Boolean)]] = None
   override val maxFeatures: Option[Int] = None
   override val projection: Option[QueryReferenceSystems] = None
-  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = CloseableIterator.empty
+  override def scan(): CloseableIterator[Row] = CloseableIterator.empty
 }
 
 case class StatementPlan(
+    ds: CassandraDataStore,
     strategy: QueryStrategy,
     tables: Seq[String],
     ranges: Seq[Statement],
@@ -76,7 +78,7 @@ case class StatementPlan(
     projection: Option[QueryReferenceSystems]
   ) extends CassandraQueryPlan {
 
-  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = {
+  override def scan(): CloseableIterator[Row] = {
     strategy.runGuards(ds) // query guard hook - also handles full table scan checks
     CassandraBatchScan(this, ds.session, ranges, numThreads, ds.config.queries.timeout.map(Timeout.apply))
   }

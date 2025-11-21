@@ -19,7 +19,7 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
-import org.locationtech.geomesa.index.planning.QueryPlanner
+import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.process.{FeatureResult, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.process.GeoMesaProcess
 
@@ -71,7 +71,7 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
     if (properties != null) {
       query.setPropertyNames(properties: _*)
     }
-    QueryPlanner.extractQueryTransforms(original, query) match {
+    QueryRunner.extractQueryTransforms(original, query) match {
       case None => (original, null)
       case Some((tsft, tdefs, _)) => (tsft, TransformSimpleFeature(tsft, tdefs))
     }

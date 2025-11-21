@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.planning
 
 import org.geotools.api.data.Query
+import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.{SortBy, SortOrder}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -80,42 +81,42 @@ class QueryPlannerTest extends Specification {
     "be able to sort by id asc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.NATURAL_ORDER)
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", false)))
     }
 
     "be able to sort by id desc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(SortBy.REVERSE_ORDER)
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("", true)))
     }
 
     "be able to sort by an attribute asc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.ASCENDING))
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false)))
     }
 
     "be able to sort by an attribute desc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.DESCENDING))
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", true)))
     }
 
     "be able to sort by an attribute and id" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("name", SortOrder.ASCENDING), SortBy.NATURAL_ORDER)
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("name", false), ("", false)))
     }
 
     "be able to sort by an multiple attributes" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(ff.sort("age", SortOrder.DESCENDING), ff.sort("name", SortOrder.ASCENDING))
-      QueryPlanner.setQuerySort(sft, query)
+      QueryRunner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("age", true), ("name", false)))
     }
 
@@ -133,6 +134,19 @@ class QueryPlannerTest extends Specification {
       hintPlans must haveLength(1)
       hintPlans.head.filter.index.name mustEqual Z3Index.name
       hintPlans.head.filter.primary must beSome
+    }
+
+    "compute target schemas from transformation expressions" in {
+      val sftName = "targetSchemaTest"
+      val defaultSchema = "name:String,geom:Point:srid=4326,dtg:Date"
+      val origSFT = SimpleFeatureTypes.createType(sftName, defaultSchema)
+
+      val query = new Query(sftName, Filter.INCLUDE, "name", "helloName=strConcat('hello', name)", "geom")
+      QueryRunner.configureDefaultQuery(origSFT, query)
+
+      val transform = query.getHints.getTransformSchema
+      transform must beSome
+      SimpleFeatureTypes.encodeType(transform.get) mustEqual "name:String,helloName:String,*geom:Point:srid=4326"
     }
   }
 }

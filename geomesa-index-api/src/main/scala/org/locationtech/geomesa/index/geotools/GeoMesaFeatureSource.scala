@@ -51,6 +51,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
     import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCount
 
     // configure the query hints
+    // TODO configure query without getting the whole reader???
     val hints = ds.getFeatureReader(sft, Transaction.AUTO_COMMIT, query).hints
     val useExactCount = hints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
 

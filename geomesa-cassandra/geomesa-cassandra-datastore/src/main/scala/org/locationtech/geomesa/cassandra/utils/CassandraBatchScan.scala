@@ -46,7 +46,7 @@ object CassandraBatchScan {
     val scanner = new CassandraBatchScan(session, ranges, threads, 100000)
     timeout match {
       case None => scanner.start()
-      case Some(t) => new ManagedScan(new CassandraScanner(scanner), t, plan)
+      case Some(t) => new ManagedScan(new CassandraScanner(scanner), t, plan.strategy.index.sft.getTypeName, plan.strategy.filter.filter)
     }
   }
 

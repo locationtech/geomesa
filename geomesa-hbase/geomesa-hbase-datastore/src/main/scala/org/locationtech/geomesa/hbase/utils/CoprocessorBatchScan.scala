@@ -71,7 +71,7 @@ object CoprocessorBatchScan {
     val scanner = new CoprocessorBatchScan(connection, table, ranges, opts, scanThreads, rpcThreads, BufferSize)
     timeout match {
       case None => scanner.start()
-      case Some(t) => new ManagedScan(new CoprocessorScanner(scanner), t, plan)
+      case Some(t) => new ManagedScan(new CoprocessorScanner(scanner), t, plan.strategy.index.sft.getTypeName, plan.strategy.filter.filter)
     }
   }
 

@@ -81,7 +81,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       val max = hints.getMaxFeatures
       val project = hints.getProjection
 
-      ZLexPlan(strategy, tables, ranges, ds.config.pipeline, strategy.ecql, results, reducer, sort, max, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, results, reducer, sort, max, project)
     }
   }
 

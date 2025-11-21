@@ -80,7 +80,7 @@ object HBaseBatchScan {
     val scanner = new HBaseBatchScan(connection, table, ranges, threads, BufferSize)
     timeout match {
       case None => scanner.start()
-      case Some(t) => new ManagedScan(new HBaseScanner(scanner), t, plan)
+      case Some(t) => new ManagedScan(new HBaseScanner(scanner), t, plan.strategy.index.sft.getTypeName, plan.strategy.filter.filter)
     }
   }
 

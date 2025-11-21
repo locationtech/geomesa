@@ -22,8 +22,7 @@ import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 
 class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients: LoadingCache[String, TransientStore])
-    extends MergedQueryRunner(
-      ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true, false) {
+    extends MergedQueryRunner(ds, Seq(TransientQueryable(transients) -> None, DataStoreQueryable(persistence) -> None), true, false) {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -34,28 +33,29 @@ class LambdaQueryRunner(ds: LambdaDataStore, persistence: DataStore, transients:
 
   // TODO pass explain through?
 
-  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
-    // configure the query so we get viewparams and threaded hints
-    val query = configureQuery(sft, original)
-    val result = super.runQuery(sft, query, explain)
-    if (query.getHints.isLambdaQueryPersistent && query.getHints.isLambdaQueryTransient) {
-      result
-    } else if (query.getHints.isLambdaQueryPersistent) {
-      result.copy(iterator = () => SelfClosingIterator(persistence.getFeatureReader(query, Transaction.AUTO_COMMIT)))
-    } else {
-      def run(): CloseableIterator[SimpleFeature] = {
-        // ensure that we still audit the query
-        audit.foreach { writer =>
-          val start = System.currentTimeMillis()
-          writer.writeQueryEvent(sft.getTypeName, writer.auditProvider.getCurrentUserId, query.getFilter, query.getHints, Seq.empty, start, start, 0, 0, 0)
-        }
-        transients.get(sft.getTypeName)
-            .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)
-            .iterator()
-      }
-      result.copy(iterator = run)
-    }
-  }
+  // TODO do we care about querypersistent and querytransient flags?
+//  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): QueryResult = {
+//    // configure the query so we get viewparams and threaded hints
+//    val query = configureQuery(sft, original)
+//    val result = super.runQuery(sft, query, explain)
+//    if (query.getHints.isLambdaQueryPersistent && query.getHints.isLambdaQueryTransient) {
+//      result
+//    } else if (query.getHints.isLambdaQueryPersistent) {
+//      result.copy(iterator = () => SelfClosingIterator(persistence.getFeatureReader(query, Transaction.AUTO_COMMIT)))
+//    } else {
+//      def run(): CloseableIterator[SimpleFeature] = {
+//        // ensure that we still audit the query
+//        audit.foreach { writer =>
+//          val start = System.currentTimeMillis()
+//          writer.writeQueryEvent(sft.getTypeName, writer.auditProvider.getCurrentUserId, query.getFilter, query.getHints, Seq.empty, start, start, 0, 0, 0)
+//        }
+//        transients.get(sft.getTypeName)
+//            .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)
+//            .iterator()
+//      }
+//      result.copy(iterator = run)
+//    }
+//  }
 }
 
 object LambdaQueryRunner {

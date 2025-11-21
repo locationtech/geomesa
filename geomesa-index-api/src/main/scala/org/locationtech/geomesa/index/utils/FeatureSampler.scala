@@ -11,6 +11,27 @@ package org.locationtech.geomesa.index.utils
 import org.geotools.api.feature.simple.SimpleFeature
 
 object FeatureSampler {
+
+  /**
+   * Returns a sampling function that will indicate if a feature will be kept or discarded.
+   *
+   * Since the current implementation rounds heavily, large percentages will not actually sample out any
+   * features, so will return None
+   *
+   * @param percent percent of features to keep, between [0, 1]
+   * @param field field to use for threading of sampling
+   * @return sampling function
+   */
+  def sample(percent: Float, field: Option[Int]): Option[SimpleFeature => Boolean] = {
+    if (!(percent > 0 && percent < 1f)) {
+      throw new IllegalArgumentException(s"Sampling must be a percentage between (0, 1): $percent")
+    }
+    val nth = math.round(1 / percent)
+    if (nth <= 1) { None } else {
+      Some(sample(nth, field))
+    }
+  }
+
   /**
    * Returns a sampling function that will indicate if a feature should be kept or discarded
    *

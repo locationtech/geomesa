@@ -47,9 +47,6 @@ object ThreadManagement {
   class ManagedScan[T](underlying: LowLevelScanner[T], timeout: Timeout, typeName: String, filter: Option[Filter])
       extends CloseableIterator[T] {
 
-    def this(underlying: LowLevelScanner[T], timeout: Timeout, plan: QueryPlan[_]) =
-      this(underlying, timeout, plan.filter.index.sft.getTypeName, plan.filter.filter)
-
     // we can use a volatile var since we only update the value with a single thread
     @volatile
     private var terminated = timeout.absolute <= System.currentTimeMillis()

@@ -85,7 +85,7 @@ object AccumuloJoinIndexAdapter {
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      BatchScanPlan(strategy, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
+      BatchScanPlan(ds, strategy, tables, ranges, iterators, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
     }
 
     // used when remote processing is disabled
@@ -294,13 +294,13 @@ object AccumuloJoinIndexAdapter {
       }
     }
 
-    val joinQuery = BatchScanPlan(strategy, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
+    val joinQuery = BatchScanPlan(ds, strategy, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
       Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads)
 
     val attributeIters = visibilityIter(index) ++
         FilterTransformIterator.configure(index.indexSft, index, stFilter, None, hints.getSampling).toSeq
 
-    JoinPlan(strategy, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
+    JoinPlan(ds, strategy, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
   }
 
   private def visibilityIter(index: AttributeJoinIndex): Seq[IteratorSetting] = {

@@ -16,7 +16,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
@@ -27,16 +27,18 @@ import java.util.Map.Entry
 /**
   * Accumulo-specific query plan
   */
-sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
+sealed trait AccumuloQueryPlan extends QueryPlan {
 
   override type Results = Entry[Key, Value]
 
+  def strategy: QueryStrategy
   def tables: Seq[String]
   def columnFamily: Option[Text]
   def ranges: Seq[org.apache.accumulo.core.data.Range]
   def iterators: Seq[IteratorSetting]
   def numThreads: Int
 
+  def filter: FilterStrategy = strategy.filter
   def join: Option[(AccumuloQueryPlan.JoinFunction, AccumuloQueryPlan)] = None
 
   override def explain(explainer: Explainer, prefix: String = ""): Unit =
@@ -51,6 +53,7 @@ object AccumuloQueryPlan extends LazyLogging {
   type JoinFunction = Entry[Key, Value] => org.apache.accumulo.core.data.Range
 
   def explain(plan: AccumuloQueryPlan, explainer: Explainer, prefix: String): Unit = {
+    // TODO shouldn't this use prefix everywhere?
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Column Families: ${plan.columnFamily.getOrElse("all")}")
@@ -85,11 +88,12 @@ object AccumuloQueryPlan extends LazyLogging {
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
-    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = CloseableIterator.empty
+    override def scan(): CloseableIterator[Entry[Key, Value]] = CloseableIterator.empty
   }
 
   // batch scan plan
   case class BatchScanPlan(
+      ds: AccumuloDataStore,
       strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
@@ -103,7 +107,7 @@ object AccumuloQueryPlan extends LazyLogging {
       numThreads: Int
     ) extends AccumuloQueryPlan {
 
-    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+    override def scan(): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
       strategy.runGuards(ds)
       // note: calculate auths and convert the relative timeout to an absolute timeout up front
@@ -141,13 +145,14 @@ object AccumuloQueryPlan extends LazyLogging {
       helper.consistency.foreach(scanner.setConsistencyLevel)
       helper.timeout match {
         case None => new ScanIterator(scanner)
-        case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, this)
+        case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, strategy.index.sft.getTypeName, strategy.filter.filter)
       }
     }
   }
 
   // join on multiple tables - requires multiple scans
   case class JoinPlan(
+      ds: AccumuloDataStore,
       strategy: QueryStrategy,
       tables: Seq[String],
       ranges: Seq[org.apache.accumulo.core.data.Range],
@@ -165,7 +170,7 @@ object AccumuloQueryPlan extends LazyLogging {
     override def maxFeatures: Option[Int] = joinQuery.maxFeatures
     override def projection: Option[QueryReferenceSystems] = joinQuery.projection
 
-    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+    override def scan(): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
       strategy.runGuards(ds)
       // calculate auths and convert the relative timeout to an absolute timeout up front

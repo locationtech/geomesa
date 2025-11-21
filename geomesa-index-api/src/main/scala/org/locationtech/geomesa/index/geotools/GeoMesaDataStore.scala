@@ -428,10 +428,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
    * @param index hint on the index to use to satisfy the query
    * @return query plans
    */
-  def getQueryPlan(
-      query: Query,
-      index: Option[String] = None,
-      explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] = {
+  def getQueryPlan(query: Query, index: Option[String] = None, explainer: Explainer = new ExplainLogging): Seq[QueryPlan] = {
     require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {

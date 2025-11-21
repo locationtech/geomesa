@@ -8,20 +8,20 @@
 
 package org.locationtech.geomesa.kafka.index
 
+import io.micrometer.core.instrument.Tags
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 class KafkaQueryRunner(ds: KafkaDataStore, caches: String => KafkaFeatureCache)
     extends LocalQueryRunner(Option(ds.config.authProvider)) {
 
-  override protected def name: String = "Kafka"
-
   override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
-  override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] =
-    CloseableIterator(caches(sft.getTypeName).query(filter.getOrElse(Filter.INCLUDE)))
+  override protected def tags(typeName: String): Tags = ds.tags(typeName)
+
+  override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): Iterator[SimpleFeature] =
+    caches(sft.getTypeName).query(filter.getOrElse(Filter.INCLUDE))
 }

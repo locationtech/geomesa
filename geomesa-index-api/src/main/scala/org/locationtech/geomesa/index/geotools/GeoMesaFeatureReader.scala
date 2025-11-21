@@ -13,11 +13,8 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.audit.AuditWriter
-import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-import org.locationtech.geomesa.index.planning.QueryPlanner.QueryPlanResult
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.planning.QueryRunner.QueryResult
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.metrics.MethodProfiling
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
@@ -49,11 +46,7 @@ object GeoMesaFeatureReader extends MethodProfiling {
       audit: Option[AuditWriter]): GeoMesaFeatureReader = {
     audit match {
       case None => new GeoMesaFeatureReader(qp.runQuery(sft, query))
-      case Some(a) =>
-        // TODO consolidate auditing with metrics in QueryPlanner
-        val start = System.nanoTime()
-        val result = qp.runQuery(sft, query)
-        new GeoMesaFeatureReaderWithAudit(result, a, sft.getTypeName, query.getFilter, System.nanoTime() - start)
+      case Some(a) => new GeoMesaFeatureReaderWithAudit(qp.runQuery(sft, query), a, sft.getTypeName, query.getFilter)
     }
   }
 
@@ -79,60 +72,29 @@ object GeoMesaFeatureReader extends MethodProfiling {
       auditWriter: AuditWriter,
       typeName: String,
       filter: Filter,
-      initialTime: Long,
     ) extends GeoMesaFeatureReader(result) {
 
     override def reader(): SimpleFeatureReader = new ResultReaderWithAudit()
 
     private class ResultReaderWithAudit extends SimpleFeatureReader with MethodProfiling {
 
-      private var planningTime = initialTime
-      private var queryTime = 0L
-
       private val start = System.currentTimeMillis()
       private val user = auditWriter.auditProvider.getCurrentUserId
       private val closed = new AtomicBoolean(false)
       private val count = new AtomicLong(0L)
-      private val iter = {
-        val start = System.nanoTime()
-        val base = result.iterator()
-        planningTime += (System.nanoTime() - start)
-        // note: has to be done after running the query so hints are set
-        if (result.schema == BinaryOutputEncoder.BinEncodedSft) {
-          // bin queries pack multiple records into each feature
-          // to count the records, we have to count the total bytes coming back, instead of the number of features
-          val bytesPerHit = if (result.hints.getBinLabelField.isDefined) { 24 } else { 16 }
-          base.map { sf => count.addAndGet(sf.getAttribute(0).asInstanceOf[Array[Byte]].length / bytesPerHit); sf }
-        } else {
-          base.map { sf => count.incrementAndGet(); sf }
-        }
-      }
+      private val runtimeNanos = new AtomicLong(0L)
+      private val iter = result.iterator(runtimeNanos.set, count.set)
 
       override def getFeatureType: SimpleFeatureType = result.schema
-
-      override def hasNext: Boolean = {
-        val start = System.nanoTime()
-        val result = iter.hasNext
-        queryTime += (System.nanoTime() - start)
-        result
-      }
-      override def next(): SimpleFeature = {
-        val start = System.nanoTime()
-        val result = iter.next()
-        queryTime += (System.nanoTime() - start)
-        result
-      }
+      override def hasNext: Boolean = iter.hasNext
+      override def next(): SimpleFeature = iter.next()
 
       override def close(): Unit = {
         if (closed.compareAndSet(false, true)) {
           try { iter.close() } finally {
-            val plans = result match {
-              case r: QueryPlanResult[_] => r.plans
-              case _ => Seq.empty
-            }
             // note: implementations should be asynchronous
-            auditWriter.writeQueryEvent(typeName, user, filter, hints, plans, start, System.currentTimeMillis(),
-              planningTime / 1000000L, queryTime / 1000000L, count.get)
+            auditWriter.writeQueryEvent(typeName, user, filter, hints, result.plans, start, System.currentTimeMillis(),
+              result.planTimeNanos / 1000000L, runtimeNanos.get() / 1000000L, count.get)
           }
         }
       }
