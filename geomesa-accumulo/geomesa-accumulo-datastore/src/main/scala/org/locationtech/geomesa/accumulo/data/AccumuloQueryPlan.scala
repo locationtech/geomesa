@@ -14,6 +14,8 @@ import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, Scanner
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan, QueryStrategy}
@@ -79,15 +81,17 @@ object AccumuloQueryPlan extends LazyLogging {
 
   // plan that will not actually scan anything
   case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = None) extends AccumuloQueryPlan {
-    override val tables: Seq[String] = Seq.empty
-    override val iterators: Seq[IteratorSetting] = Seq.empty
-    override val ranges: Seq[org.apache.accumulo.core.data.Range] = Seq.empty
-    override val columnFamily: Option[Text] = None
-    override val numThreads: Int = 0
-    override val resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = ResultsToFeatures.empty
-    override val sort: Option[Seq[(String, Boolean)]] = None
-    override val maxFeatures: Option[Int] = None
-    override val projection: Option[QueryReferenceSystems] = None
+    override def tables: Seq[String] = Seq.empty
+    override def iterators: Seq[IteratorSetting] = Seq.empty
+    override def ranges: Seq[org.apache.accumulo.core.data.Range] = Seq.empty
+    override def columnFamily: Option[Text] = None
+    override def numThreads: Int = 0
+    override def resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = ResultsToFeatures.empty
+    override def localFilter: Option[Filter] = None
+    override def localTransform: Option[(String, SimpleFeatureType)] = None
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def maxFeatures: Option[Int] = None
+    override def projection: Option[QueryReferenceSystems] = None
     override def scan(): CloseableIterator[Entry[Key, Value]] = CloseableIterator.empty
   }
 
@@ -106,6 +110,9 @@ object AccumuloQueryPlan extends LazyLogging {
       projection: Option[QueryReferenceSystems],
       numThreads: Int
     ) extends AccumuloQueryPlan {
+
+    override def localFilter: Option[Filter] = None
+    override def localTransform: Option[(String, SimpleFeatureType)] = None
 
     override def scan(): CloseableIterator[Entry[Key, Value]] = {
       // query guard hook - also handles full table scan checks
@@ -165,6 +172,8 @@ object AccumuloQueryPlan extends LazyLogging {
 
     override val join: Some[(JoinFunction, BatchScanPlan)] = Some((joinFunction, joinQuery))
     override def resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = joinQuery.resultsToFeatures
+    override def localFilter: Option[Filter] = joinQuery.localFilter
+    override def localTransform: Option[(String, SimpleFeatureType)] = joinQuery.localTransform
     override def reducer: Option[FeatureReducer] = joinQuery.reducer
     override def sort: Option[Seq[(String, Boolean)]] = joinQuery.sort
     override def maxFeatures: Option[Int] = joinQuery.maxFeatures

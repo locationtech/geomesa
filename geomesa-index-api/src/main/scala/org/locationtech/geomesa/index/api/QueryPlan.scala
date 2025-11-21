@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.api
 
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.iterators.IteratorCache
@@ -45,6 +46,20 @@ trait QueryPlan {
     * @return
     */
   def resultsToFeatures: ResultsToFeatures[Results]
+
+  /**
+   * Local filter, for databases that don't support push-down filtering
+   *
+   * @return
+   */
+  def localFilter: Option[Filter]
+
+  /**
+   * Local transform, for databases that don't support returning transforms
+   *
+   * @return
+   */
+  def localTransform: Option[(String, SimpleFeatureType)]
 
   /**
     * Optional reduce step for simple features coming back

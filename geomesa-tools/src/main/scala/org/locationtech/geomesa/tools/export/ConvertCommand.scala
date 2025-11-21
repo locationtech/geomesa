@@ -15,6 +15,7 @@ import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalTransformReducer
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.`export`.ConvertCommand.ResultTracker
@@ -132,10 +133,19 @@ object ConvertCommand extends LazyLogging {
       }
     }
 
-    def transform(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
-      new LocalTransformReducer(converter.targetSft, None, None, query.getHints.getTransform, query.getHints).apply(iter)
+    def transform(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+      query.getHints.getTransform match {
+        case None => iter
+        case Some((tdefs, tsft)) =>
+          val transform = TransformSimpleFeature(converter.targetSft, tsft, tdefs)
+          iter.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
+      }
+    }
 
-    transform(limit(filter(convert())))
+    def reduce(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
+      new LocalTransformReducer(query.getHints.getTransformSchema.getOrElse(converter.targetSft), query.getHints).apply(iter)
+
+    reduce(transform(limit(filter(convert()))))
   }
 
   private class ResultTracker {

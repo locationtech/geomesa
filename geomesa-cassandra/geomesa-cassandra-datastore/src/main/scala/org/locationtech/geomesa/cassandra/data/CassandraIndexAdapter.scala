@@ -85,9 +85,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val hints = strategy.hints
-    // TODO we should move filtering and transforms out of the reduce step, so we can use with a merged view
-    //  (which expects those to always be done by the pre-reduce steps)
-    val reducer = Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, None, hints.getTransform, hints))
+    val reducer = Some(new LocalTransformReducer(hints.getTransformSchema.getOrElse(strategy.index.sft), hints))
 
     if (strategy.keyRanges.isEmpty) { EmptyPlan(strategy, reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
@@ -100,7 +98,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      StatementPlan(ds, strategy, tables, statements, threads, strategy.ecql, rowsToFeatures, reducer, sort, max, project)
+      StatementPlan(ds, strategy, tables, statements, threads, rowsToFeatures, strategy.ecql, hints.getTransform, reducer, sort, max, project)
     }
   }
 

@@ -13,6 +13,8 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
+import org.geotools.api.feature.simple.SimpleFeatureType
+import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
@@ -108,6 +110,8 @@ object HBaseQueryPlan {
     override val ranges: Seq[RowRange] = Seq.empty
     override val scans: Seq[TableScan] = Seq.empty
     override val resultsToFeatures: ResultsToFeatures[Result] = ResultsToFeatures.empty
+    override val localFilter: Option[Filter] = None
+    override val localTransform: Option[(String, SimpleFeatureType)] = None
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
@@ -126,6 +130,8 @@ object HBaseQueryPlan {
       ranges: Seq[RowRange],
       scans: Seq[TableScan],
       resultsToFeatures: ResultsToFeatures[Result],
+      localFilter: Option[Filter],
+      localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
@@ -161,7 +167,10 @@ object HBaseQueryPlan {
 
     private lazy val maximizeThreads = HBaseSystemProperties.CoprocessorMaxThreads.toBoolean.get
 
-    override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
+    // client side processing is not relevant for coprocessors
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def localFilter: Option[Filter] = None
+    override def localTransform: Option[(String, SimpleFeatureType)] = None
 
     override protected def threads: Int = ds.config.coprocessors.threads
 

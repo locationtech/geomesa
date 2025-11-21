@@ -59,19 +59,19 @@ class MergedQueryRunner(
     val plan = if (hints.isArrowQuery) {
       val scan = () => scanner(sft, query, org.locationtech.geomesa.arrow.ArrowEncodedSft, new ArrowProcessor(_, hints))
       val reducer = new DeltaReducer(hints.getTransformSchema.getOrElse(sft), hints, sorted = false)
-      LocalQueryPlan(scan, toFeatures, Some(reducer), None, None, None)
+      LocalQueryPlan(scan, toFeatures, None, Some(reducer), None, None, None)
     } else if (hints.isBinQuery) {
       if (query.getSortBy != null && !query.getSortBy.isEmpty) {
         logger.warn("Ignoring sort for BIN query")
       }
       val scan = () => scanner(sft, query, BinaryOutputEncoder.BinEncodedSft, new BinProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, None, None, None, None)
+      LocalQueryPlan(scan, toFeatures, None, None, None, None, None)
     } else if (hints.isDensityQuery) {
       val scan = () => scanner(sft, query, DensityScan.DensitySft, new DensityProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, None, None, None, None)
+      LocalQueryPlan(scan, toFeatures, None, None, None, None, None)
     } else if (hints.isStatsQuery) {
       val scan = () => scanner(sft, query, StatsScan.StatsSft, new StatsProcessor(_, hints))
-      LocalQueryPlan(scan, toFeatures, Some(StatsScan.StatsReducer(sft, hints)), None, None, None)
+      LocalQueryPlan(scan, toFeatures, None, Some(StatsScan.StatsReducer(sft, hints)), None, None, None)
     } else {
       // we assume the delegate stores can handle normal transforms/etc appropriately
       val scanner = () => {
@@ -89,7 +89,7 @@ class MergedQueryRunner(
           case Some(sort) => new SortedMergeIterator(deduped)(SimpleFeatureOrdering(hints.getReturnSft, sort))
         }
       }
-      LocalQueryPlan(scanner, toFeatures, None, None, hints.getMaxFeatures, None)
+      LocalQueryPlan(scanner, toFeatures, None, None, None, hints.getMaxFeatures, None)
     }
     Seq(plan)
   }

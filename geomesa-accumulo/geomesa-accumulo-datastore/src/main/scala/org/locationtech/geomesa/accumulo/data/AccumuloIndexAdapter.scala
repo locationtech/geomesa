@@ -177,7 +177,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
     lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
     lazy val fti = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
     lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
-    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+    lazy val localReducer = Some(new LocalTransformReducer(returnSchema, hints))
 
     index match {
       case i: AttributeJoinIndex =>

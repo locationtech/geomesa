@@ -99,13 +99,12 @@ object TestGeoMesaDataStore {
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform
-      // TODO we should move filtering and transforms out of the reduce step, to better simulate a real data store
-      val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints))
+      val reducer = Some(new LocalTransformReducer(strategy.index.sft, strategy.hints))
       val maxFeatures = strategy.hints.getMaxFeatures
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
+      TestQueryPlan(ds, strategy, tables.toMap, strategy.index.sft, serializer, ranges, ecql, transform, reducer, sort, maxFeatures, project)
     }
 
     override def createWriter(
@@ -136,8 +135,9 @@ object TestGeoMesaDataStore {
       sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
+      localFilter: Option[Filter],
+      localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
-      ecql: Option[Filter],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems]
@@ -175,7 +175,7 @@ object TestGeoMesaDataStore {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
         s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +
             s"${r.end.map(ByteArrays.toHex).mkString(";")})").mkString(",")}")
-      explainer(s"ecql: ${ecql.fold("INCLUDE")(FilterHelper.toString)}")
+      explainer(s"ecql: ${localFilter.fold("INCLUDE")(FilterHelper.toString)}")
     }
   }
 

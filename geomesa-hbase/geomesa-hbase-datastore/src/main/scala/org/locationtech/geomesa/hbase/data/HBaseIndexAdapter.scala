@@ -178,7 +178,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val tableName = TableName.valueOf(name)
       WithClose(ds.connection.getTable(tableName)) { table =>
         val scan = new Scan().setFilter(new KeyOnlyFilter)
-        prefix.foreach(scan.setRowPrefixFilter)
+        prefix.foreach(scan.setStartStopRowForPrefixScan)
         ds.applySecurity(scan)
         val mutateParams = new BufferedMutatorParams(tableName)
         WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
@@ -225,16 +225,14 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
-      // TODO we should move filtering and transforms out of the reduce step, so we can use with a merged view
-      //  (which expects those to always be done by the pre-reduce steps)
-      val reducer = Some(new LocalTransformReducer(schema, strategy.filter.filter, None, transform, hints))
+      val reducer = Some(new LocalTransformReducer(schema, hints))
       empty(reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
         val sort = hints.getSortFields
         val max = hints.getMaxFeatures
         val project = hints.getProjection
-        ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, reducer, sort, max, project)
+        ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, strategy.filter.filter, transform, reducer, sort, max, project)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
@@ -278,7 +276,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
       lazy val resultsToFeatures = new HBaseResultsToFeatures(index, returnSchema)
-      lazy val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+      lazy val localReducer = Some(new LocalTransformReducer(returnSchema, hints))
 
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
@@ -292,7 +290,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the density sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, None, max, projection)
           }
         }
       } else if (hints.isArrowQuery) {
@@ -309,7 +307,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else if (hints.isStatsQuery) {
@@ -325,7 +323,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the stats sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, None, max, projection)
           }
         }
       } else if (hints.isBinQuery) {
@@ -340,12 +338,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the bin sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else {
         empty(None).getOrElse {
-          ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, hints.getSortFields, max, projection)
+          ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, None, None, None, hints.getSortFields, max, projection)
         }
       }
     }
@@ -400,7 +398,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       // note: we have to copy the ranges for each table scan
       tables.map { table =>
         val scans = ranges.map { r =>
-          val scan = new Scan(r.getStartRow, r.getStopRow)
+          val scan = new Scan().withStartRow(r.getStartRow).withStopRow(r.getStopRow)
           scan.addFamily(colFamily).setCacheBlocks(cacheBlocks).setSmall(true)
           filter.foreach(scan.setFilter)
           cacheSize.foreach(scan.setCaching)
@@ -416,7 +414,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         tables.map(t => t -> groupRangesByRegion(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
-        val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
+        val scan = new Scan().withStartRow(group.get(0).getStartRow).withStopRow(group.get(group.size() - 1).getStopRow)
         val mrrf = if (group.size() < 2) { filters } else {
           // TODO GEOMESA-1806
           // currently, the MultiRowRangeFilter constructor will call sortAndMerge a second time

@@ -10,6 +10,7 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.{Row, Statement}
+import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
@@ -29,12 +30,6 @@ sealed trait CassandraQueryPlan extends QueryPlan {
   def ranges: Seq[Statement]
   def numThreads: Int
 
-  /**
-    * Note: filter is applied in entriesToFeatures, this is just for explain logging
-    * @return
-    */
-  def clientSideFilter: Option[Filter]
-
   override def explain(explainer: Explainer, prefix: String): Unit =
     CassandraQueryPlan.explain(this, explainer, prefix)
 }
@@ -44,7 +39,7 @@ object CassandraQueryPlan {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
-    explainer(s"Client-side filter: ${plan.clientSideFilter.fold("none")(FilterHelper.toString)}")
+    explainer(s"Client-side filter: ${plan.localFilter.fold("none")(FilterHelper.toString)}")
     explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
     explainer.popLevel()
   }
@@ -55,7 +50,8 @@ case class EmptyPlan(strategy: QueryStrategy, reducer: Option[FeatureReducer] = 
   override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
-  override val clientSideFilter: Option[Filter] = None
+  override val localFilter: Option[Filter] = None
+  override val localTransform: Option[(String, SimpleFeatureType)] = None
   override val resultsToFeatures: ResultsToFeatures[Row] = ResultsToFeatures.empty
   override val sort: Option[Seq[(String, Boolean)]] = None
   override val maxFeatures: Option[Int] = None
@@ -69,9 +65,9 @@ case class StatementPlan(
     tables: Seq[String],
     ranges: Seq[Statement],
     numThreads: Int,
-    // note: filter is applied in entriesToFeatures, this is just for explain logging
-    clientSideFilter: Option[Filter],
     resultsToFeatures: ResultsToFeatures[Row],
+    localFilter: Option[Filter],
+    localTransform: Option[(String, SimpleFeatureType)],
     reducer: Option[FeatureReducer],
     sort: Option[Seq[(String, Boolean)]],
     maxFeatures: Option[Int],

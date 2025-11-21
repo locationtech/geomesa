@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
-import org.locationtech.geomesa.security.VisibilityUtils
+import org.locationtech.geomesa.security.filter.VisibleFilterFunction
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.util.Pool
@@ -39,7 +39,10 @@ import scala.util.control.NonFatal
   */
 class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore] with StrictLogging {
 
+  import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   // each 'table' is a sorted set - they are created automatically when you insert values
   override def createTable(
@@ -63,13 +66,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val hints = strategy.hints
-
-    // TODO we should move filtering and transforms out of the reduce step, so we can use with a merged view
-    //  (which expects those to always be done by the pre-reduce steps)
-    val reducer = {
-      val visible = Some(VisibilityUtils.visible(Some(ds.config.authProvider)))
-      Some(new LocalTransformReducer(strategy.index.sft, strategy.ecql, visible, hints.getTransform, hints))
-    }
+    val reducer = Some(new LocalTransformReducer(hints.getTransformSchema.getOrElse(strategy.index.sft), hints))
 
     if (strategy.ranges.isEmpty) { EmptyPlan(strategy, reducer) } else {
       val tables = strategy.index.getTablesForQuery(strategy.filter.filter)
@@ -79,11 +76,16 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
         strategy.ranges.map(RedisIndexAdapter.toRedisRange)
       }
       val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
+      val ecql = {
+        val visible = VisibleFilterFunction.visible(ds.config.authProvider.getAuthorizations.asScala)
+        Some(strategy.ecql.fold[Filter](visible)(f => ff.and(f, visible)))
+      }
+      val transform = hints.getTransform
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
 
-      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, strategy.ecql, results, reducer, sort, max, project)
+      ZLexPlan(ds, strategy, tables, ranges, ds.config.pipeline, results, ecql, transform, reducer, sort, max, project)
     }
   }
 

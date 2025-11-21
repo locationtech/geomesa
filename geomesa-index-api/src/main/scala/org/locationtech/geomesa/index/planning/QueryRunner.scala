@@ -17,6 +17,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.api.filter.sort.SortOrder
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.api.QueryPlan
@@ -70,11 +71,18 @@ trait QueryRunner {
     val steps = plans.headOption.toSeq.flatMap { plan =>
       // sanity checks
       require(plans.tail.forall(_.sort == plan.sort), "Sort must be the same in all query plans")
+      require(plans.tail.forall(_.localFilter == plan.localFilter), "Local filter must be the same in all query plans")
+      require(plans.tail.forall(_.localTransform == plan.localTransform), "Local transform must be the same in all query plans")
       require(plans.tail.forall(_.maxFeatures == plan.maxFeatures), "Max features must be the same in all query plans")
       require(plans.tail.forall(_.projection == plan.projection), "Projection must be the same in all query plans")
       require(plans.tail.forall(_.reducer == plan.reducer), "Reduce must be the same in all query plans")
 
       val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
+      val filter: Option[QueryStep] = plan.localFilter.map(f => _.filter(f.evaluate))
+      val transform: Option[QueryStep] = plan.localTransform.map { case (tdefs, tsft) =>
+        val transform = TransformSimpleFeature(sft, tsft, tdefs)
+        _.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
+      }
       val limit: Option[QueryStep] = plan.maxFeatures.map { max =>
         if (hints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
           // bin queries pack multiple records into each feature
@@ -88,7 +96,7 @@ trait QueryRunner {
       val reproject: Option[QueryStep] = plan.projection.map(Reprojection(hints.getReturnSft, _)).map(r => _.map(r.apply))
       val reduce: Option[QueryStep] = plan.reducer.filterNot(_ => hints.isSkipReduce).map(r => r.apply)
 
-      sort ++ limit ++ reproject ++ reduce
+      sort ++ filter ++ transform ++ limit ++ reproject ++ reduce
     }
 
     val timer: FinalQueryStep = new TimedIterator(_, Timers.scanning(query.getTypeName).record(_, TimeUnit.NANOSECONDS))

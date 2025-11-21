@@ -13,11 +13,10 @@ import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.api.data.Query
 import org.geotools.api.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.geotools.api.filter.Filter
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.DeltaWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -25,7 +24,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.ArrowScan.DeltaReducer
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalQueryPlan, TransformFeatures}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalQueryPlan
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler}
@@ -82,16 +81,13 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     val (processor, reducer) = LocalQueryRunner.plan(sft, hints)
 
     val scanner = () => processor(features(sft, filter).filter(filterFunction.apply))
-    val toFeatures = hints.getTransform match {
-      case None => new IdentityResultsToFeatures(sft)
-      case Some((defs, tsft)) => new TransformFeatures(sft, tsft, defs)
-    }
+    val toFeatures = new IdentityResultsToFeatures(sft)
 
     val maxFeatures = hints.getMaxFeatures
     val projection = hints.getProjection
     val sort = hints.getSortFields
 
-    Seq(LocalQueryPlan(scanner, toFeatures, reducer, sort, maxFeatures, projection))
+    Seq(LocalQueryPlan(scanner, toFeatures, hints.getTransform, reducer, sort, maxFeatures, projection))
   }
 }
 
@@ -107,12 +103,14 @@ object LocalQueryRunner extends LazyLogging {
   case class LocalQueryPlan(
       scanner: () => CloseableIterator[SimpleFeature],
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
+      localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems],
     ) extends QueryPlan {
     override type Results = SimpleFeature
+    override def localFilter: Option[Filter] = None
     override def scan(): CloseableIterator[SimpleFeature] = scanner()
     override def explain(explainer: Explainer, prefix: String = ""): Unit = explainer(s"${prefix}LocalQuery")
   }
@@ -124,23 +122,13 @@ object LocalQueryRunner extends LazyLogging {
    * to ensure that features are sorted *before* being passed to this reducer. Ensure that sort hints
    * are evaluated *after* creating this reducer.
    *
-   * TODO this should only be used for analytic queries, for compatibility with MergedView skip reduce
-   *
    * @param sft simple feature type being queried
-   * @param filter ecql filter
-   * @param visibility visibility filter
-   * @param transform query transforms
    * @param hints query hints
    */
-  class LocalTransformReducer(
-      private var sft: SimpleFeatureType,
-      private var filter: Option[Filter],
-      private var visibility: Option[SimpleFeature => Boolean],
-      private var transform: Option[(String, SimpleFeatureType)],
-      private var hints: Hints
-    ) extends FeatureReducer with LazyLogging {
+  class LocalTransformReducer(private var sft: SimpleFeatureType, private var hints: Hints)
+      extends FeatureReducer with LazyLogging {
 
-    def this() = this(null, null, None, None, null) // no-arg constructor required for serialization
+    def this() = this(null, null) // no-arg constructor required for serialization
 
     if (hints != null) {
       setLocalSorting(hints, Option(sft).flatMap(_.getDtgField))
@@ -148,69 +136,30 @@ object LocalQueryRunner extends LazyLogging {
 
     override def init(state: Map[String, String]): Unit = {
       sft = SimpleFeatureTypes.createType(state("name"), state("spec"))
-      filter = state.get("filt").filterNot(_.isEmpty).map(ECQL.toFilter)
       hints = ViewParams.deserialize(state("hint"))
-      transform = for {
-        tdef <- state.get("tdef").filterNot(_.isEmpty)
-        tnam <- state.get("tnam").filterNot(_.isEmpty)
-        spec <- state.get("tsft").filterNot(_.isEmpty)
-      } yield {
-        (tdef, SimpleFeatureTypes.createType(tnam, spec))
-      }
     }
 
     override def state: Map[String, String] = {
-      if (visibility.isDefined) {
-        throw new UnsupportedOperationException("Visibility filtering is not serializable")
-      }
       Map(
         "name" -> sft.getTypeName,
         "spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-        "filt" -> filter.map(ECQL.toCQL).getOrElse(""),
-        "tdef" -> transform.map(_._1).getOrElse(""),
-        "tnam" -> transform.map(_._2.getTypeName).getOrElse(""),
-        "tsft" -> transform.map(t => SimpleFeatureTypes.encodeType(t._2, includeUserData = true)).getOrElse(""),
-        "hint" -> ViewParams.serialize(hints)
+        "hint" -> ViewParams.serialize(hints),
       )
     }
 
     override def apply(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
-      val (processor, reducer) = {
-        // set the transforms appropriately into the hints for our plan step
-        val hints = new Hints(this.hints)
-        transform match {
-          case None =>
-            hints.remove(QueryHints.Internal.TRANSFORMS)
-            hints.remove(QueryHints.Internal.TRANSFORM_SCHEMA)
-          case Some((tdefs, tsft)) =>
-            hints.put(QueryHints.Internal.TRANSFORMS, tdefs)
-            hints.put(QueryHints.Internal.TRANSFORM_SCHEMA, tsft)
-        }
-        plan(sft, hints)
-      }
+      val (processor, reducer) = plan(sft, hints)
 
       var features = iter
-      visibility.foreach { vis =>
-        features = features.filter(vis.apply)
-      }
-      filter.foreach { filter =>
-        features = features.filter(filter.evaluate)
-      }
       hints.getSampling.foreach { case (percent, field) =>
         FeatureSampler.sample(percent, field.map(sft.indexOf).filter(_ != -1)).foreach { sampler =>
           features = features.filter(sampler.apply)
         }
       }
-      transform.foreach { case (tdefs, tsft) =>
-        val transform = new TransformFeatures(sft, tsft, tdefs)
-        features = features.map(transform.apply)
-      }
-
       features = processor(features)
       reducer.foreach { reducer =>
         features = reducer(features)
       }
-
       features
     }
   }
@@ -254,26 +203,6 @@ object LocalQueryRunner extends LazyLogging {
     } else {
       (CloseableIterator.apply(_, Unit), None)
     }
-  }
-
-  /**
-   * Applies a transform to the local features
-   *
-   * @param sft feature type
-   * @param transform transform feature type
-   * @param definitions transform definition string
-   */
-  private class TransformFeatures(sft: SimpleFeatureType, transform: SimpleFeatureType, definitions: String)
-      extends ResultsToFeatures[SimpleFeature] {
-
-    def this() = this(null, null, null)
-
-    private val transformSf = TransformSimpleFeature(sft, transform, definitions)
-
-    override def schema: SimpleFeatureType = transform
-    override def apply(result: SimpleFeature): SimpleFeature = ScalaSimpleFeature.copy(transformSf.setFeature(result))
-    override def init(state: Map[String, String]): Unit = throw new UnsupportedOperationException()
-    override def state: Map[String, String] = throw new UnsupportedOperationException()
   }
 
   /**

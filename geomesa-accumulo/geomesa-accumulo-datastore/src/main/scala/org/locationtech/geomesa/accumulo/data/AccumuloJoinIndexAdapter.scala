@@ -97,7 +97,7 @@ object AccumuloJoinIndexAdapter {
         hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
       }
       val iters = overrides.getOrElse(FilterTransformIterator.configure(indexSft, index, ecql, hints).toSeq)
-      val localReducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints))
+      val localReducer = Some(new LocalTransformReducer(returnSchema, hints))
       plan(iters, AccumuloResultsToFeatures(index, returnSchema), localReducer)
     }
 
@@ -273,7 +273,7 @@ object AccumuloJoinIndexAdapter {
       }
     }
     val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
-    val reducer = new LocalTransformReducer(resultSft, None, None, None, hints)
+    val reducer = new LocalTransformReducer(resultSft, hints)
     if (hints.isSkipReduce) {
       // override the return sft to reflect what we're actually returning,
       // since the arrow sft is only created in the local reduce step
