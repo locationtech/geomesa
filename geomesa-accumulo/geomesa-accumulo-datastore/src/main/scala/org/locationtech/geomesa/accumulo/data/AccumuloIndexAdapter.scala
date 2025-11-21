@@ -202,7 +202,6 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore)
             (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
           } else {
             if (hints.isSkipReduce) {
-              // TODO don't think this is true anymore
               // override the return sft to reflect what we're actually returning,
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)

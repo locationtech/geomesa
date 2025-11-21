@@ -69,10 +69,10 @@ trait QueryRunner {
 
     val steps = plans.headOption.toSeq.flatMap { plan =>
       // sanity checks
-      require(plans.tail.forall(_.reducer == plan.reducer), "Reduce must be the same in all query plans")
       require(plans.tail.forall(_.sort == plan.sort), "Sort must be the same in all query plans")
       require(plans.tail.forall(_.maxFeatures == plan.maxFeatures), "Max features must be the same in all query plans")
       require(plans.tail.forall(_.projection == plan.projection), "Projection must be the same in all query plans")
+      require(plans.tail.forall(_.reducer == plan.reducer), "Reduce must be the same in all query plans")
 
       val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
       val limit: Option[QueryStep] = plan.maxFeatures.map { max =>

@@ -105,10 +105,10 @@ class MergedQueryRunner(
   }
 
   private def scanner(
-    sft: SimpleFeatureType,
-    query: Query,
-    encodedType: SimpleFeatureType,
-    processor: SimpleFeatureType => LocalScanProcessor): CloseableIterator[SimpleFeature] = {
+      sft: SimpleFeatureType,
+      query: Query,
+      encodedType: SimpleFeatureType,
+      fallbackProcessor: SimpleFeatureType => LocalScanProcessor): CloseableIterator[SimpleFeature] = {
     val readers = getReaders(sft, query).map { reader =>
       val schema = reader.getFeatureType
       if (schema == encodedType) {
@@ -117,7 +117,7 @@ class MergedQueryRunner(
       } else {
         // the store just returned normal features, do the processing here
         val copy = SimpleFeatureTypes.immutable(schema, sft.getUserData) // copy default dtg, etc if necessary
-        processor(copy).apply(CloseableIterator(reader))
+        fallbackProcessor(copy).apply(CloseableIterator(reader))
       }
     }
     doParallelScan(readers)

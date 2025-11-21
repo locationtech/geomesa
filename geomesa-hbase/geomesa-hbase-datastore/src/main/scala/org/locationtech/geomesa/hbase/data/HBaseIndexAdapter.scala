@@ -225,6 +225,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
+      // TODO we should move filtering and transforms out of the reduce step, so we can use with a merged view
+      //  (which expects those to always be done by the pre-reduce steps)
       val reducer = Some(new LocalTransformReducer(schema, strategy.filter.filter, None, transform, hints))
       empty(reducer).getOrElse {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
@@ -307,7 +309,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the arrow sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else if (hints.isStatsQuery) {
@@ -338,7 +340,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               // since the bin sft is only created in the local reduce step
               hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
             }
-            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
+            ScanPlan(ds, strategy, ranges, scans, resultsToFeatures, localReducer, hints.getSortFields, max, projection)
           }
         }
       } else {

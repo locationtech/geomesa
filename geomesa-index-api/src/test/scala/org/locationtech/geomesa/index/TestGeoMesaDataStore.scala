@@ -99,6 +99,7 @@ object TestGeoMesaDataStore {
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform
+      // TODO we should move filtering and transforms out of the reduce step, to better simulate a real data store
       val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints))
       val maxFeatures = strategy.hints.getMaxFeatures
       val sort = strategy.hints.getSortFields
