@@ -130,7 +130,7 @@ class MergedQueryRunner(
   private def doParallelScan(readers: Seq[CloseableIterator[SimpleFeature]]): CloseableIterator[SimpleFeature] = {
     if (parallel) {
       // not truly parallel but should kick them all off up front
-      readers.par.foreach(_.hasNext)
+      readers.foreach(_.hasNext)
     }
     CloseableIterator(readers.iterator).flatMap(i => i)
   }
