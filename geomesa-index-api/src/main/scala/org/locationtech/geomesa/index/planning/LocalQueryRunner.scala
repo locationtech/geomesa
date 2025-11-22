@@ -212,7 +212,7 @@ object LocalQueryRunner extends LazyLogging {
     } else if (hints.isStatsQuery) {
       (new StatsProcessor(schema, hints), None)
     } else {
-      (CloseableIterator.apply(_, Unit), None)
+      (CloseableIterator.apply(_, ()), None)
     }
   }
 
