@@ -100,6 +100,14 @@ trait QueryPlan {
 object QueryPlan {
 
   /**
+   * Query plan that uses a query strategy
+   */
+  trait QueryStrategyPlan extends QueryPlan {
+    def strategy: QueryStrategy
+    def filter: FilterStrategy = strategy.filter
+  }
+
+  /**
     * Convert scan results to simple features. Must have a zero-arg constructor to allow re-creation from
     * a serialized form.
     *

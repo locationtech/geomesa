@@ -44,6 +44,17 @@ trait QueryRunner {
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   /**
+   * Plan the query, but don't execute it - used for m/r jobs and explain query
+   *
+   * @param sft simple feature type
+   * @param query query to plan
+   * @param explain planning explanation output
+   * @return
+   */
+  def planQuery(sft: SimpleFeatureType, query: Query, explain: Explainer = new ExplainLogging): Seq[QueryPlan] =
+    runQuery(sft, query, explain).plans.toList // toList forces evaluation of all plans
+
+  /**
     * Execute a query
     *
     * @param sft simple feature type
@@ -68,19 +79,15 @@ trait QueryRunner {
 
     val plans = getQueryPlans(sft, query, explain)
 
-    val steps = plans.headOption.toSeq.flatMap { plan =>
-      // sanity checks
-      require(plans.tail.forall(_.sort == plan.sort),
-        s"Sort must be the same in all query plans: ${plans.map(_.sort).mkString("\n  ", "\n  ", "")}")
-      require(plans.tail.forall(_.localTransform == plan.localTransform),
-        s"Local transform must be the same in all query plans: ${plans.map(_.localTransform).mkString("\n  ", "\n  ", "")}")
-      require(plans.tail.forall(_.maxFeatures == plan.maxFeatures),
-        s"Max features must be the same in all query plans: ${plans.map(_.maxFeatures).mkString("\n  ", "\n  ", "")}")
-      require(plans.tail.forall(_.projection == plan.projection),
-        s"Projection must be the same in all query plans: ${plans.map(_.projection).mkString("\n  ", "\n  ", "")}")
-      require(plans.tail.forall(_.reducer == plan.reducer),
-        s"Reduce must be the same in all query plans: ${plans.map(_.reducer).mkString("\n  ", "\n  ", "")}")
+    // ensure we're not making incorrect assumptions by only looking at the head plan
+    sanityCheck(plans, _.sort, "Sort")
+    sanityCheck(plans, _.localTransform, "Local transform")
+    sanityCheck(plans, _.maxFeatures, "Max features")
+    sanityCheck(plans, _.projection, "Projection")
+    sanityCheck(plans, _.reducer, "Reduce")
 
+    // processing steps we apply to the scan results
+    val steps = plans.headOption.toSeq.flatMap { plan =>
       val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
       val limit: Option[QueryStep] = plan.maxFeatures.map { max =>
         if (hints.getReturnSft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
@@ -113,6 +120,10 @@ trait QueryRunner {
 
     new QueryResult(hints.getReturnSft, hints, plans, planCreateTime, steps, timer)
   }
+
+  private def sanityCheck(plans: Seq[QueryPlan], part: QueryPlan => Any, id: String): Unit =
+    require(plans.tail.forall(p => part(p) == part(plans.head)),
+      s"$id must be the same in all query plans: ${plans.map(part.apply).mkString("\n  ", "\n  ", "")}")
 
   /**
    * Create query plans from a query. The query will already have been configured
@@ -272,9 +283,6 @@ object QueryRunner {
     override protected def tags(typeName: String): Tags = Tags.empty()
   }
 
-  @deprecated("Replaced with configureQuery, as 'default' is not relevant any more")
-  def configureDefaultQuery(sft: SimpleFeatureType, original: Query): Query = configureQuery(sft, original)
-
   /**
    * Configure a query, setting hints appropriately that we use in our query planning. Normally this is done
    * automatically as part of running a query.
@@ -378,6 +386,16 @@ object QueryRunner {
     }
   }
 
+  /**
+   * Holds all the necessary pieces to actually run a query, but doesn't run it yet
+   *
+   * @param schema return schema of the iterators returned by this class
+   * @param hints query hints
+   * @param plans query plans for executing the query
+   * @param planTimeNanos time spent planning the query
+   * @param querySteps processing steps to apply on top of the query plans
+   * @param timer final step to apply, creating a timed iterator for metrics tracking
+   */
   class QueryResult(
       val schema: SimpleFeatureType,
       val hints: Hints,
@@ -388,8 +406,20 @@ object QueryRunner {
 
     import QueryHints.RichHints
 
+    /**
+     * Executes the query
+     *
+     * @return
+     */
     def iterator(): CloseableIterator[SimpleFeature] = ExceptionalIterator(runQuery())
 
+    /**
+     * Executes the query
+     *
+     * @param timerCallback callback for time spent running the query, will be invoked when the iterator is closed with the time in nanoseconds
+     * @param counterCallback callback for the number of results returned by the query, will be invoked when the iterator is closed
+     * @return
+     */
     def iterator(timerCallback: Long => Unit, counterCallback: Long => Unit): CloseableIterator[SimpleFeature] = {
       val counter: SimpleFeature => Int = {
         if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {

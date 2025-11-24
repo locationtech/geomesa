@@ -145,8 +145,7 @@ class QueryPlannerTest extends Specification {
         QueryRunner.configureQuery(origSFT, new Query(sftName, Filter.INCLUDE, "name", "helloName=strConcat('hello', name)", "geom"))
 
       val transform = query.getHints.getTransformSchema
-      transform must beSome
-      SimpleFeatureTypes.encodeType(transform.get) mustEqual "name:String,helloName:String,*geom:Point:srid=4326"
+      transform.map(SimpleFeatureTypes.encodeType) must beSome("name:String,helloName:String,*geom:Point:srid=4326")
     }
   }
 }

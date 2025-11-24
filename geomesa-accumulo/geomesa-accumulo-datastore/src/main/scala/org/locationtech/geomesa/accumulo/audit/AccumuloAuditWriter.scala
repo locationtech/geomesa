@@ -128,7 +128,7 @@ class AccumuloAuditWriter(
     // note: use tree maps for consistent ordering in json output
     val planMeta = plans.map { plan =>
       val planData = new java.util.TreeMap[String, AnyRef]()
-      planData.put("index", plan.strategy.filter.index.identifier)
+      planData.put("index", plan.filter.index.identifier)
       val tables = new java.util.TreeMap[String, String]()
       planData.put("tables", tables)
       val locations = new java.util.TreeMap[String, java.util.Set[String]]()
@@ -147,7 +147,7 @@ class AccumuloAuditWriter(
         }
       }
       planData.put("iterators", plan.iterators.map(_.toString).sorted.asJava)
-      plan.join.foreach { case (_, join) => planData.put("join", join.strategy.filter.index.identifier) }
+      plan.join.foreach { case (_, join) => planData.put("join", join.filter.index.identifier) }
       plan.sort.foreach { sort =>
         planData.put("sort", sort.map { case (field, descending) => s"$field:${if (descending) { "desc" } else { "asc" }}"}.asJava)
       }

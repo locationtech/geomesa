@@ -47,7 +47,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
-  val pointFeatures = Seq.tabulate(10) { i =>
+  val pointFeatures = (0 until 10).map { i =>
     val name = s"name${i % 2}"
     val team = s"team$i"
     val age = i % 5
@@ -55,7 +55,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
     ScalaSimpleFeature.create(pointSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
   }
 
-  val lineFeatures = Seq.tabulate(10) { i =>
+  val lineFeatures = (0 until 10).map { i =>
     val name = s"name${i % 2}"
     val team = s"team$i"
     val age = i % 5
@@ -64,7 +64,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
     ScalaSimpleFeature.create(lineSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", geom)
   }
 
-  val listFeatures = Seq.tabulate(10) { i =>
+  val listFeatures = (0 until 10).map { i =>
     val names = Seq.tabulate(i % 3)(j => s"name0$j").asJava
     val team = s"team$i"
     ScalaSimpleFeature.create(listSft, s"$i", names, team, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")

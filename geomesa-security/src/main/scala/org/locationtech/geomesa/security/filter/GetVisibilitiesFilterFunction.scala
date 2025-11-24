@@ -18,6 +18,9 @@ import org.geotools.filter.capability.FunctionNameImpl
 import org.geotools.filter.capability.FunctionNameImpl.parameter
 import org.locationtech.geomesa.security.SecurityUtils
 
+/**
+ * Gets the visibilities of a feature
+ */
 class GetVisibilitiesFilterFunction extends FunctionExpressionImpl(GetVisibilitiesFilterFunction.Name) {
 
   private var expression: Expression = _
@@ -46,8 +49,7 @@ class GetVisibilitiesFilterFunction extends FunctionExpressionImpl(GetVisibiliti
 
 object GetVisibilitiesFilterFunction {
 
-  val Name: FunctionName =
-    new FunctionNameImpl("getVisibilities", classOf[String], parameter("attribute", classOf[String], 0, 1))
+  val Name: FunctionName = new FunctionNameImpl("getVisibilities", classOf[String], parameter("attribute", classOf[String], 0, 1))
 
   private val ff = CommonFactoryFinder.getFilterFactory()
 

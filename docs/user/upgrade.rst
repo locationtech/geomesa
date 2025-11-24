@@ -254,7 +254,8 @@ Removed Methods
 * ``org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme#apply(DateTimeFormatter)``
 * ``org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory`` - various system properties
 * ``org.locationtech.geomesa.index.planning.LocalQueryRunner#visible``
-* ``org.locationtech.geomesa.index.planning.QueryPlanner`` - "perThreadQueryHints"-related methods
+* ``org.locationtech.geomesa.index.planning.QueryPlanner`` - most static methods
+* ``org.locationtech.geomesa.index.planning.QueryRunner#configureDefaultQuery``
 * ``org.locationtech.geomesa.kafka.data.KafkaDataStore#producer(KafkaDataStoreConfig)``
 * ``org.locationtech.geomesa.kafka.utils.GeoMessageSerializer#apply(SimpleFeatureType, SerializationType, Boolean)``
 * ``org.locationtech.geomesa.lambda.stream.kafka.KafkaStore#topic``

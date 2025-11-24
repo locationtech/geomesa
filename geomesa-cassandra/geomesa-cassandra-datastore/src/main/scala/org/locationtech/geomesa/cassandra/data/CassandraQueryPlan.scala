@@ -14,18 +14,17 @@ import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-sealed trait CassandraQueryPlan extends QueryPlan {
+sealed trait CassandraQueryPlan extends QueryStrategyPlan {
 
   override type Results = Row
 
-  def strategy: QueryStrategy
   def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int

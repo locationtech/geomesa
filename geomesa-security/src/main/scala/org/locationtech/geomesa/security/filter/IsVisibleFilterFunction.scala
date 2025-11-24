@@ -21,6 +21,10 @@ import org.geotools.filter.capability.FunctionNameImpl.parameter
 import java.time.Duration
 import scala.util.Try
 
+/**
+ * Function to compare auths with vis. Note that this function "fails open", in that if visibilities are not found
+ * it will count as visible
+ */
 class IsVisibleFilterFunction extends FunctionExpressionImpl(IsVisibleFilterFunction.Name) {
 
   private var auths: String = _
@@ -37,9 +41,9 @@ class IsVisibleFilterFunction extends FunctionExpressionImpl(IsVisibleFilterFunc
 
   override def evaluate(obj: Object): Object = {
     val vis = expression.evaluate(obj).asInstanceOf[String]
-    if (vis == null || vis.isEmpty) {
+    if (vis == null || vis.isBlank) {
       java.lang.Boolean.TRUE
-    } else if (auths.isEmpty) {
+    } else if (auths.isBlank) {
       java.lang.Boolean.FALSE
     } else {
       IsVisibleFilterFunction.visibilityCache.get(auths -> vis)

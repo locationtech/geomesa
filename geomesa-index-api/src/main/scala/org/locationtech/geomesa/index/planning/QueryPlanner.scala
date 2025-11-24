@@ -24,17 +24,6 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 
   override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
-  /**
-    * Plan the query, but don't execute it - used for m/r jobs and explain query
-    *
-    * @param sft simple feature type
-    * @param query query to plan
-    * @param explain planning explanation output
-    * @return
-    */
-  def planQuery(sft: SimpleFeatureType, query: Query, explain: Explainer = new ExplainLogging): Seq[QueryPlan] =
-    runQuery(sft, query, explain).plans.toList // toList forces evaluation of all plans
-
   override protected def tags(typeName: String): Tags = ds.tags(typeName)
 
   override protected def getQueryPlans(sft: SimpleFeatureType, query: Query, explain: Explainer): Seq[QueryPlan] = {
@@ -59,27 +48,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 }
 
 object QueryPlanner extends LazyLogging {
-
   object CostEvaluation extends Enumeration {
     type CostEvaluation = Value
     val Stats, Index = Value
   }
-
-  //TODO add to upgrade guide
-
-//  @deprecated("Moved to org.locationtech.geomesa.index.planning.QueryRunner.setQueryTransforms")
-//  def setQueryTransforms(sft: SimpleFeatureType, query: Query): Unit = QueryRunner.setQueryTransforms(sft, query)
-//
-//  @deprecated("Moved to org.locationtech.geomesa.index.planning.QueryRunner.extractQueryTransforms")
-//  def extractQueryTransforms(sft: SimpleFeatureType, query: Query): Option[(SimpleFeatureType, Seq[Transform], String)] =
-//    QueryRunner.extractQueryTransforms(sft, query)
-//
-//  @deprecated("Moved to org.locationtech.geomesa.index.planning.QueryRunner.setQuerySort")
-//  def setQuerySort(sft: SimpleFeatureType, query: Query): Unit = QueryRunner.setQuerySort(sft, query)
-//
-//  @deprecated("Removed without replacement")
-//  def setProjection(sft: SimpleFeatureType, query: Query): Unit = QueryRunner.setProjection(sft, query)
-//
-//  @deprecated("Removed without replacement")
-//  def setMaxFeatures(query: Query): Unit = QueryRunner.setMaxFeatures(query)
 }

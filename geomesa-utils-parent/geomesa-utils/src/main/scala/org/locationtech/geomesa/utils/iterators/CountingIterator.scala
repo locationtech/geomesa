@@ -31,8 +31,12 @@ class CountingIterator[T](delegate: CloseableIterator[T], counter: T => Int, cal
    * Add another callback
    *
    * @param callback callback to be executed when iterator is closed, will be passed nanoseconds spent running the iterator
+   * @return this iterator, for method chaining
    */
-  def addCallback(callback: Long => Unit): Unit = callbacks += callback
+  def addCallback(callback: Long => Unit): CountingIterator[T] = {
+    callbacks += callback
+    this
+  }
 
   override def hasNext: Boolean = delegate.hasNext
 

@@ -12,8 +12,8 @@ package index
 import org.geotools.api.feature.simple.SimpleFeatureType
 import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryPlan, QueryStrategy}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
+import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
@@ -23,7 +23,7 @@ import redis.clients.jedis.{Jedis, Response, UnifiedJedis}
 
 import java.nio.charset.StandardCharsets
 
-sealed trait RedisQueryPlan extends QueryPlan {
+sealed trait RedisQueryPlan extends QueryStrategyPlan {
 
   override type Results = Array[Byte]
 

@@ -61,7 +61,7 @@ class GeoMesaFeatureSource(val ds: GeoMeasBaseStore, val sft: SimpleFeatureType)
       val statsCount = ds.stats.getCount(getSchema, query.getFilter, useExactCount, hints).getOrElse(-1L)
       hints.getMaxFeatures match {
         case None => statsCount
-        case Some(m) => math.min(statsCount, m)
+        case Some(m) => if (statsCount < 0) { m } else { math.min(statsCount, m) }
       }
     }
 

@@ -86,6 +86,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
       val filtered = features(sft, filter).filter(filterFunction.apply)
       val limited = maxFeatures.fold(filtered)(m => filtered.take(m))
       val transformed = hints.getTransform.fold(limited) {  case (tdefs, tsft) =>
+        // note: we do the transform here and not in the query plan, as the processor step expects already transformed features
         val transform = TransformSimpleFeature(sft, tsft, tdefs)
         limited.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
       }
@@ -96,7 +97,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     val projection = hints.getProjection
     val sort = hints.getSortFields
 
-    Seq(LocalQueryPlan(scanner, toFeatures, None, reducer, sort, projection))
+    Seq(LocalQueryPlan(scanner, toFeatures, reducer, sort, projection))
   }
 }
 
@@ -112,13 +113,13 @@ object LocalQueryRunner extends LazyLogging {
   case class LocalQueryPlan(
       scanner: () => CloseableIterator[SimpleFeature],
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
-      localTransform: Option[(String, SimpleFeatureType)],
       reducer: Option[FeatureReducer],
       sort: Option[Seq[(String, Boolean)]],
       projection: Option[QueryReferenceSystems],
     ) extends QueryPlan {
     override type Results = SimpleFeature
     override def localFilter: Option[Filter] = None
+    override def localTransform: Option[(String, SimpleFeatureType)] = None
     override def maxFeatures: Option[Int] = None
     override def scan(): CloseableIterator[SimpleFeature] = scanner()
     override def explain(explainer: Explainer): Unit = {
@@ -132,7 +133,7 @@ object LocalQueryRunner extends LazyLogging {
   }
 
   /**
-   * Reducer for local transforms. Handles ecql and visibility filtering, transforms and analytic queries.
+   * Reducer for local transforms. Handles sampling + analytic queries (BIN, arrow, etc).
    *
    * Note: creating this transformer will automatically move distributed sort hints into regular sort hints,
    * to ensure that features are sorted *before* being passed to this reducer. Ensure that sort hints

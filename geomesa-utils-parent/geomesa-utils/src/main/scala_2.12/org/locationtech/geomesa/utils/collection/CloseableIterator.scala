@@ -66,7 +66,7 @@ object CloseableIterator {
   private class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
-    override def close(): Unit = {}
+    override def close(): Unit = Option(iter).collect { case c: Closeable => c.close() }
   }
 
   private final class CloseableFeatureReaderIterator[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A])
