@@ -141,8 +141,8 @@ class QueryPlannerTest extends Specification {
       val defaultSchema = "name:String,geom:Point:srid=4326,dtg:Date"
       val origSFT = SimpleFeatureTypes.createType(sftName, defaultSchema)
 
-      val query = new Query(sftName, Filter.INCLUDE, "name", "helloName=strConcat('hello', name)", "geom")
-      QueryRunner.configureDefaultQuery(origSFT, query)
+      val query =
+        QueryRunner.configureQuery(origSFT, new Query(sftName, Filter.INCLUDE, "name", "helloName=strConcat('hello', name)", "geom"))
 
       val transform = query.getHints.getTransformSchema
       transform must beSome

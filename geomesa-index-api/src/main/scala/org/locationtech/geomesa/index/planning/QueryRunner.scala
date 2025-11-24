@@ -70,14 +70,17 @@ trait QueryRunner {
 
     val steps = plans.headOption.toSeq.flatMap { plan =>
       // sanity checks
-      require(plans.tail.forall(_.sort == plan.sort), "Sort must be the same in all query plans")
-      require(plans.tail.forall(_.localFilter == plan.localFilter), "Local filter must be the same in all query plans")
-      require(plans.tail.forall(_.localTransform == plan.localTransform), "Local transform must be the same in all query plans")
-      require(plans.tail.forall(_.maxFeatures == plan.maxFeatures), "Max features must be the same in all query plans")
-      require(plans.tail.forall(_.projection == plan.projection), "Projection must be the same in all query plans")
-      require(plans.tail.forall(_.reducer == plan.reducer), "Reduce must be the same in all query plans")
+      require(plans.tail.forall(_.sort == plan.sort),
+        s"Sort must be the same in all query plans: ${plans.map(_.sort).mkString("\n  ", "\n  ", "")}")
+      require(plans.tail.forall(_.localTransform == plan.localTransform),
+        s"Local transform must be the same in all query plans: ${plans.map(_.localTransform).mkString("\n  ", "\n  ", "")}")
+      require(plans.tail.forall(_.maxFeatures == plan.maxFeatures),
+        s"Max features must be the same in all query plans: ${plans.map(_.maxFeatures).mkString("\n  ", "\n  ", "")}")
+      require(plans.tail.forall(_.projection == plan.projection),
+        s"Projection must be the same in all query plans: ${plans.map(_.projection).mkString("\n  ", "\n  ", "")}")
+      require(plans.tail.forall(_.reducer == plan.reducer),
+        s"Reduce must be the same in all query plans: ${plans.map(_.reducer).mkString("\n  ", "\n  ", "")}")
 
-      val filter: Option[QueryStep] = plan.localFilter.map(f => _.filter(f.evaluate))
       val sort: Option[QueryStep] = plan.sort.map(s => new SortingSimpleFeatureIterator(_, s))
       val limit: Option[QueryStep] = plan.maxFeatures.map { max =>
         if (hints.getReturnSft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
@@ -98,7 +101,8 @@ trait QueryRunner {
       val reproject: Option[QueryStep] = plan.projection.map(Reprojection(hints.getReturnSft, _)).map(r => _.map(r.apply))
       val reduce: Option[QueryStep] = plan.reducer.filterNot(_ => hints.isSkipReduce).map(r => r.apply)
 
-      filter ++ sort ++ limit ++ transform ++ reproject ++ reduce
+      // note: localFilter is applied per-plan in the QueryResult since it may vary between plans
+      sort ++ limit ++ transform ++ reproject ++ reduce
     }
 
     val timer: FinalQueryStep = new TimedIterator(_, Timers.scanning(query.getTypeName).record(_, TimeUnit.NANOSECONDS))
@@ -401,7 +405,10 @@ object QueryRunner {
     }
 
     private def runQuery(): TimedIterator[SimpleFeature] = {
-      val iter = CloseableIterator(plans.iterator).flatMap(p => p.scan().map(p.resultsToFeatures.apply))
+      val iter = CloseableIterator(plans.iterator).flatMap { p =>
+        val features = p.scan().map(p.resultsToFeatures.apply)
+        p.localFilter.fold(features)(f => features.filter(f.evaluate))
+      }
       timer(querySteps.foldLeft(iter) { case (i, step) => step(i) })
     }
 

@@ -174,6 +174,18 @@ object LocalQueryRunner extends LazyLogging {
       }
       features
     }
+
+    private def canEqual(other: Any): Boolean = other.isInstanceOf[LocalTransformReducer]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: LocalTransformReducer => that.canEqual(this) && sft == that.sft && hints == that.hints
+      case _ => false
+    }
+
+    override def hashCode(): Int = {
+      val state = Seq(sft, hints)
+      state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    }
   }
 
   /**
