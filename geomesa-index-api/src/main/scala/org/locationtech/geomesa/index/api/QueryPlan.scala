@@ -55,6 +55,13 @@ trait QueryPlan {
   def localFilter: Option[Filter]
 
   /**
+   * Local transform, for databases that don't support returning transforms
+   *
+   * @return
+   */
+  def localTransform: Option[(String, SimpleFeatureType)]
+
+  /**
     * Optional reduce step for simple features coming back
     *
     * @return

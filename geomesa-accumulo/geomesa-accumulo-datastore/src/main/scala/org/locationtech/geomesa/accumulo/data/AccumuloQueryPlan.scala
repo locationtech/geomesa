@@ -171,6 +171,7 @@ object AccumuloQueryPlan extends LazyLogging {
     override val join: Some[(JoinFunction, BatchScanPlan)] = Some((joinFunction, joinQuery))
     override def resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = joinQuery.resultsToFeatures
     override def localFilter: Option[Filter] = joinQuery.localFilter
+    override def localTransform: Option[(String, SimpleFeatureType)] = joinQuery.localTransform
     override def reducer: Option[FeatureReducer] = joinQuery.reducer
     override def sort: Option[Seq[(String, Boolean)]] = joinQuery.sort
     override def maxFeatures: Option[Int] = joinQuery.maxFeatures
