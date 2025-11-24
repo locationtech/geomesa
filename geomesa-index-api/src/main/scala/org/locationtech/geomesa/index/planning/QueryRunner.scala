@@ -72,8 +72,6 @@ trait QueryRunner {
       // sanity checks
       require(plans.tail.forall(_.sort == plan.sort),
         s"Sort must be the same in all query plans: ${plans.map(_.sort).mkString("\n  ", "\n  ", "")}")
-      require(plans.tail.forall(_.localTransform == plan.localTransform),
-        s"Local transform must be the same in all query plans: ${plans.map(_.localTransform).mkString("\n  ", "\n  ", "")}")
       require(plans.tail.forall(_.maxFeatures == plan.maxFeatures),
         s"Max features must be the same in all query plans: ${plans.map(_.maxFeatures).mkString("\n  ", "\n  ", "")}")
       require(plans.tail.forall(_.projection == plan.projection),
@@ -94,15 +92,11 @@ trait QueryRunner {
           _.take(max)
         }
       }
-      val transform: Option[QueryStep] = plan.localTransform.map { case (tdefs, tsft) =>
-        val transform = TransformSimpleFeature(sft, tsft, tdefs)
-        _.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
-      }
       val reproject: Option[QueryStep] = plan.projection.map(Reprojection(hints.getReturnSft, _)).map(r => _.map(r.apply))
       val reduce: Option[QueryStep] = plan.reducer.filterNot(_ => hints.isSkipReduce).map(r => r.apply)
 
       // note: localFilter is applied per-plan in the QueryResult since it may vary between plans
-      sort ++ limit ++ transform ++ reproject ++ reduce
+      sort ++ limit ++ reproject ++ reduce
     }
 
     val timer: FinalQueryStep = new TimedIterator(_, Timers.scanning(query.getTypeName).record(_, TimeUnit.NANOSECONDS))
