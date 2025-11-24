@@ -16,7 +16,7 @@ import org.geotools.api.filter.Filter
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.DeltaWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -85,14 +85,18 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     val scanner = () => {
       val filtered = features(sft, filter).filter(filterFunction.apply)
       val limited = maxFeatures.fold(filtered)(m => filtered.take(m))
-      processor(limited)
+      val transformed = hints.getTransform.fold(limited) {  case (tdefs, tsft) =>
+        val transform = TransformSimpleFeature(sft, tsft, tdefs)
+        limited.map(f => ScalaSimpleFeature.copy(transform.setFeature(f)))
+      }
+      processor(transformed)
     }
     val toFeatures = new IdentityResultsToFeatures(sft)
 
     val projection = hints.getProjection
     val sort = hints.getSortFields
 
-    Seq(LocalQueryPlan(scanner, toFeatures, hints.getTransform, reducer, sort, projection))
+    Seq(LocalQueryPlan(scanner, toFeatures, None, reducer, sort, projection))
   }
 }
 
