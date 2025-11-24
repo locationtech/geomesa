@@ -30,7 +30,6 @@ import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
-import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -115,7 +114,7 @@ class KafkaStore(
       transforms: Option[Array[String]] = None,
       hints: Option[Hints] = None,
       explain: Explainer = new ExplainLogging): QueryResult = {
-    val query = new Query()
+    val query = new Query(sft.getTypeName)
     filter.foreach(query.setFilter)
     transforms.foreach(query.setPropertyNames(_: _*))
     hints.foreach(query.setHints)
