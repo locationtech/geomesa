@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff.AgeOffWriter
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
-import org.locationtech.geomesa.security.filter.VisibleFilterFunction
+import org.locationtech.geomesa.security.filter.{GetVisibilitiesFilterFunction, IsVisibleFilterFunction}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.util.Pool
@@ -77,7 +77,7 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       }
       val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
       val ecql = {
-        val visible = VisibleFilterFunction.visible(ds.config.authProvider.getAuthorizations.asScala.toSeq)
+        val visible = IsVisibleFilterFunction.visible(ds.config.authProvider.getAuthorizations.asScala.toSeq)
         Some(strategy.ecql.fold[Filter](visible)(f => ff.and(f, visible)))
       }
       val transform = hints.getTransform

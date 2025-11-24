@@ -1,2 +1,3 @@
+org.locationtech.geomesa.security.filter.GetVisibilitiesFilterFunction
+org.locationtech.geomesa.security.filter.IsVisibleFilterFunction
 org.locationtech.geomesa.security.filter.VisibilityFilterFunction
-org.locationtech.geomesa.security.filter.VisibleFilterFunction

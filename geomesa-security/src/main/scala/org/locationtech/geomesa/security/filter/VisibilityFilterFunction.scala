@@ -20,7 +20,6 @@ import org.locationtech.geomesa.security.{AuthUtils, SecurityUtils}
 import java.util.Collections
 import scala.util.Try
 
-@deprecated("Doesn't accept auths, or allow for configuring an auth provider")
 class VisibilityFilterFunction extends FunctionExpressionImpl(VisibilityFilterFunction.Name) {
 
   private val cache = scala.collection.mutable.Map.empty[String, java.lang.Boolean]
