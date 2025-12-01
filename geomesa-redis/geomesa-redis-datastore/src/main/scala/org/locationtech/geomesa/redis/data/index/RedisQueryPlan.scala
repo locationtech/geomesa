@@ -10,7 +10,6 @@ package org.locationtech.geomesa.redis.data
 package index
 
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
@@ -19,7 +18,6 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisResultsToFeatures
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.{Jedis, Response, UnifiedJedis}
 
@@ -109,13 +107,8 @@ object RedisQueryPlan {
     }
 
     override def moreExplaining(explainer: Explainer): Unit = {
-      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
-      // filter, transforms, sort, max features are all captured in the local processor so pull them out of the hints instead of the plan
-      explainer(s"ECQL: ${processor.filter.fold("none")(FilterHelper.toString)}")
-      explainer(s"Transform: ${strategy.hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
-      explainer(s"Sort: ${strategy.hints.getSortFields.fold("none")(_.mkString(", "))}")
-      explainer(s"Max Features: ${strategy.hints.getMaxFeatures.getOrElse("none")}")
+      processor.explain(explainer)
     }
 
     private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {

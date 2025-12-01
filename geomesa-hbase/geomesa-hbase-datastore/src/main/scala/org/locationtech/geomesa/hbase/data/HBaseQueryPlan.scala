@@ -14,7 +14,6 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.api.feature.simple.SimpleFeature
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter.HBaseResultsToFeatures
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
@@ -26,7 +25,6 @@ import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 sealed trait HBaseQueryPlan extends QueryStrategyPlan {
@@ -169,14 +167,7 @@ object HBaseQueryPlan {
       processor(HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout).map(toFeatures.apply))
     }
 
-    override protected def moreExplaining(explainer: Explainer): Unit = {
-      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-      // filter, transforms, sort, max features are all captured in the local processor so pull them out of the hints instead of the plan
-      explainer(s"ECQL: ${processor.filter.fold("none")(FilterHelper.toString)}")
-      explainer(s"Transform: ${strategy.hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
-      explainer(s"Sort: ${strategy.hints.getSortFields.fold("none")(_.mkString(", "))}")
-      explainer(s"Max Features: ${strategy.hints.getMaxFeatures.getOrElse("none")}")
-    }
+    override protected def moreExplaining(explainer: Explainer): Unit = processor.explain(explainer)
   }
 
   case class CoprocessorPlan(

@@ -17,6 +17,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.DeltaWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -68,7 +69,7 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     val toFeatures = new IdentityResultsToFeatures(sft)
     val projection = query.getHints.getProjection
 
-    Seq(LocalQueryPlan(scanner, processor, toFeatures, projection, query.getHints))
+    Seq(LocalQueryPlan(scanner, processor, toFeatures, projection))
   }
 }
 
@@ -86,15 +87,11 @@ object LocalQueryRunner extends LazyLogging {
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems],
-      hints: Hints, // note: only used for explain logging
     ) extends LocalProcessorPlan {
     override def scan(): CloseableIterator[SimpleFeature] = processor(scanner())
     override def explain(explainer: Explainer): Unit = {
       explainer.pushLevel("LocalQueryPlan:")
-      explainer(s"Transform: ${hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
-      // sort and max features are captured in the scanner so pull them out of the hints instead of the plan
-      explainer(s"Sort: ${hints.getSortFields.fold("none")(_.mkString(", "))}")
-      explainer(s"Max Features: ${hints.getMaxFeatures.getOrElse("none")}")
+      processor.explain(explainer)
       explainer(s"Reduce: ${reducer.getOrElse("none")}")
       explainer.popLevel()
     }
@@ -224,6 +221,13 @@ object LocalQueryRunner extends LazyLogging {
       val sorted = hints.getSortFields.fold(transformed)(s => new SortingSimpleFeatureIterator(transformed, s))
       val limited = hints.getMaxFeatures.fold(sorted)(m => sorted.take(m))
       processor(limited)
+    }
+
+    def explain(explainer: Explainer): Unit = {
+      explainer(s"Client-side filter: ${filter.fold("none")(FilterHelper.toString)}")
+      explainer(s"Transform: ${hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
+      explainer(s"Sort: ${hints.getSortFields.fold("none")(_.mkString(", "))}")
+      explainer(s"Max Features: ${hints.getMaxFeatures.getOrElse("none")}")
     }
   }
 
