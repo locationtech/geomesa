@@ -21,7 +21,7 @@ import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToSt
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
@@ -156,14 +156,7 @@ object HBaseQueryPlan {
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
-    ) extends HBaseQueryPlan {
-
-    override type Results = SimpleFeature
-
-    override def reducer: Option[FeatureReducer] = processor.reducer
-    // handled by local processor
-    override def sort: Option[Seq[(String, Boolean)]] = None
-    override def maxFeatures: Option[Int] = None
+    ) extends HBaseQueryPlan with LocalProcessorPlan {
 
     override protected def threads: Int = ds.config.queries.threads
 

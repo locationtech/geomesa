@@ -64,11 +64,11 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
   override protected def getQueryPlans(sft: SimpleFeatureType, query: Query, explain: Explainer): Seq[QueryPlan] = {
     val processor = LocalProcessor(sft, None, query.getHints, authProvider)
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
-    val scanner = () => processor(features(sft, filter))
+    val scanner = () => CloseableIterator(features(sft, filter))
     val toFeatures = new IdentityResultsToFeatures(sft)
     val projection = query.getHints.getProjection
 
-    Seq(LocalQueryPlan(scanner, toFeatures, processor.reducer, projection, query.getHints))
+    Seq(LocalQueryPlan(scanner, processor, toFeatures, projection, query.getHints))
   }
 }
 
@@ -83,16 +83,12 @@ object LocalQueryRunner extends LazyLogging {
 
   case class LocalQueryPlan(
       scanner: () => CloseableIterator[SimpleFeature],
+      processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
-      reducer: Option[FeatureReducer],
       projection: Option[QueryReferenceSystems],
       hints: Hints, // note: only used for explain logging
-    ) extends QueryPlan {
-    override type Results = SimpleFeature
-    // note: sort and maxFeatures are handled in the scanner()
-    override def sort: Option[Seq[(String, Boolean)]] = None
-    override def maxFeatures: Option[Int] = None
-    override def scan(): CloseableIterator[SimpleFeature] = scanner()
+    ) extends LocalProcessorPlan {
+    override def scan(): CloseableIterator[SimpleFeature] = processor(scanner())
     override def explain(explainer: Explainer): Unit = {
       explainer.pushLevel("LocalQueryPlan:")
       explainer(s"Transform: ${hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
@@ -102,6 +98,21 @@ object LocalQueryRunner extends LazyLogging {
       explainer(s"Reduce: ${reducer.getOrElse("none")}")
       explainer.popLevel()
     }
+  }
+
+  /**
+   * Plan with a local processing step
+   */
+  trait LocalProcessorPlan extends QueryPlan {
+
+    override type Results = SimpleFeature
+
+    def processor: LocalProcessor
+
+    override def reducer: Option[FeatureReducer] = processor.reducer
+    // handled by local processor
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def maxFeatures: Option[Int] = None
   }
 
   /**

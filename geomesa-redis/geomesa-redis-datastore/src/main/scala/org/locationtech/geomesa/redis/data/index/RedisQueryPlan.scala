@@ -13,7 +13,7 @@ import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisResultsToFeatures
@@ -89,14 +89,9 @@ object RedisQueryPlan {
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems]
-    ) extends RedisQueryPlan {
+    ) extends RedisQueryPlan with LocalProcessorPlan {
 
     import scala.collection.JavaConverters._
-
-    override def reducer: Option[FeatureReducer] = processor.reducer
-    // handled in the local processor
-    override def sort: Option[Seq[(String, Boolean)]] = None
-    override def maxFeatures: Option[Int] = None
 
     override def scan(): CloseableIterator[SimpleFeature] = {
       // query guard hook - also handles full table scan checks
