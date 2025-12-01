@@ -141,7 +141,7 @@ class CassandraDataStoreTest extends Specification with BeforeAfterAll {
 
       testTransforms(ds)
 
-      def testLooseBbox(ds: CassandraDataStore, loose: Boolean) = {
+      def testLooseBbox(ds: CassandraDataStore, loose: Boolean): MatchResult[Option[String]] = {
         val filter = ECQL.toFilter("dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z")
         val out = new ExplainString
         ds.getQueryPlan(new Query(typeName, filter), explainer = out)

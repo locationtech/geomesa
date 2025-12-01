@@ -85,7 +85,7 @@ case class StatementPlan(
   override protected def moreExplaining(explainer: Explainer): Unit = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     // filter, transforms, sort, max features are all captured in the local processor so pull them out of the hints instead of the plan
-    explainer(s"ECQL: ${processor.filter.fold("none")(FilterHelper.toString)}")
+    explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
     explainer(s"Transform: ${strategy.hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
     explainer(s"Sort: ${strategy.hints.getSortFields.fold("none")(_.mkString(", "))}")
     explainer(s"Max Features: ${strategy.hints.getMaxFeatures.getOrElse("none")}")
