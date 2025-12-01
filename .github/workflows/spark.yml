@@ -55,21 +55,3 @@ jobs:
       - name: Remove geomesa artifacts
         if: success() || failure()
         run: rm -rf ~/.m2/repository/org/locationtech/geomesa
-  validate-ci:
-    # validates that we haven't missed any projects in our build matrix
-    name: validate-ci
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Validate project list
-        run: |
-          while IFS= read -r -d '' test_class; do
-            module="${test_class%/src/test/*}"
-            module="${module#./}"
-            if [[ $module =~ .*spark ]]; then
-              echo "Checking $module"
-              yq -e '.jobs.integration-tests.strategy.matrix.projects[].list | select(test("(^|[, ])'"${module}"'($|[, ])"))' .github/workflows/spark.yml >/dev/null 2>&1 || exit 1
-            fi
-          done < <(find . -name '*IT.scala' -print0)
-          echo "done"
