@@ -19,7 +19,6 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter.HBaseResultsToFeatures
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
-import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures.IdentityResultsToFeatures
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.LocalProcessor
@@ -107,22 +106,15 @@ object HBaseQueryPlan {
   case class TableScan(table: TableName, scans: Seq[Scan])
 
   // plan that will not actually scan anything
-  case class EmptyPlan(ds: HBaseDataStore, strategy: QueryStrategy, processor: Option[LocalProcessor], reducer: Option[FeatureReducer])
-      extends HBaseQueryPlan {
+  case class EmptyPlan(ds: HBaseDataStore, strategy: QueryStrategy, reducer: Option[FeatureReducer]) extends HBaseQueryPlan {
     override type Results = SimpleFeature
     override def ranges: Seq[RowRange] = Seq.empty
     override def scans: Seq[TableScan] = Seq.empty
-    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] =
-      new IdentityResultsToFeatures(processor.map(_.sft).getOrElse(strategy.index.sft))
+    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
     override def sort: Option[Seq[(String, Boolean)]] = None
     override def maxFeatures: Option[Int] = None
     override def projection: Option[QueryReferenceSystems] = None
-    override def scan(): CloseableIterator[SimpleFeature] = {
-      val features = CloseableIterator.empty[SimpleFeature]
-      // still need to apply the local processor (if any), for things like stats scans
-      processor.fold(features)(_.apply(features))
-    }
-
+    override def scan(): CloseableIterator[SimpleFeature] = CloseableIterator.empty
     override protected def threads: Int = 0
     override protected def singleTableScan(
         scan: TableScan,

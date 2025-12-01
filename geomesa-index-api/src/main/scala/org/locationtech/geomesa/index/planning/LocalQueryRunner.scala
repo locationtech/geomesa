@@ -23,6 +23,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.ArrowScan.DeltaReducer
+import org.locationtech.geomesa.index.iterators.StatsScan.StatsReducer
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalQueryPlan}
 import org.locationtech.geomesa.index.stats.Stat
@@ -249,7 +250,7 @@ object LocalQueryRunner extends LazyLogging {
     } else if (hints.isDensityQuery) {
       (new DensityProcessor(schema, hints), None)
     } else if (hints.isStatsQuery) {
-      (new StatsProcessor(schema, hints), None)
+      (new StatsProcessor(schema, hints), Some(new StatsReducer(schema, hints.getStatsQuery, hints.isStatsEncode)))
     } else {
       (CloseableIterator.apply(_, ()), None)
     }
@@ -369,16 +370,15 @@ object LocalQueryRunner extends LazyLogging {
    *
    * @param sft feature type
    * @param query stats query
-   * @param encode encode results as binary, or otherwise return json
    */
-  class StatsProcessor(sft: SimpleFeatureType, query: String, encode: Boolean) extends LocalScanProcessor {
+  class StatsProcessor(sft: SimpleFeatureType, query: String) extends LocalScanProcessor {
 
-    def this(sft: SimpleFeatureType, hints: Hints) = this(sft, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
+    def this(sft: SimpleFeatureType, hints: Hints) = this(sft, hints.getStatsQuery)
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val stat = Stat(sft, query)
       try { features.foreach(stat.observe) } finally { features.close() }
-      val encoded = if (encode) { StatsScan.encodeStat(sft)(stat) } else { stat.toJson }
+      val encoded = StatsScan.encodeStat(sft)(stat)
       val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint))
       CloseableIterator.single(sf)
     }
