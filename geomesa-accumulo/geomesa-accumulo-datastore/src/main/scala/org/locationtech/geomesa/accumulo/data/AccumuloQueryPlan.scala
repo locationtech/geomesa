@@ -14,8 +14,6 @@ import org.apache.accumulo.core.client.{AccumuloClient, IteratorSetting, Scanner
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
-import org.geotools.api.feature.simple.SimpleFeatureType
-import org.geotools.api.filter.Filter
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
@@ -143,7 +141,7 @@ object AccumuloQueryPlan extends LazyLogging {
       helper.consistency.foreach(scanner.setConsistencyLevel)
       helper.timeout match {
         case None => new ScanIterator(scanner)
-        case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, strategy.index.sft.getTypeName, strategy.filter.filter)
+        case Some(t) => new ManagedScan(new AccumuloScanner(scanner), t, this)
       }
     }
   }

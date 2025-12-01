@@ -13,6 +13,7 @@ import com.datastax.driver.core.Statement
 import org.geotools.api.feature.simple.SimpleFeature
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.CassandraResultsToFeatures
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
@@ -73,6 +74,9 @@ object CassandraQueryPlan {
       processor(CassandraBatchScan(this, ds.session, ranges, numThreads, timeout).map(toFeatures.apply))
     }
 
-    override protected def moreExplaining(explainer: Explainer): Unit = processor.explain(explainer)
+    override protected def moreExplaining(explainer: Explainer): Unit = {
+      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      processor.explain(explainer)
+    }
   }
 }

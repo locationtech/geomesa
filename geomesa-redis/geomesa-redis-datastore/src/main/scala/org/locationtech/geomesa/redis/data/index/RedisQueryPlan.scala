@@ -10,6 +10,7 @@ package org.locationtech.geomesa.redis.data
 package index
 
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, QueryStrategyPlan, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, QueryStrategy}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalProcessorPlan}
@@ -108,6 +109,7 @@ object RedisQueryPlan {
 
     override def moreExplaining(explainer: Explainer): Unit = {
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
+      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
       processor.explain(explainer)
     }
 

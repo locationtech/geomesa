@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.ArrowScan.DeltaReducer
 import org.locationtech.geomesa.index.iterators.StatsScan.StatsReducer
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalQueryPlan}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{LocalProcessor, LocalQueryPlan, LocalScan}
 import org.locationtech.geomesa.index.stats.Stat
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, SortingSimpleFeatureIterator}
@@ -60,12 +60,12 @@ abstract class LocalQueryRunner(authProvider: Option[AuthorizationsProvider])
     * @param filter filter (will not be Filter.INCLUDE), if any
     * @return
     */
-  protected def features(sft: SimpleFeatureType, filter: Option[Filter]): Iterator[SimpleFeature]
+  protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature]
 
   override protected def getQueryPlans(sft: SimpleFeatureType, query: Query, explain: Explainer): Seq[QueryPlan] = {
     val processor = LocalProcessor(sft, None, query.getHints, authProvider)
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
-    val scanner = () => CloseableIterator(features(sft, filter))
+    val scanner = LocalScan(this, sft, filter)
     val toFeatures = new IdentityResultsToFeatures(sft)
     val projection = query.getHints.getProjection
 
@@ -80,10 +80,48 @@ object LocalQueryRunner extends LazyLogging {
 
   type LocalScanProcessor = CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature]
 
-  private type LocalQueryScan = (LocalScanProcessor, Option[FeatureReducer])
+  /**
+   * Set any distributed sort into a regular sort hint, for cases where distributed sorting isn't being processed
+   *
+   * @param hints hints
+   * @param defaultDtg default date field to use for bin sorting, if not specified
+   */
+  private def setLocalSorting(hints: Hints, defaultDtg: Option[String]): Unit = {
+    if (hints.isArrowQuery) {
+      hints.getArrowSort.foreach { case (field, reverse) =>
+        hints.put(QueryHints.Internal.SORT_FIELDS, StringSerialization.encodeSeq(Seq(field, reverse.toString)))
+      }
+    } else if (hints.isBinQuery && hints.isBinSorting) {
+      hints.getBinDtgField.orElse(defaultDtg).foreach { dtg =>
+        hints.put(QueryHints.Internal.SORT_FIELDS, StringSerialization.encodeSeq(Seq(dtg, "false")))
+      }
+    }
+  }
+
+  /**
+   * Create the local scan plan
+   *
+   * @param sft feature type
+   * @param hints query hints
+   * @return
+   */
+  private def plan(sft: SimpleFeatureType, hints: Hints): (LocalScanProcessor, Option[FeatureReducer]) = {
+    val schema = hints.getTransformSchema.getOrElse(sft)
+    if (hints.isArrowQuery) {
+      (new ArrowProcessor(schema, hints), Some(new DeltaReducer(schema, hints, sorted = true)))
+    } else if (hints.isBinQuery) {
+      (new BinProcessor(schema, hints), None)
+    } else if (hints.isDensityQuery) {
+      (new DensityProcessor(schema, hints), None)
+    } else if (hints.isStatsQuery) {
+      (new StatsProcessor(schema, hints), Some(new StatsReducer(schema, hints.getStatsQuery, hints.isStatsEncode)))
+    } else {
+      (CloseableIterator.apply(_, ()), None)
+    }
+  }
 
   case class LocalQueryPlan(
-      scanner: () => CloseableIterator[SimpleFeature],
+      scanner: LocalScan,
       processor: LocalProcessor,
       resultsToFeatures: ResultsToFeatures[SimpleFeature],
       projection: Option[QueryReferenceSystems],
@@ -91,6 +129,7 @@ object LocalQueryRunner extends LazyLogging {
     override def scan(): CloseableIterator[SimpleFeature] = processor(scanner())
     override def explain(explainer: Explainer): Unit = {
       explainer.pushLevel("LocalQueryPlan:")
+      explainer(s"Filter: ${scanner.filter.fold("none")(FilterHelper.toString)}")
       processor.explain(explainer)
       explainer(s"Reduce: ${reducer.getOrElse("none")}")
       explainer.popLevel()
@@ -110,6 +149,11 @@ object LocalQueryRunner extends LazyLogging {
     // handled by local processor
     override def sort: Option[Seq[(String, Boolean)]] = None
     override def maxFeatures: Option[Int] = None
+  }
+
+  case class LocalScan(runner: LocalQueryRunner, sft: SimpleFeatureType, filter: Option[Filter])
+    extends (() => CloseableIterator[SimpleFeature]) {
+    override def apply(): CloseableIterator[SimpleFeature] = runner.features(sft, filter)
   }
 
   /**
@@ -224,50 +268,9 @@ object LocalQueryRunner extends LazyLogging {
     }
 
     def explain(explainer: Explainer): Unit = {
-      explainer(s"Client-side filter: ${filter.fold("none")(FilterHelper.toString)}")
       explainer(s"Transform: ${hints.getTransform.fold("none")(t => s"${t._1} ${SimpleFeatureTypes.encodeType(t._2)}")}")
       explainer(s"Sort: ${hints.getSortFields.fold("none")(_.mkString(", "))}")
       explainer(s"Max Features: ${hints.getMaxFeatures.getOrElse("none")}")
-    }
-  }
-
-  /**
-   * Set any distributed sort into a regular sort hint, for cases where distributed sorting isn't being processed
-   *
-   * @param hints hints
-   * @param defaultDtg default date field to use for bin sorting, if not specified
-   */
-  private def setLocalSorting(hints: Hints, defaultDtg: Option[String]): Unit = {
-    if (hints.isArrowQuery) {
-      hints.getArrowSort.foreach { case (field, reverse) =>
-        hints.put(QueryHints.Internal.SORT_FIELDS, StringSerialization.encodeSeq(Seq(field, reverse.toString)))
-      }
-    } else if (hints.isBinQuery && hints.isBinSorting) {
-      hints.getBinDtgField.orElse(defaultDtg).foreach { dtg =>
-        hints.put(QueryHints.Internal.SORT_FIELDS, StringSerialization.encodeSeq(Seq(dtg, "false")))
-      }
-    }
-  }
-
-  /**
-   * Create the local scan plan
-   *
-   * @param sft feature type
-   * @param hints query hints
-   * @return
-   */
-  private def plan(sft: SimpleFeatureType, hints: Hints): LocalQueryScan = {
-    val schema = hints.getTransformSchema.getOrElse(sft)
-    if (hints.isArrowQuery) {
-      (new ArrowProcessor(schema, hints), Some(new DeltaReducer(schema, hints, sorted = true)))
-    } else if (hints.isBinQuery) {
-      (new BinProcessor(schema, hints), None)
-    } else if (hints.isDensityQuery) {
-      (new DensityProcessor(schema, hints), None)
-    } else if (hints.isStatsQuery) {
-      (new StatsProcessor(schema, hints), Some(new StatsReducer(schema, hints.getStatsQuery, hints.isStatsEncode)))
-    } else {
-      (CloseableIterator.apply(_, ()), None)
     }
   }
 

@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaFeatureCache.ReadableFeatureCache
 import org.locationtech.geomesa.metrics.micrometer.utils.TagUtils
 import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 class KafkaQueryRunner(
     features: ReadableFeatureCache,
@@ -26,12 +27,13 @@ class KafkaQueryRunner(
 
   override protected def tags(typeName: String): Tags = tags.and(TagUtils.typeNameTag(typeName))
 
-  override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): Iterator[SimpleFeature] = {
+  override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] = {
     import scala.collection.JavaConverters._
-    filter match {
+    val iter = filter match {
       case Some(f: Id) => f.getIDs.iterator.asScala.map(i => features.get(i.toString)).filter(_ != null)
       case Some(f)     => features.all().filter(f.evaluate)
       case None        => features.all()
     }
+    CloseableIterator(iter)
   }
 }

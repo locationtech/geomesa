@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.api.feature.simple.SimpleFeature
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter.HBaseResultsToFeatures
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
@@ -167,7 +168,10 @@ object HBaseQueryPlan {
       processor(HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout).map(toFeatures.apply))
     }
 
-    override protected def moreExplaining(explainer: Explainer): Unit = processor.explain(explainer)
+    override protected def moreExplaining(explainer: Explainer): Unit = {
+      explainer(s"Client-side filter: ${processor.filter.fold("none")(FilterHelper.toString)}")
+      processor.explain(explainer)
+    }
   }
 
   case class CoprocessorPlan(
