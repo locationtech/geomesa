@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, LocalProcessorScanPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.rpc.filter.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -27,7 +27,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 
 @RunWith(classOf[JUnitRunner])
 class HBaseArrowTest extends Specification with LazyLogging  {
@@ -185,7 +184,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
             val filters = plan.scans.head.scans.head.getFilter.asInstanceOf[FilterList].getFilters
             filters.asScala.map(_.getClass) must contain(classOf[Z3HBaseFilter])
           } else {
-            plan must beAnInstanceOf[ScanPlan]
+            plan must beAnInstanceOf[LocalProcessorScanPlan]
           }
         }
         val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))

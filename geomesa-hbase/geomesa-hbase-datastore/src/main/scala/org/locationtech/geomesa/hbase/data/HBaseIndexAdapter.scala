@@ -212,17 +212,15 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
-    // check for an empty query plan, if there are no tables or ranges to scan
-    def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
-      if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(ds, strategy, reducer)) } else { None }
-
     if (!ds.config.remoteFilter) {
       // everything is done client side
       // note: we assume visibility filtering is still done server-side as it's part of core hbase
       // note: we use the full filter here, since we can't use the z3 server-side filter
       // for some attribute queries we wouldn't need the full filter...
       val processor = LocalProcessor(schema, strategy.filter.filter, hints, None)
-      empty(processor.reducer).getOrElse {
+      if (tables.isEmpty || ranges.isEmpty) {
+        EmptyPlan(ds, strategy, Some(processor), processor.reducer)
+      } else {
         val scans = configureScans(tables, ranges, small, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new IdentityResultsToFeatures(schema)
         val project = hints.getProjection
@@ -271,6 +269,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
       lazy val resultsToFeatures = new HBaseResultsToFeatures(index, returnSchema)
       lazy val localReducer = Some(new LocalTransformReducer(returnSchema, hints))
+
+      // check for an empty query plan, if there are no tables or ranges to scan
+      def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
+        if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(ds, strategy, None, reducer)) } else { None }
 
       if (hints.isDensityQuery) {
         empty(None).getOrElse {

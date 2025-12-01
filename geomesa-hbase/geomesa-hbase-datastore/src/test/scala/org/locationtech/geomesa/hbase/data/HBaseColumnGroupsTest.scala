@@ -22,7 +22,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, LocalProcessorScanPlan, ScanPlan}
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_TRACK}
 import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -241,8 +241,10 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         foreach(ds.getQueryPlan(query)) { qp =>
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.arrow) {
             qp must beAnInstanceOf[CoprocessorPlan]
-          } else {
+          } else if (ds.config.remoteFilter) {
             qp must beAnInstanceOf[ScanPlan]
+          } else {
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
@@ -324,8 +326,10 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         foreach(ds.getQueryPlan(query)) { qp =>
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.density) {
             qp must beAnInstanceOf[CoprocessorPlan]
-          } else {
+          } else if (ds.config.remoteFilter) {
             qp must beAnInstanceOf[ScanPlan]
+          } else {
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
@@ -354,8 +358,10 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
         foreach(ds.getQueryPlan(query)) { qp =>
           if (ds.config.remoteFilter && ds.config.coprocessors.enabled.stats) {
             qp must beAnInstanceOf[CoprocessorPlan]
-          } else {
+          } else if (ds.config.remoteFilter) {
             qp must beAnInstanceOf[ScanPlan]
+          } else {
+            qp must beAnInstanceOf[LocalProcessorScanPlan]
           }
           qp.scans.head.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("A")
         }
